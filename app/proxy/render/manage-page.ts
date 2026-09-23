@@ -146,6 +146,7 @@ ${renderGifts(data)}
   </form>
 </div>
 
+${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
 <script id="registro-config" type="application/json">${jsonForScript({
     actionUrl: data.actionUrl,
     registryId: data.registryId,
@@ -259,10 +260,12 @@ function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
   const shop = escapeHtml(data.shopName);
   const href = escapeAttr(storeMatchHref(m));
   const isProduct = m.kind === "product";
-  const link = isProduct
-    ? `<a href="${href}" target="_blank" rel="noopener">${escapeHtml(m.title)}</a>`
-    : `<a href="${href}" target="_blank" rel="noopener">Browse ${escapeHtml(m.title)} products</a>`;
   const id = escapeAttr(item.id);
+  // Opens the preview popup; without JavaScript it is still a plain link to the store.
+  const previewAttrs = `class="js-match-preview" data-item="${id}" data-orig="${escapeAttr(item.title)}" data-kept="${m.status === "kept" ? "1" : "0"}"`;
+  const link = isProduct
+    ? `<a ${previewAttrs} href="${href}" target="_blank" rel="noopener">${escapeHtml(m.title)}</a>`
+    : `<a ${previewAttrs} href="${href}" target="_blank" rel="noopener">Browse ${escapeHtml(m.title)} products</a>`;
 
   if (m.status === "kept") {
     return `<div class="match">
@@ -275,10 +278,29 @@ function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
   <p class="item-meta"><strong>${lead}</strong> ${link}</p>
   <div class="row">
     <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="keep">Show to guests</button>
-    ${isProduct ? `<button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="swap">Use this instead</button>` : ""}
+    ${
+      isProduct
+        ? `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="swap" data-orig="${escapeAttr(item.title)}" data-kept="0">Preview &amp; swap</button>`
+        : `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="preview" data-orig="${escapeAttr(item.title)}" data-kept="0">See matching products</button>`
+    }
     <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">Remove</button>
   </div>
 </div>`;
+}
+
+/** The "similar item" popup, filled in by the page script. One per page. */
+function renderMatchDialog(data: ManagePageData): string {
+  return `<dialog id="match-dialog" class="match-dialog" aria-labelledby="match-dialog-title">
+  <div class="md-head">
+    <h2 id="match-dialog-title">From ${escapeHtml(data.shopName)}</h2>
+    <button class="dismiss js-md-close" type="button" aria-label="Close">&times;</button>
+  </div>
+  <div id="md-body" role="status">Loading&hellip;</div>
+  <div class="row md-foot">
+    <button class="btn sm ghost js-md-keep" type="button">Show to guests</button>
+    <button class="btn sm ghost js-md-close" type="button">Close</button>
+  </div>
+</dialog>`;
 }
 
 function renderGifts(data: ManagePageData): string {
@@ -353,6 +375,50 @@ function manageScript(): string {
     localStorage.setItem(KEY,JSON.stringify(stored.slice(0,10)));
   }catch(_){}
 
+  var dlg=document.getElementById('match-dialog');
+  function mdMessage(msg){
+    var b=document.getElementById('md-body');
+    var old=b.querySelector('.md-error');if(old)old.remove();
+    var p=document.createElement('p');p.className='item-meta md-error';p.style.color='#8c1d13';p.textContent=msg;b.appendChild(p);
+  }
+  function mdCard(p){
+    var card=document.createElement('div');card.className='md-card';
+    if(p.imageUrl){var im=document.createElement('img');im.src=p.imageUrl;im.alt='';im.width=72;im.height=72;im.className='item-img';card.appendChild(im);}
+    var info=document.createElement('div');info.className='md-info';
+    var t=document.createElement('p');t.className='item-title';t.textContent=p.title;info.appendChild(t);
+    if(p.price){var pr=document.createElement('p');pr.className='item-meta';pr.textContent=p.price;info.appendChild(pr);}
+    var row=document.createElement('div');row.className='row';
+    var b=document.createElement('button');b.type='button';b.className='btn sm js-md-swap';b.dataset.gid=p.id;b.textContent='Use this instead';row.appendChild(b);
+    var a=document.createElement('a');a.className='btn sm ghost';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent='View on store';row.appendChild(a);
+    info.appendChild(row);card.appendChild(info);
+    return card;
+  }
+  function openPreview(trigger){
+    var body=document.getElementById('md-body');
+    dlg.dataset.item=trigger.dataset.item;dlg.dataset.orig=trigger.dataset.orig||'';
+    dlg.querySelector('.js-md-keep').hidden=trigger.dataset.kept==='1';
+    dlg.querySelector('.js-md-keep').disabled=false;
+    body.textContent='Loading\u2026';
+    dlg.showModal();
+    post('/match-preview',{itemId:trigger.dataset.item}).then(function(res){
+      body.textContent='';
+      if(!res||!res.ok){mdMessage((res&&res.error)||'Could not load the store\u2019s products');return;}
+      var intro=document.createElement('p');intro.className='item-meta';
+      intro.textContent=res.kind==='product'
+        ?'Instead of \u201c'+dlg.dataset.orig+'\u201d, '+cfg.shopName+' has:'
+        :cfg.shopName+' sells '+res.title+' products. Pick one to swap in for \u201c'+dlg.dataset.orig+'\u201d:';
+      body.appendChild(intro);
+      if(res.products.length===0){
+        var none=document.createElement('p');none.className='item-meta';none.textContent='No products to show right now.';body.appendChild(none);
+      }
+      res.products.forEach(function(p){body.appendChild(mdCard(p));});
+      if(res.kind==='search'){
+        var all=document.createElement('a');all.className='hint';all.target='_blank';all.rel='noopener';
+        all.href='/search?q='+encodeURIComponent(res.title)+'&type=product';all.textContent='Browse all '+res.title+' products';body.appendChild(all);
+      }
+    }).catch(function(){body.textContent='';mdMessage('Could not load the store\u2019s products');});
+  }
+
   function status(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
   function post(path,body){return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()})}
 
@@ -415,6 +481,39 @@ function manageScript(): string {
           reveal();
         })
         .catch(function(){location.href=href;});
+      return;
+    }
+    var mp=e.target.closest('.js-match-preview');
+    if(mp&&dlg&&typeof dlg.showModal==='function'){
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
+      e.preventDefault();openPreview(mp);return;
+    }
+    if(e.target===dlg){dlg.close();return;}
+    if(e.target.closest('.js-md-close')){dlg.close();return;}
+    var mk=e.target.closest('.js-md-keep');
+    if(mk){
+      mk.disabled=true;
+      post('/item-match',{itemId:dlg.dataset.item,action:'keep'}).then(function(res){
+        if(res&&res.ok){location.reload();}else{mdMessage((res&&res.error)||'Could not do that');mk.disabled=false;}
+      });
+      return;
+    }
+    var sw=e.target.closest('.js-md-swap');
+    if(sw){
+      if(!sw.dataset.armed){
+        dlg.querySelectorAll('.js-md-swap').forEach(function(b){delete b.dataset.armed;b.textContent='Use this instead';});
+        dlg.querySelectorAll('.md-warn').forEach(function(n){n.remove();});
+        sw.dataset.armed='1';sw.textContent='Confirm swap';
+        var warn=document.createElement('p');warn.className='hint md-warn';
+        warn.textContent='This replaces \u201c'+(dlg.dataset.orig||'your item')+'\u201d on your registry. Guests will buy it through the store.';
+        sw.closest('.md-card').appendChild(warn);
+        return;
+      }
+      sw.disabled=true;
+      post('/item-match',{itemId:dlg.dataset.item,action:'swap',productGid:sw.dataset.gid}).then(function(res){
+        if(res&&res.ok){location.reload();}
+        else{mdMessage((res&&res.error)||'Could not swap');sw.disabled=false;}
+      });
       return;
     }
     var match=e.target.closest('.js-match');

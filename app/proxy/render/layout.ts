@@ -151,6 +151,16 @@ details.note[open] summary::before{content:'–  '}
 .owner-link{margin:28px 0 0;font-size:14px}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
 .store-link{font-size:13px}
+.match-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink);padding:16px 18px}
+.match-dialog::backdrop{background:rgba(0,0,0,.45)}
+.md-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.md-head h2{margin:0;font-size:18px}
+.md-head .dismiss{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;padding:4px}
+.md-card{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.md-card{flex-wrap:wrap}
+.md-info{flex:1;min-width:0}
+.md-warn{flex-basis:100%;margin:0}
+.md-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .cat-group{margin:26px 0 0}
 .cat-head{font-size:18px;margin:0 0 10px}
 .cat-select{min-width:0;max-width:100%;width:auto}

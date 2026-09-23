@@ -47,8 +47,22 @@ const PRODUCT_QUERY = `#graphql
       id
       title
       handle
+      status
       featuredMedia { preview { image { url } } }
       variants(first: 1) { nodes { id price } }
+    }
+  }`;
+
+const PREVIEW_QUERY = `#graphql
+  query giftpinMatchPreview($query: String!) {
+    products(first: 4, query: $query) {
+      nodes {
+        id
+        title
+        handle
+        featuredMedia { preview { image { url } } }
+        variants(first: 1) { nodes { id price } }
+      }
     }
   }`;
 
@@ -183,10 +197,100 @@ interface ChoiceInput {
   registryId: string;
   itemId: string;
   action: MatchAction;
+  /** For a swap: the store product to swap to. Defaults to the suggested product. */
+  productGid?: string;
+}
+
+const PRODUCT_GID = /^gid:\/\/shopify\/Product\/\d+$/;
+
+export interface PreviewProduct {
+  id: string;
+  title: string;
+  handle: string;
+  imageUrl: string | null;
+  price: string | null;
+}
+
+export interface MatchPreview {
+  kind: "product" | "search";
+  /** The word we searched for (search kind), or the suggested product's title. */
+  title: string;
+  products: PreviewProduct[];
+}
+
+function formatPrice(amount: string | undefined, currency: string): string | null {
+  if (!amount) return null;
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return null;
+  try {
+    return new Intl.NumberFormat("en", { style: "currency", currency }).format(n);
+  } catch {
+    return `${amount} ${currency}`;
+  }
+}
+
+interface PreviewNode {
+  id: string;
+  title: string;
+  handle: string;
+  featuredMedia?: { preview?: { image?: { url?: string } } } | null;
+  variants: { nodes: { id: string; price: string }[] };
+}
+
+function toPreview(n: PreviewNode, currency: string): PreviewProduct {
+  const url = n.featuredMedia?.preview?.image?.url ?? null;
+  return {
+    id: n.id,
+    title: n.title,
+    handle: n.handle,
+    // Only ever hand the browser an https image address.
+    imageUrl: url && url.startsWith("https://") ? url : null,
+    price: formatPrice(n.variants.nodes[0]?.price, currency),
+  };
+}
+
+/**
+ * What the registrant sees in the "similar item" popup: the suggested product,
+ * or (for a category suggestion) up to four of the store's products of that
+ * kind. Read-only; nothing is changed in the store.
+ */
+export async function getMatchPreview(registryId: string, itemId: string): Promise<MatchPreview> {
+  const item = await db.registryItem.findFirst({
+    where: { id: itemId, registryId },
+    include: { registry: { include: { shop: true } } },
+  });
+  if (!item || !item.storeMatchTitle || (item.storeMatchStatus !== "suggested" && item.storeMatchStatus !== "kept")) {
+    throw new ItemError("There's no store match for that item");
+  }
+  const shop = item.registry.shop;
+  const { admin } = await unauthenticated.admin(shop.domain);
+
+  if (item.storeMatchProductGid) {
+    const response = await admin.graphql(PRODUCT_QUERY, { variables: { id: item.storeMatchProductGid } });
+    const body = (await response.json()) as { data?: { product?: (PreviewNode & { status?: string }) | null }; errors?: unknown };
+    if (body.errors) throw new Error(`Admin API product lookup failed: ${JSON.stringify(body.errors).slice(0, 300)}`);
+    const product = body.data?.product;
+    if (!product || (product.status && product.status !== "ACTIVE")) {
+      throw new ItemError("That product isn't available in the store any more");
+    }
+    return { kind: "product", title: item.storeMatchTitle, products: [toPreview(product, shop.currency)] };
+  }
+
+  // Category suggestion. The word came from our own tokeniser (a-z, 0-9), but
+  // strip anything else anyway before it goes into a search query.
+  const term = item.storeMatchTitle.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!term) throw new ItemError("There's no store match for that item");
+  const response = await admin.graphql(PREVIEW_QUERY, { variables: { query: `status:active AND ${term}` } });
+  const body = (await response.json()) as { data?: { products?: { nodes?: PreviewNode[] } }; errors?: unknown };
+  if (body.errors || !body.data?.products) {
+    throw new Error(`Admin API preview failed: ${JSON.stringify(body.errors ?? "no data").slice(0, 300)}`);
+  }
+  const nodes = body.data.products.nodes ?? [];
+  return { kind: "search", title: item.storeMatchTitle, products: nodes.map((n) => toPreview(n, shop.currency)) };
 }
 
 /** Apply the registrant's choice. Throws ItemError with a message fit to show them. */
-export async function applyMatchChoice({ registryId, itemId, action }: ChoiceInput): Promise<void> {
+export async function applyMatchChoice({ registryId, itemId, action, productGid }: ChoiceInput): Promise<void> {
   const item = await db.registryItem.findFirst({
     where: { id: itemId, registryId },
     include: { purchases: { where: { voidedAt: null } }, registry: { include: { shop: true } } },
@@ -205,20 +309,21 @@ export async function applyMatchChoice({ registryId, itemId, action }: ChoiceInp
   }
 
   // swap: replace the outside item with the store's own product.
-  if (!item.storeMatchProductGid || !item.storeMatchVariantGid) {
-    throw new ItemError("That suggestion is a link to the store's range, not a single product, so it can't be swapped in.");
-  }
+  const targetGid = productGid ?? item.storeMatchProductGid;
+  if (!targetGid) throw new ItemError("Choose which of the store's products to swap to.");
+  if (!PRODUCT_GID.test(targetGid)) throw new ItemError("That isn't a valid product");
   if (item.purchases.length > 0 || item.purchasedQty > 0) {
     throw new ItemError("Someone has already bought this, so it can't be swapped. You can dismiss the suggestion instead.");
   }
 
   const { admin } = await unauthenticated.admin(item.registry.shop.domain);
-  const response = await admin.graphql(PRODUCT_QUERY, { variables: { id: item.storeMatchProductGid } });
+  const response = await admin.graphql(PRODUCT_QUERY, { variables: { id: targetGid } });
   const body = (await response.json()) as {
     data?: {
       product?: {
         id: string;
         title: string;
+        status?: string;
         featuredMedia?: { preview?: { image?: { url?: string } } } | null;
         variants: { nodes: { id: string; price: string }[] };
       } | null;
@@ -226,7 +331,9 @@ export async function applyMatchChoice({ registryId, itemId, action }: ChoiceInp
   };
   const product = body.data?.product;
   const variant = product?.variants.nodes[0];
-  if (!product || !variant) throw new ItemError("That product isn't available in the store any more");
+  if (!product || !variant || (product.status && product.status !== "ACTIVE")) {
+    throw new ItemError("That product isn't available in the store any more");
+  }
 
   const result = await addInternalItem({
     registryId,

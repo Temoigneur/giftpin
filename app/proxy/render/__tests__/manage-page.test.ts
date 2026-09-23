@@ -135,6 +135,20 @@ describe("in-store match (registrant view)", () => {
     const html = page({ items: [{ ...base, storeMatch: null }] });
     expect(html).not.toContain('class="match"');
   });
+
+  it("adds the preview popup only when there is a suggestion to preview", () => {
+    const withMatch = page({ items: [{ ...base, storeMatch: { status: "suggested", kind: "product" as const, ...m } }] });
+    expect(withMatch).toContain('id="match-dialog"');
+    expect(withMatch).toContain("js-match-preview");
+    expect(withMatch).toContain("/match-preview");
+    const without = page({ items: [{ ...base, storeMatch: null }] });
+    expect(without).not.toContain('id="match-dialog"');
+  });
+
+  it("asks for a second click before a swap (it replaces the original item)", () => {
+    const html = page({ items: [{ ...base, storeMatch: { status: "suggested", kind: "product" as const, ...m } }] });
+    expect(html).toContain("Confirm swap");
+  });
 });
 
 describe("manage page keeps the owner authorised (24 Sep 2026)", () => {
@@ -163,11 +177,12 @@ describe("category-level store suggestion (registrant view)", () => {
     isExternal: true, isStale: true, availability: "in_stock", fulfilled: false,
   };
 
-  it("offers keep and remove, but not swap, for a store-range suggestion", () => {
+  it("offers a preview of the store's products, but not a direct swap, for a store-range suggestion", () => {
     const html = page({ items: [{ ...base, storeMatch: { status: "suggested", kind: "search", title: "snowboard", handle: null } }] });
     expect(html).toContain("Maple &amp; Clay sells snowboard products");
     expect(html).toContain('href="/search?q=snowboard&amp;type=product"');
     expect(html).toContain('data-action="keep"');
+    expect(html).toContain('data-action="preview"');
     expect(html).not.toContain('data-action="swap"');
   });
 });

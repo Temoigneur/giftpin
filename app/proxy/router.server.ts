@@ -38,7 +38,7 @@ import {
   ItemError,
 } from "../models/item.server";
 import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
-import { applyMatchChoice } from "../lib/store-match.server";
+import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
@@ -533,6 +533,8 @@ async function handlePost(
       return removeItemAction(request, ctx);
     case "item-match":
       return itemMatchAction(request, ctx);
+    case "match-preview":
+      return matchPreviewAction(request, ctx);
     case "settings":
       return settingsAction(request, ctx);
     case "delete":
@@ -957,13 +959,34 @@ async function itemMatchAction(request: Request, ctx: ProxyContext): Promise<Res
   }
 
   try {
-    await applyMatchChoice({ registryId: registry.id, itemId: String(body.itemId ?? ""), action });
+    await applyMatchChoice({
+      registryId: registry.id,
+      itemId: String(body.itemId ?? ""),
+      action,
+      productGid: typeof body.productGid === "string" ? body.productGid : undefined,
+    });
     // Guests see a kept match, so their cached page has to go stale.
     await touchRegistry(registry.id);
     return json({ ok: true });
   } catch (err) {
     if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
     throw err;
+  }
+}
+
+/** POST .../match-preview?t=<token> — what the "similar item" popup shows. Read-only. */
+async function matchPreviewAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  try {
+    const preview = await getMatchPreview(registry.id, String(body.itemId ?? ""));
+    return json({ ok: true, ...preview });
+  } catch (err) {
+    if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
+    console.error("[proxy] match-preview failed:", (err as Error).message);
+    return json({ ok: false, error: "Couldn't load the store's products right now" }, 502);
   }
 }
 
