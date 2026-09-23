@@ -385,7 +385,14 @@ function manageScript(): string {
       if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
       e.preventDefault();
       var term=chip.dataset.term,href=chip.getAttribute('href'),panel=document.getElementById('cat-fallback');
+      // Show the answer right under the room the person is looking at. The panel
+      // used to sit at the very bottom of the whole list, so when the store
+      // didn't carry an item the click appeared to do nothing.
+      var grid=chip.closest('.cat-grid');
+      if(grid&&grid.parentNode){grid.parentNode.insertBefore(panel,grid.nextSibling);}
       panel.hidden=false;panel.textContent='Checking '+cfg.shopName+'...';
+      var reveal=function(){try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}};
+      reveal();
       fetch('/search/suggest.json?q='+encodeURIComponent(term)+'&resources[type]=product&resources[limit]=1',{headers:{Accept:'application/json'}})
         .then(function(r){return r.ok?r.json():null})
         .then(function(data){
@@ -405,6 +412,7 @@ function manageScript(): string {
           var h=document.createElement('p');h.className='hint';
           h.textContent='Found one? Paste its link under \u201cFrom anywhere else\u201d below, or use the Giftpin browser extension.';
           panel.appendChild(h);
+          reveal();
         })
         .catch(function(){location.href=href;});
       return;
