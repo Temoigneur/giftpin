@@ -20,7 +20,8 @@ export type JobName =
   | "match-store-item"
   | "refresh-external"
   | "send-email"
-  | "reap-claims";
+  | "reap-claims"
+  | "purge-expired-data";
 
 export interface JobPayloads {
   "attribute-order": { shop: string; orderPayload: unknown };
@@ -30,6 +31,7 @@ export interface JobPayloads {
   "refresh-external": { batchSize?: number };
   "send-email": { template: string; to: string; data: Record<string, unknown> };
   "reap-claims": Record<string, never>;
+  "purge-expired-data": Record<string, never>;
 }
 
 type Handler<N extends JobName> = (payload: JobPayloads[N]) => Promise<void>;
@@ -123,6 +125,7 @@ function ensureHandlersLoaded(): Promise<void> {
       import("../lib/resolver/index.server"),
       import("../lib/store-match.server"),
       import("../lib/email.server"),
+      import("../models/retention.server"),
     ]).then(() => undefined);
   }
   return handlersLoaded;
@@ -178,5 +181,13 @@ export async function scheduleRecurring(): Promise<void> {
     "refresh-external",
     { batchSize: 200 },
     { repeat: { pattern: "17 3 * * *" }, jobId: "cron:refresh-external", ...DEFAULT_JOB_OPTIONS },
+  );
+
+  // Daily data-retention sweep — see app/models/retention.server.ts and
+  // section 7 of the privacy policy.
+  await queue.add(
+    "purge-expired-data",
+    {},
+    { repeat: { pattern: "43 4 * * *" }, jobId: "cron:purge-expired-data", ...DEFAULT_JOB_OPTIONS },
   );
 }

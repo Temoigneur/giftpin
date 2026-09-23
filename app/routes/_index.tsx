@@ -45,7 +45,7 @@ const HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Giftpin — Gift registries with items from any store</title>
-<meta name="description" content="Giftpin lets shoppers build gift registries with items from any store, while always suggesting your own products alongside. A gift registry app for Shopify.">
+<meta name="description" content="Giftpin lets shoppers build gift registries with items from any store, while suggesting your closest products alongside. A gift registry app for Shopify.">
 <meta property="og:title" content="Giftpin — Gift registries with items from any store">
 <meta property="og:description" content="Weddings, baby showers, birthdays and holidays. Add items from any website, share one link, and bring guests back to your store.">
 <meta property="og:type" content="website">
@@ -196,7 +196,7 @@ const HTML = `<!doctype html>
     <div>
       <p class="eyebrow">Gift registry for Shopify</p>
       <h1>Build a gift registry with items from <em>any store</em>.</h1>
-      <p class="lede">Shoppers can build gift registries with gifts from your store and other online shops, then share a single link with their guests. Giftpin keeps your products in front of them at every step, suggesting your own version of anything they add from elsewhere.</p>
+      <p class="lede">Shoppers can build gift registries with gifts from your store and other online shops, then share a single link with their guests. Giftpin keeps your products in front of them at every step, suggesting your closest matching products beside items they add from elsewhere.</p>
       <div class="cta">
         <a class="btn" href="mailto:support@giftpin.app?subject=Giftpin%20early%20access">Get early access</a>
         <a class="btn ghost" href="#how">See how it works</a>
@@ -235,7 +235,7 @@ const HTML = `<!doctype html>
         <p class="sec-lede" style="margin-bottom:28px">Other registry apps let shoppers wander off to other shops. Giftpin does the opposite: whatever they add, it looks in your catalog first and puts your product right beside it.</p>
         <ol class="pts">
           <li><span class="n">1</span><div><h3>Start from your shelves</h3><p>Inside "Add items", shoppers browse your store, and wedding registries get room-by-room ideas (kitchen, bath and more) that open a search of your catalog.</p></div></li>
-          <li><span class="n">2</span><div><h3>Your product appears beside theirs</h3><p>When a shopper adds an item from another site, by pasting a link or using the browser extension, Giftpin searches your catalog and shows your closest product next to it.</p></div></li>
+          <li><span class="n">2</span><div><h3>Your product appears beside theirs</h3><p>When a shopper adds an item from another site, by pasting a link or using the browser extension, Giftpin searches your catalog and, when it finds a close match, shows it next to the item.</p></div></li>
           <li><span class="n">3</span><div><h3>One tap to switch to yours</h3><p>They can swap the outside item for your product, and guests then buy it in one tap from your checkout. Suggestions are the shopper's choice, and guests only see the ones they keep.</p></div></li>
         </ol>
       </div>
@@ -268,7 +268,7 @@ const HTML = `<!doctype html>
     <p class="sec-lede">No accounts to create for guests, and nothing to install for them either.</p>
     <div class="steps">
       <div class="step"><h3>Start a registry</h3><p>A shopper creates a registry for a wedding, baby shower, birthday or holiday right from your store.</p></div>
-      <div class="step"><h3>Add anything</h3><p>They add products from your catalog, and from other online shops, and Giftpin suggests your closest products beside any item they add from outside.</p></div>
+      <div class="step"><h3>Add anything</h3><p>They add products from your catalog, and from other online shops, and Giftpin suggests your closest matching products beside items they add from outside.</p></div>
       <div class="step"><h3>Share the link</h3><p>Guests open one page, pick a gift, and mark it reserved so nobody buys the same thing twice.</p></div>
     </div>
   </div>
@@ -285,7 +285,7 @@ const HTML = `<!doctype html>
       <div class="card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
         <h3>Items from any store</h3>
-        <p>Shoppers aren't limited to one catalog. Add a product from your store or paste a link, or use the Giftpin Chrome extension to add a product from nearly any website in one click.</p>
+        <p>Shoppers aren't limited to one catalog. Add a product from your store or paste a link, or use the Giftpin Chrome extension (coming soon) to add a product from nearly any website in one click.</p>
       </div>
       <div class="card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>
@@ -311,7 +311,7 @@ const HTML = `<!doctype html>
         <h3>Build the list they really want</h3>
         <ul>
           <li>Add items from your store and from other online shops</li>
-          <li>A Chrome extension to add products from any website in one click</li>
+          <li>A Chrome extension (coming soon) to add products from any website in one click</li>
           <li>Registries for weddings, baby showers, birthdays and holidays</li>
           <li>One link to share with everyone</li>
         </ul>

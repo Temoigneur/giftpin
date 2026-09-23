@@ -2,6 +2,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { blindIndex, tryDecrypt } from "../lib/crypto.server";
+import { audit } from "../lib/audit.server";
 
 /**
  * GDPR: the merchant is asking what we hold about one of their customers.
@@ -28,6 +29,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     include: { registrants: true, items: true },
   });
 
+  // Gifts this customer bought for other people's registries (buyer name only).
+  const purchases = customerId
+    ? await db.purchase.findMany({
+        where: { buyerCustomerId: customerId, item: { registry: { shop: { domain: shop } } } },
+        select: { orderName: true, buyerName: true, qty: true, amount: true, currency: true, createdAt: true },
+      })
+    : [];
+
+  await audit({
+    shop,
+    actor: "shopify:gdpr",
+    action: "customer_data_exported",
+    subject: customerId,
+    detail: { registries: registries.length, purchases: purchases.length },
+  });
+
   console.log(
     JSON.stringify({
       type: "gdpr_data_request",
@@ -42,6 +59,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         itemCount: r.items.length,
         registrants: r.registrants.map((p) => ({ name: p.name, email: tryDecrypt(p.emailEnc) })),
       })),
+      purchasesAsBuyer: purchases,
     }),
   );
 

@@ -2,6 +2,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { blindIndex } from "../lib/crypto.server";
+import { audit } from "../lib/audit.server";
 import { deleteRegistry } from "../models/registry.server";
 
 /**
@@ -32,17 +33,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await deleteRegistry(registry.id);
   }
 
-  // Buyer details on someone else's registry are personal data too.
-  if (email) {
-    await db.purchase.updateMany({
+  // Buyer details on someone else's registry are personal data too. Purchases
+  // record the buyer's Shopify customer id, so erase exactly this customer's —
+  // never every buyer in the shop.
+  let buyerRecords = 0;
+  if (customerId) {
+    const res = await db.purchase.updateMany({
       where: {
+        buyerCustomerId: customerId,
         item: { registry: { shop: { domain: shop } } },
-        buyerEmailEnc: { not: null },
       },
-      data: { buyerName: null, buyerEmailEnc: null, buyerMessage: null },
+      data: { buyerName: null, buyerEmailEnc: null, buyerMessage: null, buyerCustomerId: null },
     });
+    buyerRecords = res.count;
   }
 
-  console.log(`[gdpr] redacted ${registries.length} registries for ${shop}`);
+  await audit({
+    shop,
+    actor: "shopify:gdpr",
+    action: "customer_redacted",
+    subject: customerId,
+    detail: { registriesDeleted: registries.length, purchasesScrubbed: buyerRecords },
+  });
+
+  console.log(`[gdpr] redacted ${registries.length} registries, ${buyerRecords} purchases for ${shop}`);
   return new Response();
 };

@@ -316,6 +316,9 @@ model Purchase {
   buyerName    String?
   buyerEmailEnc String?
   buyerMessage String?
+  // Shopify customer id of the buyer (numeric, as a string). Kept only so
+  // customers/redact can erase this buyer's name; cleared with the name.
+  buyerCustomerId String?
 
   // Registrant doesn't see who gave what until after this moment.
   hiddenUntil DateTime?
@@ -332,6 +335,7 @@ model Purchase {
   // because Postgres treats NULLs as distinct in a unique index.
   @@unique([orderId, lineItemId])
   @@index([itemId, voidedAt])
+  @@index([buyerCustomerId])
 }
 
 // ---------------------------------------------------------------------------
@@ -364,4 +368,22 @@ model ProcessedWebhook {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Audit log — who/what touched personal data. No relations on purpose: it must
+// outlive the registry or shop it describes. Pruned after 12 months.
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id      String   @id @default(cuid())
+  at      DateTime @default(now())
+  shop    String?
+  actor   String
+  action  String
+  subject String?
+  detail  Json     @default("{}")
+
+  @@index([at])
+  @@index([shop, at])
 }

@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { audit } from "../lib/audit.server";
 
 /**
  * Sent 48 hours after uninstall. Everything for this shop goes.
@@ -11,6 +12,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   await db.shop.deleteMany({ where: { domain: shop } });
   await db.session.deleteMany({ where: { shop } });
+
+  await audit({ shop, actor: "shopify:gdpr", action: "shop_erased" });
 
   console.log(`[gdpr] erased all data for ${shop}`);
   return new Response();

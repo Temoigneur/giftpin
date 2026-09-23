@@ -7,6 +7,7 @@ import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
 import { mintManageToken } from "./registry.server";
 import { unauthenticated } from "../shopify.server";
+import { audit } from "../lib/audit.server";
 
 /**
  * Order attribution.
@@ -52,6 +53,8 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
   const isNewCustomer = Number(order.customer?.orders_count ?? 0) <= 1;
   const buyerName =
     [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(" ") || null;
+  // Kept only so customers/redact can find and erase this buyer's name later.
+  const buyerCustomerId = order.customer?.id ? String(order.customer.id) : null;
 
   const touched = new Set<string>();
 
@@ -95,6 +98,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             amount: line.amount,
             currency: order.currency ?? shopRecord.currency,
             buyerName,
+            buyerCustomerId,
             buyerMessage: null,
             hiddenUntil,
             shippedToRegistrant: line.shipToRegistrant,
@@ -242,6 +246,14 @@ async function notifyRegistrant(
   const email = registrantEmail(owner);
   if (!email) return;
 
+  await audit({
+    shop: shopDomain,
+    actor: "system:notify-registrant",
+    action: "registrant_email_decrypted",
+    subject: registry.id,
+    detail: { purpose: "gift_purchased_notification" },
+  });
+
   const buyerLine = gift.hidden
     ? "We'll tell you who it was after the event."
     : gift.buyerName
@@ -351,6 +363,13 @@ export async function applyShipToRegistrant(
 
   const address = readShippingAddress(registry);
   if (!address) return { applied: false, reason: "no_address" };
+
+  await audit({
+    actor: "system:ship-to-registrant",
+    action: "shipping_address_read",
+    subject: registryId,
+    detail: { orderId, purpose: "rewrite_order_shipping_address" },
+  });
 
   const statusResponse = await graphql(ORDER_STATUS_QUERY, { variables: { id: orderId } });
   const status = (await statusResponse.json()) as {
