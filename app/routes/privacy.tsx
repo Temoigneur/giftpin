@@ -257,7 +257,7 @@ const HTML = `<!doctype html>
   <section id="contact">
     <h2><span class="num">12</span>Contact</h2>
     <p>Questions about this policy or your data can be sent to
-      <a href="mailto:humphries.jaguar+giftpin@gmail.com">humphries.jaguar+giftpin@gmail.com</a>.</p>
+      <a href="mailto:privacy@giftpin.app">privacy@giftpin.app</a>.</p>
     <div class="callout">This address is a filtered alias of the developer's
       own inbox — no separate support system to sign into, everything lands
       in one place.</div>

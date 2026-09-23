@@ -167,10 +167,8 @@ rather than monetization, but confirm rather than assume.
 
 ## Support
 
-- Support email: humphries.jaguar+giftpin@gmail.com (a "+" alias off your
-  regular Gmail — mail sent to it lands in your normal inbox, easy to
-  filter on `+giftpin` if you want a separate label later).
-- Privacy policy URL: https://claude.ai/artifact/Q4aPWpbwe2yzfApnHSZp5B
+- Support email: support@giftpin.app (Zoho alias on the giftpin.app mailbox).
+- Privacy policy URL: https://giftpin-app-production.up.railway.app/privacy
 
 ---
 

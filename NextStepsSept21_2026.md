@@ -41,7 +41,7 @@ Ben's call — "Registro" felt silly. See prior entries below for the full renam
 - **Protected customer data scope question:** sent 19 Sep, awaiting Shopify's reply — paste it into `partner-support-requests.md` when it arrives.
 
 ## Support & legal links
-- Support email: `humphries.jaguar+giftpin@gmail.com`
+- Support email: `support@giftpin.app`
 - Privacy policy: published claude.ai artifact for now; switch to `https://<production-domain>/privacy` the moment the app deploys to production (route already built: `app/routes/privacy.tsx`).
 
 ## Where things live
