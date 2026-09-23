@@ -196,7 +196,7 @@ const HTML = `<!doctype html>
     <div>
       <p class="eyebrow">Gift registry for Shopify</p>
       <h1>Build a gift registry with items from <em>any store</em>.</h1>
-      <p class="lede">Shoppers can add gifts from your store and from other online shops, then share a single link. Giftpin keeps your products in front of them at every step, and brings their guests back to yours.</p>
+      <p class="lede">Shoppers can build gift registries with gifts from your store and other online shops, then share a single link with their guests. Giftpin keeps your products in front of them at every step, suggesting your own version of anything they add from elsewhere.</p>
       <div class="cta">
         <a class="btn" href="mailto:support@giftpin.app?subject=Giftpin%20early%20access">Get early access</a>
         <a class="btn ghost" href="#how">See how it works</a>
@@ -268,7 +268,7 @@ const HTML = `<!doctype html>
     <p class="sec-lede">No accounts to create for guests, and nothing to install for them either.</p>
     <div class="steps">
       <div class="step"><h3>Start a registry</h3><p>A shopper creates a registry for a wedding, baby shower, birthday or holiday right from your store.</p></div>
-      <div class="step"><h3>Add anything</h3><p>They add products from your catalog, and from other online shops, and Giftpin suggests your closest products beside anything from elsewhere.</p></div>
+      <div class="step"><h3>Add anything</h3><p>They add products from your catalog, and from other online shops, and Giftpin suggests your closest products beside any item they add from outside.</p></div>
       <div class="step"><h3>Share the link</h3><p>Guests open one page, pick a gift, and mark it reserved so nobody buys the same thing twice.</p></div>
     </div>
   </div>
@@ -285,7 +285,7 @@ const HTML = `<!doctype html>
       <div class="card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
         <h3>Items from any store</h3>
-        <p>Shoppers aren't limited to one catalog. Add a product from your store, paste a link, or use the browser extension on nearly any online shop.</p>
+        <p>Shoppers aren't limited to one catalog. Add a product from your store or paste a link, or use the Giftpin Chrome extension to add a product from nearly any website in one click.</p>
       </div>
       <div class="card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>
@@ -311,6 +311,7 @@ const HTML = `<!doctype html>
         <h3>Build the list they really want</h3>
         <ul>
           <li>Add items from your store and from other online shops</li>
+          <li>A Chrome extension to add products from any website in one click</li>
           <li>Registries for weddings, baby showers, birthdays and holidays</li>
           <li>One link to share with everyone</li>
         </ul>
