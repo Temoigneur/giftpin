@@ -72,12 +72,25 @@ export async function findStoreMatch(shopDomain: string, title: string): Promise
   const response = await admin.graphql(SEARCH_QUERY, {
     variables: { query: `status:active AND (${terms.join(" OR ")})` },
   });
-  const body = (await response.json()) as { data?: { products?: { nodes?: SearchNode[] } } };
-  const nodes = body.data?.products?.nodes ?? [];
+  const body = (await response.json()) as {
+    data?: { products?: { nodes?: SearchNode[] } };
+    errors?: { message: string }[] | string;
+  };
+  // A GraphQL error must not be mistaken for "the store has nothing": throw so
+  // the job logs it and the item stays un-matched instead of being marked "none".
+  if (body.errors || !body.data?.products) {
+    throw new Error(`Admin API search failed: ${JSON.stringify(body.errors ?? "no data").slice(0, 300)}`);
+  }
+  const nodes = body.data.products.nodes ?? [];
 
-  // Only products actually published to the online store — anything else has
-  // no page to link to.
-  const published = nodes.filter((n) => n.onlineStoreUrl);
+  // Prefer products with an online-store page. If none report one (the field is
+  // null for some app/publication setups), fall back to every active product:
+  // the storefront link is built from the handle either way.
+  const withUrl = nodes.filter((n) => n.onlineStoreUrl);
+  const published = withUrl.length > 0 ? withUrl : nodes;
+  console.log(
+    `[store-match] shop=${shopDomain} terms=${terms.join(",")} results=${nodes.length} withUrl=${withUrl.length}`,
+  );
   const candidates: (MatchCandidate & { productGid: string })[] = published.map((n) => ({
     id: n.id,
     productGid: n.id,
