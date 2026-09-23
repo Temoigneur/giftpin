@@ -14,6 +14,7 @@ import { startWorker, scheduleRecurring } from "./lib/queue.server";
 import "./models/purchase.server";
 import "./models/claim.server";
 import "./lib/resolver/index.server";
+import "./lib/store-match.server";
 import "./lib/email.server";
 
 async function main() {

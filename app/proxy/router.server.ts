@@ -25,6 +25,7 @@ import {
   checkRegistryPassword,
   registrantEmail,
   logEvent,
+  touchRegistry,
   type RegistryWithItems,
 } from "../models/registry.server";
 import {
@@ -37,11 +38,13 @@ import {
   ItemError,
 } from "../models/item.server";
 import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
+import { applyMatchChoice } from "../lib/store-match.server";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
 import { renderRegistryPage } from "./render/registry-page";
 import { renderManagePage } from "./render/manage-page";
+import { renderRegistryChooser } from "./render/create-page";
 import {
   renderCreatePage,
   renderSimplePage,
@@ -234,8 +237,10 @@ function buildRegistryHtml(
 
   return renderRegistryPage({
     ...brand,
+    registryId: registry.id,
     title: registry.title,
     message: registry.message,
+    eventType: registry.eventType,
     eventLabel: eventTypeLabel(registry.eventType),
     eventDate: registry.eventDate,
     coverImageUrl: registry.coverImageUrl,
@@ -275,17 +280,45 @@ async function managePage(
     ? await authorizeManage(registryId, token, ctx.loggedInCustomerId)
     : null;
 
+  // No usable link, but the shopper is signed in to their store account:
+  // their own registries are theirs to manage without any token.
+  if (!registry && ctx.loggedInCustomerId) {
+    const mine = await db.registry.findMany({
+      where: { shopId: shop.id, status: "active", customerId: String(ctx.loggedInCustomerId) },
+      select: { id: true, title: true },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+    if (mine.length === 1) {
+      return redirect(proxyUrl(ctx, "manage", { t: mintManageToken(mine[0].id) }));
+    }
+    if (mine.length > 1) {
+      return page(
+        renderRegistryChooser(
+          brand,
+          mine.map((r) => ({ title: r.title, href: proxyUrl(ctx, "manage", { t: mintManageToken(r.id) }) })),
+        ),
+      );
+    }
+  }
+
   if (!registry) {
     return page(
       renderSimplePage(
         brand,
-        "This link has expired",
-        "Management links last 30 days. Ask for a new one and we'll email it to you.",
+        token ? "This link has expired" : "Open your private manage link",
+        token
+          ? "For your privacy, management links expire. Ask for a new one and we'll email it to you."
+          : "Registries are edited from a private link sent to your email. Sign in to your store account, or ask us to email you a new link.",
         { label: "Email me a new link", href: ctx.pathPrefix },
       ),
       403,
     );
   }
+
+  // A fresh token on every visit: the page's own writes, the copyable link and
+  // the browser's saved token all use it, so an active owner never expires.
+  const freshToken = mintManageToken(registry.id);
 
   const now = new Date();
   const gifts = registry.items.flatMap((item) =>
@@ -314,7 +347,8 @@ async function managePage(
       currency: shop.currency,
       shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
       actionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}`,
-      token: token ?? "",
+      token: freshToken,
+      manageUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: freshToken }),
       externalItemsAllowed: settings.externalItems !== "off",
       storeSearchUrl: "/collections/all",
       gifts,
@@ -497,6 +531,8 @@ async function handlePost(
       return updateItemAction(request, ctx);
     case "remove-item":
       return removeItemAction(request, ctx);
+    case "item-match":
+      return itemMatchAction(request, ctx);
     case "settings":
       return settingsAction(request, ctx);
     case "delete":
@@ -901,8 +937,34 @@ async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Re
     );
   }
 
-  await updateItem(itemId, registry.id, { desiredQty });
+  // Category is optional in the body so older clients that only send a
+  // quantity keep working. "" clears it; unknown keys are ignored by updateItem.
+  const category =
+    "category" in body ? (String(body.category ?? "") === "" ? null : String(body.category)) : undefined;
+
+  await updateItem(itemId, registry.id, { desiredQty, category });
   return json({ ok: true });
+}
+
+async function itemMatchAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const action = String(body.action ?? "");
+  if (action !== "keep" && action !== "dismiss" && action !== "swap") {
+    return json({ ok: false, error: "Unknown action" }, 400);
+  }
+
+  try {
+    await applyMatchChoice({ registryId: registry.id, itemId: String(body.itemId ?? ""), action });
+    // Guests see a kept match, so their cached page has to go stale.
+    await touchRegistry(registry.id);
+    return json({ ok: true });
+  } catch (err) {
+    if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
+    throw err;
+  }
 }
 
 async function removeItemAction(request: Request, ctx: ProxyContext): Promise<Response> {

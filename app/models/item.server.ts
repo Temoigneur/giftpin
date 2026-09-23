@@ -1,6 +1,8 @@
 import db from "../db.server";
+import { isGiftCategory } from "../shared/gift-categories";
 import { touchRegistry, logEvent, itemUnitPrice, isUniqueViolation } from "./registry.server";
 import { settingsFor } from "./shop.server";
+import { enqueue } from "../lib/queue.server";
 import { resolveUrl } from "../lib/resolver/index.server";
 import { canonicalizeUrl } from "../lib/resolver/canonical";
 import type { ItemSourceType, Prisma } from "@prisma/client";
@@ -189,6 +191,9 @@ export async function addExternalItem(input: AddExternalInput) {
 
     await touchRegistry(input.registryId);
     await logEvent(input.registryId, "item_added", { sourceType: "external", domain });
+    // If the resolver has already read the page this can match straight away;
+    // otherwise the resolver job queues the match when it finishes.
+    await enqueue("match-store-item", { itemId: item.id });
     return item;
   } catch (err) {
     if (isUniqueViolation(err)) {
@@ -254,6 +259,7 @@ export async function addManualItem(input: AddManualInput) {
 
     await touchRegistry(input.registryId);
     await logEvent(input.registryId, "item_added", { sourceType: "manual" });
+    await enqueue("match-store-item", { itemId: item.id });
     return item;
   } catch (err) {
     if (url && isUniqueViolation(err)) {
@@ -280,6 +286,8 @@ export interface ItemPatch {
   desiredQty?: number;
   note?: string | null;
   priority?: number;
+  /** A GIFT_CATEGORIES key, or null to clear. Unknown keys are ignored. */
+  category?: string | null;
 }
 
 export async function updateItem(itemId: string, registryId: string, data: ItemPatch) {
@@ -287,6 +295,8 @@ export async function updateItem(itemId: string, registryId: string, data: ItemP
   if (data.desiredQty !== undefined) patch.desiredQty = clampQty(data.desiredQty);
   if (data.note !== undefined) patch.note = data.note?.slice(0, 500) ?? null;
   if (data.priority !== undefined) patch.priority = data.priority;
+  if (data.category === null) patch.category = null;
+  else if (data.category !== undefined && isGiftCategory(data.category)) patch.category = data.category;
 
   const item = await db.registryItem.update({
     where: { id: itemId, registryId },
@@ -332,6 +342,19 @@ export interface DisplayItem {
   claimedQty: number;
   remainingQty: number;
   note: string | null;
+  /** GIFT_CATEGORIES key, or null when the registrant hasn't picked one. */
+  category: string | null;
+  /**
+   * A similar product in the hosting store. "suggested" is for the registrant
+   * only; guests only ever get "kept".
+   */
+  storeMatch: {
+    status: "suggested" | "kept";
+    /** "product": a similar product (title + handle). "search": a kind of product the store sells (title is the search word). */
+    kind: "product" | "search";
+    title: string;
+    handle: string | null;
+  } | null;
   /** Internal items only — what we add to the cart. */
   variantGid: string | null;
   /** Everything else — where the guest goes to buy it. */
@@ -371,6 +394,18 @@ export function toDisplayItem(item: ItemForDisplay, now = new Date()): DisplayIt
     claimedQty,
     remainingQty: remaining,
     note: item.note,
+    category: item.category && isGiftCategory(item.category) ? item.category : null,
+    storeMatch:
+      (item.storeMatchStatus === "suggested" || item.storeMatchStatus === "kept") &&
+      item.storeMatchTitle &&
+      item.sourceType !== "internal"
+        ? {
+            status: item.storeMatchStatus,
+            kind: item.storeMatchProductGid && item.storeMatchHandle ? "product" : "search",
+            title: item.storeMatchTitle,
+            handle: item.storeMatchHandle,
+          }
+        : null,
     variantGid: item.variantGid,
     externalUrl: item.externalUrl,
     externalDomain: item.externalUrl ? safeDomain(item.externalUrl) : null,

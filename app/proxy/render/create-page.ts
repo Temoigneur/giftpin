@@ -170,3 +170,21 @@ ${
     body,
   );
 }
+
+/** Shown when a signed-in shopper has more than one registry: pick which to manage. */
+export function renderRegistryChooser(
+  data: { shopName: string; accentColor: string },
+  registries: { title: string; href: string }[],
+): string {
+  return layout(
+    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    `<h1>Your registries</h1>
+     <p class="sub">Choose one to manage.</p>
+     <ul class="items">${registries
+       .map(
+         (r) =>
+           `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Manage</a></p></div></li>`,
+       )
+       .join("")}</ul>`,
+  );
+}

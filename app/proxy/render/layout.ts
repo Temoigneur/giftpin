@@ -99,6 +99,8 @@ a{color:inherit}
 .sub{color:var(--muted);font-size:15px;margin:0 0 4px}
 .hero{margin-bottom:24px}
 .hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;background:var(--line)}
+.hero-art{width:100%;aspect-ratio:16/7;border-radius:var(--radius);margin-bottom:16px;overflow:hidden;background:var(--card)}
+.hero-art svg{width:100%;height:100%;display:block}
 .note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px}
 .progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
 .progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
@@ -138,6 +140,28 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .foot{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 32px}
 .powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
+
+/* --- suggested-category checklist (wedding registries only) ------------ */
+details.note{padding:14px 16px}
+details.note summary{cursor:pointer;list-style:none;font-size:15px}
+details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
+details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
+details.note[open] summary::before{content:'–  '}
+.cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
+.owner-link{margin:28px 0 0;font-size:14px}
+.match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
+.store-link{font-size:13px}
+.cat-group{margin:26px 0 0}
+.cat-head{font-size:18px;margin:0 0 10px}
+.cat-select{min-width:0;max-width:100%;width:auto}
+.cat-room{border-top:1px solid var(--line);padding:8px 0 2px;margin-top:6px}
+.cat-room summary{font-weight:600;font-size:14px}
+.cat-room[open]{padding-bottom:8px}
+.cat-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 4px}
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
+.cat-chip{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;text-decoration:none;color:var(--ink)}
+a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
+.cat-chip--add{color:var(--muted);font-style:italic}
 .update-banner{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin:0 0 16px;font-size:14px}
 .update-banner span{flex:1}
 .update-banner .dismiss{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
@@ -162,4 +186,11 @@ export function formatMoney(amount: number, currency: string | null): string {
 
 export function htmlResponse(body: string, headers: Headers, status = 200): Response {
   return new Response(body, { status, headers });
+}
+
+/** Where a store match points on the merchant's own storefront. */
+export function storeMatchHref(m: { kind: "product" | "search"; title: string; handle: string | null }): string {
+  return m.kind === "product" && m.handle
+    ? `/products/${encodeURIComponent(m.handle)}`
+    : `/search?q=${encodeURIComponent(m.title)}&type=product`;
 }

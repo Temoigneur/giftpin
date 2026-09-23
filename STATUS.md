@@ -16,6 +16,131 @@ times, so the edit likely never landed. Re-adding it directly here, and
 flagging per the "Known ongoing constraint" note below: verify anything
 reported as committed.)
 
+## 23 Sep, latest: guest page deploy fixed live + default hero art per event type (built)
+
+**Deploy diagnosis, resolved:** Ben reported "Start a registry" landing on a
+generic storefront page. Live-verified in Chrome: `/apps/registry` was
+redirecting to a stale `default-app-home` app-proxy subpath and erroring —
+`npm run deploy` hadn't actually pushed the current `shopify.app.toml`
+(subpath `registry`) live before now. Ben re-ran `npm run deploy`, it
+succeeded, and the subpath is now correct — confirmed live: `/apps/registry`
+now reaches the app and shows Shopify's own "error in the third-party
+application" page instead of a 404, which is expected and separate: the
+`app_proxy.url` target (Railway) still has no code deployed there (known,
+already flagged below). **To actually test the guest pages right now, run
+`npm run dev`** — `automatically_update_urls_on_dev` temporarily points
+Shopify's live proxy at the local tunnel while it's running. A real fix
+(deploying actual code to Railway) is the same not-yet-done item as before.
+
+**Default hero art, built same session:** Ben asked for a "classy"
+background image on the guest registry page appropriate to each event type
+(wedding: champagne coupes clinking + a tiered cake, was the explicit
+example). Rather than a stock photo (licensing risk) or an AI-generated
+raster (no image-gen tool in this session, and it'd need external hosting),
+built original hand-drawn line-art SVG, one per `EVENT_TYPES` value:
+- **`app/shared/event-art.ts`** (new) — `eventHeroArt(eventType)`, inline
+  SVG per type: wedding (clinking coupes, cake, rising bubbles), baby
+  (crescent moon + stars), birthday (candle-topped tiered cake + confetti),
+  housewarming (house silhouette + key + plant), graduation (mortarboard +
+  diploma scroll), anniversary (interlocking rings), corporate (minimal
+  gift box), and a generic gift-box fallback for anything unrecognized.
+  Every shape is plain SVG primitives (paths/ellipses/rects), nothing
+  traced — no copyright question. Not a `.server` file, same reasoning as
+  the other `app/shared/*` modules.
+- **`app/proxy/render/registry-page.ts`** — new required `eventType` field
+  on `RegistryPageData`; the hero now renders `eventHeroArt(eventType)`
+  whenever the registrant hasn't uploaded a `coverImageUrl`, and the real
+  photo still wins when one exists.
+- **`app/proxy/router.server.ts`** — `buildRegistryHtml` now passes
+  `eventType: registry.eventType` through (it already had the value on
+  hand for `eventTypeLabel()`; just wasn't forwarded before).
+- **`app/proxy/render/layout.ts`** — `.hero-art` CSS, sized like the
+  existing `.hero-img`. Rendered as literal inline `<svg>` in the page body
+  (not a data-URI `<img>`), so it inherits `var(--accent)` from the page's
+  own CSS and matches each merchant's brand color automatically, light and
+  dark mode both, with zero extra network requests.
+- **`app/proxy/render/__tests__/registry-page.test.ts`** — added
+  `eventType` to the test fixture (now required); new tests: default art
+  shows when there's no cover photo, an uploaded cover photo still wins,
+  different event types render different art, an unrecognized event type
+  falls back to the generic art instead of breaking, and the art always
+  references `var(--accent)` rather than a hardcoded color.
+- **Not yet run**: `npm test`/`npm run typecheck` against this change.
+- **Ben still needs to:** look at it live (needs `npm run dev` running per
+  the deploy note above) and say whether the art style lands — easy to
+  restyle per type if something feels off, it's all in one file.
+
+## 23 Sep, later: wedding registry gift-category suggestions, room by room (built)
+
+Ben asked whether open-source code could be imported to help brides populate
+a wedding registry with gift categories, scoped to `eventType === "wedding"`
+only. Answer: category names built from a few common nouns ("Kitchen",
+"Bedding") aren't copyrightable expression on their own (*Feist v. Rural*),
+so no repo needed — wrote an original taxonomy informed by (not copied
+from) Zola's and The Knot's public checklist articles, then expanded same
+day at Ben's request into a three-level room → subcategory → specific-item
+structure (e.g. Kitchen → Small appliances → Stand mixer, Air fryer, Rice
+cooker, ...) instead of flat category names.
+
+- **`app/shared/wedding-categories.ts`** (new) — `WEDDING_GIFT_CATEGORIES`:
+  10 rooms (kitchen, dining, bedding, bath, home & décor, outdoor, tech,
+  travel, experiences, cash/honeymoon funds), each with 2-4 subcategories,
+  each with 2-10 named items (~135 items total). Every room is flagged
+  `browsable: true/false` — false only for experiences/funds, since most
+  merchants don't stock those as SKUs. An item optionally carries its own
+  `searchTerm` override for when the plain name would search badly (e.g.
+  "Sheet set (queen)" searches as "queen sheet set"). Not a `.server` file,
+  same reasoning as `app/shared/settings.ts`.
+- **`app/proxy/render/manage-page.ts`** — `renderWeddingCategories()`,
+  called right under "Add items", renders only when `data.eventType ===
+  "wedding"`. One outer `<details>` ("Wedding registry ideas, room by
+  room"), containing one nested `<details>` per room so a bride opens only
+  the room she's thinking about; each open room shows its subcategories as
+  small headings with a row of item chips underneath. In a browsable room
+  every chip is an `<a>` to `/search?q=<item or override term>&type=product`
+  (relative — resolves on the merchant's own storefront domain the same way
+  the existing "Browse the store" link to `/collections/all` already does);
+  in experiences/funds the chips are plain (non-link) suggestions. All
+  native `<details>`, no JS.
+- **`app/proxy/render/layout.ts`** — CSS for nested room `<details>`,
+  subcategory labels (`.cat-sub`), and item chips (`.cat-chip`, a wrapping
+  row rather than the earlier fixed grid, since ~135 items of varying
+  length need to wrap naturally).
+- **`app/proxy/render/__tests__/manage-page.test.ts`** — rewritten for the
+  three-level structure: room and subcategory labels render; an item links
+  to a search on its own name; an item with a `searchTerm` override uses
+  the override, not its label; non-catalog items render with no search
+  link; nothing shows for non-wedding event types.
+- No schema change, no checkout/payment touch, no attribution logic touch —
+  per CLAUDE.md's workflow rules this didn't need a review pause. Committed
+  directly via `device_commit_files` (device shell still down).
+- First `npm test` pass (against the earlier flat-category version) hit two
+  bugs, both fixed and verified green (115/115) before the room-by-room
+  expansion: (1) `layout.ts` used a raw `\2013` in a JS template literal,
+  which esbuild reads as a legacy octal escape, not a unicode dash — fixed
+  by using an actual en-dash character instead of any escape. (2) a
+  `::-webkit-details-marker{display:none}` rule coincidentally shared the
+  literal substring `security.test.ts`'s "only ever declares a safe accent
+  colour" test uses as its CSS-injection canary (`not.toContain
+  ("display:none")`) — not a real vulnerability (accentColor sanitization
+  was untouched), but the test couldn't tell the difference. Fixed by
+  hiding the marker with `width/height/opacity:0` instead. Both fixes carry
+  forward into this version; `npm run typecheck` has passed clean since.
+- **Ben still needs to:** run `npm test` again against this room-by-room
+  version (the test file changed along with the feature — not yet verified
+  live), then look at it in a wedding registry's manage page. The `/search`
+  URL assumes the merchant's theme uses Shopify's default search endpoint —
+  worth a live check per CLAUDE.md hard rule #1 if Dawn or another theme
+  behaves differently.
+- Not done: no suggestions for other event types (deliberately out of scope
+  per Ben's request); no "mark this item done" state — it's inspiration
+  only, not tracked per registry; item list isn't exhaustive by design (a
+  couple of representative items per subcategory, not every SKU imaginable).
+- **Once the device shell is back**, Claude runs and monitors `npm test`/
+  `npm run typecheck` itself after changes instead of asking Ben to paste
+  output (his request, 23 Sep). Still blocked as of this session — same
+  Windows-update mount issue as everything else file-related.
+
 ## 23 Sep: Shopify Billing built (Pro plan)
 
 Ben confirmed both open decisions from the "Next Session Priorities" doc:

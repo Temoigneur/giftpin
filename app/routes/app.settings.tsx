@@ -9,7 +9,18 @@ import { EVENT_TYPES } from "../shared/settings";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
-  return { settings: settingsFor(shop), shopDomain: session.shop };
+  return {
+    settings: settingsFor(shop),
+    shopDomain: session.shop,
+    // 23 Sep 2026: a bare, repeatedly-fetched /apps/registry URL got stuck
+    // behind a stale cached response for one merchant (a leftover from a
+    // now-fixed app-proxy misconfiguration, likely cached somewhere between
+    // browser and Shopify's edge — never actually our own Cache-Control:
+    // no-store responses, see app/lib/proxy.server.ts). A per-load query
+    // param guarantees these two links are never a cache hit again,
+    // regardless of where a future stale response might get cached.
+    cacheBust: Date.now(),
+  };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -37,7 +48,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Settings() {
-  const { settings, shopDomain } = useLoaderData<typeof loader>();
+  const { settings } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
 
@@ -154,25 +165,6 @@ export default function Settings() {
         </s-section>
       </fetcher.Form>
 
-      <s-section slot="aside" heading="Your registry pages">
-        <s-unordered-list>
-          <s-list-item>
-            <s-link href={`https://${shopDomain}/apps/registry`} target="_blank">
-              Start a registry
-            </s-link>
-          </s-list-item>
-          {settings.findARegistryEnabled && (
-            <s-list-item>
-              <s-link href={`https://${shopDomain}/apps/registry/find`} target="_blank">
-                Find a registry
-              </s-link>
-            </s-list-item>
-          )}
-        </s-unordered-list>
-        <s-paragraph>
-          <s-text color="subdued">Link these from your navigation or footer.</s-text>
-        </s-paragraph>
-      </s-section>
     </s-page>
   );
 }

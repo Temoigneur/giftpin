@@ -21,6 +21,8 @@ function item(overrides: Partial<DisplayItem> = {}): DisplayItem {
     claimedQty: 0,
     remainingQty: 2,
     note: null,
+    category: null,
+    storeMatch: null,
     variantGid: "gid://shopify/ProductVariant/40000001",
     externalUrl: null,
     externalDomain: null,
@@ -34,8 +36,10 @@ function item(overrides: Partial<DisplayItem> = {}): DisplayItem {
 
 function page(items: DisplayItem[], overrides: Partial<RegistryPageData> = {}): string {
   return renderRegistryPage({
+    registryId: "registry_1",
     title: "Sam & Alex's Wedding",
     message: "Thank you for celebrating with us.",
+    eventType: "wedding",
     eventLabel: "Wedding",
     eventDate: new Date("2027-06-12T00:00:00Z"),
     coverImageUrl: null,
@@ -232,6 +236,46 @@ describe("registry page branding credit (Pro plan, confirmed 22 Sep 2026)", () =
   });
 });
 
+describe("registry page hero art (default background, 23 Sep 2026)", () => {
+  it("shows default event art when no cover photo has been uploaded", () => {
+    const html = page([item()], { coverImageUrl: null, eventType: "wedding" });
+    expect(html).toContain('class="hero-art"');
+    expect(html).toContain("<svg");
+    expect(html).not.toContain('class="hero-img"');
+  });
+
+  it("prefers an uploaded cover photo over the default art", () => {
+    const html = page([item()], {
+      coverImageUrl: "https://cdn.example.com/cover.jpg",
+      eventType: "wedding",
+    });
+    expect(html).toContain('class="hero-img"');
+    expect(html).not.toContain('class="hero-art"');
+  });
+
+  it("renders different art for different event types", () => {
+    const wedding = page([item()], { coverImageUrl: null, eventType: "wedding" });
+    const baby = page([item()], { coverImageUrl: null, eventType: "baby" });
+    const birthday = page([item()], { coverImageUrl: null, eventType: "birthday" });
+    expect(wedding).not.toEqual(baby);
+    expect(wedding).not.toEqual(birthday);
+    expect(baby).not.toEqual(birthday);
+  });
+
+  it("falls back to generic art rather than breaking on an unrecognized event type", () => {
+    const html = page([item()], { coverImageUrl: null, eventType: "not-a-real-type" });
+    expect(html).toContain('class="hero-art"');
+    expect(html).toContain("<svg");
+  });
+
+  it("uses the merchant's own accent color, not a hardcoded one", () => {
+    // The art references var(--accent) rather than a literal color, so it
+    // always matches whatever this merchant's brand color is.
+    const html = page([item()], { coverImageUrl: null, eventType: "wedding" });
+    expect(html).toContain("var(--accent)");
+  });
+});
+
 describe("registry page live-refresh banner", () => {
   it("renders the banner hidden by default, with the version and poll endpoint in config", () => {
     const html = page([item()], { version: 7, versionUrl: "/apps/registry/r/xyz/version" });
@@ -246,5 +290,67 @@ describe("registry page live-refresh banner", () => {
     // location.reload() must only be reachable from the explicit button
     // handler, never called on a bare interval/timeout.
     expect(html).toContain("refreshBtn.addEventListener('click',function(){location.reload();})");
+  });
+});
+
+describe("gift categories (24 Sep 2026)", () => {
+  it("renders a flat list, with no group headings, when nothing is categorised", () => {
+    const html = page([item({ id: "a" }), item({ id: "b" })]);
+    expect(html).not.toContain('<h2 class="cat-head">');
+  });
+
+  it("groups items under their category heading", () => {
+    const html = page([
+      item({ id: "a", title: "Stand mixer", category: "kitchen" }),
+      item({ id: "b", title: "Bath towels", category: "bed-bath" }),
+    ]);
+    expect(html).toContain(">Kitchen<");
+    expect(html).toContain(">Bed &amp; Bath<");
+    expect(html.indexOf("Stand mixer")).toBeLessThan(html.indexOf("Bath towels"));
+  });
+
+  it("puts uncategorised items under Miscellaneous once any item is categorised", () => {
+    const html = page([
+      item({ id: "a", title: "Stand mixer", category: "kitchen" }),
+      item({ id: "b", title: "Mystery gift", category: null }),
+    ]);
+    expect(html).toContain(">Miscellaneous<");
+    expect(html.indexOf("Stand mixer")).toBeLessThan(html.indexOf("Mystery gift"));
+  });
+
+  it("treats an unrecognised category as uncategorised rather than breaking", () => {
+    const html = page([item({ id: "a", category: "kitchen" }), item({ id: "b", title: "Odd one", category: "bogus" })]);
+    expect(html).toContain("Odd one");
+  });
+});
+
+describe("in-store match link (guest view)", () => {
+  const kept = { status: "kept" as const, kind: "product" as const, title: "Artisan Stand Mixer", handle: "artisan-stand-mixer" };
+
+  it("shows a link to the store's product only when the registrant kept it", () => {
+    const html = page([item({ storeMatch: kept })]);
+    expect(html).toContain('href="/products/artisan-stand-mixer"');
+    expect(html).toContain("Similar item at Maple &amp; Clay");
+  });
+
+  it("never shows a suggestion the registrant hasn't accepted", () => {
+    const html = page([item({ storeMatch: { ...kept, status: "suggested" } })]);
+    expect(html).not.toContain("/products/artisan-stand-mixer");
+  });
+});
+
+describe("owner shortcut on the guest page (24 Sep 2026)", () => {
+  it("ships a visible owner link that the owner's browser upgrades with its token", () => {
+    const html = page([item()]);
+    expect(html).toMatch(/id="registro-owner"><a href="[^"]*\/manage"/);
+    expect(html).toContain("registry_1"); // registryId in the config the script compares against
+  });
+});
+
+describe("category-level store link (guest view)", () => {
+  it("links to the store's own search for a kept 'kind of product' match", () => {
+    const html = page([item({ storeMatch: { status: "kept", kind: "search", title: "snowboard", handle: null } })]);
+    expect(html).toContain('href="/search?q=snowboard&amp;type=product"');
+    expect(html).toContain("More snowboard at Maple &amp; Clay");
   });
 });

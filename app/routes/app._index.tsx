@@ -15,6 +15,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     settings: settingsFor(shop),
     shopDomain: session.shop,
     hasData: stats.registries.active > 0,
+    // A fresh query string on these links so a stale cached response can never
+    // be served for them (see the 23 Sep 2026 note in app.settings.tsx history).
+    cacheBust: Date.now(),
   };
 };
 
@@ -27,11 +30,41 @@ function money(amount: number, currency: string): string {
 }
 
 export default function Dashboard() {
-  const { stats, hasData, shopDomain } = useLoaderData<typeof loader>();
+  const { stats, hasData, shopDomain, cacheBust, settings } = useLoaderData<typeof loader>();
+
+  // Where shoppers actually create and find registries. Shown at the top in
+  // both states so the merchant can always get to (and preview) them.
+  const registryLinks = (
+    <s-section heading="Your registry pages">
+      <s-paragraph>
+        Shoppers create their registries on your storefront, not here. Preview the pages they see:
+      </s-paragraph>
+      <s-stack direction="inline" gap="base">
+        <s-button href={`https://${shopDomain}/apps/registry?_=${cacheBust}`} target="_blank">
+          Create a registry
+        </s-button>
+        {settings.findARegistryEnabled && (
+          <s-button href={`https://${shopDomain}/apps/registry/find?_=${cacheBust}`} target="_blank" variant="secondary">
+            Find a registry
+          </s-button>
+        )}
+        <s-button href={`https://${shopDomain}/admin/themes/current/editor`} target="_blank" variant="secondary">
+          Add links to your store
+        </s-button>
+      </s-stack>
+      <s-paragraph>
+        <s-text color="subdued">
+          &ldquo;Add links to your store&rdquo; opens the theme editor: add the <s-text>Registry links</s-text> block to
+          your header or footer so shoppers can find these pages.
+        </s-text>
+      </s-paragraph>
+    </s-section>
+  );
 
   if (!hasData) {
     return (
       <s-page heading="Gift registry">
+        {registryLinks}
         <s-section heading="You're three minutes from your first registry">
           <s-paragraph>
             Two things to do, then customers can start building registries from your products.
@@ -42,11 +75,8 @@ export default function Dashboard() {
               editor, go to a product template, and add the <s-text>Add to registry</s-text> block.
             </s-list-item>
             <s-list-item>
-              Link customers to{" "}
-              <s-link href={`https://${shopDomain}/apps/registry`} target="_blank">
-                your registry page
-              </s-link>{" "}
-              from your navigation or footer.
+              Add the <s-text>Registry links</s-text> block to your header or footer, so customers can
+              start a registry.
             </s-list-item>
           </s-ordered-list>
           <s-stack direction="inline" gap="base">
@@ -72,6 +102,7 @@ export default function Dashboard() {
 
   return (
     <s-page heading="Gift registry">
+      {registryLinks}
       <s-section heading="Last 12 months">
         <s-stack direction="inline" gap="large">
           <Stat label="Registry revenue" value={money(stats.registryRevenue, stats.currency)} />

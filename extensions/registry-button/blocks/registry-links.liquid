@@ -1,0 +1,70 @@
+{% comment %}
+  "Registry links" — app block for a header, footer or homepage section.
+
+  Gives shoppers a way to start, find and manage a registry from anywhere on
+  the store. Plain links and a scoped inline style: no script, no stylesheet
+  request, nothing to slow the storefront down.
+{% endcomment %}
+
+{%- assign base = block.settings.proxy_path | default: '/apps/registry' -%}
+
+<nav
+  class="giftpin-links giftpin-links--{{ block.id }}"
+  aria-label="{{ block.settings.heading | default: 'Gift registry' | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.heading != blank -%}
+    <p class="giftpin-links__heading">{{ block.settings.heading | escape }}</p>
+  {%- endif -%}
+  <ul class="giftpin-links__list">
+    <li><a href="{{ base }}">{{ block.settings.create_label | default: 'Create a registry' | escape }}</a></li>
+    {%- if block.settings.show_find -%}
+      <li><a href="{{ base }}/find">{{ block.settings.find_label | default: 'Find a registry' | escape }}</a></li>
+    {%- endif -%}
+    {%- if block.settings.show_manage -%}
+      <li><a href="{{ base }}/manage">{{ block.settings.manage_label | default: 'Manage my registry' | escape }}</a></li>
+    {%- endif -%}
+  </ul>
+</nav>
+
+<style>
+  .giftpin-links--{{ block.id }} { margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px; }
+  .giftpin-links--{{ block.id }} .giftpin-links__heading { margin: 0 0 6px; font-weight: 600; }
+  .giftpin-links--{{ block.id }} .giftpin-links__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; {% if block.settings.layout == 'stacked' %}flex-direction: column;{% endif %} }
+  .giftpin-links--{{ block.id }} a { color: {{ block.settings.link_color }}; text-decoration: underline; text-underline-offset: 3px; }
+</style>
+
+{% schema %}
+{
+  "name": "Registry links",
+  "target": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Gift registry" },
+    { "type": "text", "id": "create_label", "label": "Create link text", "default": "Create a registry" },
+    { "type": "checkbox", "id": "show_find", "label": "Show the find-a-registry link", "default": true },
+    { "type": "text", "id": "find_label", "label": "Find link text", "default": "Find a registry" },
+    { "type": "checkbox", "id": "show_manage", "label": "Show the manage-my-registry link", "default": true },
+    { "type": "text", "id": "manage_label", "label": "Manage link text", "default": "Manage my registry" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "inline", "label": "In a row" },
+        { "value": "stacked", "label": "Stacked" }
+      ],
+      "default": "inline"
+    },
+    { "type": "color", "id": "link_color", "label": "Link colour", "default": "#1a1a1a" },
+    { "type": "range", "id": "margin_top", "label": "Space above", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "margin_bottom", "label": "Space below", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 0 },
+    {
+      "type": "text",
+      "id": "proxy_path",
+      "label": "Registry URL path",
+      "default": "/apps/registry",
+      "info": "Only change this if you renamed the app's URL in Settings → Apps."
+    }
+  ]
+}
+{% endschema %}

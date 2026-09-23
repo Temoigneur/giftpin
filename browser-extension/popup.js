@@ -90,7 +90,15 @@
   connectBtn.addEventListener("click", function () {
     var parsed = parseManageLink(manageLinkInput.value || "");
     if (!parsed) {
-      setStatus(connectStatus, "That doesn't look like a manage link. Paste the full link from your registry email.", true);
+      var pasted = (manageLinkInput.value || "");
+      var isShareLink = /\/r\/[^/?#]+/.test(pasted) && pasted.indexOf("t=") === -1;
+      setStatus(
+        connectStatus,
+        isShareLink
+          ? "That's your guest share link. Paste your private manage link instead: open your registry's manage page and use \u201cCopy link\u201d."
+          : "That doesn't look like a manage link. Paste the private manage link (it contains ?t=) from your registry's manage page or email.",
+        true,
+      );
       return;
     }
 

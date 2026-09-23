@@ -99,6 +99,15 @@ registerHandler("resolve-url", async ({ externalSourceId }) => {
         lastFetchedAt: new Date(),
       },
     });
+
+    // Now that we know what this product is, see whether the hosting store
+    // sells something similar (only items that haven't been looked at yet).
+    const unmatched = await db.registryItem.findMany({
+      where: { externalSourceId: source.id, storeMatchStatus: null },
+      select: { id: true },
+      take: 50,
+    });
+    for (const { id } of unmatched) await enqueue("match-store-item", { itemId: id });
   } catch (err) {
     const refused = err instanceof FetchRefused;
     const status = refused && (err.reason === "denylisted" || err.reason === "robots")

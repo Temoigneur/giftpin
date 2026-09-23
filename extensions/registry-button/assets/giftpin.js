@@ -12,7 +12,11 @@
 
   ready(function () {
     var roots = document.querySelectorAll("[data-giftpin-root]");
-    for (var i = 0; i < roots.length; i++) init(roots[i]);
+    for (var i = 0; i < roots.length; i++) {
+      if (roots[i].getAttribute("data-giftpin-ready")) continue;
+      roots[i].setAttribute("data-giftpin-ready", "1");
+      init(roots[i]);
+    }
   });
 
   function init(root) {

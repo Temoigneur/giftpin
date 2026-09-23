@@ -2,7 +2,8 @@
   "name": "giftpin-gift-registry",
   "private": true,
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build && npm run build:worker",
+    "build:worker": "esbuild app/worker.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=build/server/worker.js",
     "dev": "shopify app dev",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",

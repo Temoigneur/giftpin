@@ -17,6 +17,7 @@ export type JobName =
   | "attribute-order"
   | "void-purchases"
   | "resolve-url"
+  | "match-store-item"
   | "refresh-external"
   | "send-email"
   | "reap-claims";
@@ -25,6 +26,7 @@ export interface JobPayloads {
   "attribute-order": { shop: string; orderPayload: unknown };
   "void-purchases": { shop: string; orderId: string; lineItemIds?: string[]; reason: string };
   "resolve-url": { externalSourceId: string };
+  "match-store-item": { itemId: string };
   "refresh-external": { batchSize?: number };
   "send-email": { template: string; to: string; data: Record<string, unknown> };
   "reap-claims": Record<string, never>;
@@ -119,6 +121,7 @@ function ensureHandlersLoaded(): Promise<void> {
       import("../models/purchase.server"),
       import("../models/claim.server"),
       import("../lib/resolver/index.server"),
+      import("../lib/store-match.server"),
       import("../lib/email.server"),
     ]).then(() => undefined);
   }

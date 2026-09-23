@@ -22,7 +22,9 @@ import type { Prisma, RegistryPrivacy } from "@prisma/client";
  */
 
 const MANAGE_TOKEN_PURPOSE = "manage";
-const MANAGE_TOKEN_TTL = 30 * 24 * 3600; // 30 days
+// 90 days, and every manage-page visit hands the browser a fresh one, so an
+// owner who keeps coming back never gets locked out.
+const MANAGE_TOKEN_TTL = 90 * 24 * 3600;
 
 export const registryWithItems = {
   include: {

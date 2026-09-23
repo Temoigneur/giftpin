@@ -1,7 +1,9 @@
-import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript } from "./layout";
+import { storeMatchHref, layout, escapeHtml, escapeAttr, formatMoney, jsonForScript } from "./layout";
+import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
+import { eventHeroArt } from "../../shared/event-art";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -17,10 +19,14 @@ import { wrapAffiliateLink } from "../../lib/affiliate";
 export interface RegistryPageData {
   title: string;
   message: string | null;
+  /** Raw value ("wedding", "baby", ...) — picks the default hero art below. */
+  eventType: string;
   eventLabel: string;
   eventDate: Date | null;
   coverImageUrl: string | null;
   registrantNames: string;
+  /** Used only to recognise the owner's own browser (see clientScript). */
+  registryId: string;
   items: DisplayItem[];
   progress: RegistryProgress;
   shopName: string;
@@ -63,7 +69,11 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
 
   const body = `
 <header class="hero">
-  ${data.coverImageUrl ? `<img class="hero-img" src="${escapeAttr(data.coverImageUrl)}" alt="" loading="eager">` : ""}
+  ${
+    data.coverImageUrl
+      ? `<img class="hero-img" src="${escapeAttr(data.coverImageUrl)}" alt="" loading="eager">`
+      : `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`
+  }
   <p class="sub">${escapeHtml(data.eventLabel)}${dateLine ? ` &middot; ${escapeHtml(dateLine)}` : ""}</p>
   <h1>${escapeHtml(data.title)}</h1>
   ${data.registrantNames ? `<p class="sub">${escapeHtml(data.registrantNames)}</p>` : ""}
@@ -87,14 +97,17 @@ ${renderShare(data)}
 ${
   data.items.length === 0
     ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
-    : `<ul class="items">${data.items.map((item) => renderItem(item, data)).join("\n")}</ul>`
+    : renderItemGroups(data)
 }
 
 ${renderDuplicateNotice(data)}
 
+<p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Registry owner? Manage this registry</a></p>
+
 <script>${clientScript()}</script>
 <script id="registro-config" type="application/json">${jsonForScript({
     actionUrl: data.actionUrl,
+    registryId: data.registryId,
     version: data.version,
     versionUrl: data.versionUrl,
   })}</script>
@@ -112,6 +125,28 @@ ${renderDuplicateNotice(data)}
     },
     body,
   );
+}
+
+/**
+ * Groups items by the category the registrant chose. If nobody has categorised
+ * anything the page is exactly the flat list it always was. Once any item has
+ * a category, groups follow GIFT_CATEGORIES order and anything uncategorised
+ * lands under "Miscellaneous" (merged with items explicitly filed there).
+ * Order within a group is the incoming order, so merchant items stay on top.
+ */
+function renderItemGroups(data: RegistryPageData): string {
+  const list = (items: DisplayItem[]) =>
+    `<ul class="items">${items.map((item) => renderItem(item, data)).join("\n")}</ul>`;
+
+  if (!data.items.some((i) => i.category)) return list(data.items);
+
+  return GIFT_CATEGORIES.map((cat) => {
+    const inGroup = data.items.filter((i) => (isGiftCategory(i.category) ? i.category : "misc") === cat.value);
+    if (inGroup.length === 0) return "";
+    return `<section class="cat-group"><h2 class="cat-head">${escapeHtml(cat.label)}</h2>${list(inGroup)}</section>`;
+  })
+    .filter(Boolean)
+    .join("\n");
 }
 
 function renderItem(item: DisplayItem, data: RegistryPageData): string {
@@ -152,9 +187,20 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
     <p class="item-meta">${meta.join(" &middot; ")}</p>
     ${item.note ? `<p class="item-note">&ldquo;${escapeHtml(item.note)}&rdquo;</p>` : ""}
+    ${renderStoreLink(item, data)}
     ${renderItemAction(item, data, remaining, held)}
   </div>
 </li>`;
+}
+
+/** Only a match the registrant chose to keep is ever shown to guests. */
+function renderStoreLink(item: DisplayItem, data: RegistryPageData): string {
+  if (item.storeMatch?.status !== "kept") return "";
+  const label =
+    item.storeMatch.kind === "product"
+      ? `Similar item at ${escapeHtml(data.shopName)}`
+      : `More ${escapeHtml(item.storeMatch.title)} at ${escapeHtml(data.shopName)}`;
+  return `<p class="item-meta"><a class="store-link" href="${escapeAttr(storeMatchHref(item.storeMatch))}">${label} &rarr;</a></p>`;
 }
 
 function renderItemAction(
@@ -243,6 +289,15 @@ function clientScript(): string {
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
   function status(el,msg,ok){var s=el.querySelector('.js-status')||el.parentNode.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
   function post(path,body){return fetch(cfg.actionUrl+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()})}
+
+  // If this browser is the owner's (the manage page left a token in
+  // localStorage), upgrade the always-visible owner link so it goes straight in.
+  try{
+    var owned=JSON.parse(localStorage.getItem('registro.registries')||'[]');
+    var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
+    var ownerEl=document.getElementById('registro-owner');
+    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/\/+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
+  }catch(_){}
 
   document.addEventListener('submit',function(e){
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
