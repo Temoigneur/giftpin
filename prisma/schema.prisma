@@ -106,6 +106,10 @@ model Registry {
 
   coverImageUrl String?
 
+  // Country whose stores we link to when the hosting store lacks an item
+  // (US | CA | GB | AU). Null = the default, US.
+  country String?
+
   privacy      RegistryPrivacy @default(unlisted)
   indexable    Boolean         @default(false) // opt-in; see §8 privacy
   passwordHash String?

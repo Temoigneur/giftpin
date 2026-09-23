@@ -55,11 +55,12 @@ const PRODUCT_QUERY = `#graphql
 
 const PREVIEW_QUERY = `#graphql
   query giftpinMatchPreview($query: String!) {
-    products(first: 4, query: $query) {
+    products(first: 12, query: $query) {
       nodes {
         id
         title
         handle
+        productType
         featuredMedia { preview { image { url } } }
         variants(first: 1) { nodes { id price } }
       }
@@ -233,8 +234,19 @@ interface PreviewNode {
   id: string;
   title: string;
   handle: string;
+  productType?: string | null;
   featuredMedia?: { preview?: { image?: { url?: string } } } | null;
   variants: { nodes: { id: string; price: string }[] };
+}
+
+/**
+ * Shopify's search also matches words buried in a product's description, which
+ * is how a gift card that merely mentions snowboards turned up as one. Keep only
+ * products whose own title or product type names the kind of thing.
+ */
+export function namesKind(n: { title: string; productType?: string | null }, term: string): boolean {
+  const hay = `${n.title} ${n.productType ?? ""}`.toLowerCase().replace(/[^a-z0-9]+/g, " ");
+  return hay.split(" ").some((w) => w === term || w === `${term}s` || w === `${term}es`);
 }
 
 function toPreview(n: PreviewNode, currency: string): PreviewProduct {
@@ -286,7 +298,8 @@ export async function getMatchPreview(registryId: string, itemId: string): Promi
     throw new Error(`Admin API preview failed: ${JSON.stringify(body.errors ?? "no data").slice(0, 300)}`);
   }
   const nodes = body.data.products.nodes ?? [];
-  return { kind: "search", title: item.storeMatchTitle, products: nodes.map((n) => toPreview(n, shop.currency)) };
+  const relevant = nodes.filter((n) => namesKind(n, term)).slice(0, 4);
+  return { kind: "search", title: item.storeMatchTitle, products: relevant.map((n) => toPreview(n, shop.currency)) };
 }
 
 /** Apply the registrant's choice. Throws ItemError with a message fit to show them. */

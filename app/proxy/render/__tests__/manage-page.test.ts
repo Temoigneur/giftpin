@@ -194,10 +194,17 @@ describe("connect-the-extension box and chip fallback", () => {
     expect(html).toContain("Copy connection link");
   });
 
-  it("checks the store first and ships Canadian retailers for a CAD shop", () => {
+  it("checks the store first, and links to .com stores by default even for a CAD shop", () => {
     const html = page({ eventType: "wedding", currency: "CAD" });
     expect(html).toContain("/search/suggest.json");
     expect(html).toContain("js-cat");
+    expect(html).toContain("amazon.com/s?k=");
+    expect(html).toContain("target.com");
+    expect(html).not.toContain("amazon.ca");
+  });
+
+  it("ships Canadian retailers when the registry's country is Canada", () => {
+    const html = page({ country: "CA", currency: "CAD" });
     expect(html).toContain("amazon.ca");
     expect(html).not.toContain("target.com");
   });

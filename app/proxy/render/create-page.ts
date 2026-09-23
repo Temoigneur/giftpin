@@ -1,5 +1,6 @@
 import { layout, escapeHtml, escapeAttr } from "./layout";
 import { EVENT_TYPES } from "../../shared/settings";
+import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 
 /**
  * Registry creation.
@@ -53,6 +54,12 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
   <label for="c-email">Your email</label>
   <input id="c-email" type="email" name="registrantEmail" required value="${escapeAttr(v.registrantEmail)}">
   <p class="hint">We email you a private link to manage your registry, and tell you when someone buys something. Your email is never shown to guests.</p>
+
+  <label for="c-country">Where will your guests shop?</label>
+  <select id="c-country" name="country">
+    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+  </select>
+  <p class="hint">When this store doesn't carry something, we'll suggest that country's stores, like Amazon and Walmart.</p>
 
   <label for="c-msg">A note for your guests</label>
   <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional">${escapeHtml(v.message)}</textarea>

@@ -54,6 +54,7 @@ export interface CreateRegistryInput {
   registrantEmail: string;
   privacy?: RegistryPrivacy;
   password?: string | null;
+  country?: string | null;
 }
 
 export async function createRegistry(input: CreateRegistryInput) {
@@ -72,6 +73,7 @@ export async function createRegistry(input: CreateRegistryInput) {
           title: input.title.slice(0, 200),
           message: input.message?.slice(0, 2000) ?? null,
           privacy: input.privacy ?? "unlisted",
+          country: input.country ?? null,
           passwordHash: input.password ? hashPassword(input.password) : null,
           registrants: {
             create: {

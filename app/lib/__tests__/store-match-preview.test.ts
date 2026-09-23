@@ -24,7 +24,7 @@ const item = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 const node = (n: number) => ({
-  id: `gid://shopify/Product/${n}`, title: `Board ${n}`, handle: `board-${n}`,
+  id: `gid://shopify/Product/${n}`, title: `Snowboard ${n}`, handle: `board-${n}`,
   featuredMedia: { preview: { image: { url: "https://cdn.example/x.png" } } },
   variants: { nodes: [{ id: `gid://shopify/ProductVariant/${n}`, price: "699.95" }] },
 });
@@ -38,9 +38,17 @@ describe("getMatchPreview", () => {
     const p = await getMatchPreview("r1", "i1");
     expect(p.kind).toBe("search");
     expect(p.products).toHaveLength(2);
-    expect(p.products[0]).toMatchObject({ title: "Board 1", handle: "board-1", imageUrl: "https://cdn.example/x.png" });
+    expect(p.products[0]).toMatchObject({ title: "Snowboard 1", handle: "board-1", imageUrl: "https://cdn.example/x.png" });
     expect(p.products[0].price).toContain("699.95");
     expect(graphql.mock.calls[0][1].variables.query).toBe("status:active AND snowboard");
+  });
+
+  it("drops products that only mention the word in their description (the gift card)", async () => {
+    findFirst.mockResolvedValue(item());
+    const giftCard = { ...node(9), title: "Gift Card", productType: "giftcard" };
+    graphql.mockResolvedValue(reply({ data: { products: { nodes: [giftCard, node(1), { ...node(2), title: "Wax", productType: "Snowboards" }] } } }));
+    const p = await getMatchPreview("r1", "i1");
+    expect(p.products.map((x) => x.title)).toEqual(["Snowboard 1", "Wax"]);
   });
 
   it("only sends a clean word into the search query", async () => {
@@ -58,7 +66,7 @@ describe("getMatchPreview", () => {
   });
 
   it("shows the one suggested product for a product match", async () => {
-    findFirst.mockResolvedValue(item({ storeMatchTitle: "Board 5", storeMatchProductGid: "gid://shopify/Product/5" }));
+    findFirst.mockResolvedValue(item({ storeMatchTitle: "Snowboard 5", storeMatchProductGid: "gid://shopify/Product/5" }));
     graphql.mockResolvedValue(reply({ data: { product: { ...node(5), status: "ACTIVE" } } }));
     const p = await getMatchPreview("r1", "i1");
     expect(p.kind).toBe("product");

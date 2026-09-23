@@ -39,6 +39,7 @@ import {
 } from "../models/item.server";
 import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
 import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
+import { normalizeCountry } from "../shared/retailers";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
@@ -343,6 +344,7 @@ async function managePage(
       eventType: registry.eventType,
       eventDate: registry.eventDate,
       privacy: registry.privacy,
+      country: registry.country,
       items: registry.items.map((item) => toDisplayItem(item)),
       currency: shop.currency,
       shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
@@ -553,7 +555,7 @@ async function createRegistryAction(
 ): Promise<Response> {
   const form = await request.formData();
   const values = Object.fromEntries(
-    ["eventType", "title", "eventDate", "registrantName", "registrantEmail", "message"].map((k) => [
+    ["eventType", "title", "eventDate", "registrantName", "registrantEmail", "message", "country"].map((k) => [
       k,
       String(form.get(k) ?? ""),
     ]),
@@ -582,6 +584,7 @@ async function createRegistryAction(
     message: values.message.trim() || null,
     registrantName: values.registrantName.trim(),
     registrantEmail: email,
+    country: normalizeCountry(values.country),
   });
 
   const manageUrl = absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", {
@@ -1016,6 +1019,7 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
     eventType: String(form.get("eventType") ?? registry.eventType),
     eventDate: eventDate ? new Date(`${eventDate}T00:00:00Z`) : null,
     message: String(form.get("message") ?? "").slice(0, 2000) || null,
+    country: normalizeCountry(form.get("country")),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",
     // Being listed and being indexable are the same decision, and it is always
     // an explicit opt-in by the registrant.

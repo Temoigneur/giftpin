@@ -4,6 +4,7 @@ import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { WEDDING_GIFT_CATEGORIES } from "../../shared/wedding-categories";
 import { eventHeroArt } from "../../shared/event-art";
+import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 
 /**
  * The registrant's own view. Reached only with a valid magic-link token or a
@@ -20,6 +21,8 @@ export interface ManagePageData {
   eventType: string;
   eventDate: Date | null;
   privacy: string;
+  /** US | CA | GB | AU; null/absent = US. Picks which stores we link to. */
+  country?: string | null;
   items: DisplayItem[];
   shopName: string;
   accentColor: string;
@@ -125,6 +128,12 @@ ${renderGifts(data)}
   <label for="f-msg">A note for your guests</label>
   <textarea id="f-msg" name="message" maxlength="2000" placeholder="Thank you for celebrating with us...">${escapeHtml(data.message)}</textarea>
 
+  <label for="f-country">Where do your guests shop?</label>
+  <select id="f-country" name="country">
+    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${normalizeCountry(data.country) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+  </select>
+  <p class="hint">When this store doesn't carry something, we suggest that country's stores.</p>
+
   <label for="f-privacy">Who can see this</label>
   <select id="f-privacy" name="privacy">
     <option value="unlisted"${data.privacy === "unlisted" ? " selected" : ""}>Anyone with the link (recommended)</option>
@@ -153,7 +162,7 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     registryTitle: data.title,
     token: data.token,
     shopName: data.shopName,
-    retailers: retailerSearchLinks(data.currency),
+    retailers: retailerSearchLinks(data.country),
   })}</script>
 <script>${manageScript()}</script>
 `;
@@ -327,31 +336,6 @@ function renderGifts(data: ManagePageData): string {
 <p class="sub">For your thank-you notes.</p>
 <ul class="items">${rows}</ul>
 <p><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
-}
-
-/**
- * Where to look when the hosting store doesn't carry something. Plain outbound
- * search pages, chosen by the shop's currency so a Canadian shopper lands on
- * the Canadian sites. `{q}` is replaced with the search term in the browser.
- */
-function retailerSearchLinks(currency: string): { name: string; url: string }[] {
-  if (currency === "CAD") {
-    return [
-      { name: "Amazon.ca", url: "https://www.amazon.ca/s?k={q}" },
-      { name: "Walmart.ca", url: "https://www.walmart.ca/search?q={q}" },
-      { name: "Wayfair.ca", url: "https://www.wayfair.ca/keyword.php?keyword={q}" },
-      { name: "Etsy", url: "https://www.etsy.com/ca/search?q={q}" },
-      { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
-    ];
-  }
-  return [
-    { name: "Amazon", url: "https://www.amazon.com/s?k={q}" },
-    { name: "Walmart", url: "https://www.walmart.com/search?q={q}" },
-    { name: "Target", url: "https://www.target.com/s?searchTerm={q}" },
-    { name: "Wayfair", url: "https://www.wayfair.com/keyword.php?keyword={q}" },
-    { name: "Etsy", url: "https://www.etsy.com/search?q={q}" },
-    { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
-  ];
 }
 
 function manageScript(): string {
