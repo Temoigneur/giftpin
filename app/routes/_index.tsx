@@ -205,7 +205,7 @@ const HTML = `<!doctype html>
     </div>
 
     <div class="mock" aria-label="Example registry">
-      <div class="hd"><h3>Sam &amp; Jordan's Wedding</h3><span class="tag">Wedding</span></div>
+      <div class="hd"><h3>April &amp; Jordan's Wedding</h3><span class="tag">Wedding</span></div>
       <p class="sub">Shared with one link · items from 4 stores</p>
       <div class="row">
         <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1 8a5 5 0 0 1-10 0z"/><path d="M12 16v5M8 21h8"/></svg></div>
