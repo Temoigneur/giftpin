@@ -35,9 +35,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 };
 
-export default function Index() {
-  return null;
-}
+// Deliberately no default export: a route module without one is a *resource
+// route*, so the Response above is sent as-is instead of being wrapped as
+// loader data for React to render (which produced a blank page).
 
 const HTML = `<!doctype html>
 <html lang="en">
