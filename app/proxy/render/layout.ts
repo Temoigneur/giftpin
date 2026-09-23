@@ -1,0 +1,165 @@
+/**
+ * Guest page rendering.
+ *
+ * Hand-written HTML strings, not React. The guest is on a phone, on cellular,
+ * opening a link from a group chat, and has never heard of this app. Every
+ * kilobyte of framework is a kilobyte spent before they see the gifts. The
+ * whole page, CSS inlined, lands in well under 50KB and needs no hydration.
+ *
+ * A note on `Content-Type: application/liquid`: setting it would make Shopify
+ * render this inside the merchant's theme, inheriting their header, fonts and
+ * colours. Tempting, and it's the right end state. It also couples us to every
+ * theme's quirks and adds a render hop. We ship plain HTML with merchant brand
+ * tokens for MVP and offer theme-wrapping as an opt-in setting once we've seen
+ * what real themes do to us.
+ */
+
+export function escapeHtml(value: string | null | undefined): string {
+  if (value === null || value === undefined) return "";
+  return String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
+}
+
+export function escapeAttr(value: string | null | undefined): string {
+  return escapeHtml(value);
+}
+
+/** JSON destined for an inline <script>. Prevents `</script>` breakouts. */
+export function jsonForScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
+export interface LayoutOptions {
+  title: string;
+  description?: string;
+  accentColor: string;
+  indexable: boolean;
+  shopName: string;
+  /** Rendered into <head>; used for og: tags on shareable pages. */
+  head?: string;
+  bodyClass?: string;
+  /**
+   * Pro feature ("branding removal", pricing confirmed 22 Sep 2026 — see
+   * app/routes/app.billing.tsx). Defaults to shown, so call sites that don't
+   * pass it (create/manage/find pages, as of this change) keep today's
+   * behavior.
+   */
+  hidePoweredBy?: boolean;
+}
+
+export function layout(options: LayoutOptions, body: string): string {
+  const accent = safeColor(options.accentColor);
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>${escapeHtml(options.title)}</title>
+${options.description ? `<meta name="description" content="${escapeAttr(options.description)}">` : ""}
+${options.indexable ? "" : '<meta name="robots" content="noindex,nofollow,noarchive">'}
+<meta name="referrer" content="no-referrer">
+<style>${baseStyles(accent)}</style>
+${options.head ?? ""}
+</head>
+<body class="${escapeAttr(options.bodyClass ?? "")}">
+<div class="wrap">
+${body}
+</div>
+<footer class="foot">
+  <p>Registry by <strong>${escapeHtml(options.shopName)}</strong></p>
+  ${options.hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
+</footer>
+</body>
+</html>`;
+}
+
+/** Never interpolate a merchant-supplied string into CSS unchecked. */
+function safeColor(value: string): string {
+  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : "#1a1a1a";
+}
+
+function baseStyles(accent: string): string {
+  return `
+:root{--accent:${accent};--bg:#fbfbfa;--card:#fff;--ink:#1a1a1a;--muted:#6b6b6b;--line:#e6e4e1;--radius:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#151515;--card:#1f1f1f;--ink:#f2f2f0;--muted:#a3a3a0;--line:#333}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:17px;margin:32px 0 12px;letter-spacing:-.005em}
+p{margin:0 0 12px}
+a{color:inherit}
+.sub{color:var(--muted);font-size:15px;margin:0 0 4px}
+.hero{margin-bottom:24px}
+.hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;background:var(--line)}
+.note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px}
+.progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
+.progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+
+/* --- items ------------------------------------------------------------- */
+.items{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
+.item.done{opacity:.5}
+.item.held{border-style:dashed}
+.item-img{width:84px;height:84px;object-fit:contain;border-radius:10px;background:var(--bg)}
+.item-img.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:6px}
+.item-title{font-weight:600;margin:0 0 4px;font-size:16px;line-height:1.35}
+.item-meta{color:var(--muted);font-size:13px;margin:0 0 10px}
+.item-note{font-size:14px;color:var(--muted);font-style:italic;margin:0 0 10px}
+.price{font-variant-numeric:tabular-nums;font-weight:600}
+
+/* External items are visually secondary on purpose. The merchant's own
+   catalog is the anchor of the registry; everything else is completeness. */
+.src{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.src.live{color:var(--accent);border-color:var(--accent)}
+
+/* --- controls ---------------------------------------------------------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px;font-family:inherit}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
+.btn.block{width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
+input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+textarea{min-height:88px;resize:vertical}
+label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0;font-weight:400}
+.err{background:#fdecea;border:1px solid #f5b5ae;color:#8c1d13;padding:12px 14px;border-radius:10px;margin:16px 0;font-size:14px}
+.ok{background:#e8f5ea;border:1px solid #a8d5b1;color:#1c5128;padding:12px 14px;border-radius:10px;margin:16px 0;font-size:14px}
+@media (prefers-color-scheme:dark){.err{background:#3a1f1c;border-color:#6b322c;color:#f5b5ae}.ok{background:#1b2f20;border-color:#356b3f;color:#a8d5b1}}
+.foot{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 32px}
+.powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
+.share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
+.update-banner{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin:0 0 16px;font-size:14px}
+.update-banner span{flex:1}
+.update-banner .dismiss{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:420px){.item{grid-template-columns:64px 1fr;gap:12px}.item-img{width:64px;height:64px}h1{font-size:22px}}
+`;
+}
+
+export function formatMoney(amount: number, currency: string | null): string {
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  try {
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: currency || "CAD",
+      minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
+}
+
+export function htmlResponse(body: string, headers: Headers, status = 200): Response {
+  return new Response(body, { status, headers });
+}

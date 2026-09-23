@@ -1,0 +1,11 @@
+{
+  "add_to_registry": {
+    "label": "Add to registry",
+    "adding": "Adding...",
+    "added": "Added to your registry",
+    "choose": "Choose a registry",
+    "create": "Start a registry",
+    "error": "Couldn't add that. Please try again.",
+    "no_registry": "You'll need a registry first."
+  }
+}

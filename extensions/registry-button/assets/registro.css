@@ -1,0 +1,119 @@
+/*
+ * Scoped to .registro-* on purpose.
+ *
+ * This stylesheet loads inside somebody else's theme. Every rule here is
+ * namespaced, nothing is a bare element selector, and there is no `!important`
+ * — a theme that wants to restyle our button should be able to.
+ */
+
+.registro-block {
+  --registro-accent: #1a1a1a;
+  --registro-radius: 10px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.registro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--registro-accent);
+  background: transparent;
+  border: 1.5px solid var(--registro-accent);
+  border-radius: var(--registro-radius);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+
+.registro-btn:hover:not(:disabled) {
+  background: var(--registro-accent);
+  color: #fff;
+}
+
+.registro-btn:focus-visible {
+  outline: 2px solid var(--registro-accent);
+  outline-offset: 2px;
+}
+
+.registro-btn:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.registro-btn--sm {
+  width: auto;
+  min-height: 40px;
+  padding: 9px 16px;
+  font-size: 14px;
+}
+
+.registro-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  opacity: .75;
+  min-height: 1.2em;
+}
+
+.registro-status--error {
+  color: #8c1d13;
+  opacity: 1;
+}
+
+.registro-picker {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid currentColor;
+  border-radius: var(--registro-radius);
+  opacity: .95;
+}
+
+.registro-picker[hidden] {
+  display: none;
+}
+
+.registro-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.registro-select {
+  width: 100%;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.registro-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.registro-qty {
+  width: 68px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .registro-btn { transition: none; }
+}

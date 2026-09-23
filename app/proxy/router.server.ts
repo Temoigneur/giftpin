@@ -1,0 +1,1035 @@
+import db from "../db.server";
+import {
+  authenticateProxyRequest,
+  ProxyAuthError,
+  guestPageHeaders,
+  guestFingerprint,
+  proxyUrl,
+  absoluteProxyUrl,
+  type ProxyContext,
+} from "../lib/proxy.server";
+import { cached, registryCacheKey } from "../lib/cache.server";
+import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
+import {
+  findBySlug,
+  findVersionBySlug,
+  findById,
+  findByEmail,
+  createRegistry,
+  authorizeManage,
+  mintManageToken,
+  readManageToken,
+  updateRegistry,
+  deleteRegistry,
+  progressFor,
+  checkRegistryPassword,
+  registrantEmail,
+  logEvent,
+  type RegistryWithItems,
+} from "../models/registry.server";
+import {
+  addInternalItem,
+  addExternalItem,
+  addManualItem,
+  updateItem,
+  removeItem,
+  toDisplayItem,
+  ItemError,
+} from "../models/item.server";
+import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
+import { cartAddPayload } from "../lib/attribution";
+import { sendEmail } from "../lib/email.server";
+import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
+import { renderRegistryPage } from "./render/registry-page";
+import { renderManagePage } from "./render/manage-page";
+import {
+  renderCreatePage,
+  renderSimplePage,
+  renderPasswordPage,
+  renderFindPage,
+} from "./render/create-page";
+import { escapeHtml } from "./render/layout";
+
+/**
+ * Guest-surface router.
+ *
+ * Routes:
+ *   GET  /                     → create a registry
+ *   GET  /r/:slug              → the registry page (the shareable one)
+ *   POST /r/:slug              → password unlock
+ *   GET  /manage?t=<token>     → registrant's own view
+ *   GET  /find?q=              → find-a-registry search
+ *   GET  /confirm?c=<token>    → guest confirms an external purchase
+ *   GET  /release?c=<token>    → guest releases their hold
+ *   GET  /thank-you.csv        → thank-you list export
+ *   POST /create | /resend | /settings | /delete
+ *   POST /cart-add | /claim | /bought | /add-external | /update-item | /remove-item
+ */
+
+const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
+
+export async function handleProxyRequest(request: Request): Promise<Response> {
+  let ctx: ProxyContext;
+  try {
+    ctx = authenticateProxyRequest(request);
+  } catch (err) {
+    // Deliberately terse. This endpoint is on the public internet and a
+    // detailed error is a gift to whoever is probing it.
+    if (err instanceof ProxyAuthError) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    throw err;
+  }
+
+  const shop = await db.shop.findUnique({ where: { domain: ctx.shop } });
+  if (!shop) return new Response("Not found", { status: 404 });
+
+  const settings = settingsFor(shop);
+  const brand = {
+    shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
+    accentColor: settings.accentColor,
+  };
+
+  const segments = ctx.path.split("/").filter(Boolean);
+  const head = segments[0] ?? "";
+
+  try {
+    if (request.method === "POST") {
+      return await handlePost(request, ctx, shop, settings, brand, segments);
+    }
+
+    switch (head) {
+      case "":
+        return page(renderCreatePage({
+          ...brand,
+          actionUrl: ctx.pathPrefix,
+          enabledEventTypes: settings.eventTypes,
+        }));
+
+      case "r":
+        // /r/<slug>/version is the guest page's own polling endpoint (see
+        // clientScript() in render/registry-page.ts) — kept under the same
+        // path as the page itself rather than a new top-level case.
+        if (segments[2] === "version") {
+          return await registryVersionAction(ctx, segments[1]);
+        }
+        return await registryPage(request, ctx, shop, settings, brand, segments[1]);
+
+      case "manage":
+        return await managePage(ctx, shop, settings, brand);
+
+      case "find":
+        return await findPage(ctx, shop, brand, settings);
+
+      case "my-registries":
+        return await myRegistriesJson(ctx, shop);
+
+      // Browser-extension surface (V1, 19 Sep 2026). No shop-signed session,
+      // no localStorage to read — the manage token, pasted once into the
+      // extension when the registrant connects, is the only credential. See
+      // extAddAction below for why this reuses addManualItem rather than
+      // addExternalItem.
+      case "ext-verify":
+        return await extVerifyAction(ctx, shop);
+
+      case "confirm":
+        return await confirmPage(ctx, brand);
+
+      case "release":
+        return await releasePage(ctx, brand);
+
+      case "thank-you.csv":
+        return await thankYouCsv(ctx);
+
+      default:
+        return page(
+          renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere.", {
+            label: "Start a registry",
+            href: ctx.pathPrefix,
+          }),
+          404,
+        );
+    }
+  } catch (err) {
+    console.error("[proxy]", err);
+    return page(
+      renderSimplePage(brand, "Something went wrong", "Please try again in a moment."),
+      500,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET handlers
+// ---------------------------------------------------------------------------
+
+type Brand = { shopName: string; accentColor: string };
+type ShopRecord = NonNullable<Awaited<ReturnType<typeof db.shop.findUnique>>>;
+
+async function registryPage(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+  slug: string | undefined,
+): Promise<Response> {
+  if (!slug) return page(renderSimplePage(brand, "Page not found", "That link is incomplete."), 404);
+
+  const registry = await findBySlug(ctx.shop, slug);
+  if (!registry) {
+    return page(
+      renderSimplePage(brand, "Registry not found", "This registry may have been deleted, or the link is wrong."),
+      404,
+    );
+  }
+
+  if (registry.privacy === "password") {
+    const supplied = ctx.query.get("pw");
+    if (!checkRegistryPassword(registry, supplied)) {
+      return page(renderPasswordPage({ ...brand, actionUrl: ctx.pathPrefix, slug }));
+    }
+  }
+
+  // Read-through cache. A registry link going out to 80 guests at once should
+  // be one render, not 80 — and the version in the key means a purchase
+  // invalidates it the instant it lands.
+  const html = await cached(
+    registryCacheKey(registry.id, registry.version, registry.privacy === "password" ? "pw" : "page"),
+    60,
+    async () => buildRegistryHtml(registry, ctx, shop, settings, brand),
+  );
+
+  return page(html, 200, registry.indexable && registry.privacy === "public_");
+}
+
+/**
+ * Backs the guest page's "new gift added" banner. The page itself is a
+ * cached render keyed by `registry.version` (see registryPage above) — that
+ * cache is already invalidated correctly the instant a write lands, so a
+ * newly-added item is available server-side immediately. The only gap was a
+ * browser tab that already loaded the old page having no way to know a
+ * reload would show something new. This is deliberately not a full item
+ * feed: just the version number, so an open tab can compare against what it
+ * rendered with and offer a refresh rather than silently reloading out from
+ * under someone mid-interaction.
+ */
+async function registryVersionAction(ctx: ProxyContext, slug: string | undefined): Promise<Response> {
+  const registry = slug ? await findVersionBySlug(ctx.shop, slug) : null;
+  if (!registry) return json({ ok: false }, 404);
+  return json(
+    { ok: true, version: registry.version },
+    200,
+  );
+}
+
+function buildRegistryHtml(
+  registry: RegistryWithItems,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+): string {
+  const items = registry.items.map((item) => toDisplayItem(item));
+
+  return renderRegistryPage({
+    ...brand,
+    title: registry.title,
+    message: registry.message,
+    eventLabel: eventTypeLabel(registry.eventType),
+    eventDate: registry.eventDate,
+    coverImageUrl: registry.coverImageUrl,
+    // First names only. Never the email, phone or address — that was the
+    // documented failure of the incumbent this app is built against.
+    registrantNames: registry.registrants.map((r) => firstNameOnly(r.name)).join(" & "),
+    items,
+    progress: progressFor(registry),
+    currency: shop.currency,
+    indexable: registry.indexable && registry.privacy === "public_",
+    shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
+    actionUrl: ctx.pathPrefix,
+    accentColor: settings.accentColor,
+    version: registry.version,
+    versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
+    // No-op until a real affiliate network is signed up and its redirect
+    // endpoint is set — see app/lib/affiliate.ts.
+    affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
+    // Pro feature confirmed 22 Sep 2026 (Ben) — see app/routes/app.billing.tsx.
+    // Only this page's footer credit is gated so far; create/manage/find
+    // still show it regardless of plan (smaller, reviewable change — extend
+    // to those if Ben wants the removal to be everywhere Pro applies).
+    hidePoweredBy: isPro(shop),
+  });
+}
+
+async function managePage(
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+): Promise<Response> {
+  const token = ctx.query.get("t");
+  const registryId = token ? readTokenRegistryId(token) : null;
+
+  const registry = registryId
+    ? await authorizeManage(registryId, token, ctx.loggedInCustomerId)
+    : null;
+
+  if (!registry) {
+    return page(
+      renderSimplePage(
+        brand,
+        "This link has expired",
+        "Management links last 30 days. Ask for a new one and we'll email it to you.",
+        { label: "Email me a new link", href: ctx.pathPrefix },
+      ),
+      403,
+    );
+  }
+
+  const now = new Date();
+  const gifts = registry.items.flatMap((item) =>
+    item.purchases
+      .filter((p) => p.voidedAt === null)
+      .map((p) => ({
+        itemTitle: item.snapshotTitle ?? "an item",
+        buyerName: p.buyerName,
+        message: p.buyerMessage,
+        qty: p.qty,
+        hidden: p.hiddenUntil !== null && p.hiddenUntil > now,
+        source: p.source as string,
+      })),
+  );
+
+  return page(
+    renderManagePage({
+      ...brand,
+      registryId: registry.id,
+      title: registry.title,
+      message: registry.message,
+      eventType: registry.eventType,
+      eventDate: registry.eventDate,
+      privacy: registry.privacy,
+      items: registry.items.map((item) => toDisplayItem(item)),
+      currency: shop.currency,
+      shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
+      actionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}`,
+      token: token ?? "",
+      externalItemsAllowed: settings.externalItems !== "off",
+      storeSearchUrl: "/collections/all",
+      gifts,
+      flash: flashFrom(ctx),
+    }),
+  );
+}
+
+async function findPage(
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  brand: Brand,
+  settings: ShopSettings,
+): Promise<Response> {
+  if (!settings.findARegistryEnabled) {
+    return page(renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere."), 404);
+  }
+
+  const query = (ctx.query.get("q") ?? "").trim().slice(0, 80);
+
+  // Only registries whose owners explicitly opted into being listed. The
+  // indexable SEO asset is THIS page, never an individual registry.
+  const results =
+    query.length >= 2
+      ? await db.registry.findMany({
+          where: {
+            shopId: shop.id,
+            status: "active",
+            privacy: "public_",
+            indexable: true,
+            OR: [
+              { title: { contains: query, mode: "insensitive" } },
+              { registrants: { some: { name: { contains: query, mode: "insensitive" } } } },
+            ],
+          },
+          include: { registrants: true },
+          take: 25,
+          orderBy: { eventDate: "asc" },
+        })
+      : [];
+
+  return page(
+    renderFindPage({
+      ...brand,
+      actionUrl: ctx.pathPrefix,
+      query,
+      searched: query.length >= 2,
+      results: results.map((r) => ({
+        title: r.title,
+        eventLabel: eventTypeLabel(r.eventType),
+        eventDate: r.eventDate,
+        url: proxyUrl(ctx, `r/${r.slug}`),
+        names: r.registrants.map((p) => firstNameOnly(p.name)).join(" & "),
+      })),
+    }),
+    200,
+    true,
+  );
+}
+
+/**
+ * Registries belonging to a signed-in customer.
+ *
+ * Only serves shoppers with a store account — `logged_in_customer_id` is the
+ * only identity app proxy hands us. Everyone else is identified by the
+ * magic-link tokens the theme button reads out of localStorage, which the
+ * server re-verifies on every write.
+ */
+async function myRegistriesJson(ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  if (!ctx.loggedInCustomerId) return json({ registries: [] });
+
+  const registries = await db.registry.findMany({
+    where: { shopId: shop.id, status: "active", customerId: String(ctx.loggedInCustomerId) },
+    select: { id: true, title: true },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
+  return json({
+    registries: registries.map((registry) => ({
+      id: registry.id,
+      title: registry.title,
+      token: mintManageToken(registry.id),
+    })),
+  });
+}
+
+async function confirmPage(ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const claimId = readClaimToken(ctx.query.get("c"));
+  if (!claimId) {
+    return page(renderSimplePage(brand, "That link has expired", "No harm done — the item went back on the registry."), 410);
+  }
+  await confirmClaim(claimId);
+  return page(
+    renderSimplePage(brand, "Thank you", "We've marked it as bought so nobody else buys the same thing."),
+  );
+}
+
+async function releasePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const claimId = readClaimToken(ctx.query.get("c"));
+  if (claimId) await releaseClaim(claimId);
+  return page(renderSimplePage(brand, "Put back on the list", "Thanks for letting us know."));
+}
+
+/** Small feature, disproportionate emotional value. Gets talked about. */
+async function thankYouCsv(ctx: ProxyContext): Promise<Response> {
+  const token = ctx.query.get("t");
+  const registryId = token ? readTokenRegistryId(token) : null;
+  const registry = registryId
+    ? await authorizeManage(registryId, token, ctx.loggedInCustomerId)
+    : null;
+
+  if (!registry) return new Response("Unauthorized", { status: 401 });
+
+  const now = new Date();
+  const rows: string[][] = [["Gift", "From", "Quantity", "Message", "Where", "Date"]];
+
+  for (const item of registry.items) {
+    for (const purchase of item.purchases) {
+      if (purchase.voidedAt) continue;
+      const hidden = purchase.hiddenUntil !== null && purchase.hiddenUntil > now;
+      rows.push([
+        item.snapshotTitle ?? "",
+        hidden ? "(hidden until your event)" : (purchase.buyerName ?? "Anonymous"),
+        String(purchase.qty),
+        purchase.buyerMessage ?? "",
+        purchase.source === "external" ? "Bought elsewhere" : "This store",
+        purchase.createdAt.toISOString().slice(0, 10),
+      ]);
+    }
+  }
+
+  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+
+  return new Response(`﻿${csv}`, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="thank-you-list.csv"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// POST handlers
+// ---------------------------------------------------------------------------
+
+async function handlePost(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+  segments: string[],
+): Promise<Response> {
+  const head = segments[0] ?? "";
+
+  switch (head) {
+    case "create":
+      return createRegistryAction(request, ctx, shop, settings, brand);
+    case "resend":
+      return resendAction(request, ctx, shop, brand);
+    case "r":
+      return unlockAction(request, ctx, segments[1]);
+    case "cart-add":
+      return cartAddAction(request, ctx);
+    case "claim":
+      return claimAction(request, ctx);
+    case "bought":
+      return boughtAction(request, ctx);
+    case "add-external":
+      return addExternalAction(request, ctx);
+    case "add-manual":
+      return addManualAction(request, ctx);
+    case "add-from-store":
+      return addFromStoreAction(request, ctx, shop);
+    case "ext-add":
+      return extAddAction(request, ctx, shop);
+    case "update-item":
+      return updateItemAction(request, ctx);
+    case "remove-item":
+      return removeItemAction(request, ctx);
+    case "settings":
+      return settingsAction(request, ctx);
+    case "delete":
+      return deleteAction(request, ctx, brand);
+    default:
+      return new Response("Not found", { status: 404 });
+  }
+}
+
+async function createRegistryAction(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+): Promise<Response> {
+  const form = await request.formData();
+  const values = Object.fromEntries(
+    ["eventType", "title", "eventDate", "registrantName", "registrantEmail", "message"].map((k) => [
+      k,
+      String(form.get(k) ?? ""),
+    ]),
+  );
+
+  const email = values.registrantEmail.trim();
+  if (!values.title.trim() || !values.registrantName.trim() || !isEmail(email)) {
+    return page(
+      renderCreatePage({
+        ...brand,
+        actionUrl: ctx.pathPrefix,
+        enabledEventTypes: settings.eventTypes,
+        error: "Please fill in your name, a registry name and a valid email address.",
+        values,
+      }),
+      400,
+    );
+  }
+
+  const registry = await createRegistry({
+    shopId: shop.id,
+    customerId: ctx.loggedInCustomerId,
+    eventType: values.eventType || "other",
+    eventDate: values.eventDate ? new Date(`${values.eventDate}T00:00:00Z`) : null,
+    title: values.title.trim(),
+    message: values.message.trim() || null,
+    registrantName: values.registrantName.trim(),
+    registrantEmail: email,
+  });
+
+  const manageUrl = absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", {
+    t: mintManageToken(registry.id),
+  });
+
+  await sendEmail("registry-link", email, { registryTitle: registry.title, url: manageUrl });
+
+  // Straight into the registry rather than a "check your email" dead end —
+  // the email is the durable copy, not the gate.
+  return redirect(manageUrl);
+}
+
+async function resendAction(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  brand: Brand,
+): Promise<Response> {
+  const form = await request.formData();
+  const email = String(form.get("email") ?? "").trim();
+
+  if (isEmail(email)) {
+    const registries = await findByEmail(shop.id, email);
+    for (const registry of registries.slice(0, 5)) {
+      await sendEmail("registry-link", email, {
+        registryTitle: registry.title,
+        url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: mintManageToken(registry.id) }),
+      });
+    }
+  }
+
+  // Identical response whether or not the address exists. Confirming which
+  // emails have registries here would leak exactly the thing we encrypt.
+  return page(
+    renderSimplePage(
+      brand,
+      "Check your email",
+      "If that address has a registry with us, its link is on the way.",
+    ),
+  );
+}
+
+async function unlockAction(request: Request, ctx: ProxyContext, slug: string | undefined): Promise<Response> {
+  if (!slug) return new Response("Not found", { status: 404 });
+  const form = await request.formData();
+  const password = String(form.get("password") ?? "");
+  return redirect(proxyUrl(ctx, `r/${slug}`, { pw: password }));
+}
+
+/**
+ * Mints the signed cart properties. The browser then posts them to Shopify's
+ * own /cart/add.js — we never touch the cart ourselves, which is what keeps the
+ * token on the cart LINE where it survives Shop Pay.
+ */
+async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+  const variantId = String(body.variantId ?? "");
+  const qty = clampInt(body.qty, 1, 99);
+
+  const item = await db.registryItem.findFirst({
+    where: { id: itemId, sourceType: "internal", registry: { shop: { domain: ctx.shop } } },
+    include: { registry: true },
+  });
+
+  if (!item || !item.variantGid?.endsWith(`/${variantId}`)) {
+    return json({ ok: false, error: "That item is no longer on this registry" }, 404);
+  }
+
+  return json({
+    ok: true,
+    payload: cartAddPayload(
+      variantId,
+      qty,
+      item.registryId,
+      item.id,
+      item.registry.shipToRegistrant,
+    ),
+  });
+}
+
+async function claimAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+
+  const item = await db.registryItem.findFirst({
+    where: { id: itemId, registry: { shop: { domain: ctx.shop } } },
+    include: { externalSource: true },
+  });
+  if (!item) return json({ ok: false }, 404);
+
+  const claim = await placeClaim(item.id, item.registryId, guestFingerprint(request, item.id));
+  if (!claim) return json({ ok: true, held: false });
+
+  return json({ ok: true, held: true, expiresAt: claim.expiresAt.toISOString() });
+}
+
+/** Guest confirming, from the registry page, that they bought an external item. */
+async function boughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+
+  const item = await db.registryItem.findFirst({
+    where: { id: itemId, registry: { shop: { domain: ctx.shop } } },
+    include: { claims: { where: { releasedAt: null } } },
+  });
+  if (!item) return json({ ok: false, error: "Item not found" }, 404);
+  if (item.sourceType === "internal") {
+    return json({ ok: false, error: "This item is tracked automatically" }, 400);
+  }
+
+  const fingerprint = guestFingerprint(request, item.id);
+  const own = item.claims.find((c) => c.guestFingerprint === fingerprint) ?? item.claims[0];
+
+  if (own) {
+    await confirmClaim(own.id, {
+      buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
+      buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
+    });
+    return json({ ok: true });
+  }
+
+  // No hold in flight — the guest bought it without clicking through.
+  const claim = await placeClaim(item.id, item.registryId, fingerprint);
+  if (!claim) return json({ ok: false, error: "This item is already taken care of" }, 409);
+  await confirmClaim(claim.claimId, {
+    buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
+    buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
+  });
+  return json({ ok: true });
+}
+
+async function addExternalAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+
+  try {
+    await addExternalItem({ registryId: registry.id, url: String(body.url ?? "") });
+    return json({ ok: true });
+  } catch (err) {
+    if (err instanceof InvalidProductUrl || err instanceof ItemError) {
+      return json({ ok: false, error: err.message }, 400);
+    }
+    console.error("[add-external]", err);
+    // Never a dead end: offer the manual path instead of a shrug.
+    return json(
+      { ok: false, error: "We couldn't read that page. You can add the item by hand instead." },
+      502,
+    );
+  }
+}
+
+/**
+ * The theme button's endpoint.
+ *
+ * Authorised by the magic-link token the button read out of localStorage, or by
+ * a matching logged-in customer id. Never by the app proxy signature alone —
+ * that proves Shopify sent the request, not who sent it.
+ */
+async function addFromStoreAction(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+): Promise<Response> {
+  const body = await readJson(request);
+  const registryId = String(body.registryId ?? "");
+  const token = typeof body.token === "string" ? body.token : null;
+
+  const registry = await authorizeManage(registryId, token, ctx.loggedInCustomerId);
+  if (!registry || registry.shopId !== shop.id) {
+    return json({ ok: false, error: "Not authorised" }, 403);
+  }
+
+  // The registrant confirmed, in the button's duplicate-quantity prompt, an
+  // explicit total for an item already on the registry — a deliberate "yes I
+  // want N of these", not a second add silently bumping the count. Same
+  // manage-token authorisation as a normal add, just a different write.
+  if (typeof body.itemId === "string" && body.confirmQty !== undefined) {
+    const item = registry.items.find((i) => i.id === body.itemId);
+    if (!item) return json({ ok: false, error: "Item not found" }, 404);
+
+    const desiredQty = clampInt(body.confirmQty, 1, 99);
+    if (desiredQty < item.purchasedQty) {
+      return json({ ok: false, error: `${item.purchasedQty} have already been bought` }, 400);
+    }
+
+    await updateItem(item.id, registry.id, { desiredQty });
+    return json({ ok: true });
+  }
+
+  const variantId = String(body.variantId ?? "");
+  const productId = String(body.productId ?? "");
+  if (!/^\d+$/.test(variantId) || !/^\d+$/.test(productId)) {
+    return json({ ok: false, error: "Missing product details" }, 400);
+  }
+
+  const result = await addInternalItem({
+    registryId: registry.id,
+    productGid: `gid://shopify/Product/${productId}`,
+    variantGid: `gid://shopify/ProductVariant/${variantId}`,
+    title: String(body.title ?? "Item").slice(0, 300),
+    imageUrl: typeof body.imageUrl === "string" && body.imageUrl ? body.imageUrl : null,
+    price: typeof body.price === "string" && body.price ? body.price : null,
+    currency: typeof body.currency === "string" ? body.currency : shop.currency,
+    desiredQty: clampInt(body.qty, 1, 20),
+  });
+
+  if (result.duplicate) {
+    return json({ ok: true, duplicate: true, itemId: result.item.id, currentQty: result.item.desiredQty });
+  }
+
+  return json({ ok: true });
+}
+
+/** GET .../ext-verify?t=<token> — the browser extension's one-time "connect" check. */
+async function extVerifyAction(ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const token = ctx.query.get("t");
+  const registryId = token ? readTokenRegistryId(token) : null;
+  const registry = registryId ? await authorizeManage(registryId, token, null) : null;
+
+  if (!registry || registry.shopId !== shop.id) {
+    return json({ ok: false, error: "This link has expired or isn't valid. Ask for a new one from your registry." }, 401);
+  }
+
+  return json({ ok: true, title: registry.title });
+}
+
+/**
+ * The browser extension's "add this page" endpoint.
+ *
+ * Deliberately calls addManualItem, not addExternalItem: addExternalItem
+ * re-fetches the URL itself to resolve title/image/price, which is exactly
+ * the server-side fetch the extension exists to avoid (Amazon and others
+ * block it). The extension already read the page's own rendered metadata
+ * client-side — this stores that as-is, the same way a manually-typed item
+ * is stored.
+ *
+ * addManualItem has no built-in dedup (the manage page's manual-entry form
+ * doesn't need one — nobody fat-fingers the same product twice by hand), so
+ * the duplicate check and the confirm-quantity round trip are handled here,
+ * matching addFromStoreAction's pattern rather than changing addManualItem's
+ * shared contract.
+ */
+async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const body = await readJson(request);
+  const token = typeof body.token === "string" ? body.token : null;
+  const registryId = token ? readTokenRegistryId(token) : null;
+  if (!registryId) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const registry = await authorizeManage(registryId, token, null);
+  if (!registry || registry.shopId !== shop.id) {
+    return json({ ok: false, error: "Not authorised" }, 403);
+  }
+
+  // Confirming an explicit total for something the extension already found
+  // on this registry — same "ask, don't silently bump" pattern as the theme
+  // button's duplicate prompt.
+  if (typeof body.itemId === "string" && body.confirmQty !== undefined) {
+    const item = registry.items.find((i) => i.id === body.itemId);
+    if (!item) return json({ ok: false, error: "Item not found" }, 404);
+
+    const desiredQty = clampInt(body.confirmQty, 1, 99);
+    if (desiredQty < item.purchasedQty) {
+      return json({ ok: false, error: `${item.purchasedQty} have already been bought` }, 400);
+    }
+
+    await updateItem(item.id, registry.id, { desiredQty });
+    return json({ ok: true });
+  }
+
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  if (!title) return json({ ok: false, error: "Couldn't find a product name on that page" }, 400);
+
+  const rawUrl = typeof body.url === "string" ? body.url : "";
+  let canonicalUrl: string | null = null;
+  if (rawUrl) {
+    try {
+      canonicalUrl = canonicalizeUrl(rawUrl).url;
+    } catch {
+      canonicalUrl = null; // still add it — a URL we can't canonicalize just means no dedup, not a hard failure
+    }
+  }
+
+  if (canonicalUrl) {
+    const existing = registry.items.find((i) => i.externalUrl === canonicalUrl);
+    if (existing) {
+      return json({ ok: true, duplicate: true, itemId: existing.id, currentQty: existing.desiredQty });
+    }
+  }
+
+  const item = await addManualItem({
+    registryId: registry.id,
+    title: title.slice(0, 300),
+    url: rawUrl || null,
+    imageUrl: typeof body.imageUrl === "string" && body.imageUrl ? body.imageUrl : null,
+    price: typeof body.price === "string" && body.price ? body.price : null,
+    currency: typeof body.currency === "string" ? body.currency : null,
+    desiredQty: clampInt(body.qty, 1, 20),
+  });
+
+  return json({ ok: true, itemId: item.id });
+}
+
+/**
+ * The escape hatch behind "you can add the item by hand instead".
+ *
+ * Roughly one URL in ten won't resolve — a login wall, a hostile bot check, a
+ * page with no structured data at all. A registrant who hits that must still
+ * end up with the item on their list, or they go and build the list somewhere
+ * that doesn't fail them.
+ */
+async function addManualAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const title = String(body.title ?? "").trim();
+  if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
+
+  try {
+    await addManualItem({
+      registryId: registry.id,
+      title,
+      url: typeof body.url === "string" && body.url ? body.url : null,
+      price: typeof body.price === "string" ? body.price : null,
+      currency: typeof body.currency === "string" ? body.currency : null,
+      desiredQty: clampInt(body.desiredQty, 1, 99),
+    });
+    return json({ ok: true });
+  } catch (err) {
+    if (err instanceof InvalidProductUrl || err instanceof ItemError) {
+      return json({ ok: false, error: err.message }, 400);
+    }
+    throw err;
+  }
+}
+
+async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+  const desiredQty = clampInt(body.desiredQty, 1, 99);
+
+  const item = registry.items.find((i) => i.id === itemId);
+  if (!item) return json({ ok: false, error: "Item not found" }, 404);
+  if (desiredQty < item.purchasedQty) {
+    return json(
+      { ok: false, error: `${item.purchasedQty} have already been bought` },
+      400,
+    );
+  }
+
+  await updateItem(itemId, registry.id, { desiredQty });
+  return json({ ok: true });
+}
+
+async function removeItemAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  try {
+    await removeItem(String(body.itemId ?? ""), registry.id);
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: (err as Error).message }, 400);
+  }
+}
+
+async function settingsAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  const form = await request.formData();
+  const privacy = String(form.get("privacy") ?? "unlisted");
+  const eventDate = String(form.get("eventDate") ?? "");
+
+  await updateRegistry(registry.id, {
+    title: String(form.get("title") ?? registry.title).slice(0, 200),
+    eventType: String(form.get("eventType") ?? registry.eventType),
+    eventDate: eventDate ? new Date(`${eventDate}T00:00:00Z`) : null,
+    message: String(form.get("message") ?? "").slice(0, 2000) || null,
+    privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",
+    // Being listed and being indexable are the same decision, and it is always
+    // an explicit opt-in by the registrant.
+    indexable: privacy === "public_",
+  });
+
+  await logEvent(registry.id, "settings_updated", { privacy });
+
+  return redirect(
+    proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: "saved" }),
+  );
+}
+
+async function deleteAction(request: Request, ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  await deleteRegistry(registry.id);
+
+  return page(
+    renderSimplePage(
+      brand,
+      "Your registry has been deleted",
+      "Everything on it is gone, including the record of who bought what.",
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+async function requireManage(ctx: ProxyContext): Promise<RegistryWithItems | null> {
+  const token = ctx.query.get("t");
+  const registryId = token ? readTokenRegistryId(token) : null;
+  if (!registryId) return null;
+
+  const registry = await authorizeManage(registryId, token, ctx.loggedInCustomerId);
+  // Belt and braces: the token proves who, this proves the registry belongs to
+  // the shop that proxied the request.
+  if (!registry) return null;
+  const owned = await db.registry.findFirst({
+    where: { id: registry.id, shop: { domain: ctx.shop } },
+    select: { id: true },
+  });
+  return owned ? registry : null;
+}
+
+function readTokenRegistryId(token: string): string | null {
+  return readManageToken(token);
+}
+
+function page(html: string, status = 200, indexable = false): Response {
+  return new Response(html, { status, headers: guestPageHeaders(indexable) });
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+}
+
+function redirect(location: string): Response {
+  // App proxy follows 30x responses, so this lands the guest on the right page
+  // on the merchant's own domain.
+  return new Response(null, { status: 302, headers: { Location: location } });
+}
+
+async function readJson(request: Request): Promise<Record<string, unknown>> {
+  try {
+    const body = await request.json();
+    return body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function clampInt(value: unknown, min: number, max: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return min;
+  return Math.min(max, Math.max(min, Math.floor(parsed)));
+}
+
+function isEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 254;
+}
+
+function firstNameOnly(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? "";
+}
+
+function csvCell(value: string): string {
+  // Guard against CSV injection — these cells open in Excel.
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
+  const flash = ctx.query.get("flash");
+  if (flash === "saved") return { kind: "ok", message: "Your changes are saved." };
+  return null;
+}
+
+export const __testables = { csvCell, isEmail, clampInt, firstNameOnly, escapeHtml };

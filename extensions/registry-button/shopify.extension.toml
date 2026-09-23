@@ -1,0 +1,13 @@
+api_version = "2025-10"
+
+name = "Add to registry"
+type = "theme"
+uid = "766458fa-5619-1c5d-2d7f-7e2c63973b89514315f6"
+
+# A theme app extension, not a script tag.
+#
+# This is the structural fix for the incumbent's most-complained-about bug:
+# merchants repeatedly reported that a theme update removed the registry button
+# and required a support ticket to restore. That failure mode is only possible
+# with injected script tags. An app block lives in the theme's own section
+# schema, so a theme update cannot silently strip it.

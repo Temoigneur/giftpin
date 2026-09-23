@@ -1,0 +1,163 @@
+{% comment %}
+  "Add to registry" — app block for the product template.
+
+  The merchant drags this into their product page in the theme editor. Because
+  it is part of the theme's own section tree, a theme update cannot remove it,
+  and the merchant can move or restyle it without a support ticket.
+
+  Everything here is server-rendered Liquid plus one small vanilla script. No
+  framework on a storefront that isn't ours to slow down.
+{% endcomment %}
+
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+
+<div
+  class="giftpin-block"
+  data-giftpin-root
+  data-product-id="{{ product.id }}"
+  data-variant-id="{{ current_variant.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-product-image="{% if product.featured_image %}{{ product.featured_image | image_url: width: 400 }}{% endif %}"
+  data-price="{{ current_variant.price | divided_by: 100.0 }}"
+  data-currency="{{ cart.currency.iso_code }}"
+  data-proxy="{{ block.settings.proxy_path | default: '/apps/registry' }}"
+  data-customer-id="{{ customer.id }}"
+  {{ block.shopify_attributes }}
+  style="
+    --giftpin-accent: {{ block.settings.accent_color }};
+    --giftpin-radius: {{ block.settings.corner_radius }}px;
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px;
+  "
+>
+  <button type="button" class="giftpin-btn" data-giftpin-open>
+    {%- if block.settings.show_icon -%}
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 3.5c1.2-1.6 4-1.4 5 .4.9 1.6.1 3.4-1.3 4.6L10 12 6.3 8.5C4.9 7.3 4.1 5.5 5 3.9c1-1.8 3.8-2 5-.4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M3.5 12.5h13v4h-13z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    {%- endif -%}
+    <span data-giftpin-label>{{ block.settings.button_label | default: 'Add to registry' }}</span>
+  </button>
+
+  <p class="giftpin-status" data-giftpin-status role="status" aria-live="polite"></p>
+
+  {%- comment -%}
+    The picker only appears once a customer has more than one registry, so the
+    common case stays a single tap. Hidden until needed; never a modal on load.
+  {%- endcomment -%}
+  <div class="giftpin-picker" data-giftpin-picker hidden>
+    <label class="giftpin-label" for="giftpin-select-{{ block.id }}">
+      {{ 'add_to_registry.choose' | t }}
+    </label>
+    <select class="giftpin-select" id="giftpin-select-{{ block.id }}" data-giftpin-select></select>
+    <div class="giftpin-row">
+      <input
+        class="giftpin-qty"
+        type="number"
+        min="1"
+        max="20"
+        value="1"
+        data-giftpin-qty
+        aria-label="Quantity"
+      >
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-confirm>
+        {{ block.settings.button_label | default: 'Add to registry' }}
+      </button>
+    </div>
+  </div>
+
+  {%- comment -%}
+    Shown when this item is already on the registry. Silently bumping the
+    quantity on a second click hides a real decision (the event host wants
+    two of these) behind the same action as an accidental double-add — so we
+    ask instead, and let them set the exact total they want.
+  {%- endcomment -%}
+  <div class="giftpin-picker" data-giftpin-dup hidden>
+    <p class="giftpin-label" data-giftpin-dup-message></p>
+    <div class="giftpin-row">
+      <input
+        class="giftpin-qty"
+        type="number"
+        min="1"
+        max="99"
+        data-giftpin-dup-qty
+        aria-label="Total quantity wanted"
+      >
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-confirm>
+        Update
+      </button>
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-cancel>
+        Never mind
+      </button>
+    </div>
+  </div>
+</div>
+
+{{ 'giftpin.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'giftpin.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Add to registry",
+  "target": "section",
+  "stylesheet": "giftpin.css",
+  "javascript": "giftpin.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Add to registry"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show gift icon",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Button colour",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Space above",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Space below",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "proxy_path",
+      "label": "Registry URL path",
+      "default": "/apps/registry",
+      "info": "Only change this if you renamed the app's URL in Settings → Apps."
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,61 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "5886b67a13790369a61aad0d5ab8595d"
+name = "Giftpin Gift Registry"
+application_url = "https://giftpin-app-production.up.railway.app"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_customers,read_orders,read_products,unauthenticated_read_product_listings,write_orders"
+
+[auth]
+redirect_urls = [
+  "https://giftpin-app-production.up.railway.app/auth/callback",
+  "https://giftpin-app-production.up.railway.app/auth/shopify/callback",
+  "https://giftpin-app-production.up.railway.app/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://giftpin-app-production.up.railway.app/proxy"
+subpath = "registry"
+prefix = "apps"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/orders/create"
+
+  [[webhooks.subscriptions]]
+  topics = [ "orders/updated" ]
+  uri = "/webhooks/orders/updated"
+
+  [[webhooks.subscriptions]]
+  topics = [ "orders/cancelled" ]
+  uri = "/webhooks/orders/cancelled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "refunds/create" ]
+  uri = "/webhooks/refunds/create"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/webhooks/app_subscriptions/update"
+
+  [webhooks.privacy_compliance]
+  customer_data_request_url = "/webhooks/customers/data_request"
+  customer_deletion_url = "/webhooks/customers/redact"
+  shop_deletion_url = "/webhooks/shop/redact"
+
+[build]
+automatically_update_urls_on_dev = true
