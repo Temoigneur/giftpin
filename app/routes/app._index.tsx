@@ -14,6 +14,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     stats,
     settings: settingsFor(shop),
     shopDomain: session.shop,
+    apiKey: process.env.SHOPIFY_API_KEY ?? "",
     hasData: stats.registries.active > 0,
     // A fresh query string on these links so a stale cached response can never
     // be served for them (see the 23 Sep 2026 note in app.settings.tsx history).
@@ -30,7 +31,14 @@ function money(amount: number, currency: string): string {
 }
 
 export default function Dashboard() {
-  const { stats, hasData, shopDomain, cacheBust, settings } = useLoaderData<typeof loader>();
+  const { stats, hasData, shopDomain, apiKey, cacheBust, settings } = useLoaderData<typeof loader>();
+
+  // Theme-editor deep links that open the right page with our block already
+  // added, so the merchant only has to press Save. (Plain /editor opens the
+  // home page and adds nothing.)
+  const editor = `https://${shopDomain}/admin/themes/current/editor`;
+  const addProductButtonUrl = `${editor}?template=product&addAppBlockId=${apiKey}/add-to-registry&target=mainSection`;
+  const addRegistryLinksUrl = `${editor}?template=index&addAppBlockId=${apiKey}/registry-links&target=newAppsSection`;
 
   // Where shoppers actually create and find registries. Shown at the top in
   // both states so the merchant can always get to (and preview) them.
@@ -48,16 +56,21 @@ export default function Dashboard() {
             Find a registry
           </s-button>
         )}
-        <s-button href={`https://${shopDomain}/admin/themes/current/editor`} target="_blank" variant="secondary">
-          Add links to your store
-        </s-button>
       </s-stack>
       <s-paragraph>
         <s-text color="subdued">
-          &ldquo;Add links to your store&rdquo; opens the theme editor: add the <s-text>Registry links</s-text> block to
-          your header or footer so shoppers can find these pages.
+          To put registries in front of shoppers, add these two things to your theme. Each button opens the theme
+          editor with the block already added: check where it landed, drag it where you want it, then press Save.
         </s-text>
       </s-paragraph>
+      <s-stack direction="inline" gap="base">
+        <s-button href={addProductButtonUrl} target="_blank" variant="secondary">
+          Add &ldquo;Add to registry&rdquo; button to product pages
+        </s-button>
+        <s-button href={addRegistryLinksUrl} target="_blank" variant="secondary">
+          Add registry links to your store
+        </s-button>
+      </s-stack>
     </s-section>
   );
 
@@ -71,17 +84,20 @@ export default function Dashboard() {
           </s-paragraph>
           <s-ordered-list>
             <s-list-item>
-              Add the <s-text>Add to registry</s-text> button to your product pages. Open your theme
-              editor, go to a product template, and add the <s-text>Add to registry</s-text> block.
+              Add the <s-text>Add to registry</s-text> button to your product pages (the button below opens
+              your product template with it already added: press Save).
             </s-list-item>
             <s-list-item>
-              Add the <s-text>Registry links</s-text> block to your header or footer, so customers can
-              start a registry.
+              Add the <s-text>Registry links</s-text> block (the second button below adds it as a new
+              section; drag it into your footer or wherever suits), so customers can start a registry.
             </s-list-item>
           </s-ordered-list>
           <s-stack direction="inline" gap="base">
-            <s-button href={`https://${shopDomain}/admin/themes/current/editor`} target="_blank">
-              Open theme editor
+            <s-button href={addProductButtonUrl} target="_blank">
+              Add button to product pages
+            </s-button>
+            <s-button href={addRegistryLinksUrl} target="_blank" variant="secondary">
+              Add registry links
             </s-button>
             <s-button href="/app/settings" variant="secondary">
               Settings
