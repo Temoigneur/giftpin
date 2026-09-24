@@ -85,6 +85,12 @@ reading Shopify's docs.
   the guest's saved one) is blocked on the `bentley.humphries+shopapp@gmail.com`
   test account — sign-in and SMS verification are both failing for that
   account/number. Needs a fresh Shop Pay test account, not a code fix.
+- **In-store (POS) attribution is unverified live.** `extensions/pos-registry`
+  adds registry items to the POS cart with the same signed `_rg` line
+  property the online store uses. Nobody has yet confirmed that a POS order's
+  orders/create webhook carries line item properties. Ring up one registry
+  item on a POS dev device and check the order gets attributed before
+  telling merchants in-store sales count.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).
