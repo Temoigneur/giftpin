@@ -251,4 +251,11 @@ describe("runRegistryAutomations", () => {
     const where = vi.mocked(db.registry.findMany).mock.calls[0][0]!.where as { shop: { plan: string } };
     expect(where.shop.plan).toBe("pro");
   });
+
+  it("can be limited to one shop for the Settings page's Run now", async () => {
+    vi.mocked(db.registry.findMany).mockResolvedValueOnce([] as never);
+    await runRegistryAutomations(NOW, "demo.myshopify.com");
+    const where = vi.mocked(db.registry.findMany).mock.calls[0][0]!.where as { shop: { domain: string } };
+    expect(where.shop.domain).toBe("demo.myshopify.com");
+  });
 });

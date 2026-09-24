@@ -33,7 +33,7 @@ export interface JobPayloads {
   "send-email": { template: string; to: string; data: Record<string, unknown> };
   "reap-claims": Record<string, never>;
   "purge-expired-data": Record<string, never>;
-  "registry-automations": Record<string, never>;
+  "registry-automations": { shop?: string };
 }
 
 type Handler<N extends JobName> = (payload: JobPayloads[N]) => Promise<void>;
