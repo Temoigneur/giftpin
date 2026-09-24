@@ -23,8 +23,8 @@ export function homeHtml(): string {
       <h1>One registry.<br>Every store.<br><span class="grad-text">Your checkout first.</span></h1>
       <p class="lede">Your customers put everything they want on one registry, from your shelves and from any shop online. Giftpin puts your matching products right beside the rest. Guests get one link. You get the sale.</p>
       <div class="cta-row">
-        <a class="btn light lg" href="${esc(c.href)}">${c.label} ${icon("arrow")}</a>
-        <a class="btn ghost-light lg" href="#demo">${icon("play")} Watch the demo</a>
+        <a class="btn dark lg" href="${esc(c.href)}">${c.label} ${icon("arrow")}</a>
+        <a class="btn ghost-band lg" href="#demo">${icon("play")} Watch the demo</a>
       </div>
       <ul class="proof">
         <li>${icon("check")} Free plan with unlimited registries</li>
@@ -264,11 +264,11 @@ const CSS = `
 .hh{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(32px,5vw,72px); align-items:center}
 .hh h1{margin:4px 0 22px}
 .hh .lede{margin-bottom:32px}
-.proof{list-style:none; padding:0; margin:28px 0 0; display:flex; flex-wrap:wrap; gap:10px 22px; font-size:15px; color:var(--night-soft)}
+.proof{list-style:none; padding:0; margin:28px 0 0; display:flex; flex-wrap:wrap; gap:10px 22px; font-size:15px; color:var(--band-soft)}
 .proof li{display:flex; align-items:center; gap:6px}
-.proof .i{width:18px; height:18px; color:var(--cyan)}
+.proof .i{width:18px; height:18px; color:var(--blue)}
 .hh-art{position:relative; padding:64px 8px 40px}
-.reg{background:#fff; color:#15142e; border-radius:24px; padding:22px; box-shadow:0 40px 80px -30px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08);
+.reg{background:#fff; color:#15142e; border-radius:24px; padding:22px; box-shadow:0 40px 80px -30px rgba(30,64,175,.45), 0 0 0 1px rgba(21,20,46,.06);
   transform:rotate(-1.5deg); animation:bob 7s ease-in-out infinite}
 @keyframes bob{50%{transform:rotate(-1.5deg) translateY(-8px)}}
 .reg-hd{display:flex; gap:12px; align-items:center; margin-bottom:18px}
@@ -303,9 +303,9 @@ const CSS = `
 @keyframes pop{from{opacity:0; transform:scale(.7) translateY(10px)}}
 @keyframes float{50%{transform:translateY(-6px)}}
 .pay{padding-block:56px 44px; text-align:center}
-.pay p{font-size:14px; font-weight:600; color:var(--night-soft); margin-bottom:16px}
+.pay p{font-size:14px; font-weight:600; color:var(--band-soft); margin-bottom:16px}
 .pay ul{list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; justify-content:center; gap:10px}
-.pay li{border:1px solid var(--night-line); background:rgba(255,255,255,.04); border-radius:999px; padding:8px 18px; font-weight:700; font-size:15px; color:#fff}
+.pay li{border:1px solid var(--band-line); background:var(--band-chip); border-radius:999px; padding:8px 18px; font-weight:700; font-size:15px; color:var(--band-ink)}
 @media (max-width:900px){
   .hh{grid-template-columns:1fr}
   .hh-art{max-width:480px; margin-inline:auto; width:100%}
@@ -328,7 +328,7 @@ const CSS = `
 @media (max-width:900px){.spot{grid-template-columns:1fr}}
 
 .steps .card{position:relative; overflow:hidden}
-.big-n{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:64px; line-height:1; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; display:block}
+.big-n{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:64px; line-height:1; background:var(--grad-text); -webkit-background-clip:text; background-clip:text; color:transparent; display:block}
 
 .demo-frame{max-width:980px; margin:0 auto}
 
@@ -357,6 +357,7 @@ const CSS = `
   position:relative; overflow:hidden; isolation:isolate; box-shadow:var(--shadow)}
 .pro-card::before{content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(520px 360px at 0% 0%, rgba(34,211,238,.25), transparent 60%), radial-gradient(620px 420px at 100% 100%, rgba(168,85,247,.35), transparent 60%)}
 .pro-card .eyebrow{color:#9fe9f7}
+.pro-card .grad-text{background:var(--grad); -webkit-background-clip:text; background-clip:text}
 .pro-card .lede{color:var(--night-soft); margin:18px 0 26px; font-size:18px}
 .pro-price{font-size:17px; color:var(--night-soft); margin-bottom:26px}
 .pro-price strong{font-family:"Bricolage Grotesque",sans-serif; font-size:48px; color:#fff; letter-spacing:-.02em}

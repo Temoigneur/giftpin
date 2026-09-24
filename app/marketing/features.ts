@@ -119,8 +119,8 @@ const MERCHANT: Feature[] = [
 
 const CSS = `
 .jump{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:32px}
-.jump a{color:#fff; text-decoration:none; font-weight:700; font-size:15px; padding:9px 18px; border-radius:99px; border:1px solid var(--night-line); background:rgba(255,255,255,.05)}
-.jump a:hover{background:rgba(255,255,255,.12)}
+.jump a{color:var(--band-ink); text-decoration:none; font-weight:700; font-size:15px; padding:9px 18px; border-radius:99px; border:1px solid var(--band-line); background:var(--band-chip)}
+.jump a:hover{border-color:var(--accent)}
 .sec{scroll-margin-top:68px}
 .more{margin-top:32px; text-align:center; font-weight:700}
 .more a{display:inline-flex; align-items:center; gap:6px; text-decoration:none}

@@ -44,7 +44,7 @@ ${finalCta()}
 }
 
 const CSS = `
-.light-link{color:#9fe9f7}
+.light-link{color:var(--accent)}
 .faq-layout{display:grid; grid-template-columns:220px 1fr; gap:clamp(24px,5vw,64px); align-items:start; max-width:1040px}
 .toc{position:sticky; top:96px; display:grid; gap:4px}
 .toc a{color:var(--ink-soft); text-decoration:none; font-weight:600; padding:8px 14px; border-radius:10px; border-left:3px solid transparent}
