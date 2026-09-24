@@ -78,39 +78,40 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
   <h1>${escapeHtml(data.title)}</h1>
   ${data.registrantNames ? `<p class="sub">${escapeHtml(data.registrantNames)}</p>` : ""}
   ${data.message ? `<div class="note">${escapeHtml(data.message)}</div>` : ""}
-  ${
+  <div id="registro-progress">${
     progress.totalItems
       ? `<div class="progress" role="img" aria-label="${pct}% of gifts claimed"><i style="width:${pct}%"></i></div>
          <p class="sub">${progress.fulfilledItems} of ${progress.totalItems} gifts taken care of</p>`
       : ""
-  }
+  }</div>
 </header>
 
 ${renderShare(data)}
 
 <div id="registro-refresh" class="update-banner" hidden role="status">
-  <span>This registry has new gifts.</span>
+  <span>This registry has been updated.</span>
   <button type="button" class="btn sm" id="registro-refresh-btn">Refresh</button>
   <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
 </div>
 
-${
+<div id="registro-items">${
   data.items.length === 0
     ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
     : renderItemGroups(data)
-}
+}</div>
 
 ${renderDuplicateNotice(data)}
 
 <p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Registry owner? Manage this registry</a></p>
 
-<script>${clientScript()}</script>
+<!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
     actionUrl: data.actionUrl,
     registryId: data.registryId,
     version: data.version,
     versionUrl: data.versionUrl,
   })}</script>
+<script>${clientScript()}</script>
 `;
 
   return layout(
@@ -296,7 +297,7 @@ function clientScript(): string {
     var owned=JSON.parse(localStorage.getItem('registro.registries')||'[]');
     var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
     var ownerEl=document.getElementById('registro-owner');
-    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/\/+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
+    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
   }catch(_){}
 
   document.addEventListener('submit',function(e){
@@ -347,16 +348,49 @@ function clientScript(): string {
   if(cfg.versionUrl){
     var banner=document.getElementById('registro-refresh');
     var dismissed=false;
+    var checking=false;
+    function busy(){
+      // Never swap the list out from under someone who is typing or has a
+      // request in flight.
+      var a=document.activeElement;
+      if(a&&a.closest&&a.closest('#registro-items')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))return true;
+      return !!document.querySelector('#registro-items button:disabled');
+    }
+    function applyUpdate(){
+      return fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store',credentials:'same-origin'})
+        .then(function(r){return r.text()})
+        .then(function(html){
+          var doc=new DOMParser().parseFromString(html,'text/html');
+          var newItems=doc.getElementById('registro-items');
+          var newCfg=doc.getElementById('registro-config');
+          if(!newItems||!newCfg)throw new Error('no items');
+          var next=JSON.parse(newCfg.textContent);
+          document.getElementById('registro-items').innerHTML=newItems.innerHTML;
+          var p=doc.getElementById('registro-progress'),cur=document.getElementById('registro-progress');
+          if(p&&cur)cur.innerHTML=p.innerHTML;
+          cfg.version=next.version;
+          banner.hidden=true;
+        });
+    }
     function checkVersion(){
-      if(dismissed||!banner||document.visibilityState==='hidden')return;
+      if(checking||dismissed||!banner||document.visibilityState==='hidden')return;
+      checking=true;
       fetch(cfg.versionUrl,{headers:{Accept:'application/json'}})
         .then(function(r){return r.json()})
-        .then(function(res){if(res&&res.ok&&res.version>cfg.version){banner.hidden=false;}})
-        .catch(function(){});
+        .then(function(res){
+          if(!(res&&res.ok&&res.version>cfg.version))return;
+          // Quietly update in place; only fall back to the manual banner when
+          // the guest is mid-action or the fetch fails.
+          if(busy()){banner.hidden=false;return;}
+          return applyUpdate().catch(function(){banner.hidden=false;});
+        })
+        .catch(function(){})
+        .then(function(){checking=false;});
     }
     var refreshBtn=document.getElementById('registro-refresh-btn');
     var dismissBtn=document.getElementById('registro-dismiss-btn');
     if(refreshBtn)refreshBtn.addEventListener('click',function(){location.reload();});
+    setTimeout(checkVersion,3000);
     if(dismissBtn)dismissBtn.addEventListener('click',function(){dismissed=true;banner.hidden=true;});
     setInterval(checkVersion,20000);
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkVersion();});
