@@ -25,32 +25,36 @@ const HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Giftpin Privacy Policy</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="icon" type="image/png" sizes="64x64" href="/brand/giftpin-icon-64.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap">
 <style>
   :root{
-    --bg:#fbfaf7; --surface:#ffffff; --ink:#1f2320; --ink-soft:#565f5a;
-    --line:#e4e1d8; --accent:#3f6b52; --accent-soft:#e8efe9; --code-bg:#f1efe7;
+    --bg:#fbfaff; --surface:#ffffff; --ink:#15142e; --ink-soft:#57567a;
+    --line:#e6e3f5; --accent:#6d3ae8; --accent-soft:#efeaff; --code-bg:#f3f1ff;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#15181a; --surface:#1c2023; --ink:#eceeec; --ink-soft:#a7b0ab;
-      --line:#2c3236; --accent:#7fb996; --accent-soft:#20302a; --code-bg:#20242a;
+      --bg:#0f0e26; --surface:#18173a; --ink:#eeedfb; --ink-soft:#aeacd2;
+      --line:#2b2956; --accent:#b69cff; --accent-soft:#272257; --code-bg:#211f4d;
     }
   }
   *{box-sizing:border-box}
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Source Sans 3", -apple-system, Segoe UI, sans-serif;
+    font-family:"Plus Jakarta Sans", -apple-system, Segoe UI, sans-serif;
     line-height:1.6; padding-block:48px; padding-inline:16px;
   }
   .page{max-width:720px; margin:0 auto;}
   header.top{margin-bottom:40px;}
+  .home{display:inline-flex; align-items:center; gap:10px; margin-bottom:32px; color:var(--ink);
+    text-decoration:none; font-family:"Bricolage Grotesque", sans-serif; font-weight:800; font-size:22px;}
+  .home img{width:32px; height:32px; border-radius:9px;}
   .eyebrow{
     font-size:13px; letter-spacing:.08em; text-transform:uppercase;
     color:var(--accent); font-weight:600; margin:0 0 10px;
   }
   h1{
-    font-family:"Fraunces", Georgia, serif; font-weight:600;
+    font-family:"Bricolage Grotesque", sans-serif; font-weight:800;
     font-size:clamp(28px,5vw,40px); line-height:1.15; margin:0 0 12px;
     letter-spacing:-0.01em;
   }
@@ -72,13 +76,13 @@ const HTML = `<!doctype html>
   nav.toc a:hover{border-color:var(--accent); color:var(--accent);}
   section{margin:40px 0;}
   h2{
-    font-family:"Fraunces", Georgia, serif; font-weight:600;
+    font-family:"Bricolage Grotesque", sans-serif; font-weight:800;
     font-size:22px; margin:0 0 14px; padding-top:8px;
     border-top:1px solid var(--line);
     display:flex; align-items:baseline; gap:10px;
   }
   h2 .num{color:var(--accent); font-variant-numeric:tabular-nums; font-size:15px;
-    font-family:"Source Sans 3", sans-serif; font-weight:700;}
+    font-family:"Plus Jakarta Sans", sans-serif; font-weight:700;}
   p{margin:0 0 14px; max-width:65ch;}
   ul{margin:0 0 14px; padding-left:22px;}
   li{margin-bottom:6px; max-width:62ch;}
@@ -105,6 +109,7 @@ const HTML = `<!doctype html>
 <body>
 <div class="page">
   <header class="top">
+    <a class="home" href="/"><img src="/brand/giftpin-icon-64.png" alt="" width="32" height="32">Giftpin</a>
     <p class="eyebrow">Giftpin · Gift Registry for Shopify</p>
     <h1>Privacy Policy</h1>
     <p class="meta">Effective 23 September 2026</p>
