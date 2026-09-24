@@ -3,6 +3,7 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { enqueue } from "../lib/queue.server";
 import { isPro, requireShop, settingsFor, updateSettings } from "../models/shop.server";
 import {
   EVENT_TYPES,
@@ -41,6 +42,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
+
+  // "Run now": the daily automations job (app/models/automations.server.ts)
+  // for this shop only. Each automation still fires at most once per
+  // registry, so pressing it twice sends nothing new.
+  if (form.get("intent") === "run-automations") {
+    if (isPro(shop)) await enqueue("registry-automations", { shop: session.shop });
+    return { ok: true, ran: isPro(shop), warnings: [] as string[] };
+  }
 
   // Pro branding. Free shops don't get these fields in the form, and a
   // crafted post from one is ignored rather than saved.
@@ -114,6 +123,7 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 export default function Settings() {
   const { settings, pro } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const runFetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
 
   const saving = fetcher.state !== "idle";
@@ -339,6 +349,27 @@ export default function Settings() {
         </s-section>
       </fetcher.Form>
 
+      {pro && (
+        <runFetcher.Form method="post">
+          <input type="hidden" name="intent" value="run-automations" />
+          <s-section heading="Run the after-event emails and discounts now">
+            <s-paragraph>
+              <s-text color="subdued">
+                They run on their own once a day. This runs them now for your store, which is handy for
+                checking your settings. Nothing is sent twice.
+              </s-text>
+            </s-paragraph>
+            <s-stack direction="inline" gap="base">
+              <s-button type="submit" variant="secondary" {...(runFetcher.state !== "idle" ? { loading: true } : {})}>
+                Run now
+              </s-button>
+              {runFetcher.data && "ran" in runFetcher.data && runFetcher.data.ran && (
+                <s-text>Started. Emails and codes arrive within a minute.</s-text>
+              )}
+            </s-stack>
+          </s-section>
+        </runFetcher.Form>
+      )}
     </s-page>
   );
 }

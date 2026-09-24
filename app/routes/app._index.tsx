@@ -69,7 +69,7 @@ export default function Dashboard() {
       </s-paragraph>
       <s-stack direction="inline" gap="base">
         <s-button href={addProductButtonUrl} target="_blank" variant="secondary">
-          Add &ldquo;Add to registry&rdquo; button to product pages
+          Show the registry button on product pages
         </s-button>
         <s-button href={addRegistryLinksUrl} target="_blank" variant="secondary">
           Add registry links to your store

@@ -220,7 +220,11 @@ export interface AutomationSummary {
   failed: number;
 }
 
-export async function runRegistryAutomations(now: Date = new Date()): Promise<AutomationSummary> {
+/** `shopDomain` limits the run to one shop (the Settings page's "Run now" button). */
+export async function runRegistryAutomations(
+  now: Date = new Date(),
+  shopDomain?: string,
+): Promise<AutomationSummary> {
   const summary: AutomationSummary = {
     registriesChecked: 0,
     sent: { guestReminder: 0, mostGone: 0, thankYou: 0, completionDiscount: 0 },
@@ -229,7 +233,7 @@ export async function runRegistryAutomations(now: Date = new Date()): Promise<Au
 
   const where = {
     status: "active" as const,
-    shop: { plan: "pro" as const, uninstalledAt: null },
+    shop: { plan: "pro" as const, uninstalledAt: null, ...(shopDomain ? { domain: shopDomain } : {}) },
     OR: [
       {
         eventDate: {
@@ -492,8 +496,8 @@ async function issueCompletionDiscount(
   return true;
 }
 
-registerHandler("registry-automations", async () => {
-  await runRegistryAutomations();
+registerHandler("registry-automations", async ({ shop }) => {
+  await runRegistryAutomations(new Date(), shop);
 });
 
 export const __testables = { WINDOWS };
