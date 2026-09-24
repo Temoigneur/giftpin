@@ -163,8 +163,8 @@ export function homeHtml(): string {
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("list")}</span>
-        <h3>Thank-yous made easy</h3>
-        <p>A who-gave-what list the registrant can download as a spreadsheet, ready for the thank-you cards.</p>
+        <h3>Thank-you cards made easy</h3>
+        <p>A who-gave-what list the registrant can download as a spreadsheet, so nobody gets missed.</p>
       </div>
       <div class="card wide rise">
         <span class="chip-ico">${icon("puzzle")}</span>
