@@ -6,9 +6,9 @@ import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL } from "./config";
  * `sitePage(...)` as plain HTML: no React, no auth, no session, same as the
  * original `_index.tsx` and `pricing.tsx`.
  *
- * Colours come from the Ice app icon (public/brand/, Ben's pick 24 Sep
- * 2026): its pale ice blue for the header, hero and footer bands, its
- * cyan-to-violet gradient for highlights, and deep navy for the few dark
+ * Colours come from the app icon (public/brand/, the tile-only gift icon
+ * Ben picked 24 Sep 2026): pale ice blue for the header, hero and footer
+ * bands, the tile's cyan-to-violet gradient for highlights, and deep navy for the few dark
  * accent blocks. In dark mode the bands turn navy. Not a
  * `.server` file, and imports nothing server-side (CLAUDE.md hard rule 2).
  */
