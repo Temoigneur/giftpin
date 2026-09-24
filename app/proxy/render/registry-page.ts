@@ -4,7 +4,7 @@ import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
-import { eventHeroArt } from "../../shared/event-art";
+import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 
 /**
@@ -54,6 +54,8 @@ export interface RegistryPageData {
   hidePoweredBy?: boolean;
   /** Pro: show the "email me before the event" sign-up. See automations.server.ts. */
   offerReminder?: boolean;
+  /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
+  artBaseUrl?: string | null;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -77,7 +79,8 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
   ${
     data.coverImageUrl
       ? `<img class="hero-img" src="${escapeAttr(data.coverImageUrl)}" alt="" loading="eager">`
-      : `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`
+      : eventHeroImage(data.eventType, data.artBaseUrl) ??
+        `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`
   }
   <p class="sub">${escapeHtml(data.eventLabel)}${dateLine ? ` &middot; ${escapeHtml(dateLine)}` : ""}</p>
   <h1>${escapeHtml(data.title)}</h1>

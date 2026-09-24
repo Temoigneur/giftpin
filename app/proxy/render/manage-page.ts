@@ -4,7 +4,7 @@ import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor } from "../../shared/registry-ideas";
-import { eventHeroArt } from "../../shared/event-art";
+import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 
@@ -40,6 +40,8 @@ export interface ManagePageData {
   /** Registry version + its poll endpoint, so the page can pick up items added elsewhere (e.g. the browser extension). */
   version?: number;
   versionUrl?: string;
+  /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
+  artBaseUrl?: string | null;
   storeSearchUrl: string;
   flash?: { kind: "ok" | "err"; message: string } | null;
   /** Who gave what — the thank-you list. */
@@ -55,7 +57,7 @@ export interface ManagePageData {
 
 export function renderManagePage(data: ManagePageData): string {
   const body = `
-<div class="hero-art">${eventHeroArt(data.eventType)}</div>
+${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`}
 <p class="sub">Your registry</p>
 <h1>${escapeHtml(data.title)}</h1>
 

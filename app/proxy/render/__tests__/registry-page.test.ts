@@ -274,6 +274,37 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     const html = page([item()], { coverImageUrl: null, eventType: "wedding" });
     expect(html).toContain("var(--accent)");
   });
+
+  it("uses the painted wedding banner, served from the app origin, when one is known", () => {
+    const html = page([item()], {
+      coverImageUrl: null,
+      eventType: "wedding",
+      artBaseUrl: "https://app.example.com/",
+    });
+    expect(html).toContain('class="hero-img hero-painting"');
+    expect(html).toContain('src="https://app.example.com/art/wedding-2016.webp"');
+    expect(html).toContain("https://app.example.com/art/wedding-1024.webp 1024w");
+    expect(html).not.toContain('class="hero-art"');
+  });
+
+  it("keeps line art for event types without a painting", () => {
+    const html = page([item()], {
+      coverImageUrl: null,
+      eventType: "baby",
+      artBaseUrl: "https://app.example.com",
+    });
+    expect(html).toContain('class="hero-art"');
+    expect(html).not.toContain('class="hero-img hero-painting"');
+  });
+
+  it("still prefers an uploaded cover photo over the painted banner", () => {
+    const html = page([item()], {
+      coverImageUrl: "https://cdn.example.com/cover.jpg",
+      eventType: "wedding",
+      artBaseUrl: "https://app.example.com",
+    });
+    expect(html).not.toContain('class="hero-img hero-painting"');
+  });
 });
 
 describe("registry page live-refresh banner", () => {
