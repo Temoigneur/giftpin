@@ -89,7 +89,7 @@ export function pricingHtml(): string {
     font-variant-numeric:tabular-nums;}
   .price small{font-size:17px; font-weight:600; color:var(--ink-soft);}
   .sub{color:var(--ink-soft); font-size:15px; margin:0 0 20px; min-height:24px;}
-  .plan ul{list-style:none; margin:0 0 24px; padding:0; display:grid; gap:10px; flex:1;}
+  .plan ul{list-style:none; margin:0 0 24px; padding:0; display:grid; gap:10px; flex:1; align-content:start;}
   .plan li{display:grid; grid-template-columns:20px 1fr; gap:10px; font-size:16px;}
   .plan li svg{width:20px; height:20px; color:var(--accent); margin-top:3px;}
   .plan li span small{display:block; color:var(--ink-soft); font-size:14px;}
