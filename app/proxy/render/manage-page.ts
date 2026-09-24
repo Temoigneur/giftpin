@@ -84,6 +84,7 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
 
 ${renderIdeaGuide(data)}
 
+<div class="duo">
 <div class="note">
   <p style="margin:0 0 10px"><strong>From ${escapeHtml(data.shopName)}</strong></p>
   <a class="btn sm block" href="${escapeAttr(data.storeSearchUrl)}">Browse the store</a>
@@ -108,6 +109,7 @@ ${
 </div>`
     : ""
 }
+</div>
 
 <div id="registro-list">
 <h2>Your list${data.items.length ? ` (${data.items.length})` : ""}</h2>

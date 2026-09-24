@@ -39,6 +39,8 @@ export function renderCreatePage(data: CreatePageData): string {
 ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
 <form method="post" action="${escapeAttr(data.actionUrl)}/create" class="note">
+<div class="fields">
+  <div>
   <label for="c-event">What's the occasion?</label>
   <select id="c-event" name="eventType" required>
     ${types
@@ -48,30 +50,44 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
       })
       .join("")}
   </select>
+  </div>
 
+  <div>
   <label for="c-title">Registry name</label>
   <input id="c-title" type="text" name="title" maxlength="200" required
          placeholder="${escapeAttr(initial.title)}" value="${escapeAttr(v.title)}">
+  </div>
 
+  <div>
   <label for="c-date">When is it?</label>
   <input id="c-date" type="date" name="eventDate" value="${escapeAttr(v.eventDate)}">
   <p class="hint">Optional. We'll remind you to share your link as it gets closer.</p>
+  </div>
 
+  <div>
   <label for="c-name">Your name</label>
   <input id="c-name" type="text" name="registrantName" maxlength="120" required value="${escapeAttr(v.registrantName)}">
+  </div>
 
+  <div>
   <label for="c-email">Your email</label>
   <input id="c-email" type="email" name="registrantEmail" required value="${escapeAttr(v.registrantEmail)}">
   <p class="hint">We email you a private link to manage your registry, and tell you when someone buys something. Your email is never shown to guests.</p>
+  </div>
 
+  <div>
   <label for="c-country">Where will your guests shop?</label>
   <select id="c-country" name="country">
     ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
   </select>
   <p class="hint">When this store doesn't carry something, we'll suggest that country's stores, like Amazon and Walmart.</p>
+  </div>
 
+  <div class="full">
   <label for="c-msg">A note for your guests</label>
   <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional. For example: ${escapeAttr(initial.note)}">${escapeHtml(v.message)}</textarea>
+  </div>
+</div>
 
   <div class="row" style="margin-top:20px">
     <button class="btn block" type="submit">Create my registry</button>
