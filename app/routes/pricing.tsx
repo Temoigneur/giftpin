@@ -34,7 +34,7 @@ export function pricingHtml(): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Giftpin Pricing</title>
-<meta name="description" content="Giftpin is free for unlimited gift registries. ${name} is ${price}/month with a ${trial}, and adds registry analytics, priority support and removes the Giftpin credit.">
+<meta name="description" content="Giftpin is free for unlimited gift registries. ${name} is ${price}/month with a ${trial}, and adds analytics, sales reports, your branding, automatic emails and priority support.">
 <meta property="og:title" content="Giftpin Pricing">
 <meta property="og:description" content="Free for unlimited registries. ${name}: ${price}/month, ${trial}.">
 <meta property="og:type" content="website">
@@ -129,7 +129,7 @@ export function pricingHtml(): string {
   <div class="head">
     <p class="eyebrow">Pricing</p>
     <h1>Free to start. Upgrade when you want more.</h1>
-    <p class="lede">Every store gets unlimited gift registries at no cost. ${name} adds analytics, priority support and your own branding.</p>
+    <p class="lede">Every store gets unlimited gift registries at no cost. ${name} adds analytics, sales reports, your own branding, automatic emails and priority support.</p>
   </div>
 
   <div class="plans">
@@ -160,6 +160,8 @@ export function pricingHtml(): string {
         ${check}<span>Registry sales report<small>Revenue, orders, new customers and average order from registries, month by month.</small></span></li>
         ${check}<span>Your branding on registry pages<small>Your logo, colours and font, with the "Powered by Giftpin" credit removed.</small></span></li>
         ${check}<span>CSV export of registries and purchases</span></li>
+        ${check}<span>Completion discount<small>After the event, the registrant gets a single-use code for your products still on their list. You choose the percentage and how long it lasts.</small></span></li>
+        ${check}<span>Automatic registry emails<small>A reminder before the event to guests who opt in, an alert when most items are gone, and a thank-you reminder listing who gave what.</small></span></li>
         ${check}<span>Priority email support<small>Replies within one business day.</small></span></li>
       </ul>
       <a class="btn" href="mailto:support@giftpin.app?subject=Giftpin%20early%20access">Get early access</a>
