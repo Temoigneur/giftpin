@@ -49,6 +49,8 @@ export interface RegistryPageData {
   affiliateLinkWrapperBase?: string | null;
   /** Pro feature ("branding removal") — see app/routes/app.billing.tsx. */
   hidePoweredBy?: boolean;
+  /** Pro: show the "email me before the event" sign-up. See automations.server.ts. */
+  offerReminder?: boolean;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -101,6 +103,8 @@ ${renderShare(data)}
 }</div>
 
 ${renderDuplicateNotice(data)}
+
+${data.offerReminder ? renderReminderSignup() : ""}
 
 <p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Registry owner? Manage this registry</a></p>
 
@@ -272,6 +276,17 @@ function renderShare(data: RegistryPageData): string {
 </div>`;
 }
 
+function renderReminderSignup(): string {
+  return `<form class="note js-remind" method="post" hidden>
+  <label for="registro-remind-email"><strong>Want a reminder?</strong> We'll email you once, about two weeks before the event.</label>
+  <div class="row" style="margin-top:8px">
+    <input id="registro-remind-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com" style="flex:1;min-height:44px;padding:0 12px;border:1px solid #ccc;border-radius:8px">
+    <button class="btn sm" type="submit">Remind me</button>
+  </div>
+  <span class="js-status item-meta" role="status"></span>
+</form>`;
+}
+
 function renderDuplicateNotice(data: RegistryPageData): string {
   if (data.progress.externalItems === 0) return "";
   return `<div class="note">
@@ -300,7 +315,18 @@ function clientScript(): string {
     if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
   }catch(_){}
 
+  // The reminder sign-up is JSON-only, so it stays hidden without script.
+  Array.prototype.forEach.call(document.querySelectorAll('.js-remind'),function(f){f.hidden=false;});
+
   document.addEventListener('submit',function(e){
+    var remind=e.target.closest('.js-remind');
+    if(remind){
+      e.preventDefault();var rb=remind.querySelector('button');rb.disabled=true;status(remind,'Saving...');
+      post('/remind',{registryId:cfg.registryId,email:remind.querySelector('[name=email]').value})
+        .then(function(res){if(res&&res.ok){status(remind,"Done. We'll email you before the event.");}else{status(remind,(res&&res.error)||'Could not save',false);rb.disabled=false;}})
+        .catch(function(){status(remind,'Could not save',false);rb.disabled=false;});
+      return;
+    }
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
     var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
     var qtyEl=form.querySelector('[name=qty]');

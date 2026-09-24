@@ -17,6 +17,7 @@ import "./lib/resolver/index.server";
 import "./lib/store-match.server";
 import "./lib/email.server";
 import "./models/retention.server";
+import "./models/automations.server";
 
 async function main() {
   const worker = startWorker();

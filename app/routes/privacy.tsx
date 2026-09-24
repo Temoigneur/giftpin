@@ -158,6 +158,10 @@ const HTML = `<!doctype html>
       claim/purchase happened and, where the checkout provides it, a first
       name to attribute the gift to ("From Taylor") — not a full identity
       profile of the guest.</p>
+    <p>If a guest asks for a reminder before the event, Giftpin stores the
+      email address they enter, encrypted, uses it only for that one
+      reminder, and deletes it once the event has passed. Every reminder
+      has a one-click unsubscribe link.</p>
   </section>
 
   <section id="product-data">
@@ -246,6 +250,9 @@ const HTML = `<!doctype html>
         sooner at any time.</li>
       <li><strong>Holds on items from other stores:</strong> removed 30 days
         after they end.</li>
+      <li><strong>A guest's email for a pre-event reminder</strong> (only if
+        they asked for one on the registry page): removed once the event
+        date passes, or straight away if they unsubscribe.</li>
       <li><strong>Activity history for a registry:</strong> 24 months.</li>
       <li><strong>Internal audit records</strong> (a log of when the app
         accessed personal data, containing no names or emails): 12 months.</li>
