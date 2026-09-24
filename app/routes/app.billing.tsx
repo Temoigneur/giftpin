@@ -89,6 +89,8 @@ export default function Billing() {
               <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
               <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
               <s-list-item>CSV export of registries and purchases</s-list-item>
+              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
+              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
@@ -110,6 +112,8 @@ export default function Billing() {
               <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
               <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
               <s-list-item>CSV export of registries and purchases</s-list-item>
+              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
+              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
