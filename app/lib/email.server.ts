@@ -191,11 +191,11 @@ const templates: Record<string, TemplateFn> = {
   /** Registrant, after the event: the completion discount. */
   "completion-discount": (d) => ({
     to: d.to,
-    subject: `${d.percent}% off what's left on your registry`,
-    text: `Thanks for building your registry with ${d.shopName}. Use code ${d.code} for ${d.percent}% off the ${d.shopName} products still on your list${d.remaining > 0 ? ` (${d.remaining} ${plural(d.remaining, "item", "items")})` : ""}. It works once, until ${d.endsOn}.\n\nSee what's left: ${d.url}`,
+    subject: `${d.percent}% off what's left on ${d.registryTitle}`,
+    text: `Thanks for building ${d.registryTitle} with ${d.shopName}. Use code ${d.code} for ${d.percent}% off the ${d.shopName} products still on your list${d.remaining > 0 ? ` (${d.remaining} ${plural(d.remaining, "item", "items")})` : ""}. It works once, until ${d.endsOn}.\n\nSee what's left: ${d.url}`,
     html: shell(
       `${d.percent}% off what's left on your list`,
-      `<p>Thanks for building your registry with ${escapeHtml(d.shopName)}. Here's a thank-you for the ${escapeHtml(d.shopName)} products still on your list.</p>
+      `<p>Thanks for building <strong>${escapeHtml(d.registryTitle)}</strong> with ${escapeHtml(d.shopName)}. Here's a thank-you for the ${escapeHtml(d.shopName)} products still on your list.</p>
        <p style="font-size:22px;font-weight:700;letter-spacing:1px;background:#fff;border:1px dashed #bbb;border-radius:8px;padding:14px;text-align:center">${escapeHtml(d.code)}</p>
        <p style="color:#6b6b6b;font-size:13px">${d.percent}% off, one use, until ${escapeHtml(d.endsOn)}. Enter it at checkout.</p>`,
       { label: "See what's left", url: d.url },

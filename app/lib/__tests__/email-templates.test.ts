@@ -48,7 +48,9 @@ describe("Pro automation emails", () => {
       endsOn: "2026-11-23",
       url: "https://x/manage",
     });
-    expect(mail.subject).toBe("15% off what's left on your registry");
+    // Names the registry: a registrant with several can tell which one it's for.
+    expect(mail.subject).toBe("15% off what's left on Ours");
+    expect(mail.html).toContain("<strong>Ours</strong>");
     expect(mail.html).toContain("THANKS-ABCD2345");
     expect(mail.text).toContain("until 2026-11-23");
   });
