@@ -239,6 +239,26 @@ a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(-
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width:420px){.item{grid-template-columns:64px 1fr;gap:12px}.item-img{width:64px;height:64px}h1{font-size:22px}}
+
+/* --- desktop ------------------------------------------------------------
+   The single 680px column is sized for phones, where most guests open the
+   link. On a wide screen it left two-thirds of the window empty, so from
+   960px up the page widens and item lists go two across. Phones and tablets
+   below the breakpoint render exactly as before. */
+@media (min-width:960px){
+.wrap{max-width:1120px;padding:32px 32px 56px}
+h1{font-size:30px}
+.hero-img{aspect-ratio:16/5}
+.hero-art{aspect-ratio:auto;height:300px;display:flex;justify-content:center;background:color-mix(in srgb,var(--accent) 6%,var(--card))}
+.hero-art svg{width:auto;height:100%}
+.hero-art svg>rect:first-child{display:none}
+.items{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.duo>.note{margin:0}
+.duo>.note:only-child{grid-column:1/-1}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+.fields>.full{grid-column:1/-1}
+}
 `;
 }
 
