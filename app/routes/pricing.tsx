@@ -157,8 +157,10 @@ export function pricingHtml(): string {
       <ul>
         ${check}<span>Everything in Free</span></li>
         ${check}<span>Registry analytics<small>Registries, items and gifts over 30 days, 90 days or 12 months, with revenue, new customers, where gifts were bought and registries by occasion.</small></span></li>
-        ${check}<span>Remove the "Powered by Giftpin" credit from your registry pages</span></li>
-        ${check}<span>Priority email support</span></li>
+        ${check}<span>Registry sales report<small>Revenue, orders, new customers and average order from registries, month by month.</small></span></li>
+        ${check}<span>Your branding on registry pages<small>Your logo, colours and font, with the "Powered by Giftpin" credit removed.</small></span></li>
+        ${check}<span>CSV export of registries and purchases</span></li>
+        ${check}<span>Priority email support<small>Replies within one business day.</small></span></li>
       </ul>
       <a class="btn" href="mailto:support@giftpin.app?subject=Giftpin%20early%20access">Get early access</a>
     </section>

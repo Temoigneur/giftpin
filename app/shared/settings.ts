@@ -30,6 +30,15 @@ export interface ShopSettings {
   findARegistryEnabled: boolean;
   /** Hide who gave what until the event date. */
   hideBuyerUntilEvent: boolean;
+  /**
+   * Pro branding (see app/shared/branding.ts). Saved for any plan, applied to
+   * guest pages only while the shop is on Pro. "" means "use the default".
+   */
+  logoUrl: string;
+  backgroundColor: string;
+  textColor: string;
+  /** A BRAND_FONTS value. */
+  fontFamily: string;
 }
 
 export const EVENT_TYPES: { value: string; label: string }[] = [
@@ -77,6 +86,10 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   buttonLabel: "Add to registry",
   findARegistryEnabled: false,
   hideBuyerUntilEvent: false,
+  logoUrl: "",
+  backgroundColor: "",
+  textColor: "",
+  fontFamily: "system",
 };
 
 /**

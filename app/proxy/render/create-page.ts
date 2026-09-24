@@ -1,3 +1,4 @@
+import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr } from "./layout";
 import { EVENT_TYPES } from "../../shared/settings";
 import { occasionTemplate } from "../../shared/registry-ideas";
@@ -15,6 +16,7 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 export interface CreatePageData {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   enabledEventTypes: string[];
   error?: string | null;
@@ -95,6 +97,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,
+      branding: data.branding,
     },
     body,
   );
@@ -102,13 +105,13 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
 /** Shown after create/resend so we never render an email address back. */
 export function renderSimplePage(
-  data: { shopName: string; accentColor: string },
+  data: { shopName: string; accentColor: string; branding?: PageBranding | null },
   heading: string,
   message: string,
   cta?: { label: string; href: string },
 ): string {
   return layout(
-    { title: heading, accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: heading, accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>${escapeHtml(heading)}</h1>
      <p>${escapeHtml(message)}</p>
      ${cta ? `<p style="margin-top:24px"><a class="btn" href="${escapeAttr(cta.href)}">${escapeHtml(cta.label)}</a></p>` : ""}`,
@@ -118,12 +121,13 @@ export function renderSimplePage(
 export function renderPasswordPage(data: {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   slug: string;
   error?: string | null;
 }): string {
   return layout(
-    { title: "This registry is private", accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: "This registry is private", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>This registry is private</h1>
      <p class="sub">Enter the password the couple shared with you.</p>
      ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
@@ -138,6 +142,7 @@ export function renderPasswordPage(data: {
 export function renderFindPage(data: {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   query: string;
   results: { title: string; eventLabel: string; eventDate: Date | null; url: string; names: string }[];
@@ -181,6 +186,7 @@ ${
       accentColor: data.accentColor,
       indexable: true,
       shopName: data.shopName,
+      branding: data.branding,
     },
     body,
   );
@@ -188,11 +194,11 @@ ${
 
 /** Shown when a signed-in shopper has more than one registry: pick which to manage. */
 export function renderRegistryChooser(
-  data: { shopName: string; accentColor: string },
+  data: { shopName: string; accentColor: string; branding?: PageBranding | null },
   registries: { title: string; href: string }[],
 ): string {
   return layout(
-    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>Your registries</h1>
      <p class="sub">Choose one to manage.</p>
      <ul class="items">${registries
