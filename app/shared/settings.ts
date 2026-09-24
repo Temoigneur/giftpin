@@ -30,6 +30,24 @@ export interface ShopSettings {
   findARegistryEnabled: boolean;
   /** Hide who gave what until the event date. */
   hideBuyerUntilEvent: boolean;
+
+  // Pro automations (app/models/automations.server.ts). Ignored on Free.
+  /**
+   * After the event, give the registrant a one-time discount code on what's
+   * left on their list. Off by default: it costs the merchant margin, so it's
+   * their call to switch on.
+   */
+  completionDiscountEnabled: boolean;
+  /** Percentage off, 5 to 50. */
+  completionDiscountPercent: number;
+  /** How long the code works, in days. */
+  completionDiscountValidDays: number;
+  /** Remind the registrant to send thank-yous, a couple of days after the event. */
+  thankYouReminderEmails: boolean;
+  /** Email guests who asked to be reminded two weeks before the event. */
+  guestEventReminderEmails: boolean;
+  /** Tell the registrant when most of their list has been bought. */
+  mostGoneAlertEmails: boolean;
   /**
    * Pro branding (see app/shared/branding.ts). Saved for any plan, applied to
    * guest pages only while the shop is on Pro. "" means "use the default".
@@ -86,11 +104,21 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   buttonLabel: "Add to registry",
   findARegistryEnabled: false,
   hideBuyerUntilEvent: false,
+  completionDiscountEnabled: false,
+  completionDiscountPercent: 15,
+  completionDiscountValidDays: 60,
+  thankYouReminderEmails: true,
+  guestEventReminderEmails: true,
+  mostGoneAlertEmails: true,
   logoUrl: "",
   backgroundColor: "",
   textColor: "",
   fontFamily: "system",
 };
+
+export const COMPLETION_DISCOUNT_PERCENT_RANGE = { min: 5, max: 50 } as const;
+export const COMPLETION_DISCOUNT_DAYS_RANGE = { min: 7, max: 365 } as const;
+
 
 /**
  * Merges stored settings over the defaults, and switches on any occasion added

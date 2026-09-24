@@ -4,7 +4,11 @@ import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isPro, requireShop, settingsFor, updateSettings } from "../models/shop.server";
-import { EVENT_TYPES } from "../shared/settings";
+import {
+  EVENT_TYPES,
+  COMPLETION_DISCOUNT_PERCENT_RANGE,
+  COMPLETION_DISCOUNT_DAYS_RANGE,
+} from "../shared/settings";
 import {
   BRAND_FONTS,
   DEFAULT_BACKGROUND,
@@ -64,6 +68,24 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     buttonLabel: String(form.get("buttonLabel") ?? "Add to registry").slice(0, 40),
     findARegistryEnabled: form.get("findARegistryEnabled") === "on",
     hideBuyerUntilEvent: form.get("hideBuyerUntilEvent") === "on",
+    // Pro automations. Saved on any plan so a merchant's choices survive a
+    // plan change; the daily job checks the plan before acting on them.
+    completionDiscountEnabled: form.get("completionDiscountEnabled") === "on",
+    completionDiscountPercent: clamp(
+      form.get("completionDiscountPercent"),
+      COMPLETION_DISCOUNT_PERCENT_RANGE.min,
+      COMPLETION_DISCOUNT_PERCENT_RANGE.max,
+      15,
+    ),
+    completionDiscountValidDays: clamp(
+      form.get("completionDiscountValidDays"),
+      COMPLETION_DISCOUNT_DAYS_RANGE.min,
+      COMPLETION_DISCOUNT_DAYS_RANGE.max,
+      60,
+    ),
+    thankYouReminderEmails: form.get("thankYouReminderEmails") === "on",
+    guestEventReminderEmails: form.get("guestEventReminderEmails") === "on",
+    mostGoneAlertEmails: form.get("mostGoneAlertEmails") === "on",
     ...branding,
   });
 
@@ -82,6 +104,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   return { ok: true, warnings };
 };
+
+function clamp(value: FormDataEntryValue | null, min: number, max: number, fallback: number): number {
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n) || value === null || value === "") return fallback;
+  return Math.min(max, Math.max(min, n));
+}
 
 export default function Settings() {
   const { settings, pro } = useLoaderData<typeof loader>();
@@ -240,6 +268,60 @@ export default function Settings() {
             details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown."
             {...(settings.findARegistryEnabled ? { checked: true } : {})}
           />
+        </s-section>
+
+        <s-section heading="After the event (Pro)">
+          {!pro && (
+            <s-banner tone="info">
+              <s-paragraph>
+                These run on Giftpin Pro. <s-link href="/app/billing">Upgrade</s-link> to turn
+                them on.
+              </s-paragraph>
+            </s-banner>
+          )}
+          <s-checkbox
+            name="completionDiscountEnabled"
+            label="Give registrants a discount on what's left on their list"
+            details="A few days after the event, the registrant gets a one-time code for your products still on their registry. Nothing is created for items from other stores."
+            {...(settings.completionDiscountEnabled ? { checked: true } : {})}
+          />
+          <s-number-field
+            name="completionDiscountPercent"
+            label="Discount (%)"
+            value={String(settings.completionDiscountPercent)}
+            min={COMPLETION_DISCOUNT_PERCENT_RANGE.min}
+            max={COMPLETION_DISCOUNT_PERCENT_RANGE.max}
+          />
+          <s-number-field
+            name="completionDiscountValidDays"
+            label="Code works for (days)"
+            value={String(settings.completionDiscountValidDays)}
+            min={COMPLETION_DISCOUNT_DAYS_RANGE.min}
+            max={COMPLETION_DISCOUNT_DAYS_RANGE.max}
+          />
+        </s-section>
+
+        <s-section heading="Automatic emails (Pro)">
+          <s-stack direction="block" gap="small-100">
+            <s-checkbox
+              name="guestEventReminderEmails"
+              label="Remind guests two weeks before the event"
+              details="Guests can ask for a reminder on the registry page. The registrant also gets a nudge to share their link again."
+              {...(settings.guestEventReminderEmails ? { checked: true } : {})}
+            />
+            <s-checkbox
+              name="mostGoneAlertEmails"
+              label="Tell registrants when most of their list is bought"
+              details="Sent once, when three quarters of the items are taken care of, so they can add more."
+              {...(settings.mostGoneAlertEmails ? { checked: true } : {})}
+            />
+            <s-checkbox
+              name="thankYouReminderEmails"
+              label="Send registrants a thank-you note reminder"
+              details="A few days after the event, with a list of who gave what."
+              {...(settings.thankYouReminderEmails ? { checked: true } : {})}
+            />
+          </s-stack>
         </s-section>
 
         <s-section>

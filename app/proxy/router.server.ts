@@ -40,6 +40,12 @@ import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
 import { normalizeCountry } from "../shared/retailers";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
+import {
+  addGuestReminder,
+  offersGuestReminder,
+  readGuestUnsubscribeToken,
+  removeGuestReminder,
+} from "../models/automations.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
 import { renderRegistryPage } from "./render/registry-page";
 import { renderManagePage } from "./render/manage-page";
@@ -66,8 +72,10 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
  *   GET  /confirm?c=<token>    → guest confirms an external purchase
  *   GET  /release?c=<token>    → guest releases their hold
  *   GET  /thank-you.csv        → thank-you list export
+ *   GET  /unsubscribe?u=<token> → guest stops pre-event reminders
  *   POST /create | /resend | /settings | /delete
  *   POST /cart-add | /claim | /bought | /add-external | /update-item | /remove-item
+ *   POST /remind               → guest opts in to a pre-event reminder (Pro)
  */
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
@@ -145,6 +153,9 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 
       case "thank-you.csv":
         return await thankYouCsv(ctx);
+
+      case "unsubscribe":
+        return await unsubscribePage(ctx, brand);
 
       default:
         return page(
@@ -279,6 +290,7 @@ function buildRegistryHtml(
     affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
     // "Powered by Giftpin" removal and the rest of Pro branding arrive via
     // brand.branding (see brandingFor), on this page and every other one.
+    offerReminder: offersGuestReminder(shop, registry.eventDate),
   });
 }
 
@@ -471,6 +483,12 @@ async function releasePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   return page(renderSimplePage(brand, "Put back on the list", "Thanks for letting us know."));
 }
 
+async function unsubscribePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const reminderId = readGuestUnsubscribeToken(ctx.query.get("u"));
+  if (reminderId) await removeGuestReminder(reminderId);
+  return page(renderSimplePage(brand, "You're unsubscribed", "We won't send you any more reminders about this registry."));
+}
+
 /** Small feature, disproportionate emotional value. Gets talked about. */
 async function thankYouCsv(ctx: ProxyContext): Promise<Response> {
   const token = ctx.query.get("t");
@@ -557,6 +575,8 @@ async function handlePost(
       return settingsAction(request, ctx);
     case "delete":
       return deleteAction(request, ctx, brand);
+    case "remind":
+      return remindAction(request, ctx, shop);
     default:
       return new Response("Not found", { status: 404 });
   }
@@ -1054,6 +1074,28 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
   return redirect(
     proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: "saved" }),
   );
+}
+
+/**
+ * Guest opts in to a pre-event reminder (Pro). Answers the same way whether or
+ * not the email was already signed up, so this can't be used to check who is.
+ */
+async function remindAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const body = await readJson(request);
+  const email = String(body.email ?? "").trim();
+  const registryId = String(body.registryId ?? "");
+  if (!isEmail(email)) return json({ ok: false, error: "Please enter a valid email address." }, 400);
+
+  const registry = await db.registry.findFirst({
+    where: { id: registryId, shopId: shop.id, status: "active" },
+    select: { id: true, eventDate: true },
+  });
+  if (!registry || !offersGuestReminder(shop, registry.eventDate)) {
+    return json({ ok: false, error: "Reminders aren't available for this registry." }, 404);
+  }
+
+  await addGuestReminder(registry.id, email);
+  return json({ ok: true });
 }
 
 async function deleteAction(request: Request, ctx: ProxyContext, brand: Brand): Promise<Response> {

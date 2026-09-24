@@ -135,7 +135,91 @@ const templates: Record<string, TemplateFn> = {
       { label: "Open my registry", url: d.url },
     ),
   }),
+
+  // -------------------------------------------------------------------------
+  // Pro automations — see app/models/automations.server.ts
+  // -------------------------------------------------------------------------
+
+  /** To a guest who asked to be reminded. Must always carry the unsubscribe link. */
+  "guest-event-reminder": (d) => ({
+    to: d.to,
+    subject: `${d.registryTitle} is ${inDays(d.days)}`,
+    text: `${d.registryTitle} is ${inDays(d.days)}. ${d.remaining > 0 ? `${d.remaining} ${plural(d.remaining, "gift is", "gifts are")} still on the registry.` : "Every gift on the registry has been taken care of."}\n\nSee the registry: ${d.url}\n\nYou asked ${d.shopName} to remind you. Stop these emails: ${d.unsubscribeUrl}`,
+    html: withFooter(
+      shell(
+        `${d.registryTitle} is ${inDays(d.days)}`,
+        `<p>You asked us to remind you before the big day.</p>
+         <p>${d.remaining > 0 ? `<strong>${d.remaining}</strong> ${plural(d.remaining, "gift is", "gifts are")} still on the registry, so there's still time to pick something.` : "Every gift on the registry has been taken care of, but the list is still there if you'd like to look."}</p>`,
+        { label: "See the registry", url: d.url },
+      ),
+      `You're getting this because you asked ${escapeHtml(d.shopName)} to remind you about this registry. <a href="${escapeAttr(d.unsubscribeUrl)}" style="color:#6b6b6b">Stop these emails</a>`,
+    ),
+  }),
+
+  /** Registrant: most of the list is bought, so add more before late guests arrive. */
+  "most-gone": (d) => ({
+    to: d.to,
+    subject: `${d.fulfilled} of ${d.total} gifts on ${d.registryTitle} are taken care of`,
+    text: `Most of your registry has been bought: ${d.fulfilled} of ${d.total} gifts. Guests who haven't chosen yet will have more to pick from if you add a few more items.\n\nOpen your registry: ${d.url}`,
+    html: shell(
+      "Most of your registry is gone",
+      `<p><strong>${d.fulfilled} of ${d.total}</strong> gifts on your registry have been taken care of.</p>
+       <p>Guests who haven't chosen yet will have more to pick from if you add a few more items now.</p>`,
+      { label: "Add more items", url: d.url },
+    ),
+  }),
+
+  /** Registrant, a few days after the event. */
+  "thank-you-reminder": (d) => {
+    const gifts = (d.gifts as { item: string; from: string }[]) ?? [];
+    const more = d.moreCount > 0 ? `\n...and ${d.moreCount} more in the full list.` : "";
+    return {
+      to: d.to,
+      subject: `Time for thank-you notes`,
+      text: `Here's who gave what, so thank-you notes are easy:\n\n${gifts.map((g) => `- ${g.item}: ${g.from}`).join("\n")}${more}\n\nDownload the full list: ${d.csvUrl}\nOpen your registry: ${d.url}`,
+      html: shell(
+        "Time for thank-you notes",
+        `<p>Here's who gave what from <strong>${escapeHtml(d.registryTitle)}</strong>, so the notes are easy.</p>
+         <ul style="padding-left:18px">${gifts.map((g) => `<li><strong>${escapeHtml(g.item)}</strong>: ${escapeHtml(g.from)}</li>`).join("")}</ul>
+         ${d.moreCount > 0 ? `<p>...and ${d.moreCount} more in the full list.</p>` : ""}
+         <p style="font-size:13px"><a href="${escapeAttr(d.url)}" style="color:#6b6b6b">Open my registry</a></p>`,
+        { label: "Download the full list", url: d.csvUrl },
+      ),
+    };
+  },
+
+  /** Registrant, after the event: the completion discount. */
+  "completion-discount": (d) => ({
+    to: d.to,
+    subject: `${d.percent}% off what's left on your registry`,
+    text: `Thanks for building your registry with ${d.shopName}. Use code ${d.code} for ${d.percent}% off the ${d.shopName} products still on your list${d.remaining > 0 ? ` (${d.remaining} ${plural(d.remaining, "item", "items")})` : ""}. It works once, until ${d.endsOn}.\n\nSee what's left: ${d.url}`,
+    html: shell(
+      `${d.percent}% off what's left on your list`,
+      `<p>Thanks for building your registry with ${escapeHtml(d.shopName)}. Here's a thank-you for the ${escapeHtml(d.shopName)} products still on your list.</p>
+       <p style="font-size:22px;font-weight:700;letter-spacing:1px;background:#fff;border:1px dashed #bbb;border-radius:8px;padding:14px;text-align:center">${escapeHtml(d.code)}</p>
+       <p style="color:#6b6b6b;font-size:13px">${d.percent}% off, one use, until ${escapeHtml(d.endsOn)}. Enter it at checkout.</p>`,
+      { label: "See what's left", url: d.url },
+    ),
+  }),
 };
+
+function inDays(days: number): string {
+  if (days <= 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days === 14) return "in two weeks";
+  return `in ${days} days`;
+}
+
+function plural(n: number, one: string, many: string): string {
+  return n === 1 ? one : many;
+}
+
+function withFooter(html: string, footer: string): string {
+  return html.replace(
+    "</div></body>",
+    `<p style="font-size:12px;color:#6b6b6b;margin-top:32px">${footer}</p></div></body>`,
+  );
+}
 
 /** Queue an email. Returns immediately; delivery and retries happen in the worker. */
 export async function sendEmail(

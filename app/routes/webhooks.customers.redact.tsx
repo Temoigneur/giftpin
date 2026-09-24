@@ -48,12 +48,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     buyerRecords = res.count;
   }
 
+  // Guests who signed up for a pre-event reminder (Pro) are matched by email.
+  let guestReminders = 0;
+  if (email) {
+    const res = await db.guestReminder.deleteMany({
+      where: { emailHash: blindIndex(email), registry: { shop: { domain: shop } } },
+    });
+    guestReminders = res.count;
+  }
+
   await audit({
     shop,
     actor: "shopify:gdpr",
     action: "customer_redacted",
     subject: customerId,
-    detail: { registriesDeleted: registries.length, purchasesScrubbed: buyerRecords },
+    detail: { registriesDeleted: registries.length, purchasesScrubbed: buyerRecords, guestReminders },
   });
 
   console.log(`[gdpr] redacted ${registries.length} registries, ${buyerRecords} purchases for ${shop}`);

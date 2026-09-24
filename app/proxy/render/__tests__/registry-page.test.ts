@@ -373,3 +373,12 @@ describe("registry page live update in place (24 Sep 2026)", () => {
     expect(html).toContain("Towels in grey or purple");
   });
 });
+
+describe("pre-event reminder sign-up (Pro)", () => {
+  it("renders only when offered, hidden until the script shows it", () => {
+    expect(page([item()])).not.toContain('class="note js-remind"');
+    const html = page([item()], { offerReminder: true });
+    expect(html).toContain('class="note js-remind" method="post" hidden');
+    expect(html).toContain("Remind me");
+  });
+});
