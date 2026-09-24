@@ -83,7 +83,7 @@ export default function Billing() {
               ${price}/mo{liveSubscriptionName ? ` — ${liveSubscriptionName}` : ""}.
             </s-paragraph>
             <s-unordered-list>
-              <s-list-item>Analytics on the dashboard</s-list-item>
+              <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
               <s-list-item>Priority support</s-list-item>
               <s-list-item>The &quot;Powered by Giftpin&quot; credit removed from your registry pages</s-list-item>
             </s-unordered-list>
@@ -102,7 +102,7 @@ export default function Billing() {
             </s-paragraph>
             <s-paragraph>Pro (${price}/mo) adds:</s-paragraph>
             <s-unordered-list>
-              <s-list-item>Analytics on the dashboard</s-list-item>
+              <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
               <s-list-item>Priority support</s-list-item>
               <s-list-item>Remove the &quot;Powered by Giftpin&quot; credit from your registry pages</s-list-item>
             </s-unordered-list>
