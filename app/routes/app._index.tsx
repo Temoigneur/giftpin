@@ -2,7 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { requireShop, settingsFor } from "../models/shop.server";
+import { isPro, requireShop, settingsFor } from "../models/shop.server";
 import { dashboardStats } from "../models/dashboard.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -13,6 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return {
     stats,
     settings: settingsFor(shop),
+    pro: isPro(shop),
     shopDomain: session.shop,
     apiKey: process.env.SHOPIFY_API_KEY ?? "",
     hasData: stats.registries.active > 0,
@@ -31,7 +32,7 @@ function money(amount: number, currency: string): string {
 }
 
 export default function Dashboard() {
-  const { stats, hasData, shopDomain, apiKey, cacheBust, settings } = useLoaderData<typeof loader>();
+  const { stats, hasData, shopDomain, apiKey, cacheBust, settings, pro } = useLoaderData<typeof loader>();
 
   // Theme-editor deep links that open the right page with our block already
   // added, so the merchant only has to press Save. (Plain /editor opens the
@@ -198,9 +199,14 @@ export default function Dashboard() {
         <s-paragraph>
           {stats.registries.createdThisPeriod} registries created, across {stats.orders} orders.
         </s-paragraph>
-        <s-button href="/app/registries" variant="secondary">
-          See all registries
-        </s-button>
+        <s-stack direction="inline" gap="base">
+          <s-button href="/app/registries" variant="secondary">
+            See all registries
+          </s-button>
+          <s-button href="/app/analytics" variant="secondary">
+            {pro ? "See analytics" : "Analytics (Pro)"}
+          </s-button>
+        </s-stack>
       </s-section>
     </s-page>
   );
