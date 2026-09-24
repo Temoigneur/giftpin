@@ -2,7 +2,7 @@ import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchH
 import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
-import { WEDDING_GIFT_CATEGORIES } from "../../shared/wedding-categories";
+import { ideaGuideFor } from "../../shared/registry-ideas";
 import { eventHeroArt } from "../../shared/event-art";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 
@@ -79,7 +79,7 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
 
 <h2>Add items</h2>
 
-${renderWeddingCategories(data)}
+${renderIdeaGuide(data)}
 
 <div class="note">
   <p style="margin:0 0 10px"><strong>From ${escapeHtml(data.shopName)}</strong></p>
@@ -188,21 +188,23 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
 }
 
 /**
- * "Not sure what to add?" — wedding-only, scoped per Ben's request (23 Sep
- * 2026, expanded to room-by-room detail same day at his request). Room →
- * subcategory → specific item, three levels deep, so a bride can actually
- * work through it like a checklist instead of squinting at ten vague
- * headings. Each item in a browsable room (kitchen, bath, etc.) is its own
- * link to a search of this merchant's store; items in the two non-catalog
- * rooms (experiences, funds) are plain suggestions pointing at "From
- * anywhere else" / a cash fund instead. Wrapped in nested <details> — one
- * per room — so it needs no JS, stays collapsed by default, and a bride can
- * open just the room she's thinking about instead of one giant list.
+ * "Not sure what to add?" — an ideas guide for every occasion (wedding first,
+ * 23 Sep 2026; every other occasion 24 Sep 2026, Ben's requests). Group →
+ * subgroup → specific item, three levels deep, organized however suits the
+ * occasion (wedding by room, birthday by age, baby by need; see
+ * app/shared/registry-ideas.ts). Each item in a browsable group is its own
+ * link to a search of this merchant's store; items in non-catalog groups
+ * (experiences, funds) are plain suggestions pointing at "From anywhere else"
+ * instead. Nested <details> so it needs no JS and stays collapsed by default.
+ *
+ * The summary is deliberately oversized with an accent border — Ben asked for
+ * it to be about 2.5 times more prominent, since it's a key feature people
+ * were missing.
  */
-function renderWeddingCategories(data: ManagePageData): string {
-  if (data.eventType !== "wedding") return "";
+function renderIdeaGuide(data: ManagePageData): string {
+  const guide = ideaGuideFor(data.eventType);
 
-  const rooms = WEDDING_GIFT_CATEGORIES.map((cat) => {
+  const groups = guide.groups.map((cat) => {
     const subcats = cat.subcategories
       .map((sub) => {
         const items = sub.items
@@ -218,10 +220,10 @@ function renderWeddingCategories(data: ManagePageData): string {
 </details>`;
   }).join("\n");
 
-  return `<details class="note">
-  <summary><strong>Not sure what to add?</strong> Wedding registry ideas, room by room</summary>
-  <p class="hint" style="margin:10px 0">Open a room to see what couples commonly register for. Tap an item to search ${escapeHtml(data.shopName)}'s store — for things they don't carry, like experiences or a honeymoon fund, use &ldquo;From anywhere else&rdquo; below.</p>
-  ${rooms}
+  return `<details class="note ideas">
+  <summary><span><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span></summary>
+  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} Tap an item to search ${escapeHtml(data.shopName)}'s store &mdash; for things they don't carry, like experiences or a cash fund, use &ldquo;From anywhere else&rdquo; below.</p>
+  ${groups}
   <div class="cat-fallback" id="cat-fallback" hidden role="status"></div>
 </details>`;
 }

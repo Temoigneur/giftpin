@@ -141,12 +141,17 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
 
-/* --- suggested-category checklist (wedding registries only) ------------ */
+/* --- ideas guide, Not sure what to add (every occasion) ---------------- */
 details.note{padding:14px 16px}
 details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
 details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
-details.note[open] summary::before{content:'–  '}
+details.note [open]>summary::before,details.note[open]>summary::before{content:'–  '}
+details.ideas{border:2px solid var(--accent);padding:22px 22px 18px}
+details.ideas>summary{display:flex;align-items:flex-start;gap:12px}
+details.ideas>summary::before{font-size:32px;line-height:1}
+.ideas-q{display:block;font-size:30px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.ideas-t{display:block;font-size:19px;font-weight:600;color:var(--accent);margin-top:6px}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { renderManagePage, type ManagePageData } from "../manage-page";
 import type { DisplayItem } from "../../../models/item.server";
+import { EVENT_TYPES } from "../../../shared/settings";
+import { ideaGuideFor } from "../../../shared/registry-ideas";
 
 /**
  * Covers the wedding-only "suggested categories" checklist added 23 Sep
@@ -79,11 +81,48 @@ describe("wedding registry category suggestions", () => {
     expect(html).not.toContain('href="/search?q=Honeymoon');
   });
 
-  it("stays out of non-wedding registries", () => {
+  it("shows the wedding guide only on wedding-style registries", () => {
     for (const eventType of ["baby", "birthday", "housewarming", "graduation", "other"]) {
       const html = page({ eventType });
       expect(html).not.toContain("Wedding registry ideas");
     }
+  });
+});
+
+describe("ideas guides for every occasion (24 Sep 2026)", () => {
+  it("gives every occasion in the dropdown its own guide", () => {
+    for (const { value } of EVENT_TYPES) {
+      const guide = ideaGuideFor(value);
+      expect(guide.groups.length).toBeGreaterThan(0);
+      for (const group of guide.groups) {
+        expect(group.subcategories.length).toBeGreaterThan(0);
+        for (const sub of group.subcategories) expect(sub.items.length).toBeGreaterThan(0);
+      }
+      expect(page({ eventType: value })).toContain("Not sure what to add?");
+    }
+  });
+
+  it("organizes birthdays by age", () => {
+    const html = page({ eventType: "birthday" });
+    expect(html).toContain("Birthday registry ideas, by age");
+    expect(html).toContain(">Toddlers (2 to 3)<");
+    expect(html).toContain(">Teens (13 to 17)<");
+    expect(html).toContain('href="/search?q=Balance%20bike&amp;type=product"');
+  });
+
+  it("organizes baby registries by need and anniversaries by milestone year", () => {
+    expect(page({ eventType: "baby" })).toContain(">Nursery<");
+    expect(page({ eventType: "anniversary" })).toContain(">Years 1 to 5<");
+  });
+
+  it("falls back to a general guide for an unknown occasion", () => {
+    expect(page({ eventType: "made-up" })).toContain("Gift ideas, by category");
+  });
+
+  it("makes the guide's button the prominent one", () => {
+    const html = page({ eventType: "birthday" });
+    expect(html).toContain('<details class="note ideas">');
+    expect(html).toContain('<span class="ideas-q">Not sure what to add?</span>');
   });
 });
 
