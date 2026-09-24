@@ -5,6 +5,7 @@ import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor } from "../../shared/registry-ideas";
 import { eventHeroArt } from "../../shared/event-art";
+import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 
 /**
@@ -370,10 +371,18 @@ function manageScript(): string {
   // localStorage is how the button knows which registry to add to without
   // forcing the registrant to create a store account. It is a per-browser
   // convenience only — the server re-verifies the token on every write.
+  //
+  // The key must match STORE_KEY in extensions/registry-button/assets/giftpin.js
+  // (guarded by a test). It was renamed from 'registro.registries' on one side
+  // only, which left the product-page button always sending registrants to
+  // "start a registry"; entries under the old key are carried over.
   try{
-    var KEY='registro.registries';
+    var KEY='${REGISTRIES_STORAGE_KEY}',OLD='${LEGACY_REGISTRIES_STORAGE_KEY}';
     var stored=JSON.parse(localStorage.getItem(KEY)||'[]');
     if(!Array.isArray(stored))stored=[];
+    var legacy=JSON.parse(localStorage.getItem(OLD)||'[]');
+    if(Array.isArray(legacy))stored=stored.concat(legacy.filter(function(l){return l&&l.id&&!stored.some(function(r){return r&&r.id===l.id})}));
+    localStorage.removeItem(OLD);
     stored=stored.filter(function(r){return r&&r.id!==cfg.registryId});
     stored.unshift({id:cfg.registryId,title:cfg.registryTitle,token:cfg.token});
     localStorage.setItem(KEY,JSON.stringify(stored.slice(0,10)));

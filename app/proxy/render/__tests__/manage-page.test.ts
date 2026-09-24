@@ -294,3 +294,17 @@ describe("manage page picks up items added elsewhere (24 Sep 2026)", () => {
     expect(html).toContain("function pollList()");
   });
 });
+
+describe("registry storage key (product-page button)", () => {
+  // The theme button can only find a registrant's registry through
+  // localStorage. When the two sides used different keys, every tap on
+  // "Add to registry" sent the registrant to "start a registry" (24 Sep 2026).
+  it("matches the key the theme's Add to registry button reads", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { REGISTRIES_STORAGE_KEY } = await import("../../../shared/storage-keys");
+    const themeJs = readFileSync("extensions/registry-button/assets/giftpin.js", "utf8");
+    const match = themeJs.match(/var STORE_KEY = "([^"]+)"/);
+    expect(match?.[1]).toBe(REGISTRIES_STORAGE_KEY);
+    expect(page()).toContain(`var KEY='${REGISTRIES_STORAGE_KEY}'`);
+  });
+});

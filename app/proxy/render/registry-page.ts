@@ -5,6 +5,7 @@ import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
 import { eventHeroArt } from "../../shared/event-art";
+import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -312,7 +313,7 @@ function clientScript(): string {
   // If this browser is the owner's (the manage page left a token in
   // localStorage), upgrade the always-visible owner link so it goes straight in.
   try{
-    var owned=JSON.parse(localStorage.getItem('registro.registries')||'[]');
+    var owned=JSON.parse(localStorage.getItem('${REGISTRIES_STORAGE_KEY}')||localStorage.getItem('${LEGACY_REGISTRIES_STORAGE_KEY}')||'[]');
     var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
     var ownerEl=document.getElementById('registro-owner');
     if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}

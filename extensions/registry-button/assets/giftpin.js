@@ -69,11 +69,15 @@
       if (id) root.dataset.variantId = String(id);
     });
 
+    // Must match REGISTRIES_STORAGE_KEY in app/shared/storage-keys.ts (the
+    // manage page writes it). LEGACY_KEY covers browsers that last opened
+    // their registry before the rename.
     var STORE_KEY = "giftpin.registries";
+    var LEGACY_KEY = "registro.registries";
 
     function localRegistries() {
       try {
-        var raw = window.localStorage.getItem(STORE_KEY);
+        var raw = window.localStorage.getItem(STORE_KEY) || window.localStorage.getItem(LEGACY_KEY);
         if (!raw) return [];
         var parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed.filter(function (r) { return r && r.id && r.token; }) : [];
