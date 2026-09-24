@@ -172,10 +172,15 @@ function generalArt(): string {
 
 const EVENT_ART: Record<string, () => string> = {
   wedding: weddingArt,
+  engagement: weddingArt,
+  "bridal-shower": weddingArt,
   baby: babyArt,
+  christening: babyArt,
   birthday: birthdayArt,
-  housewarming: housewarmingArt,
+  "coming-of-age": birthdayArt,
   graduation: graduationArt,
+  college: graduationArt,
+  housewarming: housewarmingArt,
   anniversary: anniversaryArt,
   corporate: corporateArt,
   other: generalArt,

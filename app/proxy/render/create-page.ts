@@ -1,5 +1,6 @@
 import { layout, escapeHtml, escapeAttr } from "./layout";
 import { EVENT_TYPES } from "../../shared/settings";
+import { occasionTemplate } from "../../shared/registry-ideas";
 import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 
 /**
@@ -21,8 +22,13 @@ export interface CreatePageData {
 }
 
 export function renderCreatePage(data: CreatePageData): string {
-  const types = EVENT_TYPES.filter((t) => data.enabledEventTypes.includes(t.value));
+  const enabled = EVENT_TYPES.filter((t) => data.enabledEventTypes.includes(t.value));
+  const types = enabled.length ? enabled : EVENT_TYPES;
   const v = data.values ?? {};
+  // Each occasion is its own template: the name and note placeholders follow
+  // the dropdown (small inline script below; without JS they match the
+  // initially selected occasion).
+  const initial = occasionTemplate(types.some((t) => t.value === v.eventType) ? v.eventType : types[0].value);
 
   const body = `
 <h1>Start a registry</h1>
@@ -33,16 +39,17 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 <form method="post" action="${escapeAttr(data.actionUrl)}/create" class="note">
   <label for="c-event">What's the occasion?</label>
   <select id="c-event" name="eventType" required>
-    ${(types.length ? types : EVENT_TYPES)
-      .map(
-        (t) => `<option value="${escapeAttr(t.value)}"${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
-      )
+    ${types
+      .map((t) => {
+        const tpl = occasionTemplate(t.value);
+        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`;
+      })
       .join("")}
   </select>
 
   <label for="c-title">Registry name</label>
   <input id="c-title" type="text" name="title" maxlength="200" required
-         placeholder="Sam &amp; Alex's Wedding" value="${escapeAttr(v.title)}">
+         placeholder="${escapeAttr(initial.title)}" value="${escapeAttr(v.title)}">
 
   <label for="c-date">When is it?</label>
   <input id="c-date" type="date" name="eventDate" value="${escapeAttr(v.eventDate)}">
@@ -62,12 +69,13 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
   <p class="hint">When this store doesn't carry something, we'll suggest that country's stores, like Amazon and Walmart.</p>
 
   <label for="c-msg">A note for your guests</label>
-  <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional">${escapeHtml(v.message)}</textarea>
+  <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional. For example: ${escapeAttr(initial.note)}">${escapeHtml(v.message)}</textarea>
 
   <div class="row" style="margin-top:20px">
     <button class="btn block" type="submit">Create my registry</button>
   </div>
 </form>
+<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;});})();</script>
 
 <div class="note">
   <p style="margin:0"><strong>Already have one?</strong></p>

@@ -1,6 +1,6 @@
 import db from "../db.server";
 import type { Shop } from "@prisma/client";
-import { SHOP_SETTINGS_DEFAULTS, type ShopSettings } from "../shared/settings";
+import { mergeSettings, type ShopSettings } from "../shared/settings";
 
 /**
  * Shop record and merchant settings.
@@ -13,8 +13,7 @@ export { SHOP_SETTINGS_DEFAULTS, EVENT_TYPES, eventTypeLabel } from "../shared/s
 export type { ShopSettings } from "../shared/settings";
 
 export function settingsFor(shop: Pick<Shop, "settings">): ShopSettings {
-  const stored = (shop.settings ?? {}) as Partial<ShopSettings>;
-  return { ...SHOP_SETTINGS_DEFAULTS, ...stored };
+  return mergeSettings((shop.settings ?? {}) as Partial<ShopSettings>);
 }
 
 /** Idempotent: called on install and on every admin load. */
