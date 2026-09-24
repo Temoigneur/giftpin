@@ -354,3 +354,22 @@ describe("category-level store link (guest view)", () => {
     expect(html).toContain("More snowboard at Maple &amp; Clay");
   });
 });
+
+describe("registry page live update in place (24 Sep 2026)", () => {
+  it("wraps the items and progress so the poller can swap them without a reload", () => {
+    const html = page([item()]);
+    expect(html).toContain('id="registro-items"');
+    expect(html).toContain('id="registro-progress"');
+    expect(html).toContain("function applyUpdate()");
+  });
+
+  it("puts the config tag before the script that reads it", () => {
+    const html = page([item()]);
+    expect(html.indexOf('id="registro-config"')).toBeLessThan(html.indexOf("(function(){"));
+  });
+
+  it("shows an item's note to guests", () => {
+    const html = page([item({ note: "Towels in grey or purple" })]);
+    expect(html).toContain("Towels in grey or purple");
+  });
+});

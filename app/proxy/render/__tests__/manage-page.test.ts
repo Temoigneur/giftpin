@@ -213,3 +213,45 @@ describe("connect-the-extension box and chip fallback", () => {
     expect(page({ currency: "USD" })).toContain("target.com");
   });
 });
+
+describe("per-item guest notes (24 Sep 2026)", () => {
+  it("offers an optional note field when adding an item by link", () => {
+    const html = page();
+    expect(html).toContain('name="note"');
+    expect(html).toContain("note:paste.querySelector('[name=note]').value");
+  });
+
+  it("lets the registrant edit the note on an existing item, prefilled", () => {
+    const html = page({
+      items: [
+        {
+          id: "i1",
+          title: "Bath towels",
+          imageUrl: null,
+          price: null,
+          currency: null,
+          isExternal: true,
+          sourceType: "external",
+          externalDomain: "amazon.ca",
+          desiredQty: 2,
+          purchasedQty: 0,
+          fulfilled: false,
+          category: null,
+          note: "Grey or purple please",
+          storeMatch: null,
+        } as unknown as DisplayItem,
+      ],
+    });
+    expect(html).toContain('value="Grey or purple please"');
+    expect(html).toContain("note:item.querySelector('[name=note]').value");
+  });
+});
+
+describe("manage page picks up items added elsewhere (24 Sep 2026)", () => {
+  it("wraps the list so it can be swapped in place and polls the version endpoint", () => {
+    const html = page({ version: 4, versionUrl: "/apps/registry/r/abc/version" });
+    expect(html).toContain('id="registro-list"');
+    expect(html).toContain('"versionUrl":"/apps/registry/r/abc/version"');
+    expect(html).toContain("function pollList()");
+  });
+});

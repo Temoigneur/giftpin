@@ -34,6 +34,9 @@ export interface ManagePageData {
   /** Absolute private manage link (carries the token). Shown so the owner can copy it. */
   manageUrl: string;
   externalItemsAllowed: boolean;
+  /** Registry version + its poll endpoint, so the page can pick up items added elsewhere (e.g. the browser extension). */
+  version?: number;
+  versionUrl?: string;
   storeSearchUrl: string;
   flash?: { kind: "ok" | "err"; message: string } | null;
   /** Who gave what — the thank-you list. */
@@ -91,6 +94,8 @@ ${
   <form class="js-paste">
     <label class="sr" for="paste-url">Product link</label>
     <input id="paste-url" type="url" name="url" placeholder="Paste a link to any product" required>
+    <label class="sr" for="paste-note">Note for guests (optional)</label>
+    <input id="paste-note" type="text" name="note" maxlength="500" placeholder="Optional note for guests, e.g. towels in grey or purple" style="margin-top:10px">
     <div class="row" style="margin-top:10px">
       <button class="btn sm" type="submit">Add to registry</button>
       <span class="js-status item-meta" role="status"></span>
@@ -101,6 +106,7 @@ ${
     : ""
 }
 
+<div id="registro-list">
 <h2>Your list${data.items.length ? ` (${data.items.length})` : ""}</h2>
 ${
   data.items.length === 0
@@ -109,6 +115,7 @@ ${
 }
 
 ${renderGifts(data)}
+</div>
 
 <h2>Registry settings</h2>
 <form method="post" action="${escapeAttr(data.actionUrl)}/settings?t=${encodeURIComponent(data.token)}" class="note">
@@ -163,6 +170,8 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     token: data.token,
     shopName: data.shopName,
     retailers: retailerSearchLinks(data.country),
+    version: data.version ?? null,
+    versionUrl: data.versionUrl ?? null,
   })}</script>
 <script>${manageScript()}</script>
 `;
@@ -244,6 +253,8 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
     <p class="item-meta">${[price, `${item.purchasedQty} of ${item.desiredQty} bought`].filter(Boolean).join(" &middot; ")}</p>
     ${renderStoreMatch(item, data)}
     <form class="row js-item" data-item="${escapeAttr(item.id)}">
+      <label class="sr" for="note-${escapeAttr(item.id)}">Note for guests</label>
+      <input class="item-note-input" id="note-${escapeAttr(item.id)}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
       <label class="sr" for="dq-${escapeAttr(item.id)}">How many you'd like</label>
       <input class="qty" id="dq-${escapeAttr(item.id)}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric">
       <label class="sr" for="cat-${escapeAttr(item.id)}">Category</label>
@@ -404,7 +415,57 @@ function manageScript(): string {
   }
 
   function status(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
-  function post(path,body){return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()})}
+  function post(path,body){return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(res){if(res&&res.ok)syncVersion();return res;})}
+
+  // Pick up changes made elsewhere (the browser extension, the storefront
+  // button, a guest buying something) without a manual refresh: poll the
+  // registry's cheap version endpoint and, when it moves, swap in the fresh
+  // list. Own edits mark their version as seen so the list isn't redrawn
+  // under the owner right after they hit Update.
+  var polling=false;
+  function syncVersion(){
+    if(!cfg.versionUrl)return;
+    fetch(cfg.versionUrl,{headers:{Accept:'application/json'}}).then(function(r){return r.json()})
+      .then(function(res){if(res&&res.ok&&res.version>cfg.version)cfg.version=res.version;}).catch(function(){});
+  }
+  function listBusy(){
+    var a=document.activeElement;
+    if(a&&a.closest&&a.closest('#registro-list')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))return true;
+    if(document.querySelector('#registro-list button:disabled'))return true;
+    var d=document.querySelector('dialog');
+    return !!(d&&d.open);
+  }
+  function refreshList(){
+    return fetch(cfg.actionUrl+'/manage?t='+encodeURIComponent(cfg.token),{headers:{Accept:'text/html'},cache:'no-store',credentials:'same-origin'})
+      .then(function(r){return r.text()})
+      .then(function(html){
+        var doc=new DOMParser().parseFromString(html,'text/html');
+        var fresh=doc.getElementById('registro-list');
+        var freshCfg=doc.getElementById('registro-config');
+        if(!fresh||!freshCfg)throw new Error('no list');
+        // The match preview dialog only exists when some item has a match; if
+        // one just appeared, a full reload is the simple, correct answer.
+        if(doc.querySelector('dialog')&&!document.querySelector('dialog')){location.reload();return;}
+        document.getElementById('registro-list').innerHTML=fresh.innerHTML;
+        var next=JSON.parse(freshCfg.textContent);
+        cfg.version=next.version;
+      });
+  }
+  function pollList(){
+    if(polling||!cfg.versionUrl||document.visibilityState==='hidden')return;
+    polling=true;
+    fetch(cfg.versionUrl,{headers:{Accept:'application/json'}}).then(function(r){return r.json()})
+      .then(function(res){
+        if(!(res&&res.ok&&res.version>cfg.version)||listBusy())return;
+        return refreshList();
+      })
+      .catch(function(){})
+      .then(function(){polling=false;});
+  }
+  if(cfg.versionUrl){
+    setInterval(pollList,4000);
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')pollList();});
+  }
 
   document.addEventListener('submit',function(e){
     var paste=e.target.closest('.js-paste');
@@ -412,7 +473,7 @@ function manageScript(): string {
       e.preventDefault();
       var input=paste.querySelector('[name=url]');var btn=paste.querySelector('button');
       btn.disabled=true;status(paste,'Looking up that link...');
-      post('/add-external',{url:input.value}).then(function(res){
+      post('/add-external',{url:input.value,note:paste.querySelector('[name=note]').value}).then(function(res){
         if(res&&res.ok){location.reload();}
         else{status(paste,(res&&res.error)||'Could not add that link',false);btn.disabled=false;}
       }).catch(function(){status(paste,'Could not add that link',false);btn.disabled=false;});
@@ -421,7 +482,7 @@ function manageScript(): string {
     var item=e.target.closest('.js-item');
     if(item){
       e.preventDefault();status(item,'Saving...');
-      post('/update-item',{itemId:item.dataset.item,desiredQty:Number(item.querySelector('[name=desiredQty]').value),category:item.querySelector('[name=category]').value})
+      post('/update-item',{itemId:item.dataset.item,desiredQty:Number(item.querySelector('[name=desiredQty]').value),category:item.querySelector('[name=category]').value,note:item.querySelector('[name=note]').value})
         .then(function(res){status(item,res&&res.ok?'Saved':((res&&res.error)||'Could not save'),!(res&&res.ok));});
       return;
     }

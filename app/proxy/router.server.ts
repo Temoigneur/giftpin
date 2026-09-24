@@ -352,6 +352,8 @@ async function managePage(
       token: freshToken,
       manageUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: freshToken }),
       externalItemsAllowed: settings.externalItems !== "off",
+      version: registry.version,
+      versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
       storeSearchUrl: "/collections/all",
       gifts,
       flash: flashFrom(ctx),
@@ -725,7 +727,7 @@ async function addExternalAction(request: Request, ctx: ProxyContext): Promise<R
   const body = await readJson(request);
 
   try {
-    await addExternalItem({ registryId: registry.id, url: String(body.url ?? "") });
+    await addExternalItem({ registryId: registry.id, url: String(body.url ?? ""), note: cleanNote(body.note) });
     return json({ ok: true });
   } catch (err) {
     if (err instanceof InvalidProductUrl || err instanceof ItemError) {
@@ -793,6 +795,7 @@ async function addFromStoreAction(
     price: typeof body.price === "string" && body.price ? body.price : null,
     currency: typeof body.currency === "string" ? body.currency : shop.currency,
     desiredQty: clampInt(body.qty, 1, 20),
+    note: cleanNote(body.note),
   });
 
   if (result.duplicate) {
@@ -886,6 +889,7 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
     price: typeof body.price === "string" && body.price ? body.price : null,
     currency: typeof body.currency === "string" ? body.currency : null,
     desiredQty: clampInt(body.qty, 1, 20),
+    note: cleanNote(body.note),
   });
 
   return json({ ok: true, itemId: item.id });
@@ -915,6 +919,7 @@ async function addManualAction(request: Request, ctx: ProxyContext): Promise<Res
       price: typeof body.price === "string" ? body.price : null,
       currency: typeof body.currency === "string" ? body.currency : null,
       desiredQty: clampInt(body.desiredQty, 1, 99),
+      note: cleanNote(body.note),
     });
     return json({ ok: true });
   } catch (err) {
@@ -947,7 +952,11 @@ async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Re
   const category =
     "category" in body ? (String(body.category ?? "") === "" ? null : String(body.category)) : undefined;
 
-  await updateItem(itemId, registry.id, { desiredQty, category });
+  // Same optional-key rule as category: omitted leaves the note alone,
+  // "" clears it.
+  const note = "note" in body ? cleanNote(body.note) : undefined;
+
+  await updateItem(itemId, registry.id, { desiredQty, category, note });
   return json({ ok: true });
 }
 
@@ -1093,6 +1102,13 @@ async function readJson(request: Request): Promise<Record<string, unknown>> {
   } catch {
     return {};
   }
+}
+
+/** Registrant's optional per-item note ("towels in grey or purple"). Blank -> null. */
+function cleanNote(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim().slice(0, 500);
+  return trimmed === "" ? null : trimmed;
 }
 
 function clampInt(value: unknown, min: number, max: number): number {

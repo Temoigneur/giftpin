@@ -172,7 +172,7 @@ details.note[open] summary::before{content:'–  '}
 .cat-chip{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;text-decoration:none;color:var(--ink)}
 a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
 .cat-chip--add{color:var(--muted);font-style:italic}
-.update-banner{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin:0 0 16px;font-size:14px}
+.update-banner:not([hidden]){display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin:0 0 16px;font-size:14px}
 .update-banner span{flex:1}
 .update-banner .dismiss{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
