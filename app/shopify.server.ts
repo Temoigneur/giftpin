@@ -7,14 +7,14 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { PRO_PLAN, PRO_PLAN_PRICE } from "./shared/plans";
 
 // Confirmed 22 Sep 2026 (Ben): Free (unlimited) + Pro at $9.99/mo, funded on
 // the Free side by the disclosed affiliate commission. See
 // app/routes/app.billing.tsx for the upgrade/cancel flow and
 // app/routes/webhooks.app_subscriptions.update.tsx for how Shop.plan is kept
 // in sync with Shopify's own billing state.
-export const PRO_PLAN = "Pro";
-export const PRO_PLAN_PRICE = 9.99;
+export { PRO_PLAN, PRO_PLAN_PRICE } from "./shared/plans";
 
 // Real charges only in production. A dev/test store can never actually be
 // charged, but `isTest` also skips a confusing "this shop can't be billed"
