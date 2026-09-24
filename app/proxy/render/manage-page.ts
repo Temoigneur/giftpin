@@ -1,3 +1,4 @@
+import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref } from "./layout";
 import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES } from "../../shared/settings";
@@ -26,6 +27,7 @@ export interface ManagePageData {
   items: DisplayItem[];
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   currency: string;
   shareUrl: string;
   actionUrl: string;
@@ -182,6 +184,7 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,
+      branding: data.branding,
     },
     body,
   );
