@@ -48,6 +48,39 @@ export interface IdeaGuide {
   groups: GiftIdeaGroup[];
 }
 
+/** Per-occasion starting text for the create form, so each occasion reads as its own template. */
+export interface OccasionTemplate {
+  /** Placeholder for the registry name. */
+  title: string;
+  /** Placeholder for the note to guests. */
+  note: string;
+}
+
+const TEMPLATES: Record<string, OccasionTemplate> = {
+  wedding: { title: "Sam & Alex's Wedding", note: "We're so grateful you'll be celebrating with us. Your presence is the real gift, but if you'd like to give something, here are a few things we'd love for our home together." },
+  engagement: { title: "Sam & Alex are engaged!", note: "Thank you for celebrating our engagement with us. A few things we'd love as we start planning." },
+  "bridal-shower": { title: "Sam's Bridal Shower", note: "Thank you for showering me with love! Here are a few things for our new home." },
+  baby: { title: "Baby Rivera is on the way", note: "We can't wait for you to meet our little one. Here's what we still need before baby arrives." },
+  christening: { title: "Noah's Christening", note: "Thank you for being part of Noah's special day. A few keepsakes and gifts we'd treasure." },
+  birthday: { title: "Maya turns 5!", note: "Thanks for celebrating with us! Here are a few things Maya would love." },
+  "coming-of-age": { title: "Eli's Bar Mitzvah", note: "Thank you for sharing this milestone with our family. A few ideas if you'd like to give a gift." },
+  graduation: { title: "Jordan's Graduation", note: "Thank you for cheering me on! Here's what would help as I start the next chapter." },
+  college: { title: "Priya's Off to College", note: "Thanks for helping me get set up for move-in day! Here's what's still on my list." },
+  housewarming: { title: "Sam & Alex's New Home", note: "We'd love to have you over! If you'd like to bring something, here's what our new place still needs." },
+  anniversary: { title: "Pat & Lee's 25th Anniversary", note: "Thank you for celebrating 25 years with us. Your company is gift enough, but here are a few ideas." },
+  retirement: { title: "Dana's Retirement", note: "Thank you for all the years together! A few things for the next adventure." },
+  holiday: { title: "The Nguyen Family Holiday List", note: "Happy holidays! Here's our wish list, so nobody doubles up." },
+  "new-pet": { title: "Welcome Home, Biscuit", note: "Our new family member has arrived! Here's what Biscuit still needs." },
+  fundraiser: { title: "Winter Coat Drive", note: "Thank you for supporting our cause. Every item on this list goes straight to people who need it." },
+  corporate: { title: "Team Holiday Gifts 2026", note: "Our gift list for the team this year." },
+  other: { title: "Sam's Wish List", note: "Thanks for thinking of me! Here are a few things I'd love." },
+};
+
+/** Starting text for an occasion's create form. Falls back to the general one. */
+export function occasionTemplate(eventType: string): OccasionTemplate {
+  return TEMPLATES[eventType] ?? TEMPLATES.other;
+}
+
 /** An item written as "Name" or "Name|better search term". */
 type ItemSpec = string;
 
