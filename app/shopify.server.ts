@@ -7,7 +7,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import { PRO_PLAN, PRO_PLAN_PRICE } from "./shared/plans";
+import { PRO_PLAN, PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "./shared/plans";
 
 // Confirmed 22 Sep 2026 (Ben): Free (unlimited) + Pro at $9.99/mo, funded on
 // the Free side by the disclosed affiliate commission. See
@@ -33,6 +33,7 @@ const shopify = shopifyApp({
   distribution: AppDistribution.AppStore,
   billing: {
     [PRO_PLAN]: {
+      trialDays: PRO_TRIAL_DAYS,
       lineItems: [
         {
           amount: PRO_PLAN_PRICE,
