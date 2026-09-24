@@ -13,6 +13,12 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY . .
 
+# Generate the Prisma client at build time so every process started from this
+# image has it, including the worker service, whose start command is just
+# `npm run worker`. (Railway runs a start command without a shell, so chaining
+# `prisma generate && ...` there silently runs only the first half.)
+RUN npx prisma generate
+
 RUN npm run build
 
 CMD ["npm", "run", "docker-start"]
