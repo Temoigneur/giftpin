@@ -188,6 +188,7 @@ const HTML = `<!doctype html>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#merchants">For stores</a>
+      <a href="/pricing">Pricing</a>
       <a href="mailto:support@giftpin.app">Contact</a>
     </nav>
   </header>
@@ -342,7 +343,7 @@ const HTML = `<!doctype html>
 <footer>
   <div class="wrap in">
     <span>© Giftpin</span>
-    <span><a href="/privacy">Privacy policy</a> · <a href="mailto:support@giftpin.app">support@giftpin.app</a></span>
+    <span><a href="/pricing">Pricing</a> · <a href="/privacy">Privacy policy</a> · <a href="mailto:support@giftpin.app">support@giftpin.app</a></span>
   </div>
 </footer>
 </body>
