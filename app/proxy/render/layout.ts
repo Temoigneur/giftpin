@@ -14,6 +14,8 @@
  * what real themes do to us.
  */
 
+import { brandFont, type PageBranding } from "../../shared/branding";
+
 export function escapeHtml(value: string | null | undefined): string {
   if (value === null || value === undefined) return "";
   return String(value).replace(
@@ -50,10 +52,19 @@ export interface LayoutOptions {
    * behavior.
    */
   hidePoweredBy?: boolean;
+  /**
+   * Pro branding (logo, page colours, font, no "Powered by Giftpin"). Null or
+   * absent for Free shops — the caller decides, see brandingFor() in
+   * app/proxy/router.server.ts.
+   */
+  branding?: PageBranding | null;
 }
 
 export function layout(options: LayoutOptions, body: string): string {
   const accent = safeColor(options.accentColor);
+  const branding = options.branding ?? null;
+  const hidePoweredBy = options.hidePoweredBy || branding?.hidePoweredBy;
+  const font = brandFont(branding?.font);
 
   return `<!doctype html>
 <html lang="en">
@@ -64,24 +75,59 @@ export function layout(options: LayoutOptions, body: string): string {
 ${options.description ? `<meta name="description" content="${escapeAttr(options.description)}">` : ""}
 ${options.indexable ? "" : '<meta name="robots" content="noindex,nofollow,noarchive">'}
 <meta name="referrer" content="no-referrer">
-<style>${baseStyles(accent)}</style>
+${
+  font.google
+    ? `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${font.google}&display=swap">`
+    : ""
+}
+<style>${baseStyles(accent)}${branding ? brandStyles(branding) : ""}</style>
 ${options.head ?? ""}
 </head>
 <body class="${escapeAttr(options.bodyClass ?? "")}">
 <div class="wrap">
+${
+  branding?.logoUrl
+    ? `<a class="brand-logo" href="/"><img src="${escapeAttr(branding.logoUrl)}" alt="${escapeAttr(options.shopName)}"></a>`
+    : ""
+}
 ${body}
 </div>
 <footer class="foot">
   <p>Registry by <strong>${escapeHtml(options.shopName)}</strong></p>
-  ${options.hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
+  ${hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
 </footer>
 </body>
 </html>`;
 }
 
 /** Never interpolate a merchant-supplied string into CSS unchecked. */
-function safeColor(value: string): string {
-  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : "#1a1a1a";
+function safeColor(value: string, fallback = "#1a1a1a"): string {
+  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback;
+}
+
+/**
+ * Pro colour and font overrides, appended after baseStyles so they win.
+ *
+ * Page colours replace BOTH the light and the dark-mode palette: a merchant
+ * who picks a cream background means cream on every phone, and a half-applied
+ * palette (their background with our dark-mode text colour) is unreadable.
+ * Card, muted and line colours are mixed from the chosen pair so they stay
+ * legible whatever the pair is. Every value here was validated on save
+ * (cleanHexColor / BRAND_FONTS), and safeColor runs again as a backstop.
+ */
+function brandStyles(branding: PageBranding): string {
+  let css = "";
+  if (branding.backgroundColor || branding.textColor) {
+    const bg = safeColor(branding.backgroundColor ?? "", "#fbfbfa");
+    const ink = safeColor(branding.textColor ?? "", "#1a1a1a");
+    const vars = `--bg:${bg};--ink:${ink};--card:color-mix(in srgb,${bg} 93%,${ink});--muted:color-mix(in srgb,${ink} 65%,${bg});--line:color-mix(in srgb,${ink} 15%,${bg})`;
+    css += `\n:root{${vars}}\n@media (prefers-color-scheme:dark){:root{${vars}}}`;
+  }
+  const font = brandFont(branding.font);
+  if (font.value !== "system") css += `\nbody{font-family:${font.stack}}`;
+  if (branding.logoUrl) css += `\n.brand-logo{display:block;margin:0 auto 20px;text-align:center}.brand-logo img{max-height:64px;max-width:220px;width:auto;height:auto}`;
+  return css;
 }
 
 function baseStyles(accent: string): string {
@@ -141,12 +187,17 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
 
-/* --- suggested-category checklist (wedding registries only) ------------ */
+/* --- ideas guide, Not sure what to add (every occasion) ---------------- */
 details.note{padding:14px 16px}
 details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
 details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
-details.note[open] summary::before{content:'–  '}
+details.note [open]>summary::before,details.note[open]>summary::before{content:'–  '}
+details.ideas{border:2px solid var(--accent);padding:22px 22px 18px}
+details.ideas>summary{display:flex;align-items:flex-start;gap:12px}
+details.ideas>summary::before{font-size:32px;line-height:1}
+.ideas-q{display:block;font-size:30px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.ideas-t{display:block;font-size:19px;font-weight:600;color:var(--accent);margin-top:6px}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}

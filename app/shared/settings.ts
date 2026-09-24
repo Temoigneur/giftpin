@@ -11,6 +11,8 @@
 export interface ShopSettings {
   /** Event types the merchant has switched on. */
   eventTypes: string[];
+  /** Every event type that existed when these settings were last saved (see mergeSettings). */
+  eventTypesKnown: string[];
   /**
    * External items: off | on | capped.
    *
@@ -46,10 +48,56 @@ export interface ShopSettings {
   guestEventReminderEmails: boolean;
   /** Tell the registrant when most of their list has been bought. */
   mostGoneAlertEmails: boolean;
+  /**
+   * Pro branding (see app/shared/branding.ts). Saved for any plan, applied to
+   * guest pages only while the shop is on Pro. "" means "use the default".
+   */
+  logoUrl: string;
+  backgroundColor: string;
+  textColor: string;
+  /** A BRAND_FONTS value. */
+  fontFamily: string;
 }
 
+export const EVENT_TYPES: { value: string; label: string }[] = [
+  { value: "wedding", label: "Wedding" },
+  { value: "engagement", label: "Engagement" },
+  { value: "bridal-shower", label: "Bridal shower" },
+  { value: "baby", label: "Baby shower" },
+  { value: "christening", label: "Baptism or christening" },
+  { value: "birthday", label: "Birthday" },
+  { value: "coming-of-age", label: "Bar or bat mitzvah, quinceañera, sweet 16" },
+  { value: "graduation", label: "Graduation" },
+  { value: "college", label: "Off to college" },
+  { value: "housewarming", label: "Housewarming" },
+  { value: "anniversary", label: "Anniversary" },
+  { value: "retirement", label: "Retirement" },
+  { value: "holiday", label: "Christmas and holidays" },
+  { value: "new-pet", label: "New pet" },
+  { value: "fundraiser", label: "Charity or fundraiser" },
+  { value: "corporate", label: "Corporate gifting" },
+  { value: "other", label: "Something else" },
+];
+
+/**
+ * The event types that existed before 24 Sep 2026. A shop whose saved
+ * settings predate `eventTypesKnown` was choosing from exactly this list, so
+ * anything outside it is an occasion it has never seen and gets switched on.
+ */
+const LEGACY_EVENT_TYPES = [
+  "wedding",
+  "baby",
+  "birthday",
+  "housewarming",
+  "graduation",
+  "anniversary",
+  "corporate",
+  "other",
+];
+
 export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
-  eventTypes: ["wedding", "baby", "birthday", "housewarming", "graduation"],
+  eventTypes: EVENT_TYPES.map((t) => t.value),
+  eventTypesKnown: EVENT_TYPES.map((t) => t.value),
   externalItems: "on",
   externalItemsCapPercent: 60,
   accentColor: "#1a1a1a",
@@ -62,21 +110,34 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   thankYouReminderEmails: true,
   guestEventReminderEmails: true,
   mostGoneAlertEmails: true,
+  logoUrl: "",
+  backgroundColor: "",
+  textColor: "",
+  fontFamily: "system",
 };
 
 export const COMPLETION_DISCOUNT_PERCENT_RANGE = { min: 5, max: 50 } as const;
 export const COMPLETION_DISCOUNT_DAYS_RANGE = { min: 7, max: 365 } as const;
 
-export const EVENT_TYPES: { value: string; label: string }[] = [
-  { value: "wedding", label: "Wedding" },
-  { value: "baby", label: "Baby shower" },
-  { value: "birthday", label: "Birthday" },
-  { value: "housewarming", label: "Housewarming" },
-  { value: "graduation", label: "Graduation" },
-  { value: "anniversary", label: "Anniversary" },
-  { value: "corporate", label: "Corporate gifting" },
-  { value: "other", label: "Something else" },
-];
+
+/**
+ * Merges stored settings over the defaults, and switches on any occasion added
+ * to EVENT_TYPES since the merchant last saved. `eventTypes` is an explicit
+ * allow-list, so without this a new occasion would stay hidden from every
+ * existing shop until the merchant happened to find and tick it. An occasion
+ * the merchant has seen and unticked stays off.
+ */
+export function mergeSettings(stored: Partial<ShopSettings>): ShopSettings {
+  const merged = { ...SHOP_SETTINGS_DEFAULTS, ...stored };
+  if (!stored.eventTypes) return merged;
+  const known = new Set(stored.eventTypesKnown ?? LEGACY_EVENT_TYPES);
+  const added = EVENT_TYPES.map((t) => t.value).filter((v) => !known.has(v));
+  return {
+    ...merged,
+    eventTypes: [...stored.eventTypes, ...added.filter((v) => !stored.eventTypes!.includes(v))],
+    eventTypesKnown: EVENT_TYPES.map((t) => t.value),
+  };
+}
 
 export function eventTypeLabel(value: string): string {
   return EVENT_TYPES.find((t) => t.value === value)?.label ?? "Registry";

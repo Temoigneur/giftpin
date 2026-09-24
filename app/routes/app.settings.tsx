@@ -9,6 +9,15 @@ import {
   COMPLETION_DISCOUNT_PERCENT_RANGE,
   COMPLETION_DISCOUNT_DAYS_RANGE,
 } from "../shared/settings";
+import {
+  BRAND_FONTS,
+  DEFAULT_BACKGROUND,
+  DEFAULT_TEXT,
+  brandFont,
+  cleanHexColor,
+  cleanLogoUrl,
+  contrastRatio,
+} from "../shared/branding";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -30,7 +39,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const shop = await requireShop(session.shop);
   const form = await request.formData();
+
+  // Pro branding. Free shops don't get these fields in the form, and a
+  // crafted post from one is ignored rather than saved.
+  const branding = isPro(shop)
+    ? {
+        logoUrl: cleanLogoUrl(form.get("logoUrl")),
+        backgroundColor: cleanHexColor(form.get("backgroundColor")),
+        textColor: cleanHexColor(form.get("textColor")),
+        fontFamily: brandFont(String(form.get("fontFamily") ?? "")).value,
+      }
+    : {};
 
   const external = String(form.get("externalItems") ?? "on");
 
@@ -65,9 +86,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     thankYouReminderEmails: form.get("thankYouReminderEmails") === "on",
     guestEventReminderEmails: form.get("guestEventReminderEmails") === "on",
     mostGoneAlertEmails: form.get("mostGoneAlertEmails") === "on",
+    ...branding,
   });
 
-  return { ok: true };
+  const warnings: string[] = [];
+  if ("logoUrl" in branding && String(form.get("logoUrl") ?? "").trim() && !branding.logoUrl) {
+    warnings.push("The logo link wasn't saved: it needs to be a full https:// image link.");
+  }
+  if ("backgroundColor" in branding && (branding.backgroundColor || branding.textColor)) {
+    const ratio = contrastRatio(branding.backgroundColor || DEFAULT_BACKGROUND, branding.textColor || DEFAULT_TEXT);
+    if (ratio < 4.5) {
+      warnings.push(
+        `Your text and background colours are hard to read together (contrast ${ratio.toFixed(1)}:1; aim for at least 4.5:1).`,
+      );
+    }
+  }
+
+  return { ok: true, warnings };
 };
 
 function clamp(value: FormDataEntryValue | null, min: number, max: number, fallback: number): number {
@@ -169,6 +204,57 @@ export default function Settings() {
           />
         </s-section>
 
+        <s-section heading="Your branding">
+          {pro ? (
+            <s-stack direction="block" gap="base">
+              <s-paragraph>
+                <s-text color="subdued">
+                  Shown on every registry page, with the &quot;Powered by Giftpin&quot; credit removed.
+                  Changes can take a minute to appear on pages guests already have open.
+                </s-text>
+              </s-paragraph>
+              <s-url-field
+                name="logoUrl"
+                label="Logo image link"
+                value={settings.logoUrl}
+                details="An https:// link to your logo, e.g. from Content → Files in your Shopify admin. Shown at the top of the page, linking to your store."
+              />
+              <s-text-field
+                name="backgroundColor"
+                label="Page background colour"
+                value={settings.backgroundColor}
+                placeholder={DEFAULT_BACKGROUND}
+                details="Hex, e.g. #fbf7f2. Leave empty for the default, which follows the guest's light or dark mode."
+              />
+              <s-text-field
+                name="textColor"
+                label="Text colour"
+                value={settings.textColor}
+                placeholder={DEFAULT_TEXT}
+                details="Hex, e.g. #2b2b2b."
+              />
+              <s-select name="fontFamily" label="Font" value={settings.fontFamily}>
+                {BRAND_FONTS.map((font) => (
+                  <s-option key={font.value} value={font.value}>
+                    {font.label}
+                  </s-option>
+                ))}
+              </s-select>
+              <s-paragraph>
+                <s-text color="subdued">Fonts other than the first two load from Google Fonts.</s-text>
+              </s-paragraph>
+            </s-stack>
+          ) : (
+            <s-stack direction="block" gap="base">
+              <s-paragraph>
+                With Pro, registry pages use your logo, colours and font, and the &quot;Powered by
+                Giftpin&quot; credit is removed.
+              </s-paragraph>
+              <s-button href="/app/billing">See Pro</s-button>
+            </s-stack>
+          )}
+        </s-section>
+
         <s-section heading="Privacy">
           <s-checkbox
             name="hideBuyerUntilEvent"
@@ -245,6 +331,11 @@ export default function Settings() {
             </s-button>
             {fetcher.data?.ok && <s-text>Saved</s-text>}
           </s-stack>
+          {fetcher.data?.warnings?.map((warning) => (
+            <s-banner key={warning} tone="warning">
+              <s-paragraph>{warning}</s-paragraph>
+            </s-banner>
+          ))}
         </s-section>
       </fetcher.Form>
 

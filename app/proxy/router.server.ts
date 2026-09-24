@@ -57,6 +57,8 @@ import {
   renderFindPage,
 } from "./render/create-page";
 import { escapeHtml } from "./render/layout";
+import { csvCell } from "../lib/csv";
+import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/branding";
 
 /**
  * Guest-surface router.
@@ -95,9 +97,10 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   if (!shop) return new Response("Not found", { status: 404 });
 
   const settings = settingsFor(shop);
-  const brand = {
+  const brand: Brand = {
     shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
     accentColor: settings.accentColor,
+    branding: brandingFor(shop, settings),
   };
 
   const segments = ctx.path.split("/").filter(Boolean);
@@ -176,7 +179,23 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 // GET handlers
 // ---------------------------------------------------------------------------
 
-type Brand = { shopName: string; accentColor: string };
+type Brand = { shopName: string; accentColor: string; branding: PageBranding | null };
+
+/**
+ * Pro branding for every guest page (registry, create, manage, find, and the
+ * simple message pages). Null on Free: the saved logo/colours/font stay in
+ * settings but aren't applied, and "Powered by Giftpin" shows.
+ */
+function brandingFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): PageBranding | null {
+  if (!isPro(shop)) return null;
+  return {
+    logoUrl: cleanLogoUrl(settings.logoUrl) || null,
+    backgroundColor: cleanHexColor(settings.backgroundColor) || null,
+    textColor: cleanHexColor(settings.textColor) || null,
+    font: settings.fontFamily,
+    hidePoweredBy: true,
+  };
+}
 type ShopRecord = NonNullable<Awaited<ReturnType<typeof db.shop.findUnique>>>;
 
 async function registryPage(
@@ -269,11 +288,8 @@ function buildRegistryHtml(
     // No-op until a real affiliate network is signed up and its redirect
     // endpoint is set — see app/lib/affiliate.ts.
     affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
-    // Pro feature confirmed 22 Sep 2026 (Ben) — see app/routes/app.billing.tsx.
-    // Only this page's footer credit is gated so far; create/manage/find
-    // still show it regardless of plan (smaller, reviewable change — extend
-    // to those if Ben wants the removal to be everywhere Pro applies).
-    hidePoweredBy: isPro(shop),
+    // "Powered by Giftpin" removal and the rest of Pro branding arrive via
+    // brand.branding (see brandingFor), on this page and every other one.
     offerReminder: offersGuestReminder(shop, registry.eventDate),
   });
 }
@@ -1163,12 +1179,6 @@ function isEmail(value: string): boolean {
 
 function firstNameOnly(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
-}
-
-function csvCell(value: string): string {
-  // Guard against CSV injection — these cells open in Excel.
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {

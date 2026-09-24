@@ -1,3 +1,4 @@
+import type { PageBranding } from "../../shared/branding";
 import { storeMatchHref, layout, escapeHtml, escapeAttr, formatMoney, jsonForScript } from "./layout";
 import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
@@ -31,6 +32,7 @@ export interface RegistryPageData {
   progress: RegistryProgress;
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   indexable: boolean;
   currency: string;
   shareUrl: string;
@@ -125,6 +127,7 @@ ${data.offerReminder ? renderReminderSignup() : ""}
       accentColor: data.accentColor,
       indexable: data.indexable,
       shopName: data.shopName,
+      branding: data.branding,
       head,
       hidePoweredBy: data.hidePoweredBy,
     },
