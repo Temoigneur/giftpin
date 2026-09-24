@@ -288,6 +288,7 @@ function buildRegistryHtml(
     // No-op until a real affiliate network is signed up and its redirect
     // endpoint is set — see app/lib/affiliate.ts.
     affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
+    artBaseUrl: process.env.SHOPIFY_APP_URL || null,
     // "Powered by Giftpin" removal and the rest of Pro branding arrive via
     // brand.branding (see brandingFor), on this page and every other one.
     offerReminder: offersGuestReminder(shop, registry.eventDate),
@@ -381,6 +382,7 @@ async function managePage(
       version: registry.version,
       versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
       storeSearchUrl: "/collections/all",
+      artBaseUrl: process.env.SHOPIFY_APP_URL || null,
       gifts,
       flash: flashFrom(ctx),
     }),

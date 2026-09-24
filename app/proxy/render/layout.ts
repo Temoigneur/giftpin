@@ -147,6 +147,7 @@ a{color:inherit}
 .hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;background:var(--line)}
 .hero-art{width:100%;aspect-ratio:16/7;border-radius:var(--radius);margin-bottom:16px;overflow:hidden;background:var(--card)}
 .hero-art svg{width:100%;height:100%;display:block}
+.hero-painting{object-position:72% 50%}
 .note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px}
 .progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
 .progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
