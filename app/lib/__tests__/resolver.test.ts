@@ -268,17 +268,17 @@ describe("robots.txt", () => {
   const { robotsAllows } = fetcherInternals;
 
   it("honours a blanket disallow", () => {
-    expect(robotsAllows("User-agent: *\nDisallow: /", "/products/x", "RegistroBot")).toBe(false);
+    expect(robotsAllows("User-agent: *\nDisallow: /", "/products/x", "GiftpinBot")).toBe(false);
   });
 
   it("allows when the disallowed path does not match", () => {
-    expect(robotsAllows("User-agent: *\nDisallow: /admin", "/products/x", "RegistroBot")).toBe(true);
+    expect(robotsAllows("User-agent: *\nDisallow: /admin", "/products/x", "GiftpinBot")).toBe(true);
   });
 
   it("prefers a rule aimed at us over the wildcard", () => {
-    const txt = "User-agent: *\nDisallow: /\n\nUser-agent: RegistroBot\nAllow: /products\nDisallow: /";
-    expect(robotsAllows(txt, "/products/mug", "RegistroBot/1.0")).toBe(true);
-    expect(robotsAllows(txt, "/checkout", "RegistroBot/1.0")).toBe(false);
+    const txt = "User-agent: *\nDisallow: /\n\nUser-agent: GiftpinBot\nAllow: /products\nDisallow: /";
+    expect(robotsAllows(txt, "/products/mug", "GiftpinBot/1.0")).toBe(true);
+    expect(robotsAllows(txt, "/checkout", "GiftpinBot/1.0")).toBe(false);
   });
 
   it("lets a longer Allow override a shorter Disallow", () => {

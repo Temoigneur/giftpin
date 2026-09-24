@@ -27,7 +27,7 @@ const PER_DOMAIN_PER_MINUTE = 10;
 function userAgent(): string {
   return (
     process.env.RESOLVER_USER_AGENT ||
-    "RegistroBot/1.0 (+https://registro.app/bot; gift registry link preview)"
+    "GiftpinBot/1.0 (+https://giftpin.app/; gift registry link preview)"
   );
 }
 
@@ -293,7 +293,7 @@ async function readCapped(response: Response, limit: number): Promise<string> {
   const chunks: Uint8Array[] = [];
   let total = 0;
 
-  while (true) {
+  for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;

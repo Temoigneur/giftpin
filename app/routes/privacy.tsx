@@ -1,4 +1,3 @@
-import type { LoaderFunctionArgs } from "react-router";
 
 /**
  * Public, unauthenticated privacy-policy page served from the app's own
@@ -14,7 +13,7 @@ import type { LoaderFunctionArgs } from "react-router";
  * Content mirrors the version published as a Claude artifact — keep both
  * in sync if either changes materially.
  */
-export const loader = async (_args: LoaderFunctionArgs) => {
+export const loader = async () => {
   return new Response(HTML, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

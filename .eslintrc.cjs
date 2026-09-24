@@ -89,6 +89,14 @@ module.exports = {
         node: true,
       },
     },
+
+    // Browser extension (plain JS, runs in Chrome)
+    {
+      files: ["browser-extension/**/*.js"],
+      env: {
+        webextensions: true,
+      },
+    },
   ],
   globals: {
     shopify: "readonly"
