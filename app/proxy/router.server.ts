@@ -13,7 +13,6 @@ import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models
 import {
   findBySlug,
   findVersionBySlug,
-  findById,
   findByEmail,
   createRegistry,
   authorizeManage,
@@ -23,7 +22,6 @@ import {
   deleteRegistry,
   progressFor,
   checkRegistryPassword,
-  registrantEmail,
   logEvent,
   touchRegistry,
   type RegistryWithItems,
@@ -45,8 +43,8 @@ import { sendEmail } from "../lib/email.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
 import { renderRegistryPage } from "./render/registry-page";
 import { renderManagePage } from "./render/manage-page";
-import { renderRegistryChooser } from "./render/create-page";
 import {
+  renderRegistryChooser,
   renderCreatePage,
   renderSimplePage,
   renderPasswordPage,
@@ -487,7 +485,7 @@ async function thankYouCsv(ctx: ProxyContext): Promise<Response> {
 
   const csv = rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
 
-  return new Response(`﻿${csv}`, {
+  return new Response(`\uFEFF${csv}`, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="thank-you-list.csv"`,
