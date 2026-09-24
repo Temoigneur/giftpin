@@ -193,11 +193,21 @@ details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
 details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
 details.note [open]>summary::before,details.note[open]>summary::before{content:'–  '}
-details.ideas{border:2px solid var(--accent);padding:22px 22px 18px}
-details.ideas>summary{display:flex;align-items:flex-start;gap:12px}
-details.ideas>summary::before{font-size:32px;line-height:1}
-.ideas-q{display:block;font-size:30px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
-.ideas-t{display:block;font-size:19px;font-weight:600;color:var(--accent);margin-top:6px}
+details.ideas{background:var(--card);background:color-mix(in srgb,var(--accent) 7%,var(--card));border-color:color-mix(in srgb,var(--accent) 22%,var(--line));padding:16px 18px}
+details.ideas>summary{display:flex;align-items:center;gap:14px}
+details.note.ideas>summary::before,details.note.ideas[open]>summary::before{content:none}
+details.ideas[open]>summary{padding-bottom:4px}
+.ideas-icon{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.ideas-text{flex:1;min-width:0}
+.ideas-q{display:block;font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.005em}
+.ideas-t{display:block;font-size:14px;color:var(--muted);margin-top:1px}
+.ideas-cta{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.ideas-cta svg{transition:transform .2s}
+details.ideas[open] .ideas-cta svg{transform:rotate(180deg)}
+details.ideas[open] .ideas-cta-open,details.ideas:not([open]) .ideas-cta-close{display:none}
+details.ideas>summary:hover .ideas-cta{filter:brightness(1.08)}
+details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+@media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}

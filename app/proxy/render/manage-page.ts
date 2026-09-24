@@ -200,9 +200,9 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
  * (experiences, funds) are plain suggestions pointing at "From anywhere else"
  * instead. Nested <details> so it needs no JS and stays collapsed by default.
  *
- * The summary is deliberately oversized with an accent border — Ben asked for
- * it to be about 2.5 times more prominent, since it's a key feature people
- * were missing.
+ * The summary is styled as a tinted call-out card with an icon and a pill
+ * button, so it stands out as a key feature (Ben, 24 Sep 2026) without
+ * shouting — the earlier oversized-text version read as garish.
  */
 function renderIdeaGuide(data: ManagePageData): string {
   const guide = ideaGuideFor(data.eventType);
@@ -224,7 +224,11 @@ function renderIdeaGuide(data: ManagePageData): string {
   }).join("\n");
 
   return `<details class="note ideas">
-  <summary><span><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span></summary>
+  <summary>
+    <span class="ideas-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg></span>
+    <span class="ideas-text"><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
+    <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">Browse ideas</span><span class="ideas-cta-close">Hide ideas</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </summary>
   <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} Tap an item to search ${escapeHtml(data.shopName)}'s store &mdash; for things they don't carry, like experiences or a cash fund, use &ldquo;From anywhere else&rdquo; below.</p>
   ${groups}
   <div class="cat-fallback" id="cat-fallback" hidden role="status"></div>
