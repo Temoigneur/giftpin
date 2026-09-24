@@ -20,7 +20,7 @@ export interface Mail {
 
 async function deliver(mail: Mail): Promise<void> {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.MAIL_FROM || "Registro <onboarding@resend.dev>";
+  const from = process.env.MAIL_FROM || "Giftpin <onboarding@resend.dev>";
 
   if (!key) {
     console.log(`\n[mail] → ${mail.to}\n[mail] ${mail.subject}\n${mail.text}\n`);
@@ -77,6 +77,8 @@ function escapeAttr(value: string): string {
   return escapeHtml(value);
 }
 
+// Template data is assembled by each job handler; shapes vary per template.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TemplateFn = (data: Record<string, any>) => Mail;
 
 const templates: Record<string, TemplateFn> = {

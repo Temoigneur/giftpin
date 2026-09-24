@@ -1,11 +1,16 @@
 import db from "../db.server";
 import { registerHandler } from "../lib/queue.server";
 import { attributedLines, type OrderLineItem } from "../lib/attribution";
-import { touchRegistry, logEvent, registrantEmail, readShippingAddress } from "./registry.server";
+import {
+  touchRegistry,
+  logEvent,
+  registrantEmail,
+  readShippingAddress,
+  mintManageToken,
+} from "./registry.server";
 import { settingsFor } from "./shop.server";
 import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
-import { mintManageToken } from "./registry.server";
 import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
 

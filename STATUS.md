@@ -195,8 +195,10 @@ Ben confirmed both open decisions from the "Next Session Priorities" doc:
 A Shopify app ("Giftpin") that lets a guest build a gift
 registry containing items from *any* store, not just the merchant's, and
 correctly attributes purchases back to the right registry/item even through
-Shop Pay, Apple Pay, Google Pay, and the Shop app. No affiliate commissions
-on outbound links — that's a deliberate trust feature, not an oversight.
+Shop Pay, Apple Pay, Google Pay, and the Shop app. Outbound links to
+external stores are wrapped for a disclosed affiliate commission (Ben's call,
+20 Sep 2026; see `app/lib/affiliate.ts`) — a no-op until
+`AFFILIATE_LINK_WRAPPER_BASE` is set.
 
 Read `CLAUDE.md` first for the hard rules. This file is the status/handoff;
 `SPIKE-A.md` and `SPIKE-B.md` have the full spike detail.

@@ -35,6 +35,10 @@ export function extractProduct(html: string, baseUrl: string): ExtractedProduct 
 // 1. JSON-LD
 // ---------------------------------------------------------------------------
 
+// JSON-LD is arbitrary third-party JSON; fields are probed defensively below.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JsonLdNode = Record<string, any>;
+
 function fromJsonLd(html: string, baseUrl: string): ExtractedProduct | null {
   const blocks = html.matchAll(
     /<script[^>]+type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
@@ -70,7 +74,7 @@ function fromJsonLd(html: string, baseUrl: string): ExtractedProduct | null {
 }
 
 /** Walks @graph arrays, nested arrays and plain objects looking for a Product. */
-function findProductNode(node: unknown, depth = 0): Record<string, any> | null {
+function findProductNode(node: unknown, depth = 0): JsonLdNode | null {
   if (depth > 6 || node === null || typeof node !== "object") return null;
 
   if (Array.isArray(node)) {
@@ -81,7 +85,7 @@ function findProductNode(node: unknown, depth = 0): Record<string, any> | null {
     return null;
   }
 
-  const record = node as Record<string, any>;
+  const record = node as JsonLdNode;
   const type = record["@type"];
   const types = Array.isArray(type) ? type : [type];
   if (types.some((t) => typeof t === "string" && /product|book|vehicle/i.test(t))) {
@@ -95,7 +99,7 @@ function findProductNode(node: unknown, depth = 0): Record<string, any> | null {
   return null;
 }
 
-function firstOffer(offers: unknown): Record<string, any> | null {
+function firstOffer(offers: unknown): JsonLdNode | null {
   if (!offers) return null;
   if (Array.isArray(offers)) {
     for (const offer of offers) {
@@ -105,7 +109,7 @@ function firstOffer(offers: unknown): Record<string, any> | null {
     return null;
   }
   if (typeof offers !== "object") return null;
-  const record = offers as Record<string, any>;
+  const record = offers as JsonLdNode;
   // AggregateOffer wraps the real offers.
   if (record.offers) {
     const inner = firstOffer(record.offers);
@@ -125,7 +129,7 @@ function firstImage(image: unknown): string | null {
     return null;
   }
   if (typeof image === "object") {
-    const record = image as Record<string, any>;
+    const record = image as JsonLdNode;
     return firstImage(record.url ?? record.contentUrl ?? null);
   }
   return null;
