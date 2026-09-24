@@ -27,7 +27,7 @@ const PER_DOMAIN_PER_MINUTE = 10;
 function userAgent(): string {
   return (
     process.env.RESOLVER_USER_AGENT ||
-    "RegistroBot/1.0 (+https://registro.app/bot; gift registry link preview)"
+    "GiftpinBot/1.0 (+https://giftpin.app/; gift registry link preview)"
   );
 }
 
