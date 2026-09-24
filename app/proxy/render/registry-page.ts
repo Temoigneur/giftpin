@@ -4,6 +4,7 @@ import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
 import { eventHeroArt } from "../../shared/event-art";
+import type { ContributionVariant } from "../../shared/contributions";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -49,6 +50,15 @@ export interface RegistryPageData {
   affiliateLinkWrapperBase?: string | null;
   /** Pro feature ("branding removal") — see app/routes/app.billing.tsx. */
   hidePoweredBy?: boolean;
+  /**
+   * Group gifts and cash funds (Pro, SPIKE-C.md): the gift card denominations
+   * guests can chip in with. Null/undefined hides every chip-in control.
+   */
+  contributions?: {
+    variants: ContributionVariant[];
+    /** The couple opted in to receiving the cards directly. */
+    toRegistrant: boolean;
+  } | null;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -177,7 +187,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
       : `<span class="src" title="Price was correct when this was added">${escapeHtml(item.externalDomain ?? "another store")}</span>`;
 
   const meta: string[] = [];
-  if (price) meta.push(`<span class="price">${price}</span>`);
+  if (price && !item.isFund) meta.push(`<span class="price">${price}</span>`);
   if (item.desiredQty > 1) meta.push(`${item.purchasedQty} of ${item.desiredQty} bought`);
   if (item.isStale && price) meta.push("price may have changed");
   if (item.availability === "out_of_stock") meta.push("out of stock");
@@ -187,6 +197,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   <div>
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
     <p class="item-meta">${meta.join(" &middot; ")}</p>
+    ${renderFundProgress(item, data)}
     ${item.note ? `<p class="item-note">&ldquo;${escapeHtml(item.note)}&rdquo;</p>` : ""}
     ${renderStoreLink(item, data)}
     ${renderItemAction(item, data, remaining, held)}
@@ -222,6 +233,9 @@ function renderItemAction(
     ? `<p class="item-meta">Someone may be buying one of these.</p>`
     : "";
 
+  const chipIn = renderChipIn(item, data);
+  if (item.isFund) return chipIn;
+
   // --- Internal: buy here, one tap, fully attributed --------------------
   if (!item.isExternal && item.variantGid) {
     const variantId = item.variantGid.split("/").pop() ?? "";
@@ -230,7 +244,7 @@ function renderItemAction(
   ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">Quantity</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
   <button class="btn sm" type="submit">Add to cart</button>
   <span class="js-status item-meta" role="status"></span>
-</form>`;
+</form>${chipIn}`;
   }
 
   // --- External: outbound link, soft claim, honest labelling -------------
@@ -259,6 +273,47 @@ function renderItemAction(
   <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">I bought this</button>
   <span class="js-status item-meta" role="status"></span>
 </div>`;
+}
+
+/** "$340 of $1,200 raised" plus a bar, for group gifts and funds. */
+function renderFundProgress(item: DisplayItem, data: RegistryPageData): string {
+  if (!item.fund || !data.contributions) return "";
+  const currency = item.currency ?? data.currency;
+  const funded = formatMoney(item.fund.funded, currency);
+  const goal = formatMoney(item.fund.goal, currency);
+  const line = funded ? `${funded} of ${goal} raised` : `Goal ${goal}. Be the first to chip in.`;
+  return `<div class="progress" role="img" aria-label="${item.fund.percent}% funded"><i style="width:${item.fund.percent}%"></i></div>
+    <p class="item-meta">${line}</p>`;
+}
+
+/**
+ * Chip-in: one gift card from this store, at a denomination the merchant set
+ * up. Where the card goes is said up front, because it's the guest's money
+ * and they need to know whether to pass it on.
+ */
+function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
+  const setup = data.contributions;
+  if (!item.fund || !setup || setup.variants.length === 0 || item.fund.complete) return "";
+
+  const currency = data.currency;
+  const options = setup.variants
+    .map((v) => `<option value="${escapeAttr(v.id)}">${formatMoney(v.amount, currency) || escapeHtml(String(v.amount))}</option>`)
+    .join("");
+  const id = escapeAttr(item.id);
+  const delivery = setup.toRegistrant
+    ? "You'll buy a store gift card, and it's emailed straight to the couple."
+    : "You'll buy a store gift card. It's emailed to you, so you can pass it on or print it into a card.";
+
+  return `<form class="js-chip chip" data-item="${id}">
+  <p class="item-meta">${item.isFund ? "" : "<strong>Or chip in with others.</strong> "}${escapeHtml(delivery)}</p>
+  <div class="row">
+    <label class="sr" for="c-${id}">Amount</label>
+    <select class="qty amt" id="c-${id}" name="variant">${options}</select>
+    ${setup.toRegistrant ? `<label class="sr" for="m-${id}">Message</label><input class="qty msg" id="m-${id}" name="message" maxlength="200" placeholder="Add a message (optional)">` : ""}
+    <button class="btn sm${item.isFund ? "" : " ghost"}" type="submit">Chip in</button>
+    <span class="js-status item-meta" role="status"></span>
+  </div>
+</form>`;
 }
 
 function renderShare(data: RegistryPageData): string {
@@ -309,6 +364,21 @@ function clientScript(): string {
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token
         // travels on the cart LINE, which is what survives Shop Pay.
+        return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
+      })
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})
+      .catch(function(err){status(form,err.message,false);btn.disabled=false;});
+  });
+
+  // Chip-in: same two-step as Add to cart, but the server picks the gift card
+  // line's properties (and, only if the couple opted in, the recipient).
+  document.addEventListener('submit',function(e){
+    var form=e.target.closest('.js-chip');if(!form)return;e.preventDefault();
+    var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
+    var msg=form.querySelector('[name=message]');
+    post('/contribute',{itemId:form.dataset.item,variantId:form.querySelector('[name=variant]').value,message:msg?msg.value:''})
+      .then(function(res){
+        if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
       .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})

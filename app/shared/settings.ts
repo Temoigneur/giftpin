@@ -8,6 +8,8 @@
  * behind it. Everything with a Prisma dependency stays in models/shop.server.ts.
  */
 
+import type { ContributionProduct } from "./contributions";
+
 export interface ShopSettings {
   /** Event types the merchant has switched on. */
   eventTypes: string[];
@@ -28,6 +30,11 @@ export interface ShopSettings {
   findARegistryEnabled: boolean;
   /** Hide who gave what until the event date. */
   hideBuyerUntilEvent: boolean;
+  /**
+   * Gift card product guests buy to chip in toward a group gift or fund
+   * (Pro). Null until the merchant picks one. See app/shared/contributions.ts.
+   */
+  contributionProduct: ContributionProduct | null;
 }
 
 export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
@@ -38,6 +45,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   buttonLabel: "Add to registry",
   findARegistryEnabled: false,
   hideBuyerUntilEvent: false,
+  contributionProduct: null,
 };
 
 export const EVENT_TYPES: { value: string; label: string }[] = [

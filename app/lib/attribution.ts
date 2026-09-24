@@ -62,6 +62,9 @@ export interface OrderLineItem {
   price?: string;
   properties?: { name: string; value: string }[] | Record<string, string> | null;
   title?: string;
+  variant_id?: number | string | null;
+  /** True on gift card lines. Used to tell a chip-in from a purchase (SPIKE-C.md). */
+  gift_card?: boolean;
 }
 
 /** Line item properties arrive as an array on REST webhooks, an object elsewhere. */
@@ -86,6 +89,9 @@ export interface AttributedLine {
   amount: string | null;
   title: string | null;
   shipToRegistrant: boolean;
+  /** Numeric variant id of the line, when the payload has one. */
+  variantId: string | null;
+  giftCard: boolean;
 }
 
 /** Pulls every registry-attributed line out of an order webhook payload. */
@@ -119,6 +125,8 @@ export function attributedLines(lineItems: OrderLineItem[] | undefined | null): 
           : null,
       title: line.title ?? null,
       shipToRegistrant: readLineProperty(line, "_rg_ship") === "1",
+      variantId: line.variant_id === null || line.variant_id === undefined ? null : String(line.variant_id),
+      giftCard: line.gift_card === true,
     });
   }
 
@@ -142,4 +150,30 @@ export function cartAddPayload(
   if (shipToRegistrant) properties["_rg_ship"] = "1";
 
   return { items: [{ id: variantId, quantity, properties }] };
+}
+
+/**
+ * The `/cart/add.js` body for a chip-in toward a group gift or fund: one gift
+ * card line, the same signed `_rg` token as any registry line, and Shopify's
+ * recipient properties only when the couple opted in to receiving the cards
+ * themselves. Never `_rg_ship`: a gift card has nothing to ship. SPIKE-C.md.
+ */
+export function contributionCartPayload(
+  variantId: string,
+  registryId: string,
+  itemId: string,
+  recipientProperties: Record<string, string> | null,
+): { items: { id: string; quantity: number; properties: Record<string, string> }[] } {
+  return {
+    items: [
+      {
+        id: variantId,
+        quantity: 1,
+        properties: {
+          [ATTRIBUTION_PROPERTY]: signAttribution(registryId, itemId),
+          ...(recipientProperties ?? {}),
+        },
+      },
+    ],
+  };
 }

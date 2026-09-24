@@ -373,3 +373,66 @@ describe("registry page live update in place (24 Sep 2026)", () => {
     expect(html).toContain("Towels in grey or purple");
   });
 });
+
+describe("group gifts and cash funds (SPIKE-C.md)", () => {
+  const contributions = {
+    variants: [
+      { id: "7001", amount: 25 },
+      { id: "7002", amount: 100 },
+    ],
+    toRegistrant: false,
+  };
+  const honeymoon = item({
+    id: "fund_1",
+    sourceType: "fund",
+    title: "Honeymoon in Portugal",
+    imageUrl: null,
+    price: 0,
+    variantGid: null,
+    isExternal: true,
+    isFund: true,
+    fund: { goal: 1200, funded: 340, percent: 28, remaining: 860, complete: false },
+  });
+
+  it("shows progress and a chip-in form with the merchant's denominations", () => {
+    const html = page([honeymoon], { contributions });
+    expect(html).toContain("raised");
+    expect(html).toContain('class="js-chip chip"');
+    expect(html).toContain('value="7001"');
+    expect(html).toContain('value="7002"');
+    // A fund is not bought elsewhere: no claim or "I bought this".
+    expect(html).not.toContain('data-item="fund_1" type="button">I bought this');
+  });
+
+  it("tells the guest the card comes to them unless the couple opted in", () => {
+    expect(page([honeymoon], { contributions })).toContain("emailed to you, so you can pass it on");
+    const optedIn = page([honeymoon], { contributions: { ...contributions, toRegistrant: true } });
+    expect(optedIn).toContain("emailed straight to the couple");
+    expect(optedIn).toContain('name="message"');
+  });
+
+  it("offers chip-in alongside Add to cart on a group-gift store item", () => {
+    const html = page(
+      [item({ fund: { goal: 300, funded: 0, percent: 0, remaining: 300, complete: false } })],
+      { contributions },
+    );
+    expect(html).toContain('class="row js-add"');
+    expect(html).toContain('class="js-chip chip"');
+    expect(html).toContain("Be the first to chip in");
+  });
+
+  it("shows a fully funded item as taken, with no chip-in", () => {
+    const html = page(
+      [item({ fulfilled: true, fund: { goal: 300, funded: 300, percent: 100, remaining: 0, complete: true } })],
+      { contributions },
+    );
+    expect(html).toContain("Already taken care of");
+    expect(html).not.toContain('class="js-chip chip"');
+  });
+
+  it("renders no chip-in controls at all without contributions (not Pro, or no gift card set up)", () => {
+    const html = page([item({ fund: { goal: 300, funded: 50, percent: 16, remaining: 250, complete: false } })]);
+    expect(html).not.toContain("js-chip chip");
+    expect(html).not.toContain("raised");
+  });
+});

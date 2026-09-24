@@ -47,7 +47,18 @@ export interface ManagePageData {
     qty: number;
     hidden: boolean;
     source: string;
+    /** A chip-in toward a group gift or fund: shown as money, not a quantity. */
+    isContribution?: boolean;
+    amount?: number | null;
   }[];
+  /**
+   * Group gifts and cash funds (Pro, SPIKE-C.md). Null hides every control:
+   * the store isn't on Pro or hasn't picked a gift card product.
+   */
+  contributions?: {
+    /** Registry.contributionsToRegistrant. */
+    toRegistrant: boolean;
+  } | null;
 }
 
 export function renderManagePage(data: ManagePageData): string {
@@ -105,6 +116,8 @@ ${
 </div>`
     : ""
 }
+
+${renderFundSetup(data)}
 
 <div id="registro-list">
 <h2>Your list${data.items.length ? ` (${data.items.length})` : ""}</h2>
@@ -250,13 +263,22 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
   ${image}
   <div>
     <p class="item-title">${escapeHtml(item.title)}${source}</p>
-    <p class="item-meta">${[price, `${item.purchasedQty} of ${item.desiredQty} bought`].filter(Boolean).join(" &middot; ")}</p>
+    <p class="item-meta">${
+      item.isFund
+        ? fundLine(item, data)
+        : [price, `${item.purchasedQty} of ${item.desiredQty} bought`, item.fund ? fundLine(item, data) : ""].filter(Boolean).join(" &middot; ")
+    }</p>
     ${renderStoreMatch(item, data)}
+    ${renderGroupGift(item, data)}
     <form class="row js-item" data-item="${escapeAttr(item.id)}">
       <label class="sr" for="note-${escapeAttr(item.id)}">Note for guests</label>
       <input class="item-note-input" id="note-${escapeAttr(item.id)}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
       <label class="sr" for="dq-${escapeAttr(item.id)}">How many you'd like</label>
-      <input class="qty" id="dq-${escapeAttr(item.id)}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric">
+      ${
+        item.isFund
+          ? `<input type="hidden" name="desiredQty" value="1">`
+          : `<input class="qty" id="dq-${escapeAttr(item.id)}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric">`
+      }
       <label class="sr" for="cat-${escapeAttr(item.id)}">Category</label>
       <select class="cat-select" id="cat-${escapeAttr(item.id)}" name="category">
         <option value=""${item.category ? "" : " selected"}>No category</option>
@@ -323,6 +345,60 @@ function renderMatchDialog(data: ManagePageData): string {
 </dialog>`;
 }
 
+// ---------------------------------------------------------------------------
+// Group gifts and cash funds (Pro) — see SPIKE-C.md
+// ---------------------------------------------------------------------------
+
+function fundLine(item: DisplayItem, data: ManagePageData): string {
+  if (!item.fund) return "";
+  const currency = item.currency ?? data.currency;
+  return `${formatMoney(item.fund.funded, currency) || "Nothing"} of ${formatMoney(item.fund.goal, currency)} raised`;
+}
+
+/** "Add a cash fund" plus where chip-in gift cards go. */
+function renderFundSetup(data: ManagePageData): string {
+  if (!data.contributions) return "";
+  const checked = data.contributions.toRegistrant ? " checked" : "";
+  return `<div class="note">
+  <p style="margin:0 0 10px"><strong>A cash fund</strong></p>
+  <p class="hint" style="margin-top:0">For a honeymoon, a house or anything bigger. Guests chip in any of a few set amounts, paid as ${escapeHtml(data.shopName)} gift cards.</p>
+  <form class="js-fund">
+    <label class="sr" for="fund-title">Fund name</label>
+    <input id="fund-title" type="text" name="title" maxlength="300" placeholder="e.g. Honeymoon in Portugal" required>
+    <label class="sr" for="fund-goal">Goal</label>
+    <input id="fund-goal" type="number" name="goal" min="1" step="1" inputmode="numeric" placeholder="Goal, e.g. 1500" required style="margin-top:10px">
+    <label class="sr" for="fund-note">Note for guests (optional)</label>
+    <input id="fund-note" type="text" name="note" maxlength="500" placeholder="Optional note for guests" style="margin-top:10px">
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm" type="submit">Add fund</button>
+      <span class="js-status item-meta" role="status"></span>
+    </div>
+  </form>
+  <form class="js-contrib-to" style="margin-top:14px">
+    <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
+      <input type="checkbox" name="toRegistrant"${checked} style="width:auto;margin-top:4px">
+      <span>Email chip-in gift cards straight to me. <span class="hint" style="display:inline">Guests will see my email address in their cart and at checkout. Leave this off and each card goes to the guest to pass on.</span></span>
+    </label>
+    <span class="js-status item-meta" role="status"></span>
+  </form>
+</div>`;
+}
+
+/** Per-item group gifting: only the store's own products and funds. */
+function renderGroupGift(item: DisplayItem, data: ManagePageData): string {
+  if (!data.contributions) return "";
+  if (item.isExternal && !item.isFund) return "";
+  const id = escapeAttr(item.id);
+  const goal = item.fund ? String(item.fund.goal) : item.price ? String(Math.ceil(item.price * item.desiredQty)) : "";
+  return `<form class="row js-group" data-item="${id}" style="margin-top:8px">
+  <label class="sr" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
+  <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="Goal">
+  <button class="btn sm ghost" type="submit">${item.isFund ? "Update goal" : item.fund ? "Update group gift" : "Let guests chip in"}</button>
+  ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">Stop chip-ins</button>` : ""}
+  <span class="js-status item-meta" role="status"></span>
+</form>`;
+}
+
 function renderGifts(data: ManagePageData): string {
   if (data.gifts.length === 0) return "";
 
@@ -336,7 +412,11 @@ function renderGifts(data: ManagePageData): string {
       return `<li class="item" style="grid-template-columns:1fr">
   <div>
     <p class="item-title">${escapeHtml(gift.itemTitle)}</p>
-    <p class="item-meta">From ${who}${gift.qty > 1 ? ` &middot; ${gift.qty}` : ""}${gift.source === "external" ? " &middot; bought elsewhere" : ""}</p>
+    <p class="item-meta">From ${who}${
+      gift.isContribution
+        ? ` &middot; chipped in${gift.amount ? ` ${formatMoney(gift.amount, data.currency)}` : ""}`
+        : gift.qty > 1 ? ` &middot; ${gift.qty}` : ""
+    }${gift.source === "external" ? " &middot; bought elsewhere" : ""}</p>
     ${gift.message ? `<p class="item-note">&ldquo;${escapeHtml(gift.message)}&rdquo;</p>` : ""}
   </div>
 </li>`;
@@ -486,8 +566,31 @@ function manageScript(): string {
         .then(function(res){status(item,res&&res.ok?'Saved':((res&&res.error)||'Could not save'),!(res&&res.ok));});
       return;
     }
+    var fund=e.target.closest('.js-fund');
+    if(fund){
+      e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,'Adding...');
+      post('/add-fund',{title:fund.querySelector('[name=title]').value,goal:fund.querySelector('[name=goal]').value,note:fund.querySelector('[name=note]').value})
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(fund,(res&&res.error)||'Could not add the fund',false);fb.disabled=false;}})
+        .catch(function(){status(fund,'Could not add the fund',false);fb.disabled=false;});
+      return;
+    }
+    var group=e.target.closest('.js-group');
+    if(group){
+      e.preventDefault();status(group,'Saving...');
+      post('/item-fund',{itemId:group.dataset.item,goal:group.querySelector('[name=goal]').value})
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(group,(res&&res.error)||'Could not save',false);}});
+      return;
+    }
     var del=e.target.closest('.js-confirm-delete');
     if(del&&!confirm('Delete this registry and everything on it? This cannot be undone.')){e.preventDefault();}
+  });
+
+  document.addEventListener('change',function(e){
+    var to=e.target.closest('.js-contrib-to');
+    if(!to)return;
+    status(to,'Saving...');
+    post('/contribution-settings',{toRegistrant:e.target.checked})
+      .then(function(res){status(to,res&&res.ok?'Saved':'Could not save',!(res&&res.ok));});
   });
 
   document.addEventListener('click',function(e){
@@ -526,6 +629,13 @@ function manageScript(): string {
           reveal();
         })
         .catch(function(){location.href=href;});
+      return;
+    }
+    var off=e.target.closest('.js-group-off');
+    if(off){
+      var gf=off.closest('.js-group');status(gf,'Saving...');
+      post('/item-fund',{itemId:off.dataset.item,goal:null})
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(gf,(res&&res.error)||'Could not save',false);}});
       return;
     }
     var mp=e.target.closest('.js-match-preview');

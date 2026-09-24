@@ -130,6 +130,7 @@ a{color:inherit}
 .btn.block{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
+.qty.amt{width:auto}.qty.msg{width:auto;flex:1 1 160px}.chip{margin-top:10px}
 input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 textarea{min-height:88px;resize:vertical}
 label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}

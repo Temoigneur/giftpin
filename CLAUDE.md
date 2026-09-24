@@ -85,6 +85,10 @@ reading Shopify's docs.
   the guest's saved one) is blocked on the `bentley.humphries+shopapp@gmail.com`
   test account — sign-in and SMS verification are both failing for that
   account/number. Needs a fresh Shop Pay test account, not a code fix.
+- **Group gifts and cash funds (Pro) are built but not verified live.** They
+  ride on gift card lines carrying `_rg`; `SPIKE-C.md` rows C1–C4 must pass on
+  the dev store before that PR merges. Shopify's gift card recipient
+  properties are doc-only so far (hard rule 1).
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

@@ -109,6 +109,26 @@ const templates: Record<string, TemplateFn> = {
     ),
   }),
 
+  /** A guest chipped in toward a group gift or fund (SPIKE-C.md). */
+  "gift-contribution": (d) => {
+    const money = d.amount ? `${Number(d.amount).toFixed(2)} ${d.currency}` : "A gift card";
+    const where = d.sentToRegistrant
+      ? "The gift card itself is on its way to this address in a separate email from the store."
+      : "The gift card was emailed to your guest, so they can pass it on to you.";
+    return {
+      to: d.to,
+      subject: `Someone chipped in toward ${d.itemTitle}`,
+      text: `${money} toward ${d.itemTitle}.\n\n${d.buyerLine}\n\n${where}\n\nSee your registry: ${d.url}`,
+      html: shell(
+        "Someone chipped in",
+        `<p><strong>${escapeHtml(money)}</strong> toward <strong>${escapeHtml(d.itemTitle)}</strong>.</p>
+         <p>${escapeHtml(d.buyerLine)}</p>
+         <p style="color:#6b6b6b;font-size:13px">${escapeHtml(where)}</p>`,
+        { label: "See your registry", url: d.url },
+      ),
+    };
+  },
+
   /** Sent to a guest who clicked through to an external retailer. */
   "claim-followup": (d) => ({
     to: d.to,

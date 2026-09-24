@@ -115,6 +115,10 @@ model Registry {
   passwordHash String?
 
   shipToRegistrant Boolean @default(false)
+  // Chip-in gift cards are emailed straight to the owner registrant. Off by
+  // default because it puts their email into the guest's cart, where the
+  // guest can see it. Off: the card goes to the guest to pass on. SPIKE-C.md.
+  contributionsToRegistrant Boolean @default(false)
   // AES-256-GCM ciphertext of a JSON address. Never rendered on a public page.
   shippingAddressEnc String?
 
@@ -166,6 +170,7 @@ enum ItemSourceType {
   shopify_ext   // another Shopify store — live price/stock, not buyable here
   web           // resolved from page metadata — snapshot only
   manual        // registrant typed it
+  fund          // cash fund (e.g. honeymoon): no product, guests chip in with store gift cards. See SPIKE-C.md
 }
 
 model RegistryItem {
@@ -199,6 +204,14 @@ model RegistryItem {
 
   desiredQty   Int @default(1)
   purchasedQty Int @default(0)
+
+  /// Group gifting / cash funds (Pro, see SPIKE-C.md). Non-null means guests
+  /// can chip in toward this item with a store gift card; the item counts as
+  /// taken once fundedAmount reaches it. Always set on `fund` items.
+  fundGoal     Decimal? @db.Decimal(12, 2)
+  /// Running total of non-voided contribution Purchases, in shop currency.
+  /// Kept in step with them inside the same transaction, like purchasedQty.
+  fundedAmount Decimal  @default(0) @db.Decimal(12, 2)
 
   priority Int     @default(0) // higher sorts first
   note     String?
@@ -328,6 +341,10 @@ model Purchase {
   hiddenUntil DateTime?
 
   shippedToRegistrant Boolean @default(false)
+  // A gift card bought as a chip-in toward a group gift or fund (SPIKE-C.md).
+  // `amount` is what counts; `qty` is the number of cards and never touches
+  // RegistryItem.purchasedQty.
+  isContribution Boolean @default(false)
   // True when this order contained a customer who had never bought from the
   // shop before — feeds "new customers acquired" on the dashboard.
   isNewCustomer Boolean @default(false)
