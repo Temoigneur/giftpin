@@ -38,7 +38,10 @@ export default function Dashboard() {
   // home page and adds nothing.)
   const editor = `https://${shopDomain}/admin/themes/current/editor`;
   const addProductButtonUrl = `${editor}?template=product&addAppBlockId=${apiKey}/add-to-registry&target=mainSection`;
-  const addRegistryLinksUrl = `${editor}?template=index&addAppBlockId=${apiKey}/registry-links&target=newAppsSection`;
+  // Registry links go in the header section group, so they show near the top
+  // of every page. A new Apps section (newAppsSection) lands at the bottom of
+  // the home page, where shoppers miss it.
+  const addRegistryLinksUrl = `${editor}?template=index&addAppBlockId=${apiKey}/registry-links&target=sectionGroup:header`;
 
   // Where shoppers actually create and find registries. Shown at the top in
   // both states so the merchant can always get to (and preview) them.
@@ -88,8 +91,9 @@ export default function Dashboard() {
               your product template with it already added: press Save).
             </s-list-item>
             <s-list-item>
-              Add the <s-text>Registry links</s-text> block (the second button below adds it as a new
-              section; drag it into your footer or wherever suits), so customers can start a registry.
+              Add the <s-text>Registry links</s-text> block (the second button below adds it under your
+              header, so it shows at the top of every page; drag it elsewhere if you prefer), so customers
+              can start a registry.
             </s-list-item>
           </s-ordered-list>
           <s-stack direction="inline" gap="base">

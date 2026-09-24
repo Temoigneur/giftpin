@@ -1,15 +1,20 @@
 {% comment %}
   "Registry links" — app block for a header, footer or homepage section.
 
-  Gives shoppers a way to start, find and manage a registry from anywhere on
-  the store. Plain links and a scoped inline style: no script, no stylesheet
-  request, nothing to slow the storefront down.
+  Gives shoppers a way to start, find and manage a gift registry from
+  anywhere on the store. Plain links and a scoped inline style: no script, no
+  stylesheet request, nothing to slow the storefront down.
+
+  Defaults are deliberately prominent (buttons, 18px, centred) and the link
+  text says "gift registry" in full: "registry" alone is easy to miss or
+  misread for shoppers who don't read English as a first language.
 {% endcomment %}
 
 {%- assign base = block.settings.proxy_path | default: '/apps/registry' -%}
+{%- assign size = block.settings.text_size | default: 18 -%}
 
 <nav
-  class="giftpin-links giftpin-links--{{ block.id }}"
+  class="giftpin-links giftpin-links--{{ block.id }} giftpin-links--{{ block.settings.style | default: 'buttons' }}"
   aria-label="{{ block.settings.heading | default: 'Gift registry' | escape }}"
   {{ block.shopify_attributes }}
 >
@@ -17,21 +22,44 @@
     <p class="giftpin-links__heading">{{ block.settings.heading | escape }}</p>
   {%- endif -%}
   <ul class="giftpin-links__list">
-    <li><a href="{{ base }}">{{ block.settings.create_label | default: 'Create a registry' | escape }}</a></li>
+    <li><a href="{{ base }}">{{ block.settings.create_label | default: 'Create a gift registry' | escape }}</a></li>
     {%- if block.settings.show_find -%}
-      <li><a href="{{ base }}/find">{{ block.settings.find_label | default: 'Find a registry' | escape }}</a></li>
+      <li><a href="{{ base }}/find">{{ block.settings.find_label | default: 'Find a gift registry' | escape }}</a></li>
     {%- endif -%}
     {%- if block.settings.show_manage -%}
-      <li><a href="{{ base }}/manage">{{ block.settings.manage_label | default: 'Manage my registry' | escape }}</a></li>
+      <li><a href="{{ base }}/manage">{{ block.settings.manage_label | default: 'Manage my gift registry' | escape }}</a></li>
     {%- endif -%}
   </ul>
 </nav>
 
 <style>
-  .giftpin-links--{{ block.id }} { margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px; }
-  .giftpin-links--{{ block.id }} .giftpin-links__heading { margin: 0 0 6px; font-weight: 600; }
-  .giftpin-links--{{ block.id }} .giftpin-links__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; {% if block.settings.layout == 'stacked' %}flex-direction: column;{% endif %} }
-  .giftpin-links--{{ block.id }} a { color: {{ block.settings.link_color }}; text-decoration: underline; text-underline-offset: 3px; }
+  .giftpin-links--{{ block.id }} {
+    margin: {{ block.settings.margin_top }}px auto {{ block.settings.margin_bottom }}px;
+    padding: 0 16px;
+    max-width: 1200px;
+    font-size: {{ size }}px;
+    line-height: 1.4;
+    text-align: {{ block.settings.alignment | default: 'center' }};
+  }
+  .giftpin-links--{{ block.id }} .giftpin-links__heading { margin: 0 0 0.6em; font-weight: 600; font-size: 1.25em; }
+  .giftpin-links--{{ block.id }} .giftpin-links__list {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 10px 16px;
+    justify-content: {% case block.settings.alignment %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
+    {% if block.settings.layout == 'stacked' %}flex-direction: column; align-items: {% case block.settings.alignment %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};{% endif %}
+  }
+  .giftpin-links--{{ block.id }}.giftpin-links--links a {
+    color: {{ block.settings.link_color }}; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .giftpin-links--{{ block.id }}.giftpin-links--buttons a {
+    display: inline-block; padding: 0.6em 1.2em; border-radius: 4px;
+    border: 1px solid {{ block.settings.link_color }}; color: {{ block.settings.link_color }};
+    text-decoration: none;
+  }
+  .giftpin-links--{{ block.id }}.giftpin-links--buttons li:first-child a {
+    background: {{ block.settings.link_color }}; color: {{ block.settings.button_text_color }};
+  }
+  .giftpin-links--{{ block.id }} a:focus-visible { outline: 2px solid {{ block.settings.link_color }}; outline-offset: 3px; }
 </style>
 
 {% schema %}
@@ -40,11 +68,33 @@
   "target": "section",
   "settings": [
     { "type": "text", "id": "heading", "label": "Heading", "default": "Gift registry" },
-    { "type": "text", "id": "create_label", "label": "Create link text", "default": "Create a registry" },
+    { "type": "text", "id": "create_label", "label": "Create link text", "default": "Create a gift registry" },
     { "type": "checkbox", "id": "show_find", "label": "Show the find-a-registry link", "default": true },
-    { "type": "text", "id": "find_label", "label": "Find link text", "default": "Find a registry" },
+    { "type": "text", "id": "find_label", "label": "Find link text", "default": "Find a gift registry" },
     { "type": "checkbox", "id": "show_manage", "label": "Show the manage-my-registry link", "default": true },
-    { "type": "text", "id": "manage_label", "label": "Manage link text", "default": "Manage my registry" },
+    { "type": "text", "id": "manage_label", "label": "Manage link text", "default": "Manage my gift registry" },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "buttons", "label": "Buttons" },
+        { "value": "links", "label": "Text links" }
+      ],
+      "default": "buttons"
+    },
+    { "type": "range", "id": "text_size", "label": "Text size", "min": 14, "max": 28, "step": 1, "unit": "px", "default": 18 },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Centre" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
     {
       "type": "select",
       "id": "layout",
@@ -55,9 +105,10 @@
       ],
       "default": "inline"
     },
-    { "type": "color", "id": "link_color", "label": "Link colour", "default": "#1a1a1a" },
-    { "type": "range", "id": "margin_top", "label": "Space above", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 0 },
-    { "type": "range", "id": "margin_bottom", "label": "Space below", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 0 },
+    { "type": "color", "id": "link_color", "label": "Link and button colour", "default": "#1a1a1a" },
+    { "type": "color", "id": "button_text_color", "label": "Main button text colour", "default": "#ffffff" },
+    { "type": "range", "id": "margin_top", "label": "Space above", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 24 },
+    { "type": "range", "id": "margin_bottom", "label": "Space below", "min": 0, "max": 48, "step": 4, "unit": "px", "default": 24 },
     {
       "type": "text",
       "id": "proxy_path",
