@@ -112,3 +112,21 @@ describe("applyMatchChoice swap", () => {
     expect(removeItem).not.toHaveBeenCalled();
   });
 });
+
+describe("previewStoreMatch (the paste box's closest match, 25 Sep 2026)", () => {
+  it("shows the store's closest product for a pasted item's title", async () => {
+    const { previewStoreMatch } = await import("../store-match.server");
+    graphql
+      .mockResolvedValueOnce(reply({ data: { products: { nodes: [{ ...node(3), title: "Shreddy Snowboard Kit", onlineStoreUrl: "https://x" }] } } }))
+      .mockResolvedValueOnce(reply({ data: { product: { ...node(3), title: "Shreddy Snowboard Kit", status: "ACTIVE" } } }));
+    const r = await previewStoreMatch("s.myshopify.com", "CAD", "Ripzone Shreddy Snowboard Kit");
+    expect(r?.match.kind).toBe("product");
+    expect(r?.preview.products[0]).toMatchObject({ title: "Shreddy Snowboard Kit", handle: "board-3" });
+  });
+
+  it("never blocks the add when the store search fails", async () => {
+    const { previewStoreMatch } = await import("../store-match.server");
+    graphql.mockResolvedValue(reply({ errors: [{ message: "Access denied" }] }));
+    await expect(previewStoreMatch("s.myshopify.com", "CAD", "Snowboard kit")).resolves.toBeNull();
+  });
+});

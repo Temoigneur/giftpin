@@ -159,25 +159,28 @@ registerHandler("match-store-item", async ({ itemId }) => {
 
   await db.registryItem.update({
     where: { id: item.id },
-    data: !match
-      ? { storeMatchStatus: "none" }
-      : match.kind === "product"
-        ? {
-            storeMatchStatus: "suggested",
-            storeMatchProductGid: match.productGid,
-            storeMatchVariantGid: match.variantId,
-            storeMatchTitle: match.title.slice(0, 300),
-            storeMatchHandle: match.handle,
-          }
-        : {
-            storeMatchStatus: "suggested",
-            storeMatchProductGid: null,
-            storeMatchVariantGid: null,
-            storeMatchTitle: match.term.slice(0, 60),
-            storeMatchHandle: null,
-          },
+    data: match ? storeMatchFields(match, "suggested") : { storeMatchStatus: "none" },
   });
 });
+
+/** The RegistryItem columns that record a match, at the given status. */
+export function storeMatchFields(match: StoreMatch, status: "suggested" | "kept") {
+  return match.kind === "product"
+    ? {
+        storeMatchStatus: status,
+        storeMatchProductGid: match.productGid,
+        storeMatchVariantGid: match.variantId,
+        storeMatchTitle: match.title.slice(0, 300),
+        storeMatchHandle: match.handle,
+      }
+    : {
+        storeMatchStatus: status,
+        storeMatchProductGid: null,
+        storeMatchVariantGid: null,
+        storeMatchTitle: match.term.slice(0, 60),
+        storeMatchHandle: null,
+      };
+}
 
 function safeHost(url: string | null): string | null {
   if (!url) return null;
@@ -275,22 +278,59 @@ export async function getMatchPreview(registryId: string, itemId: string): Promi
     throw new ItemError("There's no store match for that item");
   }
   const shop = item.registry.shop;
-  const { admin } = await unauthenticated.admin(shop.domain);
+  return loadPreview(shop.domain, shop.currency, {
+    productGid: item.storeMatchProductGid,
+    title: item.storeMatchTitle,
+  });
+}
 
-  if (item.storeMatchProductGid) {
-    const response = await admin.graphql(PRODUCT_QUERY, { variables: { id: item.storeMatchProductGid } });
+/**
+ * The paste box's "closest match in this store", shown beside a link before
+ * it's added. Same search as the match-store-item job, so what the registrant
+ * sees here is what the item gets once added. Null when the store has nothing
+ * close (or the search fails — a missing suggestion must never block the add).
+ */
+export async function previewStoreMatch(
+  shopDomain: string,
+  currency: string,
+  title: string,
+): Promise<{ match: StoreMatch; preview: MatchPreview } | null> {
+  try {
+    const match = await findStoreMatch(shopDomain, title);
+    if (!match) return null;
+    const preview = await loadPreview(
+      shopDomain,
+      currency,
+      match.kind === "product" ? { productGid: match.productGid, title: match.title } : { productGid: null, title: match.term },
+    );
+    return preview.products.length > 0 ? { match, preview } : null;
+  } catch (err) {
+    console.error("[store-match] paste preview failed:", (err as Error).message);
+    return null;
+  }
+}
+
+async function loadPreview(
+  shopDomain: string,
+  currency: string,
+  target: { productGid: string | null; title: string },
+): Promise<MatchPreview> {
+  const { admin } = await unauthenticated.admin(shopDomain);
+
+  if (target.productGid) {
+    const response = await admin.graphql(PRODUCT_QUERY, { variables: { id: target.productGid } });
     const body = (await response.json()) as { data?: { product?: (PreviewNode & { status?: string }) | null }; errors?: unknown };
     if (body.errors) throw new Error(`Admin API product lookup failed: ${JSON.stringify(body.errors).slice(0, 300)}`);
     const product = body.data?.product;
     if (!product || (product.status && product.status !== "ACTIVE")) {
       throw new ItemError("That product isn't available in the store any more");
     }
-    return { kind: "product", title: item.storeMatchTitle, products: [toPreview(product, shop.currency)] };
+    return { kind: "product", title: target.title, products: [toPreview(product, currency)] };
   }
 
   // Category suggestion. The word came from our own tokeniser (a-z, 0-9), but
   // strip anything else anyway before it goes into a search query.
-  const term = item.storeMatchTitle.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const term = target.title.toLowerCase().replace(/[^a-z0-9]/g, "");
   if (!term) throw new ItemError("There's no store match for that item");
   const response = await admin.graphql(PREVIEW_QUERY, { variables: { query: `status:active AND ${term}` } });
   const body = (await response.json()) as { data?: { products?: { nodes?: PreviewNode[] } }; errors?: unknown };
@@ -299,7 +339,7 @@ export async function getMatchPreview(registryId: string, itemId: string): Promi
   }
   const nodes = body.data.products.nodes ?? [];
   const relevant = nodes.filter((n) => namesKind(n, term)).slice(0, 4);
-  return { kind: "search", title: item.storeMatchTitle, products: relevant.map((n) => toPreview(n, shop.currency)) };
+  return { kind: "search", title: target.title, products: relevant.map((n) => toPreview(n, currency)) };
 }
 
 /** Apply the registrant's choice. Throws ItemError with a message fit to show them. */

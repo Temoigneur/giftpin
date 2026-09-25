@@ -97,17 +97,41 @@ ${
   data.externalItemsAllowed
     ? `<div class="note">
   <p style="margin:0 0 10px"><strong>From anywhere else</strong></p>
-  <form class="js-paste">
+  <form class="js-paste" novalidate>
     <label class="sr" for="paste-url">Product link</label>
     <input id="paste-url" type="url" name="url" placeholder="Paste a link to any product" required>
-    <label class="sr" for="paste-note">Note for guests (optional)</label>
-    <input id="paste-note" type="text" name="note" maxlength="500" placeholder="Optional note for guests, e.g. towels in grey or purple" style="margin-top:10px">
-    <div class="row" style="margin-top:10px">
-      <button class="btn sm" type="submit">Add to registry</button>
+    <div class="row js-paste-lookup" style="margin-top:10px">
+      <button class="btn sm" type="submit">Look it up</button>
       <span class="js-status item-meta" role="status"></span>
     </div>
+    <div class="js-paste-found" hidden>
+      <p class="item-meta js-paste-msg" style="margin-top:12px"></p>
+      <div class="paste-grid">
+        <div class="md-card">
+          <img class="item-img js-paste-img" alt="" width="72" height="72" hidden>
+          <div class="md-info">
+            <label for="paste-title">Name</label>
+            <input id="paste-title" type="text" name="title" maxlength="300">
+            <label for="paste-price">Price</label>
+            <input id="paste-price" type="text" name="price" inputmode="decimal" maxlength="20" placeholder="e.g. 49.99">
+          </div>
+        </div>
+        <div class="match js-paste-match" hidden>
+          <p class="item-meta"><strong>Closest match in ${escapeHtml(data.shopName)}</strong></p>
+          <div class="js-paste-match-cards"></div>
+          <label class="check"><input type="checkbox" name="showMatch"> Show this to guests too</label>
+        </div>
+      </div>
+      <label for="paste-note">Note for guests (optional)</label>
+      <input id="paste-note" type="text" name="note" maxlength="500" placeholder="e.g. grey or purple is fine">
+      <div class="row" style="margin-top:10px">
+        <button class="btn sm" type="submit">Add to registry</button>
+        <button class="btn sm ghost js-paste-cancel" type="button">Cancel</button>
+        <span class="js-status item-meta" role="status"></span>
+      </div>
+    </div>
   </form>
-  <p class="hint">We'll pull the name, photo and price from the page. Guests go to that store to buy it, and tell us when they have &mdash; so nobody buys it twice.</p>
+  <p class="hint">We'll pull the name, photo and price from the page and show you anything similar in ${escapeHtml(data.shopName)}. Guests go to that store to buy it, and tell us when they have &mdash; so nobody buys it twice.</p>
 </div>`
     : ""
 }
@@ -315,7 +339,7 @@ function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
     ${
       isProduct
         ? `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="swap" data-orig="${escapeAttr(item.title)}" data-kept="0">Preview &amp; swap</button>`
-        : `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="preview" data-orig="${escapeAttr(item.title)}" data-kept="0">See matching products</button>`
+        : `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="preview" data-orig="${escapeAttr(item.title)}" data-kept="0">See matching products in ${shop}</button>`
     }
     <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">Remove</button>
   </div>
@@ -489,16 +513,84 @@ function manageScript(): string {
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')pollList();});
   }
 
+
+  // The paste box: look the link up first, show what we found (and the
+  // store's closest match) so the registrant can check it, then add.
+  var pasteFound=null;
+  function pasteStatus(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
+  function matchCard(p){
+    var card=document.createElement('div');card.className='md-card';
+    if(p.imageUrl){var im=document.createElement('img');im.src=p.imageUrl;im.alt='';im.width=56;im.height=56;im.className='item-img';card.appendChild(im);}
+    var info=document.createElement('div');info.className='md-info';
+    var t=document.createElement('p');t.className='item-title';t.textContent=p.title;info.appendChild(t);
+    if(p.price){var pr=document.createElement('p');pr.className='item-meta';pr.textContent=p.price;info.appendChild(pr);}
+    var a=document.createElement('a');a.className='hint';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent='View in store';info.appendChild(a);
+    card.appendChild(info);return card;
+  }
+  function resetPaste(paste){
+    pasteFound=null;
+    paste.querySelector('.js-paste-found').hidden=true;
+    paste.querySelector('.js-paste-lookup').hidden=false;
+    paste.querySelector('[name=url]').readOnly=false;
+    paste.querySelector('.js-paste-match').hidden=true;
+    paste.querySelector('[name=showMatch]').checked=false;
+    paste.querySelectorAll('.js-status').forEach(function(s){s.textContent='';});
+  }
+  function lookUpLink(paste){
+    var input=paste.querySelector('[name=url]');
+    var lookup=paste.querySelector('.js-paste-lookup');var btn=lookup.querySelector('button');
+    if(!input.value.trim()){pasteStatus(lookup,'Paste a link first',false);input.focus();return;}
+    btn.disabled=true;pasteStatus(lookup,'Looking up that link\u2026');
+    post('/link-preview',{url:input.value}).then(function(res){
+      btn.disabled=false;
+      if(!res||!res.ok){pasteStatus(lookup,(res&&res.error)||'Could not look up that link',false);return;}
+      pasteFound=res;pasteStatus(lookup,'');
+      lookup.hidden=true;input.readOnly=true;
+      var found=paste.querySelector('.js-paste-found');found.hidden=false;
+      paste.querySelector('.js-paste-msg').textContent=res.found
+        ?'Here\u2019s what we found on '+res.domain+'. Change anything that\u2019s not right.'
+        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link.';
+      var img=paste.querySelector('.js-paste-img');
+      if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
+      paste.querySelector('[name=title]').value=res.title||'';
+      paste.querySelector('[name=price]').value=res.price||'';
+      var m=paste.querySelector('.js-paste-match'),cards=paste.querySelector('.js-paste-match-cards');
+      cards.textContent='';
+      if(res.match&&res.match.products.length){
+        res.match.products.slice(0,2).forEach(function(p){cards.appendChild(matchCard(p));});
+        m.hidden=false;
+      }else{m.hidden=true;}
+      paste.querySelector(res.found?'[name=note]':'[name=title]').focus();
+    }).catch(function(){btn.disabled=false;pasteStatus(lookup,'Could not look up that link',false);});
+  }
+  function addLink(paste){
+    var found=paste.querySelector('.js-paste-found');var btn=found.querySelector('button[type=submit]');
+    var title=paste.querySelector('[name=title]').value.trim();
+    if(!title){pasteStatus(found,'Please give the item a name',false);paste.querySelector('[name=title]').focus();return;}
+    btn.disabled=true;pasteStatus(found,'Adding\u2026');
+    post('/add-link',{
+      url:pasteFound.url,title:title,
+      price:paste.querySelector('[name=price]').value,
+      currency:pasteFound.currency,imageUrl:pasteFound.imageUrl,
+      note:paste.querySelector('[name=note]').value,
+      showMatch:paste.querySelector('[name=showMatch]').checked,
+      matchTitle:pasteFound.match?pasteFound.match.title:null
+    }).then(function(res){
+      if(res&&res.ok){location.reload();return;}
+      btn.disabled=false;pasteStatus(found,(res&&res.error)||'Could not add that link',false);
+    }).catch(function(){btn.disabled=false;pasteStatus(found,'Could not add that link',false);});
+  }
+  document.addEventListener('click',function(e){
+    var c=e.target.closest('.js-paste-cancel');
+    if(c)resetPaste(c.closest('.js-paste'));
+  });
+
   document.addEventListener('submit',function(e){
     var paste=e.target.closest('.js-paste');
     if(paste){
       e.preventDefault();
-      var input=paste.querySelector('[name=url]');var btn=paste.querySelector('button');
-      btn.disabled=true;status(paste,'Looking up that link...');
-      post('/add-external',{url:input.value,note:paste.querySelector('[name=note]').value}).then(function(res){
-        if(res&&res.ok){location.reload();}
-        else{status(paste,(res&&res.error)||'Could not add that link',false);btn.disabled=false;}
-      }).catch(function(){status(paste,'Could not add that link',false);btn.disabled=false;});
+      var found=paste.querySelector('.js-paste-found');
+      if(found.hidden)lookUpLink(paste);else addLink(paste);
       return;
     }
     var item=e.target.closest('.js-item');

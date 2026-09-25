@@ -30,6 +30,7 @@ import {
   addInternalItem,
   addExternalItem,
   addManualItem,
+  addLinkedItem,
   updateItem,
   removeItem,
   toDisplayItem,
@@ -45,7 +46,9 @@ import {
   readUndoToken,
   undoGuestPurchase,
 } from "../models/claim.server";
-import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
+import { applyMatchChoice, getMatchPreview, previewStoreMatch, storeMatchFields } from "../lib/store-match.server";
+import { previewUrl } from "../lib/resolver/index.server";
+import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
@@ -84,6 +87,7 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
  *   GET  /unsubscribe?u=<token> → guest stops pre-event reminders
  *   POST /create | /resend | /settings | /delete
  *   POST /cart-add | /claim | /bought | /undo-bought | /add-external | /update-item | /remove-item
+ *   POST /link-preview | /add-link   → the manage page's paste box (look up, then add)
  *   POST /remind               → guest opts in to a pre-event reminder (Pro)
  */
 
@@ -570,6 +574,10 @@ async function handlePost(
       return undoBoughtAction(request, ctx);
     case "add-external":
       return addExternalAction(request, ctx);
+    case "link-preview":
+      return linkPreviewAction(request, ctx, shop);
+    case "add-link":
+      return addLinkAction(request, ctx, shop);
     case "add-manual":
       return addManualAction(request, ctx);
     case "add-from-store":
@@ -811,6 +819,92 @@ async function addExternalAction(request: Request, ctx: ProxyContext): Promise<R
       502,
     );
   }
+}
+
+/**
+ * Step one of the paste box: read the link now and show the registrant what
+ * we found (title, photo, price) plus the store's closest match, before
+ * anything is added. Read-only.
+ *
+ * `found: false` isn't an error — lots of big retailers refuse a server read —
+ * it just means the registrant fills in the name and price themselves.
+ */
+async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  let link: Awaited<ReturnType<typeof previewUrl>>;
+  try {
+    link = await previewUrl(String(body.url ?? ""));
+  } catch (err) {
+    if (err instanceof InvalidProductUrl) return json({ ok: false, error: err.message }, 400);
+    throw err;
+  }
+
+  const match = link.title ? await previewStoreMatch(shop.domain, shop.currency, link.title) : null;
+  return json({
+    ok: true,
+    found: link.title !== null,
+    url: link.url,
+    domain: link.domain,
+    title: link.title,
+    imageUrl: link.imageUrl,
+    price: link.price,
+    currency: link.currency ?? shop.currency,
+    match: match?.preview ?? null,
+  });
+}
+
+/**
+ * Step two of the paste box: add the link with the details the registrant
+ * confirmed. The store match is looked up again here rather than trusted from
+ * the browser, so nothing the page sends can put an arbitrary product in front
+ * of guests; `showMatch` only decides whether it starts out kept.
+ */
+async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const title = String(body.title ?? "").trim().slice(0, 300);
+  if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
+
+  const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
+  const price = rawPrice ? normalizePrice(rawPrice) : null;
+  if (rawPrice && price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+
+  const match = await previewStoreMatch(shop.domain, shop.currency, title);
+
+  try {
+    const result = await addLinkedItem({
+      registryId: registry.id,
+      url: String(body.url ?? ""),
+      title,
+      imageUrl: typeof body.imageUrl === "string" ? body.imageUrl : null,
+      price,
+      currency: normalizeCurrency(typeof body.currency === "string" ? body.currency : null) ?? shop.currency,
+      note: cleanNote(body.note),
+      storeMatch: match ? storeMatchFields(match.match, keepMatch(match.preview.title, body) ? "kept" : "suggested") : null,
+    });
+    if (result.duplicate) {
+      return json({ ok: false, error: "That link is already on your list. Change its quantity below." }, 409);
+    }
+    return json({ ok: true, itemId: result.item.id });
+  } catch (err) {
+    if (err instanceof InvalidProductUrl || err instanceof ItemError) {
+      return json({ ok: false, error: err.message }, 400);
+    }
+    throw err;
+  }
+}
+
+/**
+ * Only keep the match the registrant actually saw: if they edited the name and
+ * the store's closest match moved, it starts out as a suggestion instead.
+ */
+function keepMatch(foundTitle: string, body: Record<string, unknown>): boolean {
+  return body.showMatch === true && typeof body.matchTitle === "string" && body.matchTitle === foundTitle;
 }
 
 /**

@@ -3,7 +3,7 @@ import { sha256 } from "../crypto.server";
 import { registerHandler, enqueue } from "../queue.server";
 import { canonicalizeUrl, shopifyProductHandle, InvalidProductUrl } from "./canonical";
 import { fetchProductPage, FetchRefused } from "./fetcher.server";
-import { extractProduct } from "./metadata";
+import { extractProduct, looksLikePlaceholderTitle } from "./metadata";
 import { parseShopifyProduct } from "./shopify-public";
 
 /**
@@ -67,6 +67,72 @@ export async function resolveUrl(rawUrl: string): Promise<ResolveResult> {
 
   await enqueue("resolve-url", { externalSourceId: created.id });
   return { externalSourceId: created.id, title: null, status: "pending" };
+}
+
+export interface LinkPreview {
+  /** The canonical URL the item will be stored under. */
+  url: string;
+  domain: string;
+  title: string | null;
+  imageUrl: string | null;
+  price: string | null;
+  currency: string | null;
+}
+
+/** Longest the paste box waits on someone else's server before handing the registrant the form. */
+const PREVIEW_BUDGET_MS = 9_000;
+
+/**
+ * What the paste box shows before anything is added: the product's title,
+ * photo and price, read now rather than by a background job, so the
+ * registrant can check them (and fix them) before they reach guests.
+ *
+ * Never throws for a page we can't read — plenty of big retailers refuse a
+ * server fetch outright (williams-sonoma.ca answers 403) — it returns nulls
+ * and the registrant types the details in instead. Only a malformed URL
+ * throws (InvalidProductUrl).
+ */
+export async function previewUrl(rawUrl: string): Promise<LinkPreview> {
+  const { url, domain } = canonicalizeUrl(rawUrl);
+  const empty: LinkPreview = { url, domain, title: null, imageUrl: null, price: null, currency: null };
+
+  const cached = await db.externalSource.findUnique({ where: { canonicalUrlHash: sha256(url) } });
+  if (cached && cached.fetchStatus === "ok" && isFresh(cached.lastFetchedAt, cached.ttlSeconds) && !looksLikePlaceholderTitle(cached.title)) {
+    return {
+      ...empty,
+      title: cached.title,
+      imageUrl: httpsOnly(cached.imageUrl),
+      price: cached.price === null ? null : String(cached.price),
+      currency: cached.currency,
+    };
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const resolved = await Promise.race([
+      performResolve(url),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), PREVIEW_BUDGET_MS);
+      }),
+    ]);
+    if (!resolved || looksLikePlaceholderTitle(resolved.title)) return empty;
+    return {
+      ...empty,
+      title: resolved.title,
+      imageUrl: httpsOnly(resolved.imageUrl),
+      price: resolved.price,
+      currency: resolved.currency,
+    };
+  } catch (err) {
+    console.log(`[link-preview] ${domain}: ${(err as Error).message}`);
+    return empty;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function httpsOnly(url: string | null | undefined): string | null {
+  return url && url.startsWith("https://") ? url : null;
 }
 
 function isFresh(lastFetchedAt: Date | null, ttlSeconds: number): boolean {
@@ -155,7 +221,7 @@ async function performResolve(url: string): Promise<ResolvedPayload> {
   const page = await fetchProductPage(url);
   const extracted = extractProduct(page.html, page.finalUrl);
 
-  if (!extracted || !extracted.title) {
+  if (!extracted || looksLikePlaceholderTitle(extracted.title)) {
     throw new FetchRefused("No product information found on that page", "bad_status");
   }
 

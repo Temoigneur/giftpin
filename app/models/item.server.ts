@@ -132,21 +132,7 @@ export async function addExternalItem(input: AddExternalInput) {
   });
   if (!registry) throw new ItemError("Registry not found");
 
-  const settings = settingsFor(registry.shop);
-
-  if (settings.externalItems === "off") {
-    throw new ItemError("This store only accepts items from its own collection");
-  }
-
-  if (settings.externalItems === "capped") {
-    const external = registry.items.filter((i) => i.sourceType !== "internal").length;
-    const projected = (external + 1) / (registry.items.length + 1);
-    if (projected > settings.externalItemsCapPercent / 100) {
-      throw new ItemError(
-        `You can add a few more items from ${registry.shop.domain.replace(".myshopify.com", "")} first — this registry is mostly items from elsewhere.`,
-      );
-    }
-  }
+  assertExternalAllowed(registry);
 
   const { url, domain } = canonicalizeUrl(input.url);
 
@@ -206,6 +192,78 @@ export async function addExternalItem(input: AddExternalInput) {
   }
 }
 
+/** The merchant's "items from other stores" setting: off, capped, or open. */
+function assertExternalAllowed(registry: {
+  shop: Parameters<typeof settingsFor>[0] & { domain: string };
+  items: { sourceType: string }[];
+}) {
+  const settings = settingsFor(registry.shop);
+
+  if (settings.externalItems === "off") {
+    throw new ItemError("This store only accepts items from its own collection");
+  }
+
+  if (settings.externalItems === "capped") {
+    const external = registry.items.filter((i) => i.sourceType !== "internal").length;
+    const projected = (external + 1) / (registry.items.length + 1);
+    if (projected > settings.externalItemsCapPercent / 100) {
+      throw new ItemError(
+        `You can add a few more items from ${registry.shop.domain.replace(".myshopify.com", "")} first — this registry is mostly items from elsewhere.`,
+      );
+    }
+  }
+}
+
+export interface AddLinkedInput {
+  registryId: string;
+  url: string;
+  title: string;
+  imageUrl?: string | null;
+  price?: string | null;
+  currency?: string | null;
+  note?: string | null;
+  storeMatch?: StoreMatchColumns | null;
+}
+
+/**
+ * The manage page's paste box, after the registrant has seen (and maybe fixed)
+ * the title, photo and price we read from the link. Stored the same way the
+ * browser extension stores a product — as the registrant confirmed it — rather
+ * than re-fetched by addExternalItem, because the page read is exactly what
+ * fails for the big retailers (403s, app shells) and what the registrant just
+ * corrected.
+ *
+ * A repeat link is reported, not silently bumped, same as the extension.
+ */
+export async function addLinkedItem(input: AddLinkedInput) {
+  const registry = await db.registry.findUnique({
+    where: { id: input.registryId },
+    include: { shop: true, items: true },
+  });
+  if (!registry) throw new ItemError("Registry not found");
+
+  assertExternalAllowed(registry);
+
+  const title = input.title.trim();
+  if (!title) throw new ItemError("Please give the item a name");
+
+  const { url } = canonicalizeUrl(input.url);
+  const existing = registry.items.find((i) => i.externalUrl === url);
+  if (existing) return { duplicate: true as const, item: existing };
+
+  const item = await addManualItem({
+    registryId: registry.id,
+    title,
+    url,
+    imageUrl: input.imageUrl && input.imageUrl.startsWith("https://") ? input.imageUrl : null,
+    price: input.price ?? null,
+    currency: input.currency ?? registry.shop.currency,
+    note: input.note ?? null,
+    storeMatch: input.storeMatch ?? null,
+  });
+  return { duplicate: false as const, item };
+}
+
 async function incrementExternalQty(itemId: string, registryId: string, addQty: number) {
   // `increment` compiles to an atomic `SET x = x + n` in the generated SQL,
   // so this is race-safe on its own — no separate read-then-write window to
@@ -227,6 +285,17 @@ export interface AddManualInput {
   currency?: string | null;
   desiredQty?: number;
   note?: string | null;
+  /** A store match already found (the paste box looks before adding), so the job doesn't need to. */
+  storeMatch?: StoreMatchColumns | null;
+}
+
+/** RegistryItem's store-match columns — see app/lib/store-match.server.ts. */
+export interface StoreMatchColumns {
+  storeMatchStatus: string;
+  storeMatchProductGid: string | null;
+  storeMatchVariantGid: string | null;
+  storeMatchTitle: string;
+  storeMatchHandle: string | null;
 }
 
 /** The escape hatch when a URL won't resolve. Never a dead end for the registrant. */
@@ -254,6 +323,7 @@ export async function addManualItem(input: AddManualInput) {
         desiredQty: clampQty(input.desiredQty ?? 1),
         note: input.note?.slice(0, 500) ?? null,
         priority: 0,
+        ...(input.storeMatch ?? {}),
       },
     });
 

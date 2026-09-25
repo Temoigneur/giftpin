@@ -308,3 +308,52 @@ describe("registry storage key (product-page button)", () => {
     expect(page()).toContain(`var KEY='${REGISTRIES_STORAGE_KEY}'`);
   });
 });
+
+// Ben, 25 Sep 2026: pasting a link "didn't work at all". The old box added
+// straight away via a server-side page read that most big retailers block,
+// so items landed with junk titles and no photo, price or store match. The
+// box now looks the link up first and lets the registrant check it.
+describe("paste-a-link box (25 Sep 2026)", () => {
+  it("looks the link up before adding, then adds what the registrant confirmed", () => {
+    const html = page();
+    expect(html).toContain("Look it up");
+    expect(html).toContain("post('/link-preview'");
+    expect(html).toContain("post('/add-link'");
+    expect(html).not.toContain("post('/add-external'");
+    expect(html).toContain('id="paste-title"');
+    expect(html).toContain('id="paste-price"');
+  });
+
+  it("names the store beside the closest match, and only shows it to guests when ticked", () => {
+    const html = page();
+    expect(html).toContain("Closest match in Maple &amp; Clay");
+    expect(html).toMatch(/<input type="checkbox" name="showMatch">/);
+    expect(html).toContain("showMatch:paste.querySelector('[name=showMatch]').checked");
+  });
+
+  it("hides the paste box when the store only allows its own products", () => {
+    expect(page({ externalItemsAllowed: false })).not.toContain('<form class="js-paste"');
+  });
+
+  it("ships a script that parses", () => {
+    const html = page();
+    const scripts = [...html.matchAll(/<script(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const src of scripts) expect(() => new Function(src)).not.toThrow();
+  });
+});
+
+describe("store-range suggestion button names the store (25 Sep 2026)", () => {
+  it("reads See matching products in <store>", () => {
+    const html = page({
+      items: [{
+        id: "item_1", sourceType: "manual" as const, title: "Burton snowboard", imageUrl: null, price: 400,
+        currency: "CAD", desiredQty: 1, purchasedQty: 0, claimedQty: 0, remainingQty: 1, note: null,
+        category: null, variantGid: null, externalUrl: null, externalDomain: null,
+        isExternal: true, isStale: true, availability: "in_stock", fulfilled: false,
+        storeMatch: { status: "suggested", kind: "search", title: "snowboard", handle: null },
+      }],
+    });
+    expect(html).toContain("See matching products in Maple &amp; Clay");
+  });
+});
