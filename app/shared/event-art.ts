@@ -192,11 +192,11 @@ const EVENT_ART: Record<string, () => string> = {
  * origin, so callers pass that origin (SHOPIFY_APP_URL) as `assetBase` —
  * the guest page itself is served on the shop's domain through the app
  * proxy, so a relative path wouldn't resolve. Wedding: Ben's own
- * Midjourney image (v2, 24 Sep 2026: champagne toast on bokeh). Bump the filename
+ * Midjourney image (v3, 25 Sep 2026: centred champagne toast on bokeh). Bump the filename
  * when replacing a file so browsers don't keep a cached copy.
  */
 const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => string }> = {
-  wedding: { widths: [1024, 2016], path: (w) => `/art/wedding-v2-${w}.webp` },
+  wedding: { widths: [1024, 2016], path: (w) => `/art/wedding-v3-${w}.webp` },
 };
 
 /**

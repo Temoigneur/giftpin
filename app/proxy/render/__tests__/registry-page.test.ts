@@ -282,8 +282,8 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
       artBaseUrl: "https://app.example.com/",
     });
     expect(html).toContain('class="hero-img hero-painting"');
-    expect(html).toContain('src="https://app.example.com/art/wedding-v2-2016.webp"');
-    expect(html).toContain("https://app.example.com/art/wedding-v2-1024.webp 1024w");
+    expect(html).toContain('src="https://app.example.com/art/wedding-v3-2016.webp"');
+    expect(html).toContain("https://app.example.com/art/wedding-v3-1024.webp 1024w");
     expect(html).not.toContain('class="hero-art"');
   });
 
