@@ -229,7 +229,7 @@ describe("category-level store suggestion (registrant view)", () => {
 describe("connect-the-extension box and chip fallback", () => {
   it("is titled by what it is for", () => {
     const html = page();
-    expect(html).toContain("<h2>Connect the browser extension</h2>");
+    expect(html).toContain('<h2 id="extension">Connect the browser extension</h2>');
     expect(html).toContain("Copy connection link");
   });
 
@@ -355,5 +355,14 @@ describe("store-range suggestion button names the store (25 Sep 2026)", () => {
       }],
     });
     expect(html).toContain("See matching products in Maple &amp; Clay");
+  });
+});
+
+describe("paste box as the extension's backup (25 Sep 2026)", () => {
+  it("asks for a price before adding, and points computer users to the extension", () => {
+    const html = page();
+    expect(html).toContain("Please add the price");
+    expect(html).toContain('href="#extension"');
+    expect(html).toContain('<h2 id="extension">');
   });
 });

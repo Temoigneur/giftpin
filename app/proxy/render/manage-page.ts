@@ -70,7 +70,7 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
 </div>
 
-<h2>Connect the browser extension</h2>
+<h2 id="extension">Connect the browser extension</h2>
 <div class="note">
   <p style="margin:0 0 10px">Add gifts from Amazon, Etsy or any other website in one click. Copy the link below, open the Giftpin extension in Chrome, and paste it in.</p>
   <label class="sr" for="manage-link">Your private connection link</label>
@@ -131,6 +131,7 @@ ${
       </div>
     </div>
   </form>
+  <p class="hint">On a computer? The <a href="#extension">Giftpin browser extension</a> is the easiest way: it picks up the photo and price even on sites that block us here.</p>
   <p class="hint">We'll pull the name, photo and price from the page and show you anything similar in ${escapeHtml(data.shopName)}. Guests go to that store to buy it, and tell us when they have &mdash; so nobody buys it twice.</p>
 </div>`
     : ""
@@ -549,7 +550,7 @@ function manageScript(): string {
       var found=paste.querySelector('.js-paste-found');found.hidden=false;
       paste.querySelector('.js-paste-msg').textContent=res.found
         ?'Here\u2019s what we found on '+res.domain+'. Change anything that\u2019s not right.'
-        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link.';
+        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link. (The browser extension can read it, if you\u2019re on a computer.)';
       var img=paste.querySelector('.js-paste-img');
       if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
       paste.querySelector('[name=title]').value=res.title||'';
@@ -567,6 +568,8 @@ function manageScript(): string {
     var found=paste.querySelector('.js-paste-found');var btn=found.querySelector('button[type=submit]');
     var title=paste.querySelector('[name=title]').value.trim();
     if(!title){pasteStatus(found,'Please give the item a name',false);paste.querySelector('[name=title]').focus();return;}
+    var price=paste.querySelector('[name=price]').value.trim();
+    if(!price){pasteStatus(found,'Please add the price, so guests know what it costs',false);paste.querySelector('[name=price]').focus();return;}
     btn.disabled=true;pasteStatus(found,'Adding\u2026');
     post('/add-link',{
       url:pasteFound.url,title:title,
