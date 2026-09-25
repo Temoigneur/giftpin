@@ -1,0 +1,144 @@
+/**
+ * The registrant's ship-to address: the form fields on the manage page and
+ * the shape handed to `orderUpdate`'s `shippingAddress` (MailingAddressInput).
+ *
+ * Not a `.server` file: the manage page renders the province lists and the
+ * proxy action parses the form, so both sides share this (CLAUDE.md rule 2).
+ *
+ * The registrant types this into Giftpin's own form. Nothing here is ever read
+ * from a Shopify order; see purchase.server.ts::applyShipToRegistrant.
+ */
+
+export interface ShippingAddress {
+  firstName: string;
+  lastName: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  /** Shopify province code ("ON", "NY", "NSW"). Absent for GB. */
+  provinceCode?: string;
+  countryCode: string;
+  zip: string;
+  phone?: string;
+}
+
+export const SHIPPING_COUNTRIES: { code: string; label: string }[] = [
+  { code: "US", label: "United States" },
+  { code: "CA", label: "Canada" },
+  { code: "GB", label: "United Kingdom" },
+  { code: "AU", label: "Australia" },
+];
+
+type Region = { code: string; label: string };
+
+export const PROVINCES: Record<string, { label: string; regions: Region[] }> = {
+  US: {
+    label: "State",
+    regions: [
+      ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
+      ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
+      ["DC", "District of Columbia"], ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"],
+      ["ID", "Idaho"], ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"],
+      ["KS", "Kansas"], ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"],
+      ["MD", "Maryland"], ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"],
+      ["MS", "Mississippi"], ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"],
+      ["NV", "Nevada"], ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"],
+      ["NY", "New York"], ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"],
+      ["OK", "Oklahoma"], ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"],
+      ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
+      ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
+      ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
+    ].map(([code, label]) => ({ code, label })),
+  },
+  CA: {
+    label: "Province",
+    regions: [
+      ["AB", "Alberta"], ["BC", "British Columbia"], ["MB", "Manitoba"], ["NB", "New Brunswick"],
+      ["NL", "Newfoundland and Labrador"], ["NT", "Northwest Territories"], ["NS", "Nova Scotia"],
+      ["NU", "Nunavut"], ["ON", "Ontario"], ["PE", "Prince Edward Island"], ["QC", "Quebec"],
+      ["SK", "Saskatchewan"], ["YT", "Yukon"],
+    ].map(([code, label]) => ({ code, label })),
+  },
+  AU: {
+    label: "State",
+    regions: [
+      ["ACT", "Australian Capital Territory"], ["NSW", "New South Wales"], ["NT", "Northern Territory"],
+      ["QLD", "Queensland"], ["SA", "South Australia"], ["TAS", "Tasmania"], ["VIC", "Victoria"],
+      ["WA", "Western Australia"],
+    ].map(([code, label]) => ({ code, label })),
+  },
+};
+
+const LIMIT = 120;
+
+export type ShippingAddressError = "country" | "missing" | "region";
+
+/** Keyed by code so the redirect carries a code, never free text, in its URL. */
+export const SHIPPING_ADDRESS_ERRORS: Record<ShippingAddressError, string> = {
+  country: "Please choose a country for your shipping address.",
+  missing: "Please fill in your name, street address, city and postal code.",
+  region: "Please choose a state or province for your shipping address.",
+};
+
+function field(form: { get(name: string): unknown }, name: string): string {
+  const value = form.get(name);
+  return typeof value === "string" ? value.trim().slice(0, LIMIT) : "";
+}
+
+/**
+ * Validates the manage page's address form. Returns the address to store, or
+ * an error code (see SHIPPING_ADDRESS_ERRORS for the wording). Every required field must be present: a half-typed
+ * address written onto an order is worse than no rewrite at all.
+ */
+export function parseShippingAddressForm(
+  form: { get(name: string): unknown },
+): { address: ShippingAddress } | { error: ShippingAddressError } {
+  const countryCode = field(form, "countryCode").toUpperCase();
+  if (!SHIPPING_COUNTRIES.some((c) => c.code === countryCode)) {
+    return { error: "country" };
+  }
+
+  const address: ShippingAddress = {
+    firstName: field(form, "firstName"),
+    lastName: field(form, "lastName"),
+    address1: field(form, "address1"),
+    city: field(form, "city"),
+    countryCode,
+    zip: field(form, "zip").toUpperCase(),
+  };
+
+  if (!address.firstName || !address.lastName || !address.address1 || !address.city || !address.zip) {
+    return { error: "missing" };
+  }
+
+  const regions = PROVINCES[countryCode];
+  if (regions) {
+    const provinceCode = field(form, "provinceCode").toUpperCase();
+    if (!regions.regions.some((r) => r.code === provinceCode)) {
+      return { error: "region" };
+    }
+    address.provinceCode = provinceCode;
+  }
+
+  const address2 = field(form, "address2");
+  if (address2) address.address2 = address2;
+  const phone = field(form, "phone");
+  if (phone) address.phone = phone;
+
+  return { address };
+}
+
+/**
+ * The stored address as `orderUpdate` wants it. Also accepts the older
+ * `countryCodeV2` key (the Order *output* field name) in case an address was
+ * saved by hand in that shape before this form existed.
+ */
+export function toMailingAddressInput(stored: Record<string, string>): Record<string, string> {
+  const input: Record<string, string> = {};
+  for (const key of ["firstName", "lastName", "address1", "address2", "city", "provinceCode", "zip", "phone"]) {
+    if (stored[key]) input[key] = stored[key];
+  }
+  const country = stored.countryCode || stored.countryCodeV2;
+  if (country) input.countryCode = country;
+  return input;
+}

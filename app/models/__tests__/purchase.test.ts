@@ -27,7 +27,16 @@ import { applyShipToRegistrant } from "../purchase.server";
 
 const mockedFindUnique = vi.mocked(db.registry.findUnique);
 
-const ADDRESS = { address1: "1 Main St", city: "Toronto", provinceCode: "ON", countryCodeV2: "CA" };
+// The shape the manage page's form saves (app/shared/shipping-address.ts).
+const ADDRESS = {
+  firstName: "Maya",
+  lastName: "Chen",
+  address1: "1 Main St",
+  city: "Toronto",
+  provinceCode: "ON",
+  countryCode: "CA",
+  zip: "M5V 1A1",
+};
 
 function registryRow(overrides: Partial<{ shipToRegistrant: boolean; shippingAddressEnc: string | null }> = {}) {
   return {
@@ -139,6 +148,54 @@ describe("applyShipToRegistrant", () => {
 
     expect(result).toEqual({ applied: false, reason: "cross_jurisdiction" });
     expect(graphql).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a cross-border move even when neither side has a province", async () => {
+    mockedFindUnique.mockResolvedValue(
+      registryRow({
+        shippingAddressEnc: encrypt(JSON.stringify({ ...ADDRESS, provinceCode: undefined, countryCode: "GB" })),
+      }) as never,
+    );
+
+    const graphql = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        data: {
+          order: { displayFulfillmentStatus: "UNFULFILLED", shippingAddress: { countryCodeV2: "IE" } },
+        },
+      }),
+    );
+
+    const result = await applyShipToRegistrant(graphql, "gid://shopify/Order/1", "reg_1");
+
+    expect(result).toEqual({ applied: false, reason: "cross_jurisdiction" });
+    expect(graphql).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends countryCode (the input field name) for an address saved with the old countryCodeV2 key", async () => {
+    const legacy = { address1: "1 Main St", city: "Toronto", provinceCode: "ON", countryCodeV2: "CA" };
+    mockedFindUnique.mockResolvedValue(
+      registryRow({ shippingAddressEnc: encrypt(JSON.stringify(legacy)) }) as never,
+    );
+
+    const graphql = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: {
+            order: { displayFulfillmentStatus: "UNFULFILLED", shippingAddress: { provinceCode: "ON", countryCodeV2: "CA" } },
+          },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ data: { orderUpdate: { userErrors: [] } } }));
+
+    await applyShipToRegistrant(graphql, "gid://shopify/Order/1", "reg_1");
+
+    expect(graphql.mock.calls[1][1].variables.input.shippingAddress).toEqual({
+      address1: "1 Main St",
+      city: "Toronto",
+      provinceCode: "ON",
+      countryCode: "CA",
+    });
   });
 
   it("surfaces userErrors from the mutation instead of reporting false success", async () => {

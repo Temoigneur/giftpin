@@ -19,6 +19,8 @@ import {
   mintManageToken,
   readManageToken,
   updateRegistry,
+  setShippingAddress,
+  readShippingAddress,
   deleteRegistry,
   progressFor,
   checkRegistryPassword,
@@ -50,6 +52,7 @@ import { applyMatchChoice, getMatchPreview, previewStoreMatch, storeMatchFields 
 import { previewUrl } from "../lib/resolver/index.server";
 import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
+import { parseShippingAddressForm, SHIPPING_ADDRESS_ERRORS, type ShippingAddressError } from "../shared/shipping-address";
 import { cartAddPayload } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
 import {
@@ -375,6 +378,9 @@ async function managePage(
       })),
   );
 
+  const flash = flashFrom(ctx);
+  const shippingFlash = ctx.query.get("flash")?.startsWith("ship-") ? flash : null;
+
   return page(
     renderManagePage({
       ...brand,
@@ -397,7 +403,12 @@ async function managePage(
       storeSearchUrl: "/collections/all",
       artBaseUrl: process.env.SHOPIFY_APP_URL || null,
       gifts,
-      flash: flashFrom(ctx),
+      flash: shippingFlash ? null : flash,
+      shipping: {
+        enabled: registry.shipToRegistrant,
+        address: registry.shipToRegistrant ? readShippingAddress(registry) : null,
+        flash: shippingFlash,
+      },
     }),
   );
 }
@@ -594,6 +605,8 @@ async function handlePost(
       return matchPreviewAction(request, ctx);
     case "settings":
       return settingsAction(request, ctx);
+    case "shipping":
+      return shippingAction(request, ctx);
     case "delete":
       return deleteAction(request, ctx, brand);
     case "remind":
@@ -1211,6 +1224,32 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
 }
 
 /**
+ * Registrant saves (or turns off) ship-to-registrant. Turning it off deletes
+ * the stored address rather than keeping it around unused.
+ */
+async function shippingAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  const form = await request.formData();
+  const back = (flash: string) =>
+    redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash }) + "#ship");
+
+  if (form.get("enabled") !== "on") {
+    await setShippingAddress(registry.id, null);
+    await logEvent(registry.id, "shipping_address_updated", { enabled: false });
+    return back("ship-off");
+  }
+
+  const parsed = parseShippingAddressForm(form);
+  if ("error" in parsed) return back(`ship-${parsed.error}`);
+
+  await setShippingAddress(registry.id, parsed.address);
+  await logEvent(registry.id, "shipping_address_updated", { enabled: true, country: parsed.address.countryCode });
+  return back("ship-saved");
+}
+
+/**
  * Guest opts in to a pre-event reminder (Pro). Answers the same way whether or
  * not the email was already signed up, so this can't be used to check who is.
  */
@@ -1318,6 +1357,12 @@ function firstNameOnly(name: string): string {
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
   const flash = ctx.query.get("flash");
   if (flash === "saved") return { kind: "ok", message: "Your changes are saved." };
+  if (flash === "ship-saved") return { kind: "ok", message: "Your shipping address is saved." };
+  if (flash === "ship-off") return { kind: "ok", message: "Gifts won't be sent to you, and your address has been deleted." };
+  const shipError = flash?.startsWith("ship-") ? flash.slice(5) : null;
+  if (shipError && shipError in SHIPPING_ADDRESS_ERRORS) {
+    return { kind: "err", message: SHIPPING_ADDRESS_ERRORS[shipError as ShippingAddressError] };
+  }
   return null;
 }
 

@@ -183,8 +183,10 @@ a{color:inherit}
 .btn.block{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row[hidden],.item-img[hidden]{display:none}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+fieldset[hidden],.js-ship-region[hidden]{display:none}
 .qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
-input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],input[type=tel],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 textarea{min-height:88px;resize:vertical}
 label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .hint{font-size:13px;color:var(--muted);margin:6px 0 0;font-weight:400}

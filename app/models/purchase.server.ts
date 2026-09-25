@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
 import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
+import { toMailingAddressInput } from "../shared/shipping-address";
 
 /**
  * Order attribution.
@@ -391,12 +392,20 @@ export async function applyShipToRegistrant(
   }
 
   // Guardrail until the tax recalculation behaviour is understood in practice:
-  // only rewrite within the same province/state. Cross-jurisdiction moves are
+  // only rewrite within the same country and province/state. Cross-jurisdiction moves are
   // where the money actually changes.
+  const input = toMailingAddressInput(address);
   if (
-    address.provinceCode &&
+    input.countryCode &&
+    order.shippingAddress?.countryCodeV2 &&
+    input.countryCode !== order.shippingAddress.countryCodeV2
+  ) {
+    return { applied: false, reason: "cross_jurisdiction" };
+  }
+  if (
+    input.provinceCode &&
     order.shippingAddress?.provinceCode &&
-    address.provinceCode !== order.shippingAddress.provinceCode
+    input.provinceCode !== order.shippingAddress.provinceCode
   ) {
     return { applied: false, reason: "cross_jurisdiction" };
   }
@@ -405,7 +414,7 @@ export async function applyShipToRegistrant(
     variables: {
       input: {
         id: orderId,
-        shippingAddress: address,
+        shippingAddress: input,
         tags: ["registry-ship-to-registrant"],
       },
     },
