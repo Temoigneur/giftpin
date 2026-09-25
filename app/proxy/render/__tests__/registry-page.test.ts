@@ -433,7 +433,7 @@ describe("pre-event reminder sign-up (Pro)", () => {
 describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
   it("offers the box, ticked by default, when the registrant saved an address", () => {
     const html = page([item()], { shipToRegistrant: true });
-    expect(html).toMatch(/class="js-ship-choice" data-label="[^"]*To ship it to yourself instead[^"]*" checked/);
+    expect(html).toMatch(/class="js-ship-choice" data-label="[^"]*Want it sent to you instead[^"]*" checked/);
     expect(html).toContain("/cart/change.js");
     expect(html).toContain("Untick this to have it sent to you instead.");
   });
