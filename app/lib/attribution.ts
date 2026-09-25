@@ -35,6 +35,14 @@ export const ATTRIBUTION_PROPERTY = "_rg";
 
 /** Visible cart/checkout line property naming who a gift ships to. */
 export const SHIP_TO_LABEL = "Gift ships to";
+
+/**
+ * The visible "Gift ships to" value, including how to undo it. Shared with the
+ * registry page, which rewrites cart lines when the guest unticks the box.
+ */
+export function shipToValue(names: string): string {
+  return `${names || "The registrant"}, at their address (we add it after you order). To ship it to yourself instead, untick "Ship gifts ... straight to ${names || "them"}" on their registry page and your cart updates.`;
+}
 const PURPOSE = "cart";
 
 export interface AttributionPayload {
@@ -148,7 +156,7 @@ export function cartAddPayload(
     // Deliberately visible (no leading underscore): the guest sees it under
     // the item in the cart and at checkout, so a box ticked without reading
     // isn't a silent redirect. Names only, never the address.
-    properties[SHIP_TO_LABEL] = shipToNames ? `${shipToNames} (their address, added after you order)` : "The registrant (their address, added after you order)";
+    properties[SHIP_TO_LABEL] = shipToValue(shipToNames);
   }
 
   return { items: [{ id: variantId, quantity, properties }] };

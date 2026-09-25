@@ -4,6 +4,7 @@ import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
+import { SHIP_TO_LABEL, shipToValue } from "../../lib/attribution";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
@@ -69,9 +70,26 @@ function renderShipChoice(data: RegistryPageData): string {
   if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
   const who = data.registrantNames || "the registrant";
   return `<div class="note">
-  <label class="check"><input type="checkbox" class="js-ship-choice" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
-  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead.</p>
-</div>`;
+  <label class="check"><input type="checkbox" class="js-ship-choice" data-label="${escapeAttr(shipToValue(data.registrantNames))}" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
+  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead. Anything already in your cart updates too.</p>
+  <p class="hint js-ship-status" role="status"></p>
+</div>
+<script>(function(){
+  // Ticking or unticking the box also updates registry lines already in the
+  // cart, so the "Gift ships to" note at checkout always matches it.
+  var shipBox=document.querySelector('.js-ship-choice'),st=document.querySelector('.js-ship-status');
+  shipBox.addEventListener('change',function(){
+    var on=shipBox.checked;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
+      var lines=(cart.items||[]).filter(function(l){return l.properties&&l.properties._rg&&document.querySelector('.js-add[data-variant="'+String(l.variant_id)+'"]')&&(!!l.properties._rg_ship)!==on;});
+      return lines.reduce(function(p,l){return p.then(function(){
+        var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
+        if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=shipBox.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
+        return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
+      })},Promise.resolve()).then(function(){if(lines.length)st.textContent=on?'Your cart is updated: it ships to them.':'Your cart is updated: it ships to you.';});
+    }).catch(function(){st.textContent="Couldn't update your cart. Remove the item and add it again.";});
+  });
+})();</script>`;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
