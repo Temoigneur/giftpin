@@ -6,6 +6,7 @@ import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
+import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -193,7 +194,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (item.isStale && price) meta.push("price may have changed");
   if (item.availability === "out_of_stock") meta.push("out of stock");
 
-  return `<li class="${classes.join(" ")}">
+  return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}">
   ${image}
   <div>
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
@@ -239,8 +240,9 @@ function renderItemAction(
     const max = Math.max(1, remaining);
     return `${heldNotice}<form class="row js-add" data-item="${escapeAttr(item.id)}" data-variant="${escapeAttr(variantId)}">
   ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">Quantity</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
-  <button class="btn sm" type="submit">Add to cart</button>
+  <button class="btn sm js-add-btn" type="submit">Add to cart</button>
   <span class="js-status item-meta" role="status"></span>
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
 </form>`;
   }
 
@@ -322,6 +324,58 @@ function clientScript(): string {
     if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
   }catch(_){}
 
+  // Store items: once a line for this variant is in the guest's cart, swap
+  // "Add to cart" for a checkout prompt so nobody adds it twice by accident.
+  // The item only counts as bought when the order webhook lands.
+  function markInCart(form){
+    // Built here rather than rendered hidden on every item: the page has a
+    // strict byte budget and most items are never added.
+    var b=form.querySelector('.js-add-btn'),q=form.querySelector('.qty');
+    if(b)b.hidden=true;if(q)q.hidden=true;
+    if(!form.querySelector('.js-incart')){
+      var p=document.createElement('p');p.className='js-incart incart';
+      p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a>';
+      if(b)b.parentNode.insertBefore(p,b);else form.appendChild(p);
+    }
+  }
+  function syncCart(){
+    if(!document.querySelector('.js-add'))return;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(cart){
+        if(!cart||!cart.items)return;
+        cart.items.forEach(function(line){
+          if(!line.properties||!line.properties._rg)return;
+          Array.prototype.forEach.call(document.querySelectorAll('.js-add[data-variant="'+String(line.variant_id)+'"]'),markInCart);
+        });
+      })
+      .catch(function(){});
+  }
+  syncCart();
+
+  // Undo for "I bought this". The token only ever lives in the browser that
+  // made the mark, and the server stops honouring it after a day.
+  var UNDO_KEY='${UNDO_STORAGE_KEY}';
+  function readUndo(){try{var m=JSON.parse(localStorage.getItem(UNDO_KEY)||'{}');return m&&typeof m==='object'?m:{};}catch(_){return {};}}
+  function writeUndo(m){try{localStorage.setItem(UNDO_KEY,JSON.stringify(m));}catch(_){}}
+  function saveUndo(id,t){var m=readUndo();m[id]={t:t,x:Date.now()+${UNDO_WINDOW_SECONDS * 1000}};writeUndo(m);}
+  function dropUndo(id){var m=readUndo();delete m[id];writeUndo(m);}
+  function showUndo(){
+    var m=readUndo(),now=Date.now(),changed=false;
+    Object.keys(m).forEach(function(id){
+      if(!m[id]||!(m[id].x>now)){delete m[id];changed=true;return;}
+      if(!/^[A-Za-z0-9_-]+$/.test(id))return;
+      var li=document.querySelector('#registro-items li[data-item="'+id+'"]');
+      if(!li||li.querySelector('.js-undo'))return;
+      var p=document.createElement('p');p.className='item-meta undo';
+      p.appendChild(document.createTextNode('You marked this as bought. '));
+      var b=document.createElement('button');b.type='button';b.className='linkish js-undo';b.dataset.item=id;b.textContent='Undo';
+      p.appendChild(b);(li.lastElementChild||li).appendChild(p);
+    });
+    if(changed)writeUndo(m);
+  }
+  showUndo();
+
   // The reminder sign-up is JSON-only, so it stays hidden without script.
   Array.prototype.forEach.call(document.querySelectorAll('.js-remind'),function(f){f.hidden=false;});
 
@@ -344,7 +398,7 @@ function clientScript(): string {
         // travels on the cart LINE, which is what survives Shop Pay.
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
   });
 
@@ -358,10 +412,21 @@ function clientScript(): string {
     }
     var bought=e.target.closest('.js-bought');
     if(bought){
+      if(bought.dataset.store&&!confirm("Mark this as bought? Only do this if you got it some other way, like in the shop. Orders placed here are counted automatically."))return;
       bought.disabled=true;status(bought,'Saving...');
       post('/bought',{itemId:bought.dataset.item}).then(function(res){
-        if(res&&res.ok){location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
+        if(res&&res.ok){if(res.undoToken)saveUndo(bought.dataset.item,res.undoToken);location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
       }).catch(function(){status(bought,'Could not save',false);bought.disabled=false;});
+      return;
+    }
+    var undo=e.target.closest('.js-undo');
+    if(undo){
+      var u=readUndo()[undo.dataset.item];if(!u)return;
+      undo.disabled=true;undo.textContent='Undoing...';
+      post('/undo-bought',{token:u.t}).then(function(res){
+        dropUndo(undo.dataset.item);
+        if(res&&res.ok){location.reload();}else{undo.parentNode.textContent=(res&&res.error)||'Could not undo';}
+      }).catch(function(){undo.disabled=false;undo.textContent='Undo';});
       return;
     }
     var share=e.target.closest('.js-share');
@@ -403,6 +468,8 @@ function clientScript(): string {
           if(p&&cur)cur.innerHTML=p.innerHTML;
           cfg.version=next.version;
           banner.hidden=true;
+          syncCart();
+          showUndo();
         });
     }
     function checkVersion(){
