@@ -27,7 +27,7 @@ Let guests build one gift registry from any store — not just yours.
 
 ## App introduction (shown at the top of the listing, ~100 characters)
 
-The only gift registry that isn't limited to your catalog.
+A gift registry that isn't limited to your catalog.
 
 ## App details (main listing body)
 
@@ -51,8 +51,6 @@ Pay, Apple Pay, Google Pay, the Shop app, or your regular checkout).
 
 **What guests get:**
 - One link to share, listing gifts from anywhere.
-- A one-click browser extension to add a product from any site they're
-  already browsing (no copy-pasting URLs).
 - Duplicate-gift protection — the registry shows "someone may be buying
   this" the moment a purchase is in flight, not just after it's confirmed.
 
@@ -75,18 +73,23 @@ Pay, Apple Pay, Google Pay, the Shop app, or your regular checkout).
 
 ## Pricing
 
-**Proposed — not yet built or billed. This is a starting point for you to
-approve or change, not a final decision; flag any change back so I can keep
-`app/shared/settings.ts` (or whatever billing config ships) in sync with
-whatever you land on.**
+Matches what the app actually bills (`app/shared/plans.ts`,
+`app/routes/app.billing.tsx`) and the public pricing page
+(`app/marketing/plans-copy.ts`). Keep all three in step. Don't list in-store
+POS mode or cash funds until they ship.
 
-- **Free** — unlimited registries, unlimited items, full browser-extension
-  support. No monthly fee. Giftpin's disclosed affiliate commission on
-  external-store purchases (see above) is the only revenue on this tier.
-- **Pro — $9.99/mo, 14-day free trial** — adds the merchant dashboard's
-  advanced analytics (resolver hit-rate, external-vs-catalog value split),
-  priority support, and removes Giftpin's own branding from guest-facing
-  registry pages.
+- **Free** — unlimited registries, items and guests; gifts from your store
+  and any online shop; duplicate-gift protection; attribution through Shop
+  Pay, Apple Pay, Google Pay and the Shop app; ship-to-registrant; theme
+  blocks; overview dashboard; email support. No monthly fee. Giftpin's
+  disclosed affiliate commission on external-store purchases (see above) is
+  the only revenue on this tier.
+- **Giftpin Pro — $9.99 every 30 days, 14-day free trial** — registry
+  analytics, a monthly registry sales report, your branding on registry
+  pages (with the "Powered by Giftpin" credit removed), a completion
+  discount for the registrant, automatic registry emails, CSV export, and
+  priority email support (replies within one business day). Upgrade or
+  cancel any time from the app's Plan page.
 
 Neither tier changes what a guest pays or adds a fee on the merchant's own
 product sales — the commission (Free tier) and the subscription (Pro tier)
@@ -101,12 +104,11 @@ screenshots:
 
 1. Guest-facing registry page with a mix of internal + external items
    (shows the "any store" pitch visually).
-2. The browser extension popup mid-add on a real product page.
-3. Merchant dashboard showing purchased/claimed/needed items.
-4. The commission-disclosure statement, zoomed in enough to read.
+2. Merchant dashboard showing purchased/claimed/needed items.
+3. The commission-disclosure statement, zoomed in enough to read.
 
 Say the word once your dev server (`npm run dev`) is up and I'll capture all
-four in one pass.
+three in one pass.
 
 ## Privacy / data use disclosure (required field, keep this exact framing)
 
@@ -118,10 +120,14 @@ extension or by fetching the page's public metadata server-side — never a
 private or authenticated source. No product data is imported into the
 merchant's catalog, and no purchase happens through Giftpin itself; every
 external item links out to its original store for the actual purchase,
-where Giftpin may earn a disclosed commission on that sale. The app does
-not read back customer PII from the Admin API; shipping-address data used
-for the ship-to-registrant feature is entered directly by the registrant
-into Giftpin's own database, not pulled from a Shopify customer record.
+where Giftpin may earn a disclosed commission on that sale. When a guest
+buys a registry gift from the merchant's store, Giftpin reads the buyer's
+name from that order so the registrant knows who to thank; it is erased on
+Shopify's customers/redact request. For ship-to-registrant, the
+registrant types their shipping address into Giftpin themselves (it is not
+pulled from a Shopify customer record). It is stored encrypted, written onto
+the matching order in the merchant's store so the gift ships to them, and
+deleted 90 days after the event.
 
 ## Reviewer testing instructions (required field — this is what Eman's
 ## 1.1.13 reply asked to have spelled out explicitly)
