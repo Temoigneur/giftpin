@@ -370,7 +370,7 @@ function clientScript(): string {
       var p=document.createElement('p');p.className='item-meta undo';
       p.appendChild(document.createTextNode('You marked this as bought. '));
       var b=document.createElement('button');b.type='button';b.className='linkish js-undo';b.dataset.item=id;b.textContent='Undo';
-      p.appendChild(b);(li.lastElementChild||li).appendChild(p);
+      p.appendChild(b);li.appendChild(p);
     });
     if(changed)writeUndo(m);
   }
