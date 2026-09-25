@@ -161,9 +161,13 @@ export function renderFindPage(data: {
   branding?: PageBranding | null;
   actionUrl: string;
   query: string;
-  results: { title: string; eventLabel: string; eventDate: Date | null; url: string; names: string }[];
+  results: { title: string; eventLabel: string; eventDate: Date | null; url: string; names: string; coverImageUrl?: string | null }[];
   searched: boolean;
 }): string {
+  // Two couples can share names (and titles like "Sam & Alex's Wedding"). A
+  // guest who picks the wrong one buys a gift for strangers, so make the
+  // date and names impossible to miss and say so when results look alike.
+  const lookalikes = hasLookalikes(data.results);
   const body = `
 <h1>Find a registry</h1>
 <p class="sub">Search by the name of the person or couple you're shopping for.</p>
@@ -179,12 +183,22 @@ ${
     ? ""
     : data.results.length === 0
       ? `<div class="empty"><p>No registries match that name.</p><p class="hint">Only registries whose owners chose to be listed appear here. If you have a direct link, use that instead.</p></div>`
-      : `<ul class="items">${data.results
+      : `${
+          lookalikes
+            ? `<div class="note" role="status"><strong>More than one registry matches.</strong> Check the names and date before you choose, so your gift goes to the right people.</div>`
+            : ""
+        }<ul class="items">${data.results
           .map(
-            (r) => `<li class="item" style="grid-template-columns:1fr">
+            (r) => `<li class="item"${r.coverImageUrl ? "" : ` style="grid-template-columns:1fr"`}>
+  ${r.coverImageUrl ? `<img class="item-img" src="${escapeAttr(r.coverImageUrl)}" alt="" loading="lazy" style="object-fit:cover">` : ""}
   <div>
     <p class="item-title"><a href="${escapeAttr(r.url)}">${escapeHtml(r.title)}</a></p>
-    <p class="item-meta">${escapeHtml(r.eventLabel)}${r.eventDate ? ` &middot; ${new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(r.eventDate)}` : ""}</p>
+    ${r.names ? `<p class="item-meta">${escapeHtml(r.names)}</p>` : ""}
+    <p class="item-meta">${escapeHtml(r.eventLabel)} &middot; ${
+      r.eventDate
+        ? `<strong>${new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UTC" }).format(r.eventDate)}</strong>`
+        : "No date set"
+    }</p>
   </div>
 </li>`,
           )
@@ -206,6 +220,22 @@ ${
     },
     body,
   );
+}
+
+/** True when two results share a title or the same registrant names. */
+export function hasLookalikes(results: { title: string; names: string }[]): boolean {
+  const norm = (v: string) => v.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const seen = new Set<string>();
+  for (const r of results) {
+    // Names in either order ("Sam & Alex" / "Alex & Sam") are the same couple.
+    const names = norm(r.names).split(" ").filter((w) => w && w !== "and").sort().join(" ");
+    for (const key of [`t:${norm(r.title)}`, names ? `n:${names}` : ""]) {
+      if (!key) continue;
+      if (seen.has(key)) return true;
+      seen.add(key);
+    }
+  }
+  return false;
 }
 
 /** Shown when a signed-in shopper has more than one registry: pick which to manage. */

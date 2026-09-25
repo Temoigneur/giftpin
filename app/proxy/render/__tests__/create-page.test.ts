@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderCreatePage } from "../create-page";
+import { renderCreatePage, renderFindPage, hasLookalikes } from "../create-page";
 import { EVENT_TYPES } from "../../../shared/settings";
 
 /** Each occasion is its own template on the create form (24 Sep 2026). */
@@ -21,5 +21,33 @@ describe("create page occasion templates", () => {
     const html = renderCreatePage({ ...base, enabledEventTypes: ["baby"] });
     expect(html).toContain('placeholder="Baby Rivera is on the way"');
     expect(html).not.toContain('value="wedding"');
+  });
+});
+
+describe("find a registry", () => {
+  const base = { shopName: "Shop", accentColor: "#000", actionUrl: "/apps/registry", query: "sam", searched: true };
+  const sam = (date: string, url: string) => ({
+    title: "Sam & Alex's Wedding",
+    eventLabel: "Wedding",
+    eventDate: new Date(date),
+    url,
+    names: "Sam & Alex",
+  });
+
+  it("warns when two registries look alike and puts each date in bold", () => {
+    const html = renderFindPage({ ...base, results: [sam("2027-06-12T00:00:00Z", "/a"), sam("2027-09-04T00:00:00Z", "/b")] });
+    expect(html).toContain("More than one registry matches");
+    expect(html).toContain("<strong>June 12, 2027</strong>");
+    expect(html).toContain("<strong>September 4, 2027</strong>");
+    expect(html).toContain("Sam &amp; Alex");
+  });
+
+  it("doesn't warn for a single match", () => {
+    expect(renderFindPage({ ...base, results: [sam("2027-06-12T00:00:00Z", "/a")] })).not.toContain("More than one registry matches");
+  });
+
+  it("treats the same names in either order as a lookalike", () => {
+    expect(hasLookalikes([{ title: "One", names: "Sam & Alex" }, { title: "Two", names: "Alex and Sam" }])).toBe(true);
+    expect(hasLookalikes([{ title: "One", names: "Sam & Alex" }, { title: "Two", names: "Sam & Jo" }])).toBe(false);
   });
 });

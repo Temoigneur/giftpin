@@ -53,7 +53,7 @@ import { previewUrl } from "../lib/resolver/index.server";
 import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
 import { parseShippingAddressForm, SHIPPING_ADDRESS_ERRORS, type ShippingAddressError } from "../shared/shipping-address";
-import { cartAddPayload } from "../lib/attribution";
+import { cartAddPayload, giftForValue } from "../lib/attribution";
 import { sendEmail } from "../lib/email.server";
 import {
   addGuestReminder,
@@ -459,6 +459,7 @@ async function findPage(
         eventDate: r.eventDate,
         url: proxyUrl(ctx, `r/${r.slug}`),
         names: r.registrants.map((p) => firstNameOnly(p.name)).join(" & "),
+        coverImageUrl: r.coverImageUrl,
       })),
     }),
     200,
@@ -725,6 +726,7 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
   if (!item || !item.variantGid?.endsWith(`/${variantId}`)) {
     return json({ ok: false, error: "That item is no longer on this registry" }, 404);
   }
+  const names = item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & ");
 
   return json({
     ok: true,
@@ -735,7 +737,8 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
       item.id,
       // Only when the guest left "ship to the registrant" ticked.
       item.registry.shipToRegistrant && body.shipToRegistrant === true,
-      item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & "),
+      names,
+      giftForValue(names, eventTypeLabel(item.registry.eventType), item.registry.eventDate),
     ),
   });
 }
