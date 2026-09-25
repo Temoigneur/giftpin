@@ -63,6 +63,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
   const buyerCustomerId = order.customer?.id ? String(order.customer.id) : null;
 
   const touched = new Set<string>();
+  const shipped = new Set<string>();
 
   for (const line of lines) {
     // Scope the item lookup by registry AND shop. A token is signed by us, but
@@ -82,6 +83,11 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     }
 
     const registry = item.registry;
+    // Decided when the order arrives, not when the line went into the cart:
+    // the cart's `_rg_ship` flag is a snapshot, so a line added before the
+    // registrant saved their address (or a cart left open for days) would
+    // otherwise miss the rewrite. Live-tested 25 Sep 2026, order 7317031420053.
+    const shipToRegistrant = line.shipToRegistrant || registry.shipToRegistrant;
 
     const hiddenUntil =
       settings.hideBuyerUntilEvent && registry.eventDate && registry.eventDate > new Date()
@@ -107,7 +113,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             buyerCustomerId,
             buyerMessage: null,
             hiddenUntil,
-            shippedToRegistrant: line.shipToRegistrant,
+            shippedToRegistrant: shipToRegistrant,
             isNewCustomer,
           },
         });
@@ -132,14 +138,13 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       source: "online",
     });
 
-    // Only fires when the guest checked "ship to registrant" on this cart line.
-    // Safe to reach on every line of a multi-line registry order — the
-    // Purchase unique index above already skipped this block on any line
-    // whose (orderId, lineItemId) was already processed, so a redelivered
-    // webhook never re-issues the rewrite. See applyShipToRegistrant's own
-    // guardrails (fulfillment status, cross-jurisdiction) for what happens
-    // on genuine repeat attempts within the same order.
-    if (line.shipToRegistrant) {
+    // Once per order and registry. The Purchase unique index above already
+    // skipped this block on any line whose (orderId, lineItemId) was already
+    // processed, so a redelivered webhook never re-issues the rewrite. See
+    // applyShipToRegistrant's own guardrails (fulfillment status,
+    // cross-jurisdiction) for everything else.
+    if (shipToRegistrant && !shipped.has(registry.id)) {
+      shipped.add(registry.id);
       await shipToRegistrantForOrder(shopDomain, orderId, registry.id).catch((err) => {
         console.error(
           `[ship-to-registrant] order ${orderId} registry ${registry.id}:`,
