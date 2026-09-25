@@ -35,10 +35,35 @@ interface OrderPayload {
     first_name?: string;
     last_name?: string;
     email?: string;
+    created_at?: string;
+    /** Not sent by current API versions; kept in case an older payload has it. */
     orders_count?: number;
   } | null;
+  created_at?: string;
   cart_token?: string | null;
   financial_status?: string;
+}
+
+const NEW_CUSTOMER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether this order is the buyer's first at the shop, for the "new
+ * customers" figure. The order webhook's customer object no longer carries
+ * orders_count (a repeat buyer on 25 Sep 2026 was counted as new twice), and
+ * asking the Admin API would need read_customers, which we dropped. So a buyer
+ * counts as new when Shopify created their customer record within a day of
+ * this order. A record made earlier without buying (a newsletter sign-up)
+ * reads as returning: this errs toward under-counting, never inflating a
+ * number merchants may quote.
+ */
+export function isFirstPurchase(order: Pick<OrderPayload, "customer" | "created_at">): boolean {
+  const customer = order.customer;
+  if (!customer) return false;
+  if (typeof customer.orders_count === "number") return customer.orders_count <= 1;
+  const customerCreated = Date.parse(customer.created_at ?? "");
+  const orderCreated = Date.parse(order.created_at ?? "") || Date.now();
+  if (Number.isNaN(customerCreated)) return false;
+  return orderCreated - customerCreated <= NEW_CUSTOMER_WINDOW_MS;
 }
 
 registerHandler("attribute-order", async ({ shop, orderPayload }) => {
@@ -55,8 +80,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
 
   const settings = settingsFor(shopRecord);
 
-  // orders_count includes the order in hand, so 1 means first-ever purchase.
-  const isNewCustomer = Number(order.customer?.orders_count ?? 0) <= 1;
+  const isNewCustomer = isFirstPurchase(order);
   const buyerName =
     [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(" ") || null;
   // Kept only so customers/redact can find and erase this buyer's name later.
