@@ -52,9 +52,19 @@ export async function updateSettings(domain: string, patch: Partial<ShopSettings
 }
 
 export async function markUninstalled(domain: string) {
+  // Shopify cancels the app subscription on uninstall, and the matching
+  // APP_SUBSCRIPTIONS_UPDATE webhook can't be relied on to reach an app
+  // that's already gone. Drop the cached plan here, or a reinstall comes
+  // back as "pro" with no live charge: Pro for free, and a Cancel button
+  // pointed at a subscription Shopify no longer has (App Store req. 1.2.2).
   await db.shop.updateMany({
     where: { domain },
-    data: { uninstalledAt: new Date() },
+    data: {
+      uninstalledAt: new Date(),
+      plan: "free",
+      shopifyChargeId: null,
+      planUpdatedAt: new Date(),
+    },
   });
 }
 
