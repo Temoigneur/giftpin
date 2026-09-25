@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
- * attributeOrder() decides ship-to-registrant from the registry's setting when
- * the order arrives, not only from the cart line's `_rg_ship` flag. The live
- * test on 25 Sep 2026 (order 7317031420053) had no flag on the line because it
- * went into the cart before the registrant saved an address, so the address
- * was never rewritten.
+ * attributeOrder() rewrites the shipping address only when the guest chose it
+ * (the registry page's box sets `_rg_ship` on the cart line) and the
+ * registrant still has ship-to-registrant on. Ben, 25 Sep 2026: a guest may
+ * want the gift at their own door, so the app never overrides them silently.
  */
 
 const graphql = vi.fn();
@@ -71,15 +70,23 @@ beforeEach(() => {
 });
 
 describe("attributeOrder ship-to-registrant", () => {
-  it("rewrites the address when the registry has it on, even without the cart flag", async () => {
+  it("rewrites the address when the guest left the box ticked", async () => {
     const reg = registry(true);
     vi.mocked(db.registryItem.findFirst).mockResolvedValue({ id: "item_1", registry: reg, desiredQty: 1 } as never);
     vi.mocked(db.registry.findUnique).mockResolvedValue(reg as never);
 
-    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1" }]));
+    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1", ship: true }]));
 
     expect(graphql).toHaveBeenCalledTimes(2);
     expect(graphql.mock.calls[1][1].variables.input.shippingAddress).toEqual(ADDRESS);
+  });
+
+  it("keeps the guest's own address when they unticked the box", async () => {
+    vi.mocked(db.registryItem.findFirst).mockResolvedValue({ id: "item_1", registry: registry(true), desiredQty: 1 } as never);
+
+    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1" }]));
+
+    expect(graphql).not.toHaveBeenCalled();
   });
 
   it("rewrites once per order, not once per registry line", async () => {
@@ -89,15 +96,15 @@ describe("attributeOrder ship-to-registrant", () => {
       .mockResolvedValueOnce({ id: "item_2", registry: reg, desiredQty: 1 } as never);
     vi.mocked(db.registry.findUnique).mockResolvedValue(reg as never);
 
-    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1" }, { itemId: "item_2" }]));
+    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1", ship: true }, { itemId: "item_2", ship: true }]));
 
     expect(graphql).toHaveBeenCalledTimes(2); // one status query + one orderUpdate
   });
 
-  it("leaves the order alone when the registry has it off", async () => {
+  it("leaves the order alone when the registrant has since turned it off", async () => {
     vi.mocked(db.registryItem.findFirst).mockResolvedValue({ id: "item_1", registry: registry(false), desiredQty: 1 } as never);
 
-    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1" }]));
+    await attributeOrder("shop.myshopify.com", order([{ itemId: "item_1", ship: true }]));
 
     expect(graphql).not.toHaveBeenCalled();
   });

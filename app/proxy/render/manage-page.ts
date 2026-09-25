@@ -248,7 +248,7 @@ function renderShipping(data: ManagePageData): string {
 <form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}" class="note js-ship">
   ${flash ? `<div class="${flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(flash.message)}</div>` : ""}
   <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Ship gifts bought from ${escapeHtml(data.shopName)} straight to me</label>
-  <p class="hint">Guests never see your address. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
+  <p class="hint">Guests never see your address, and each guest can choose to have their gift sent to themselves instead. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
   <fieldset class="js-ship-fields"${shipping.enabled ? "" : " hidden"}>
     <legend class="sr">Your shipping address</legend>
     <div class="duo">

@@ -83,11 +83,10 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     }
 
     const registry = item.registry;
-    // Decided when the order arrives, not when the line went into the cart:
-    // the cart's `_rg_ship` flag is a snapshot, so a line added before the
-    // registrant saved their address (or a cart left open for days) would
-    // otherwise miss the rewrite. Live-tested 25 Sep 2026, order 7317031420053.
-    const shipToRegistrant = line.shipToRegistrant || registry.shipToRegistrant;
+    // Only when the guest chose it on this cart line (the registry page's
+    // "ship to the registrant" box) AND the registrant still has it on. A
+    // guest who wasn't asked, or unticked it, keeps the address they typed.
+    const shipToRegistrant = line.shipToRegistrant && registry.shipToRegistrant;
 
     const hiddenUntil =
       settings.hideBuyerUntilEvent && registry.eventDate && registry.eventDate > new Date()

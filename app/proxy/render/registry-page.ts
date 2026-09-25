@@ -57,6 +57,21 @@ export interface RegistryPageData {
   offerReminder?: boolean;
   /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
   artBaseUrl?: string | null;
+  /**
+   * The registrant saved a ship-to address. Guests still choose per purchase:
+   * the box below is ticked by default, and unticking it leaves the order's
+   * address alone (Ben, 25 Sep 2026: a guest may want it at their own door).
+   */
+  shipToRegistrant?: boolean;
+}
+
+function renderShipChoice(data: RegistryPageData): string {
+  if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
+  const who = data.registrantNames || "the registrant";
+  return `<div class="note">
+  <label class="check"><input type="checkbox" class="js-ship-choice" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
+  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead.</p>
+</div>`;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -103,6 +118,7 @@ ${renderShare(data)}
   <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
 </div>
 
+${renderShipChoice(data)}
 <div id="registro-items">${
   data.items.length === 0
     ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
@@ -391,7 +407,8 @@ function clientScript(): string {
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
     var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
     var qtyEl=form.querySelector('[name=qty]');
-    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1})
+    var shipEl=document.querySelector('.js-ship-choice');
+    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:shipEl?shipEl.checked:false})
       .then(function(res){
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token

@@ -308,6 +308,7 @@ function buildRegistryHtml(
     // "Powered by Giftpin" removal and the rest of Pro branding arrive via
     // brand.branding (see brandingFor), on this page and every other one.
     offerReminder: offersGuestReminder(shop, registry.eventDate),
+    shipToRegistrant: registry.shipToRegistrant,
   });
 }
 
@@ -732,7 +733,8 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
       qty,
       item.registryId,
       item.id,
-      item.registry.shipToRegistrant,
+      // Only when the guest left "ship to the registrant" ticked.
+      item.registry.shipToRegistrant && body.shipToRegistrant === true,
     ),
   });
 }
