@@ -234,6 +234,7 @@
 
       if (result && result.ok) {
         status(labelKey("added", "Added to your registry"));
+        showBackLink(result._registryId, result._token);
         if (labelEl) {
           var original = labelEl.textContent;
           labelEl.textContent = "Added";
@@ -244,6 +245,23 @@
       } else {
         status((result && result.error) || labelKey("error", "Couldn't add that."), true);
       }
+    }
+
+    // Once something is added, give the registrant a one-tap way back to
+    // their manage page instead of several presses of the back button. With a
+    // saved token it opens that registry; without one (signed-in customer),
+    // /manage sends them to their own registry or a chooser.
+    function showBackLink(registryId, token) {
+      if (!statusEl) return;
+      var link = root.querySelector("[data-giftpin-back]");
+      if (!link) {
+        link = document.createElement("a");
+        link.className = "giftpin-back";
+        link.setAttribute("data-giftpin-back", "");
+        link.textContent = labelKey("back", "Back to your registry") + " \u2192";
+        statusEl.parentNode.insertBefore(link, statusEl.nextSibling);
+      }
+      link.href = proxy + "/manage" + (token ? "?t=" + encodeURIComponent(token) : "");
     }
 
     function showDuplicatePrompt(result) {
@@ -273,6 +291,8 @@
         dupConfirmBtn.disabled = true;
         status(labelKey("updating", "Updating..."));
 
+        var pendingRegistryId = pendingDup.registryId;
+        var pendingToken = pendingDup.token;
         confirmDuplicateQty(
           pendingDup.registryId,
           pendingDup.token,
@@ -285,6 +305,7 @@
             pendingDup = null;
             if (result && result.ok) {
               status(labelKey("updated", "Registry updated"));
+              showBackLink(pendingRegistryId, pendingToken);
             } else {
               status((result && result.error) || labelKey("error", "Couldn't update that."), true);
             }
