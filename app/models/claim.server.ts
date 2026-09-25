@@ -2,6 +2,7 @@ import db from "../db.server";
 import { touchRegistry, logEvent } from "./registry.server";
 import { registerHandler } from "../lib/queue.server";
 import { signToken, verifyToken } from "../lib/crypto.server";
+import { UNDO_WINDOW_SECONDS } from "../shared/undo";
 
 /**
  * Soft claims — EXTERNAL ITEMS ONLY.
@@ -163,6 +164,65 @@ export async function confirmBoughtElsewhere(
   await touchRegistry(result.registryId);
   await logEvent(result.registryId, "purchased", { itemId, source: "external", qty: 1 });
   return result.purchase;
+}
+
+// ---------------------------------------------------------------------------
+// Undo — a guest who tapped "I bought this" by mistake
+//
+// Only the browser that made the mark holds the undo token, and only for a
+// day, so one guest can never un-mark another's real purchase. Order-webhook
+// purchases (source "online") are never undoable from here; refunds do that.
+// ---------------------------------------------------------------------------
+
+const UNDO_PURPOSE = "undo-bought";
+
+export function mintUndoToken(purchaseId: string): string {
+  return signToken({ p: UNDO_PURPOSE, u: purchaseId }, UNDO_WINDOW_SECONDS);
+}
+
+export function readUndoToken(token: string | null | undefined): string | null {
+  const payload = verifyToken<{ p: string; u?: unknown }>(token, UNDO_PURPOSE);
+  return payload && typeof payload.u === "string" ? payload.u : null;
+}
+
+/** Voids a guest-confirmed purchase. Returns false if there was nothing to undo. */
+export async function undoGuestPurchase(purchaseId: string): Promise<boolean> {
+  const purchase = await db.purchase.findUnique({
+    where: { id: purchaseId },
+    include: { item: { select: { registryId: true } } },
+  });
+  if (!purchase || purchase.source !== "external" || purchase.voidedAt) return false;
+
+  const undone = await db.$transaction(async (tx) => {
+    // Re-checking voidedAt inside the transaction stops a double tap from
+    // decrementing twice.
+    const { count } = await tx.purchase.updateMany({
+      where: { id: purchase.id, voidedAt: null },
+      data: { voidedAt: new Date() },
+    });
+    if (count === 0) return false;
+
+    const item = await tx.registryItem.findUnique({
+      where: { id: purchase.itemId },
+      select: { purchasedQty: true },
+    });
+    if (item) {
+      await tx.registryItem.update({
+        where: { id: purchase.itemId },
+        data: { purchasedQty: Math.max(0, item.purchasedQty - purchase.qty) },
+      });
+    }
+    return true;
+  });
+  if (!undone) return false;
+
+  await touchRegistry(purchase.item.registryId);
+  await logEvent(purchase.item.registryId, "purchase_undone", {
+    itemId: purchase.itemId,
+    qty: purchase.qty,
+    source: "external",
+  });
+  return true;
 }
 
 /** Guest said no, or changed their mind. Puts the item straight back. */

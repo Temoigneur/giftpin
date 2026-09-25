@@ -110,9 +110,11 @@ describe("registry page rendering", () => {
     expect(html).not.toContain('class="btn sm ghost js-claim"');
   });
 
-  it("gives internal items a hidden in-cart state and an already-bought option", () => {
+  it("gives internal items an in-cart state and an already-bought option", () => {
     const html = page([item()]);
-    expect(html).toContain('<p class="js-incart incart" hidden><strong>In your cart</strong> <a class="btn sm" href="/cart">');
+    // The in-cart block is built by the script once the line is in the cart.
+    expect(html).toContain('<strong>In your cart</strong> <a class="btn sm" href="/cart">');
+    expect(html).toContain('class="btn sm js-add-btn" type="submit">Add to cart</button>');
     expect(html).toContain('class="linkish js-bought" data-item="item_1" data-store="1"');
     expect(html).toContain("Already bought it?");
   });

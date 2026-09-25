@@ -35,7 +35,16 @@ import {
   toDisplayItem,
   ItemError,
 } from "../models/item.server";
-import { placeClaim, confirmClaim, confirmBoughtElsewhere, releaseClaim, readClaimToken } from "../models/claim.server";
+import {
+  placeClaim,
+  confirmClaim,
+  confirmBoughtElsewhere,
+  releaseClaim,
+  readClaimToken,
+  mintUndoToken,
+  readUndoToken,
+  undoGuestPurchase,
+} from "../models/claim.server";
 import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
 import { normalizeCountry } from "../shared/retailers";
 import { cartAddPayload } from "../lib/attribution";
@@ -74,7 +83,7 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
  *   GET  /thank-you.csv        → thank-you list export
  *   GET  /unsubscribe?u=<token> → guest stops pre-event reminders
  *   POST /create | /resend | /settings | /delete
- *   POST /cart-add | /claim | /bought | /add-external | /update-item | /remove-item
+ *   POST /cart-add | /claim | /bought | /undo-bought | /add-external | /update-item | /remove-item
  *   POST /remind               → guest opts in to a pre-event reminder (Pro)
  */
 
@@ -557,6 +566,8 @@ async function handlePost(
       return claimAction(request, ctx);
     case "bought":
       return boughtAction(request, ctx);
+    case "undo-bought":
+      return undoBoughtAction(request, ctx);
     case "add-external":
       return addExternalAction(request, ctx);
     case "add-manual":
@@ -745,21 +756,38 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
   if (item.sourceType === "internal") {
     const purchase = await confirmBoughtElsewhere(item.id, details);
     if (!purchase) return json({ ok: false, error: "This item is already taken care of" }, 409);
-    return json({ ok: true });
+    return json({ ok: true, undoToken: mintUndoToken(purchase.id) });
   }
 
   const fingerprint = guestFingerprint(request, item.id);
   const own = item.claims.find((c) => c.guestFingerprint === fingerprint) ?? item.claims[0];
 
   if (own) {
-    await confirmClaim(own.id, details);
-    return json({ ok: true });
+    const purchase = await confirmClaim(own.id, details);
+    return json({ ok: true, undoToken: purchase ? mintUndoToken(purchase.id) : null });
   }
 
   // No hold in flight — the guest bought it without clicking through.
   const claim = await placeClaim(item.id, item.registryId, fingerprint);
   if (!claim) return json({ ok: false, error: "This item is already taken care of" }, 409);
-  await confirmClaim(claim.claimId, details);
+  const purchase = await confirmClaim(claim.claimId, details);
+  return json({ ok: true, undoToken: purchase ? mintUndoToken(purchase.id) : null });
+}
+
+/** Guest undoing their own "I bought this", within the undo window. */
+async function undoBoughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const body = await readJson(request);
+  const purchaseId = readUndoToken(typeof body.token === "string" ? body.token : null);
+  if (!purchaseId) return json({ ok: false, error: "This can no longer be undone" }, 400);
+
+  // Scope to this shop, the same as every other guest action.
+  const purchase = await db.purchase.findFirst({
+    where: { id: purchaseId, item: { registry: { shop: { domain: ctx.shop } } } },
+    select: { id: true },
+  });
+  if (!purchase || !(await undoGuestPurchase(purchase.id))) {
+    return json({ ok: false, error: "This can no longer be undone" }, 409);
+  }
   return json({ ok: true });
 }
 

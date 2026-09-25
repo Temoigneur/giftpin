@@ -174,6 +174,7 @@ a{color:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
+.undo{margin:6px 0 0}.undo .linkish{display:inline;margin:0;padding:0 2px}
 .incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
 .incart[hidden],.btn[hidden],.qty[hidden]{display:none}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
