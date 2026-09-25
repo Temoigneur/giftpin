@@ -155,7 +155,9 @@ a{color:inherit}
 /* --- items ------------------------------------------------------------- */
 .items{list-style:none;padding:0;margin:0;display:grid;gap:12px}
 .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
-.item.done{opacity:.5}
+/* Fade the contents, not the card, so the guest's own Undo link can stay
+   fully visible on an item they just marked as bought. */
+.item.done>:not(.undo){opacity:.5}
 .item.held{border-style:dashed}
 .item-img{width:84px;height:84px;object-fit:contain;border-radius:10px;background:var(--bg)}
 .item-img.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:6px}
@@ -174,7 +176,7 @@ a{color:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
-.undo{margin:6px 0 0}.undo .linkish{display:inline;margin:0;padding:0 2px}
+.undo{margin:-8px 0 0;grid-column:2}.undo .linkish{display:inline;margin:0;padding:0 2px;color:var(--ink);font-weight:600}
 .incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
 .incart[hidden],.btn[hidden],.qty[hidden]{display:none}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
