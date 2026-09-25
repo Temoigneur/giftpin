@@ -870,9 +870,12 @@ async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopReco
   const title = String(body.title ?? "").trim().slice(0, 300);
   if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
 
+  // Required: a pasted item from a site that blocks our read has nothing else
+  // telling guests what it costs (Ben, 25 Sep 2026).
   const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
-  const price = rawPrice ? normalizePrice(rawPrice) : null;
-  if (rawPrice && price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+  if (!rawPrice) return json({ ok: false, error: "Please add the price, so guests know what it costs" }, 400);
+  const price = normalizePrice(rawPrice);
+  if (price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
 
   const match = await previewStoreMatch(shop.domain, shop.currency, title);
 
