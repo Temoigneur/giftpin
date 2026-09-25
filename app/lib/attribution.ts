@@ -41,7 +41,7 @@ export const SHIP_TO_LABEL = "Gift ships to";
  * registry page, which rewrites cart lines when the guest unticks the box.
  */
 export function shipToValue(names: string): string {
-  return `${names || "The registrant"}, at their address (we add it after you order). To ship it to yourself instead, go back to their registry page and untick the "straight to ${names || "them"}" box above the gift list. Your cart updates by itself.`;
+  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and untick the shipping box above the gift list. Your cart will update automatically.`;
 }
 const PURPOSE = "cart";
 
