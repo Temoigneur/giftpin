@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Giftpin",
+    "slug": "giftpin",
+    "scheme": "giftpin",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#EAF4FC"
+    },
+    "ios": {
+      "bundleIdentifier": "app.giftpin.mobile",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "app.giftpin.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#EAF4FC",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-share-intent",
+        {
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
+            "NSExtensionActivationSupportsWebPageWithMaxCount": 1,
+            "NSExtensionActivationSupportsText": true
+          },
+          "androidIntentFilters": ["text/*"]
+        }
+      ]
+    ]
+  }
+}
