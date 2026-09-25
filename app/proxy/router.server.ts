@@ -719,7 +719,7 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
 
   const item = await db.registryItem.findFirst({
     where: { id: itemId, sourceType: "internal", registry: { shop: { domain: ctx.shop } } },
-    include: { registry: true },
+    include: { registry: { include: { registrants: { select: { name: true } } } } },
   });
 
   if (!item || !item.variantGid?.endsWith(`/${variantId}`)) {
@@ -735,6 +735,7 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
       item.id,
       // Only when the guest left "ship to the registrant" ticked.
       item.registry.shipToRegistrant && body.shipToRegistrant === true,
+      item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & "),
     ),
   });
 }

@@ -32,6 +32,9 @@ import { signToken, verifyToken } from "./crypto.server";
  */
 
 export const ATTRIBUTION_PROPERTY = "_rg";
+
+/** Visible cart/checkout line property naming who a gift ships to. */
+export const SHIP_TO_LABEL = "Gift ships to";
 const PURPOSE = "cart";
 
 export interface AttributionPayload {
@@ -135,11 +138,18 @@ export function cartAddPayload(
   registryId: string,
   itemId: string,
   shipToRegistrant = false,
+  shipToNames = "",
 ): { items: { id: string; quantity: number; properties: Record<string, string> }[] } {
   const properties: Record<string, string> = {
     [ATTRIBUTION_PROPERTY]: signAttribution(registryId, itemId),
   };
-  if (shipToRegistrant) properties["_rg_ship"] = "1";
+  if (shipToRegistrant) {
+    properties["_rg_ship"] = "1";
+    // Deliberately visible (no leading underscore): the guest sees it under
+    // the item in the cart and at checkout, so a box ticked without reading
+    // isn't a silent redirect. Names only, never the address.
+    properties[SHIP_TO_LABEL] = shipToNames ? `${shipToNames} (their address, added after you order)` : "The registrant (their address, added after you order)";
+  }
 
   return { items: [{ id: variantId, quantity, properties }] };
 }
