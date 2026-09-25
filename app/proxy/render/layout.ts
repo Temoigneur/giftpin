@@ -182,6 +182,7 @@ a{color:inherit}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
 .btn.block{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row[hidden],.item-img[hidden]{display:none}
 .qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
 input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 textarea{min-height:88px;resize:vertical}
@@ -227,6 +228,10 @@ details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offs
 .md-card{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
 .md-card{flex-wrap:wrap}
 .md-info{flex:1;min-width:0}
+.paste-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
+.paste-grid .md-card{border-top:0}
+label.check{display:flex;gap:8px;align-items:center;font-weight:500;margin:8px 0 0}
+label.check input{width:auto;margin:0}
 .md-warn{flex-basis:100%;margin:0}
 .md-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .cat-group{margin:26px 0 0}
