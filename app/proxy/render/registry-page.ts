@@ -239,8 +239,10 @@ function renderItemAction(
     const max = Math.max(1, remaining);
     return `${heldNotice}<form class="row js-add" data-item="${escapeAttr(item.id)}" data-variant="${escapeAttr(variantId)}">
   ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">Quantity</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
-  <button class="btn sm" type="submit">Add to cart</button>
+  <button class="btn sm js-add-btn" type="submit">Add to cart</button>
   <span class="js-status item-meta" role="status"></span>
+  <p class="js-incart incart" hidden><strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a></p>
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
 </form>`;
   }
 
@@ -322,6 +324,28 @@ function clientScript(): string {
     if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
   }catch(_){}
 
+  // Store items: once a line for this variant is in the guest's cart, swap
+  // "Add to cart" for a checkout prompt so nobody adds it twice by accident.
+  // The item only counts as bought when the order webhook lands.
+  function markInCart(form){
+    var b=form.querySelector('.js-add-btn'),q=form.querySelector('.qty'),ic=form.querySelector('.js-incart');
+    if(b)b.hidden=true;if(q)q.hidden=true;if(ic)ic.hidden=false;
+  }
+  function syncCart(){
+    if(!document.querySelector('.js-add'))return;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(cart){
+        if(!cart||!cart.items)return;
+        cart.items.forEach(function(line){
+          if(!line.properties||!line.properties._rg)return;
+          Array.prototype.forEach.call(document.querySelectorAll('.js-add[data-variant="'+String(line.variant_id)+'"]'),markInCart);
+        });
+      })
+      .catch(function(){});
+  }
+  syncCart();
+
   // The reminder sign-up is JSON-only, so it stays hidden without script.
   Array.prototype.forEach.call(document.querySelectorAll('.js-remind'),function(f){f.hidden=false;});
 
@@ -344,7 +368,7 @@ function clientScript(): string {
         // travels on the cart LINE, which is what survives Shop Pay.
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
   });
 
@@ -358,6 +382,7 @@ function clientScript(): string {
     }
     var bought=e.target.closest('.js-bought');
     if(bought){
+      if(bought.dataset.store&&!confirm("Mark this as bought? Only do this if you got it some other way, like in the shop. Orders placed here are counted automatically."))return;
       bought.disabled=true;status(bought,'Saving...');
       post('/bought',{itemId:bought.dataset.item}).then(function(res){
         if(res&&res.ok){location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
@@ -403,6 +428,7 @@ function clientScript(): string {
           if(p&&cur)cur.innerHTML=p.innerHTML;
           cfg.version=next.version;
           banner.hidden=true;
+          syncCart();
         });
     }
     function checkVersion(){

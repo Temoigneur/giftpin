@@ -35,7 +35,7 @@ import {
   toDisplayItem,
   ItemError,
 } from "../models/item.server";
-import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
+import { placeClaim, confirmClaim, confirmBoughtElsewhere, releaseClaim, readClaimToken } from "../models/claim.server";
 import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
 import { normalizeCountry } from "../shared/retailers";
 import { cartAddPayload } from "../lib/attribution";
@@ -721,7 +721,12 @@ async function claimAction(request: Request, ctx: ProxyContext): Promise<Respons
   return json({ ok: true, held: true, expiresAt: claim.expiresAt.toISOString() });
 }
 
-/** Guest confirming, from the registry page, that they bought an external item. */
+/**
+ * Guest confirming, from the registry page, that they bought an item. For
+ * external items that converts their hold. For store items it's the "Already
+ * bought it?" path (bought in person, or as a gift card, etc.); orders placed
+ * online are still counted by the webhook, not by this.
+ */
 async function boughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const body = await readJson(request);
   const itemId = String(body.itemId ?? "");
@@ -731,28 +736,30 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
     include: { claims: { where: { releasedAt: null } } },
   });
   if (!item) return json({ ok: false, error: "Item not found" }, 404);
+
+  const details = {
+    buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
+    buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
+  };
+
   if (item.sourceType === "internal") {
-    return json({ ok: false, error: "This item is tracked automatically" }, 400);
+    const purchase = await confirmBoughtElsewhere(item.id, details);
+    if (!purchase) return json({ ok: false, error: "This item is already taken care of" }, 409);
+    return json({ ok: true });
   }
 
   const fingerprint = guestFingerprint(request, item.id);
   const own = item.claims.find((c) => c.guestFingerprint === fingerprint) ?? item.claims[0];
 
   if (own) {
-    await confirmClaim(own.id, {
-      buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
-      buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
-    });
+    await confirmClaim(own.id, details);
     return json({ ok: true });
   }
 
   // No hold in flight — the guest bought it without clicking through.
   const claim = await placeClaim(item.id, item.registryId, fingerprint);
   if (!claim) return json({ ok: false, error: "This item is already taken care of" }, 409);
-  await confirmClaim(claim.claimId, {
-    buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
-    buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
-  });
+  await confirmClaim(claim.claimId, details);
   return json({ ok: true });
 }
 

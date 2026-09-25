@@ -131,6 +131,40 @@ export async function confirmClaim(
   return purchase;
 }
 
+/**
+ * A guest says they bought a STORE item some other way (in person, say). There
+ * is no hold to convert, so this records one unit directly. Online orders are
+ * never counted here; the order webhook does that. If a guest taps this and
+ * also orders online the item over-counts, which errs toward "looks bought"
+ * rather than inviting a duplicate gift.
+ */
+export async function confirmBoughtElsewhere(
+  itemId: string,
+  details?: { buyerName?: string | null; buyerMessage?: string | null },
+) {
+  const result = await db.$transaction(async (tx) => {
+    const item = await tx.registryItem.findUnique({ where: { id: itemId } });
+    if (!item || item.sourceType !== "internal" || item.purchasedQty >= item.desiredQty) return null;
+
+    const purchase = await tx.purchase.create({
+      data: {
+        itemId,
+        source: "external",
+        qty: 1,
+        buyerName: details?.buyerName?.slice(0, 120) ?? null,
+        buyerMessage: details?.buyerMessage?.slice(0, 1000) ?? null,
+      },
+    });
+    await tx.registryItem.update({ where: { id: itemId }, data: { purchasedQty: { increment: 1 } } });
+    return { purchase, registryId: item.registryId };
+  });
+  if (!result) return null;
+
+  await touchRegistry(result.registryId);
+  await logEvent(result.registryId, "purchased", { itemId, source: "external", qty: 1 });
+  return result.purchase;
+}
+
 /** Guest said no, or changed their mind. Puts the item straight back. */
 export async function releaseClaim(claimId: string) {
   const claim = await db.claim.findUnique({

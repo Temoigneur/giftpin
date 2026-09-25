@@ -110,6 +110,20 @@ describe("registry page rendering", () => {
     expect(html).not.toContain('class="btn sm ghost js-claim"');
   });
 
+  it("gives internal items a hidden in-cart state and an already-bought option", () => {
+    const html = page([item()]);
+    expect(html).toContain('<p class="js-incart incart" hidden><strong>In your cart</strong> <a class="btn sm" href="/cart">');
+    expect(html).toContain('class="linkish js-bought" data-item="item_1" data-store="1"');
+    expect(html).toContain("Already bought it?");
+  });
+
+  it("greys out a store item once the order webhook has counted it", () => {
+    const html = page([item({ purchasedQty: 1, desiredQty: 1, remainingQty: 0, fulfilled: true })]);
+    expect(html).toContain('class="item done"');
+    expect(html).toContain("Already taken care of");
+    expect(html).not.toContain('<form class="row js-add"');
+  });
+
   it("gives external items an outbound link, never an add-to-cart", () => {
     const html = page([
       item({

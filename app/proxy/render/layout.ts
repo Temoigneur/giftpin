@@ -173,6 +173,9 @@ a{color:inherit}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px;font-family:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
+.incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
+.incart[hidden],.btn[hidden],.qty[hidden]{display:none}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
 .btn.block{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
