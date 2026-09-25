@@ -4,6 +4,7 @@ import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
+import { SHIP_TO_LABEL, shipToValue } from "../../lib/attribution";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
@@ -57,6 +58,38 @@ export interface RegistryPageData {
   offerReminder?: boolean;
   /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
   artBaseUrl?: string | null;
+  /**
+   * The registrant saved a ship-to address. Guests still choose per purchase:
+   * the box below is ticked by default, and unticking it leaves the order's
+   * address alone (Ben, 25 Sep 2026: a guest may want it at their own door).
+   */
+  shipToRegistrant?: boolean;
+}
+
+function renderShipChoice(data: RegistryPageData): string {
+  if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
+  const who = data.registrantNames || "the registrant";
+  return `<div class="note">
+  <label class="check"><input type="checkbox" class="js-ship-choice" data-label="${escapeAttr(shipToValue(data.registrantNames))}" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
+  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead. Anything already in your cart updates too.</p>
+  <p class="hint js-ship-status" role="status"></p>
+</div>
+<script>(function(){
+  // Ticking or unticking the box also updates registry lines already in the
+  // cart, so the "Gift ships to" note at checkout always matches it.
+  var shipBox=document.querySelector('.js-ship-choice'),st=document.querySelector('.js-ship-status');
+  shipBox.addEventListener('change',function(){
+    var on=shipBox.checked;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
+      var lines=(cart.items||[]).filter(function(l){return l.properties&&l.properties._rg&&document.querySelector('.js-add[data-variant="'+String(l.variant_id)+'"]')&&(!!l.properties._rg_ship)!==on;});
+      return lines.reduce(function(p,l){return p.then(function(){
+        var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
+        if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=shipBox.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
+        return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
+      })},Promise.resolve()).then(function(){if(lines.length)st.textContent=on?'Your cart is updated: it ships to them.':'Your cart is updated: it ships to you.';});
+    }).catch(function(){st.textContent="Couldn't update your cart. Remove the item and add it again.";});
+  });
+})();</script>`;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -103,6 +136,7 @@ ${renderShare(data)}
   <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
 </div>
 
+${renderShipChoice(data)}
 <div id="registro-items">${
   data.items.length === 0
     ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
@@ -391,7 +425,8 @@ function clientScript(): string {
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
     var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
     var qtyEl=form.querySelector('[name=qty]');
-    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1})
+    var shipEl=document.querySelector('.js-ship-choice');
+    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:shipEl?shipEl.checked:false})
       .then(function(res){
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token

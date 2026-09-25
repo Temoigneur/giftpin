@@ -12,8 +12,21 @@
 
   ready(function () {
     var roots = document.querySelectorAll("[data-giftpin-root]");
+    // A merchant can end up with the block twice on one product template
+    // (added by hand, then again from the app's "Add Giftpin to your theme"
+    // link). Show one button per product; the theme editor still shows every
+    // copy so the merchant can see and remove the extra one.
+    var designMode = !!(window.Shopify && window.Shopify.designMode);
+    var seen = {};
     for (var i = 0; i < roots.length; i++) {
       if (roots[i].getAttribute("data-giftpin-ready")) continue;
+      var productId = roots[i].getAttribute("data-product-id");
+      if (!designMode && productId && seen[productId]) {
+        roots[i].hidden = true;
+        roots[i].style.display = "none";
+        continue;
+      }
+      if (productId) seen[productId] = true;
       roots[i].setAttribute("data-giftpin-ready", "1");
       init(roots[i]);
     }

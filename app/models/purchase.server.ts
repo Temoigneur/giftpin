@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
 import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
+import { toMailingAddressInput } from "../shared/shipping-address";
 
 /**
  * Order attribution.
@@ -62,6 +63,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
   const buyerCustomerId = order.customer?.id ? String(order.customer.id) : null;
 
   const touched = new Set<string>();
+  const shipped = new Set<string>();
 
   for (const line of lines) {
     // Scope the item lookup by registry AND shop. A token is signed by us, but
@@ -81,6 +83,10 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     }
 
     const registry = item.registry;
+    // Only when the guest chose it on this cart line (the registry page's
+    // "ship to the registrant" box) AND the registrant still has it on. A
+    // guest who wasn't asked, or unticked it, keeps the address they typed.
+    const shipToRegistrant = line.shipToRegistrant && registry.shipToRegistrant;
 
     const hiddenUntil =
       settings.hideBuyerUntilEvent && registry.eventDate && registry.eventDate > new Date()
@@ -106,7 +112,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             buyerCustomerId,
             buyerMessage: null,
             hiddenUntil,
-            shippedToRegistrant: line.shipToRegistrant,
+            shippedToRegistrant: shipToRegistrant,
             isNewCustomer,
           },
         });
@@ -131,14 +137,13 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       source: "online",
     });
 
-    // Only fires when the guest checked "ship to registrant" on this cart line.
-    // Safe to reach on every line of a multi-line registry order — the
-    // Purchase unique index above already skipped this block on any line
-    // whose (orderId, lineItemId) was already processed, so a redelivered
-    // webhook never re-issues the rewrite. See applyShipToRegistrant's own
-    // guardrails (fulfillment status, cross-jurisdiction) for what happens
-    // on genuine repeat attempts within the same order.
-    if (line.shipToRegistrant) {
+    // Once per order and registry. The Purchase unique index above already
+    // skipped this block on any line whose (orderId, lineItemId) was already
+    // processed, so a redelivered webhook never re-issues the rewrite. See
+    // applyShipToRegistrant's own guardrails (fulfillment status,
+    // cross-jurisdiction) for everything else.
+    if (shipToRegistrant && !shipped.has(registry.id)) {
+      shipped.add(registry.id);
       await shipToRegistrantForOrder(shopDomain, orderId, registry.id).catch((err) => {
         console.error(
           `[ship-to-registrant] order ${orderId} registry ${registry.id}:`,
@@ -391,12 +396,20 @@ export async function applyShipToRegistrant(
   }
 
   // Guardrail until the tax recalculation behaviour is understood in practice:
-  // only rewrite within the same province/state. Cross-jurisdiction moves are
+  // only rewrite within the same country and province/state. Cross-jurisdiction moves are
   // where the money actually changes.
+  const input = toMailingAddressInput(address);
   if (
-    address.provinceCode &&
+    input.countryCode &&
+    order.shippingAddress?.countryCodeV2 &&
+    input.countryCode !== order.shippingAddress.countryCodeV2
+  ) {
+    return { applied: false, reason: "cross_jurisdiction" };
+  }
+  if (
+    input.provinceCode &&
     order.shippingAddress?.provinceCode &&
-    address.provinceCode !== order.shippingAddress.provinceCode
+    input.provinceCode !== order.shippingAddress.provinceCode
   ) {
     return { applied: false, reason: "cross_jurisdiction" };
   }
@@ -405,7 +418,7 @@ export async function applyShipToRegistrant(
     variables: {
       input: {
         id: orderId,
-        shippingAddress: address,
+        shippingAddress: input,
         tags: ["registry-ship-to-registrant"],
       },
     },

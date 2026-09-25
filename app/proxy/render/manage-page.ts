@@ -7,6 +7,7 @@ import { ideaGuideFor } from "../../shared/registry-ideas";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
+import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 
 /**
  * The registrant's own view. Reached only with a valid magic-link token or a
@@ -44,6 +45,12 @@ export interface ManagePageData {
   artBaseUrl?: string | null;
   storeSearchUrl: string;
   flash?: { kind: "ok" | "err"; message: string } | null;
+  /** Ship-to-registrant: the registrant's own saved address, from Giftpin's form. */
+  shipping?: {
+    enabled: boolean;
+    address: Record<string, string> | null;
+    flash?: { kind: "ok" | "err"; message: string } | null;
+  };
   /** Who gave what — the thank-you list. */
   gifts: {
     itemTitle: string;
@@ -149,6 +156,8 @@ ${
 ${renderGifts(data)}
 </div>
 
+${renderShipping(data)}
+
 <h2>Registry settings</h2>
 <form method="post" action="${escapeAttr(data.actionUrl)}/settings?t=${encodeURIComponent(data.token)}" class="note">
   <label for="f-title">Registry name</label>
@@ -218,6 +227,59 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     },
     body,
   );
+}
+
+/**
+ * Ship-to-registrant. The address typed here is the only address Giftpin ever
+ * stores; it's written onto registry orders by applyShipToRegistrant(), which
+ * refuses when the guest checked out in a different country or province/state
+ * (tax would change), so the copy says "usually" and explains that case.
+ */
+function renderShipping(data: ManagePageData): string {
+  const shipping = data.shipping ?? { enabled: false, address: null };
+  const a = shipping.address ?? {};
+  const country = a.countryCode || a.countryCodeV2 || normalizeCountry(data.country);
+  const flash = shipping.flash;
+  const input = (name: string, label: string, autocomplete: string, optional = false, type = "text") => `
+    <label for="ship-${name}">${label}${optional ? ' <span class="hint">(optional)</span>' : ""}</label>
+    <input id="ship-${name}" type="${type}" name="${name}" autocomplete="${autocomplete}" maxlength="120" value="${escapeAttr(a[name] ?? "")}">`;
+
+  return `<h2 id="ship">Send gifts to me</h2>
+<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}" class="note js-ship">
+  ${flash ? `<div class="${flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(flash.message)}</div>` : ""}
+  <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Ship gifts bought from ${escapeHtml(data.shopName)} straight to me</label>
+  <p class="hint">Guests never see your address, and each guest can choose to have their gift sent to themselves instead. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
+  <fieldset class="js-ship-fields"${shipping.enabled ? "" : " hidden"}>
+    <legend class="sr">Your shipping address</legend>
+    <div class="duo">
+      <div>${input("firstName", "First name", "given-name")}</div>
+      <div>${input("lastName", "Last name", "family-name")}</div>
+    </div>
+    ${input("address1", "Street address", "address-line1")}
+    ${input("address2", "Apartment, suite, etc.", "address-line2", true)}
+    ${input("city", "City", "address-level2")}
+    <label for="ship-country">Country</label>
+    <select id="ship-country" name="countryCode" class="js-ship-country" autocomplete="country">
+      ${SHIPPING_COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${c.code === country ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+    </select>
+    ${Object.entries(PROVINCES)
+      .map(
+        ([code, p]) => `<div class="js-ship-region" data-country="${code}"${code === country ? "" : " hidden"}>
+    <label for="ship-region-${code}">${p.label}</label>
+    <select id="ship-region-${code}" name="provinceCode" autocomplete="address-level1"${code === country ? "" : " disabled"}>
+      <option value="">Choose&hellip;</option>
+      ${p.regions.map((r) => `<option value="${escapeAttr(r.code)}"${code === country && r.code === a.provinceCode ? " selected" : ""}>${escapeHtml(r.label)}</option>`).join("")}
+    </select>
+    </div>`,
+      )
+      .join("")}
+    ${input("zip", country === "US" ? "ZIP code" : "Postal code", "postal-code")}
+    ${input("phone", "Phone, for the courier", "tel", true, "tel")}
+  </fieldset>
+  <div class="row" style="margin-top:18px">
+    <button class="btn" type="submit">Save</button>
+  </div>
+</form>`;
 }
 
 /**
@@ -416,6 +478,21 @@ function manageScript(): string {
     stored.unshift({id:cfg.registryId,title:cfg.registryTitle,token:cfg.token});
     localStorage.setItem(KEY,JSON.stringify(stored.slice(0,10)));
   }catch(_){}
+
+  // Ship-to-registrant: show the address only when it's switched on, and the
+  // state/province list that matches the chosen country (the others are
+  // disabled so only one provinceCode is posted).
+  var ship=document.querySelector('.js-ship');
+  if(ship){
+    var toggle=ship.querySelector('.js-ship-toggle'),fields=ship.querySelector('.js-ship-fields'),countrySel=ship.querySelector('.js-ship-country');
+    toggle.addEventListener('change',function(){fields.hidden=!toggle.checked;});
+    countrySel.addEventListener('change',function(){
+      ship.querySelectorAll('.js-ship-region').forEach(function(r){
+        var on=r.getAttribute('data-country')===countrySel.value;
+        r.hidden=!on;r.querySelector('select').disabled=!on;
+      });
+    });
+  }
 
   var dlg=document.getElementById('match-dialog');
   function mdMessage(msg){

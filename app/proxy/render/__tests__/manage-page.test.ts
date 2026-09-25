@@ -366,3 +366,32 @@ describe("paste box as the extension's backup (25 Sep 2026)", () => {
     expect(html).toContain('<h2 id="extension">');
   });
 });
+
+describe("ship-to-registrant form (25 Sep 2026)", () => {
+  it("is off by default, with the address fields hidden", () => {
+    const html = page();
+    expect(html).toContain('action="/apps/registry/shipping?t=tok_abc"');
+    expect(html).not.toMatch(/class="js-ship-toggle" checked/);
+    expect(html).toMatch(/class="js-ship-fields" hidden/);
+  });
+
+  it("shows the saved address when it's switched on", () => {
+    const html = page({
+      shipping: {
+        enabled: true,
+        address: { firstName: "Maya", lastName: "Chen", address1: "1 Main St", city: "Toronto", provinceCode: "ON", countryCode: "CA", zip: "M5V 1A1" },
+      },
+    });
+    expect(html).toMatch(/class="js-ship-toggle" checked/);
+    expect(html).toContain('value="1 Main St"');
+    expect(html).toContain('<option value="ON" selected>Ontario</option>');
+    // Only the matching country's province list is submitted.
+    expect(html).toMatch(/id="ship-region-US" name="provinceCode"[^>]* disabled/);
+    expect(html).not.toMatch(/id="ship-region-CA" name="provinceCode"[^>]* disabled/);
+  });
+
+  it("escapes what the registrant typed", () => {
+    const html = page({ shipping: { enabled: true, address: { address1: '"><script>x</script>' } } });
+    expect(html).not.toContain("<script>x</script>");
+  });
+});
