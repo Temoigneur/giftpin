@@ -407,3 +407,13 @@ describe("ship-to-registrant form (25 Sep 2026)", () => {
     expect(html).not.toContain("<script>x</script>");
   });
 });
+
+describe("share with guests", () => {
+  it("has a fallback list of ways to share, hidden until needed", () => {
+    const html = page();
+    expect(html).toContain('class="share-menu js-share-menu" hidden');
+    expect(html).toContain("mailto:?subject=");
+    expect(html).toContain(encodeURIComponent("https://maple-clay.com/apps/registry/r/abc123"));
+    expect(html).toContain('data-url="https://maple-clay.com/apps/registry/r/abc123">Copy link');
+  });
+});
