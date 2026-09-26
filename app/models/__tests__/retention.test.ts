@@ -11,6 +11,7 @@ vi.mock("../../db.server", () => ({
     purchase: { count: vi.fn().mockResolvedValue(2), updateMany: vi.fn() },
     registry: { count: vi.fn().mockResolvedValue(1), updateMany: vi.fn(), findMany: vi.fn().mockResolvedValue([]) },
     claim: { count: vi.fn().mockResolvedValue(3), deleteMany: vi.fn() },
+    guestReminder: { count: vi.fn().mockResolvedValue(7), deleteMany: vi.fn() },
     registryEvent: { count: vi.fn().mockResolvedValue(4), deleteMany: vi.fn() },
     auditLog: { count: vi.fn().mockResolvedValue(5), deleteMany: vi.fn(), create: vi.fn() },
     session: { count: vi.fn().mockResolvedValue(6), deleteMany: vi.fn() },

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { renderManagePage, type ManagePageData } from "../manage-page";
 import type { DisplayItem } from "../../../models/item.server";
+import { EVENT_TYPES } from "../../../shared/settings";
+import { ideaGuideFor } from "../../../shared/registry-ideas";
 
 /**
  * Covers the wedding-only "suggested categories" checklist added 23 Sep
@@ -79,11 +81,48 @@ describe("wedding registry category suggestions", () => {
     expect(html).not.toContain('href="/search?q=Honeymoon');
   });
 
-  it("stays out of non-wedding registries", () => {
+  it("shows the wedding guide only on wedding-style registries", () => {
     for (const eventType of ["baby", "birthday", "housewarming", "graduation", "other"]) {
       const html = page({ eventType });
       expect(html).not.toContain("Wedding registry ideas");
     }
+  });
+});
+
+describe("ideas guides for every occasion (24 Sep 2026)", () => {
+  it("gives every occasion in the dropdown its own guide", () => {
+    for (const { value } of EVENT_TYPES) {
+      const guide = ideaGuideFor(value);
+      expect(guide.groups.length).toBeGreaterThan(0);
+      for (const group of guide.groups) {
+        expect(group.subcategories.length).toBeGreaterThan(0);
+        for (const sub of group.subcategories) expect(sub.items.length).toBeGreaterThan(0);
+      }
+      expect(page({ eventType: value })).toContain("Not sure what to add?");
+    }
+  });
+
+  it("organizes birthdays by age", () => {
+    const html = page({ eventType: "birthday" });
+    expect(html).toContain("Birthday registry ideas, by age");
+    expect(html).toContain(">Toddlers (2 to 3)<");
+    expect(html).toContain(">Teens (13 to 17)<");
+    expect(html).toContain('href="/search?q=Balance%20bike&amp;type=product"');
+  });
+
+  it("organizes baby registries by need and anniversaries by milestone year", () => {
+    expect(page({ eventType: "baby" })).toContain(">Nursery<");
+    expect(page({ eventType: "anniversary" })).toContain(">Years 1 to 5<");
+  });
+
+  it("falls back to a general guide for an unknown occasion", () => {
+    expect(page({ eventType: "made-up" })).toContain("Gift ideas, by category");
+  });
+
+  it("makes the guide's button the prominent one", () => {
+    const html = page({ eventType: "birthday" });
+    expect(html).toContain('<details class="note ideas">');
+    expect(html).toContain('<span class="ideas-q">Not sure what to add?</span>');
   });
 });
 
@@ -190,7 +229,7 @@ describe("category-level store suggestion (registrant view)", () => {
 describe("connect-the-extension box and chip fallback", () => {
   it("is titled by what it is for", () => {
     const html = page();
-    expect(html).toContain("<h2>Connect the browser extension</h2>");
+    expect(html).toContain('<h2 id="extension">Connect the browser extension</h2>');
     expect(html).toContain("Copy connection link");
   });
 
@@ -253,5 +292,118 @@ describe("manage page picks up items added elsewhere (24 Sep 2026)", () => {
     expect(html).toContain('id="registro-list"');
     expect(html).toContain('"versionUrl":"/apps/registry/r/abc/version"');
     expect(html).toContain("function pollList()");
+  });
+});
+
+describe("registry storage key (product-page button)", () => {
+  // The theme button can only find a registrant's registry through
+  // localStorage. When the two sides used different keys, every tap on
+  // "Add to registry" sent the registrant to "start a registry" (24 Sep 2026).
+  it("matches the key the theme's Add to registry button reads", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { REGISTRIES_STORAGE_KEY } = await import("../../../shared/storage-keys");
+    const themeJs = readFileSync("extensions/registry-button/assets/giftpin.js", "utf8");
+    const match = themeJs.match(/var STORE_KEY = "([^"]+)"/);
+    expect(match?.[1]).toBe(REGISTRIES_STORAGE_KEY);
+    expect(page()).toContain(`var KEY='${REGISTRIES_STORAGE_KEY}'`);
+  });
+});
+
+// Ben, 25 Sep 2026: pasting a link "didn't work at all". The old box added
+// straight away via a server-side page read that most big retailers block,
+// so items landed with junk titles and no photo, price or store match. The
+// box now looks the link up first and lets the registrant check it.
+describe("paste-a-link box (25 Sep 2026)", () => {
+  it("looks the link up before adding, then adds what the registrant confirmed", () => {
+    const html = page();
+    expect(html).toContain("Look it up");
+    expect(html).toContain("post('/link-preview'");
+    expect(html).toContain("post('/add-link'");
+    expect(html).not.toContain("post('/add-external'");
+    expect(html).toContain('id="paste-title"');
+    expect(html).toContain('id="paste-price"');
+  });
+
+  it("names the store beside the closest match, and only shows it to guests when ticked", () => {
+    const html = page();
+    expect(html).toContain("Closest match in Maple &amp; Clay");
+    expect(html).toMatch(/<input type="checkbox" name="showMatch">/);
+    expect(html).toContain("showMatch:paste.querySelector('[name=showMatch]').checked");
+  });
+
+  it("hides the paste box when the store only allows its own products", () => {
+    expect(page({ externalItemsAllowed: false })).not.toContain('<form class="js-paste"');
+  });
+
+  it("ships a script that parses", () => {
+    const html = page();
+    const scripts = [...html.matchAll(/<script(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const src of scripts) expect(() => new Function(src)).not.toThrow();
+  });
+});
+
+describe("store-range suggestion button names the store (25 Sep 2026)", () => {
+  it("reads See matching products in <store>", () => {
+    const html = page({
+      items: [{
+        id: "item_1", sourceType: "manual" as const, title: "Burton snowboard", imageUrl: null, price: 400,
+        currency: "CAD", desiredQty: 1, purchasedQty: 0, claimedQty: 0, remainingQty: 1, note: null,
+        category: null, variantGid: null, externalUrl: null, externalDomain: null,
+        isExternal: true, isStale: true, availability: "in_stock", fulfilled: false,
+        storeMatch: { status: "suggested", kind: "search", title: "snowboard", handle: null },
+      }],
+    });
+    expect(html).toContain("See matching products in Maple &amp; Clay");
+  });
+});
+
+describe("paste box as the extension's backup (25 Sep 2026)", () => {
+  it("asks for a price before adding, and points computer users to the extension", () => {
+    const html = page();
+    expect(html).toContain("Please add the price");
+    expect(html).toContain('href="#extension"');
+    expect(html).toContain('<h2 id="extension">');
+  });
+});
+
+// Ben, 25 Sep 2026: the extension is Chrome-on-a-computer only, so phone and
+// tablet users get told that where they'd otherwise try it — not a blanket
+// "desktop only" that would put guests off.
+describe("phone message for importing (25 Sep 2026)", () => {
+  it("tells touch-device users the extension needs a computer", () => {
+    const html = page();
+    expect(html).toMatch(/class="touch-only"[^>]*><strong>This part needs a computer/);
+    expect(html).toMatch(/class="hint touch-only">On a phone, big stores like Amazon, Wayfair and Target/);
+    expect(html).toContain('class="hint no-touch">On a computer?');
+  });
+});
+
+describe("ship-to-registrant form (25 Sep 2026)", () => {
+  it("is off by default, with the address fields hidden", () => {
+    const html = page();
+    expect(html).toContain('action="/apps/registry/shipping?t=tok_abc"');
+    expect(html).not.toMatch(/class="js-ship-toggle" checked/);
+    expect(html).toMatch(/class="js-ship-fields" hidden/);
+  });
+
+  it("shows the saved address when it's switched on", () => {
+    const html = page({
+      shipping: {
+        enabled: true,
+        address: { firstName: "Maya", lastName: "Chen", address1: "1 Main St", city: "Toronto", provinceCode: "ON", countryCode: "CA", zip: "M5V 1A1" },
+      },
+    });
+    expect(html).toMatch(/class="js-ship-toggle" checked/);
+    expect(html).toContain('value="1 Main St"');
+    expect(html).toContain('<option value="ON" selected>Ontario</option>');
+    // Only the matching country's province list is submitted.
+    expect(html).toMatch(/id="ship-region-US" name="provinceCode"[^>]* disabled/);
+    expect(html).not.toMatch(/id="ship-region-CA" name="provinceCode"[^>]* disabled/);
+  });
+
+  it("escapes what the registrant typed", () => {
+    const html = page({ shipping: { enabled: true, address: { address1: '"><script>x</script>' } } });
+    expect(html).not.toContain("<script>x</script>");
   });
 });

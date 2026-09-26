@@ -61,6 +61,16 @@
   min-height: 1.2em;
 }
 
+.giftpin-back {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--giftpin-accent, currentColor);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .giftpin-status--error {
   color: #8c1d13;
   opacity: 1;

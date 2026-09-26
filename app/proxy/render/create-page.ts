@@ -1,5 +1,7 @@
+import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr } from "./layout";
 import { EVENT_TYPES } from "../../shared/settings";
+import { occasionTemplate } from "../../shared/registry-ideas";
 import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 
 /**
@@ -14,6 +16,7 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 export interface CreatePageData {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   enabledEventTypes: string[];
   error?: string | null;
@@ -21,8 +24,13 @@ export interface CreatePageData {
 }
 
 export function renderCreatePage(data: CreatePageData): string {
-  const types = EVENT_TYPES.filter((t) => data.enabledEventTypes.includes(t.value));
+  const enabled = EVENT_TYPES.filter((t) => data.enabledEventTypes.includes(t.value));
+  const types = enabled.length ? enabled : EVENT_TYPES;
   const v = data.values ?? {};
+  // Each occasion is its own template: the name and note placeholders follow
+  // the dropdown (small inline script below; without JS they match the
+  // initially selected occasion).
+  const initial = occasionTemplate(types.some((t) => t.value === v.eventType) ? v.eventType : types[0].value);
 
   const body = `
 <h1>Start a registry</h1>
@@ -31,43 +39,61 @@ export function renderCreatePage(data: CreatePageData): string {
 ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
 <form method="post" action="${escapeAttr(data.actionUrl)}/create" class="note">
+<div class="fields">
+  <div>
   <label for="c-event">What's the occasion?</label>
   <select id="c-event" name="eventType" required>
-    ${(types.length ? types : EVENT_TYPES)
-      .map(
-        (t) => `<option value="${escapeAttr(t.value)}"${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
-      )
+    ${types
+      .map((t) => {
+        const tpl = occasionTemplate(t.value);
+        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`;
+      })
       .join("")}
   </select>
+  </div>
 
+  <div>
   <label for="c-title">Registry name</label>
   <input id="c-title" type="text" name="title" maxlength="200" required
-         placeholder="Sam &amp; Alex's Wedding" value="${escapeAttr(v.title)}">
+         placeholder="${escapeAttr(initial.title)}" value="${escapeAttr(v.title)}">
+  </div>
 
+  <div>
   <label for="c-date">When is it?</label>
   <input id="c-date" type="date" name="eventDate" value="${escapeAttr(v.eventDate)}">
   <p class="hint">Optional. We'll remind you to share your link as it gets closer.</p>
+  </div>
 
+  <div>
   <label for="c-name">Your name</label>
   <input id="c-name" type="text" name="registrantName" maxlength="120" required value="${escapeAttr(v.registrantName)}">
+  </div>
 
+  <div>
   <label for="c-email">Your email</label>
   <input id="c-email" type="email" name="registrantEmail" required value="${escapeAttr(v.registrantEmail)}">
   <p class="hint">We email you a private link to manage your registry, and tell you when someone buys something. Your email is never shown to guests.</p>
+  </div>
 
+  <div>
   <label for="c-country">Where will your guests shop?</label>
   <select id="c-country" name="country">
     ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
   </select>
   <p class="hint">When this store doesn't carry something, we'll suggest that country's stores, like Amazon and Walmart.</p>
+  </div>
 
+  <div class="full">
   <label for="c-msg">A note for your guests</label>
-  <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional">${escapeHtml(v.message)}</textarea>
+  <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional. For example: ${escapeAttr(initial.note)}">${escapeHtml(v.message)}</textarea>
+  </div>
+</div>
 
   <div class="row" style="margin-top:20px">
     <button class="btn block" type="submit">Create my registry</button>
   </div>
 </form>
+<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;});})();</script>
 
 <div class="note">
   <p style="margin:0"><strong>Already have one?</strong></p>
@@ -87,6 +113,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,
+      branding: data.branding,
     },
     body,
   );
@@ -94,13 +121,13 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
 /** Shown after create/resend so we never render an email address back. */
 export function renderSimplePage(
-  data: { shopName: string; accentColor: string },
+  data: { shopName: string; accentColor: string; branding?: PageBranding | null },
   heading: string,
   message: string,
   cta?: { label: string; href: string },
 ): string {
   return layout(
-    { title: heading, accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: heading, accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>${escapeHtml(heading)}</h1>
      <p>${escapeHtml(message)}</p>
      ${cta ? `<p style="margin-top:24px"><a class="btn" href="${escapeAttr(cta.href)}">${escapeHtml(cta.label)}</a></p>` : ""}`,
@@ -110,12 +137,13 @@ export function renderSimplePage(
 export function renderPasswordPage(data: {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   slug: string;
   error?: string | null;
 }): string {
   return layout(
-    { title: "This registry is private", accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: "This registry is private", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>This registry is private</h1>
      <p class="sub">Enter the password the couple shared with you.</p>
      ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
@@ -130,11 +158,16 @@ export function renderPasswordPage(data: {
 export function renderFindPage(data: {
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   actionUrl: string;
   query: string;
-  results: { title: string; eventLabel: string; eventDate: Date | null; url: string; names: string }[];
+  results: { title: string; eventLabel: string; eventDate: Date | null; url: string; names: string; coverImageUrl?: string | null }[];
   searched: boolean;
 }): string {
+  // Two couples can share names (and titles like "Sam & Alex's Wedding"). A
+  // guest who picks the wrong one buys a gift for strangers, so make the
+  // date and names impossible to miss and say so when results look alike.
+  const lookalikes = hasLookalikes(data.results);
   const body = `
 <h1>Find a registry</h1>
 <p class="sub">Search by the name of the person or couple you're shopping for.</p>
@@ -150,12 +183,22 @@ ${
     ? ""
     : data.results.length === 0
       ? `<div class="empty"><p>No registries match that name.</p><p class="hint">Only registries whose owners chose to be listed appear here. If you have a direct link, use that instead.</p></div>`
-      : `<ul class="items">${data.results
+      : `${
+          lookalikes
+            ? `<div class="note" role="status"><strong>More than one registry matches.</strong> Check the names and date before you choose, so your gift goes to the right people.</div>`
+            : ""
+        }<ul class="items">${data.results
           .map(
-            (r) => `<li class="item" style="grid-template-columns:1fr">
+            (r) => `<li class="item"${r.coverImageUrl ? "" : ` style="grid-template-columns:1fr"`}>
+  ${r.coverImageUrl ? `<img class="item-img" src="${escapeAttr(r.coverImageUrl)}" alt="" loading="lazy" style="object-fit:cover">` : ""}
   <div>
     <p class="item-title"><a href="${escapeAttr(r.url)}">${escapeHtml(r.title)}</a></p>
-    <p class="item-meta">${escapeHtml(r.eventLabel)}${r.eventDate ? ` &middot; ${new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(r.eventDate)}` : ""}</p>
+    ${r.names ? `<p class="item-meta">${escapeHtml(r.names)}</p>` : ""}
+    <p class="item-meta">${escapeHtml(r.eventLabel)} &middot; ${
+      r.eventDate
+        ? `<strong>${new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UTC" }).format(r.eventDate)}</strong>`
+        : "No date set"
+    }</p>
   </div>
 </li>`,
           )
@@ -173,18 +216,35 @@ ${
       accentColor: data.accentColor,
       indexable: true,
       shopName: data.shopName,
+      branding: data.branding,
     },
     body,
   );
 }
 
+/** True when two results share a title or the same registrant names. */
+export function hasLookalikes(results: { title: string; names: string }[]): boolean {
+  const norm = (v: string) => v.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const seen = new Set<string>();
+  for (const r of results) {
+    // Names in either order ("Sam & Alex" / "Alex & Sam") are the same couple.
+    const names = norm(r.names).split(" ").filter((w) => w && w !== "and").sort().join(" ");
+    for (const key of [`t:${norm(r.title)}`, names ? `n:${names}` : ""]) {
+      if (!key) continue;
+      if (seen.has(key)) return true;
+      seen.add(key);
+    }
+  }
+  return false;
+}
+
 /** Shown when a signed-in shopper has more than one registry: pick which to manage. */
 export function renderRegistryChooser(
-  data: { shopName: string; accentColor: string },
+  data: { shopName: string; accentColor: string; branding?: PageBranding | null },
   registries: { title: string; href: string }[],
 ): string {
   return layout(
-    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName },
+    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>Your registries</h1>
      <p class="sub">Choose one to manage.</p>
      <ul class="items">${registries

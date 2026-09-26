@@ -14,6 +14,8 @@
  * what real themes do to us.
  */
 
+import { brandFont, type PageBranding } from "../../shared/branding";
+
 export function escapeHtml(value: string | null | undefined): string {
   if (value === null || value === undefined) return "";
   return String(value).replace(
@@ -50,10 +52,19 @@ export interface LayoutOptions {
    * behavior.
    */
   hidePoweredBy?: boolean;
+  /**
+   * Pro branding (logo, page colours, font, no "Powered by Giftpin"). Null or
+   * absent for Free shops — the caller decides, see brandingFor() in
+   * app/proxy/router.server.ts.
+   */
+  branding?: PageBranding | null;
 }
 
 export function layout(options: LayoutOptions, body: string): string {
   const accent = safeColor(options.accentColor);
+  const branding = options.branding ?? null;
+  const hidePoweredBy = options.hidePoweredBy || branding?.hidePoweredBy;
+  const font = brandFont(branding?.font);
 
   return `<!doctype html>
 <html lang="en">
@@ -64,24 +75,59 @@ export function layout(options: LayoutOptions, body: string): string {
 ${options.description ? `<meta name="description" content="${escapeAttr(options.description)}">` : ""}
 ${options.indexable ? "" : '<meta name="robots" content="noindex,nofollow,noarchive">'}
 <meta name="referrer" content="no-referrer">
-<style>${baseStyles(accent)}</style>
+${
+  font.google
+    ? `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${font.google}&display=swap">`
+    : ""
+}
+<style>${baseStyles(accent)}${branding ? brandStyles(branding) : ""}</style>
 ${options.head ?? ""}
 </head>
 <body class="${escapeAttr(options.bodyClass ?? "")}">
 <div class="wrap">
+${
+  branding?.logoUrl
+    ? `<a class="brand-logo" href="/"><img src="${escapeAttr(branding.logoUrl)}" alt="${escapeAttr(options.shopName)}"></a>`
+    : ""
+}
 ${body}
 </div>
 <footer class="foot">
   <p>Registry by <strong>${escapeHtml(options.shopName)}</strong></p>
-  ${options.hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
+  ${hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
 </footer>
 </body>
 </html>`;
 }
 
 /** Never interpolate a merchant-supplied string into CSS unchecked. */
-function safeColor(value: string): string {
-  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : "#1a1a1a";
+function safeColor(value: string, fallback = "#1a1a1a"): string {
+  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback;
+}
+
+/**
+ * Pro colour and font overrides, appended after baseStyles so they win.
+ *
+ * Page colours replace BOTH the light and the dark-mode palette: a merchant
+ * who picks a cream background means cream on every phone, and a half-applied
+ * palette (their background with our dark-mode text colour) is unreadable.
+ * Card, muted and line colours are mixed from the chosen pair so they stay
+ * legible whatever the pair is. Every value here was validated on save
+ * (cleanHexColor / BRAND_FONTS), and safeColor runs again as a backstop.
+ */
+function brandStyles(branding: PageBranding): string {
+  let css = "";
+  if (branding.backgroundColor || branding.textColor) {
+    const bg = safeColor(branding.backgroundColor ?? "", "#fbfbfa");
+    const ink = safeColor(branding.textColor ?? "", "#1a1a1a");
+    const vars = `--bg:${bg};--ink:${ink};--card:color-mix(in srgb,${bg} 93%,${ink});--muted:color-mix(in srgb,${ink} 65%,${bg});--line:color-mix(in srgb,${ink} 15%,${bg})`;
+    css += `\n:root{${vars}}\n@media (prefers-color-scheme:dark){:root{${vars}}}`;
+  }
+  const font = brandFont(branding.font);
+  if (font.value !== "system") css += `\nbody{font-family:${font.stack}}`;
+  if (branding.logoUrl) css += `\n.brand-logo{display:block;margin:0 auto 20px;text-align:center}.brand-logo img{max-height:64px;max-width:220px;width:auto;height:auto}`;
+  return css;
 }
 
 function baseStyles(accent: string): string {
@@ -101,6 +147,7 @@ a{color:inherit}
 .hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;background:var(--line)}
 .hero-art{width:100%;aspect-ratio:16/7;border-radius:var(--radius);margin-bottom:16px;overflow:hidden;background:var(--card)}
 .hero-art svg{width:100%;height:100%;display:block}
+.hero-painting{object-position:30% 50%}
 .note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px}
 .progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
 .progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
@@ -108,7 +155,9 @@ a{color:inherit}
 /* --- items ------------------------------------------------------------- */
 .items{list-style:none;padding:0;margin:0;display:grid;gap:12px}
 .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
-.item.done{opacity:.5}
+/* Fade the contents, not the card, so the guest's own Undo link can stay
+   fully visible on an item they just marked as bought. */
+.item.done>:not(.undo){opacity:.5}
 .item.held{border-style:dashed}
 .item-img{width:84px;height:84px;object-fit:contain;border-radius:10px;background:var(--bg)}
 .item-img.ph{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:6px}
@@ -126,12 +175,18 @@ a{color:inherit}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px;font-family:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
+.undo{margin:-8px 0 0;grid-column:2}.undo .linkish{display:inline;margin:0;padding:0 2px;color:var(--ink);font-weight:600}
+.incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
+.incart[hidden],.btn[hidden],.qty[hidden]{display:none}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
 .btn.block{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row[hidden],.item-img[hidden]{display:none}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+fieldset[hidden],.js-ship-region[hidden]{display:none}
 .qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
-.qty.amt{width:auto}.qty.msg{width:auto;flex:1 1 160px}.chip{margin-top:10px}
-input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],input[type=tel],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 textarea{min-height:88px;resize:vertical}
 label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .hint{font-size:13px;color:var(--muted);margin:6px 0 0;font-weight:400}
@@ -142,12 +197,27 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
 
-/* --- suggested-category checklist (wedding registries only) ------------ */
+/* --- ideas guide, Not sure what to add (every occasion) ---------------- */
 details.note{padding:14px 16px}
 details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
 details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
-details.note[open] summary::before{content:'–  '}
+details.note [open]>summary::before,details.note[open]>summary::before{content:'–  '}
+details.ideas{background:var(--card);background:color-mix(in srgb,var(--accent) 7%,var(--card));border-color:color-mix(in srgb,var(--accent) 22%,var(--line));padding:16px 18px}
+details.ideas>summary{display:flex;align-items:center;gap:14px}
+details.note.ideas>summary::before,details.note.ideas[open]>summary::before{content:none}
+details.ideas[open]>summary{padding-bottom:4px}
+.ideas-icon{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.ideas-text{flex:1;min-width:0}
+.ideas-q{display:block;font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.005em}
+.ideas-t{display:block;font-size:14px;color:var(--muted);margin-top:1px}
+.ideas-cta{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.ideas-cta svg{transition:transform .2s}
+details.ideas[open] .ideas-cta svg{transform:rotate(180deg)}
+details.ideas[open] .ideas-cta-open,details.ideas:not([open]) .ideas-cta-close{display:none}
+details.ideas>summary:hover .ideas-cta{filter:brightness(1.08)}
+details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+@media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
@@ -160,6 +230,10 @@ details.note[open] summary::before{content:'–  '}
 .md-card{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
 .md-card{flex-wrap:wrap}
 .md-info{flex:1;min-width:0}
+.paste-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
+.paste-grid .md-card{border-top:0}
+label.check{display:flex;gap:8px;align-items:center;font-weight:500;margin:8px 0 0}
+label.check input{width:auto;margin:0}
 .md-warn{flex-basis:100%;margin:0}
 .md-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .cat-group{margin:26px 0 0}
@@ -179,6 +253,26 @@ a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(-
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width:420px){.item{grid-template-columns:64px 1fr;gap:12px}.item-img{width:64px;height:64px}h1{font-size:22px}}
+
+/* --- desktop ------------------------------------------------------------
+   The single 680px column is sized for phones, where most guests open the
+   link. On a wide screen it left two-thirds of the window empty, so from
+   960px up the page widens and item lists go two across. Phones and tablets
+   below the breakpoint render exactly as before. */
+@media (min-width:960px){
+.wrap{max-width:1120px;padding:32px 32px 56px}
+h1{font-size:30px}
+.hero-img{aspect-ratio:16/5}
+.hero-art{aspect-ratio:auto;height:300px;display:flex;justify-content:center;background:color-mix(in srgb,var(--accent) 6%,var(--card))}
+.hero-art svg{width:auto;height:100%}
+.hero-art svg>rect:first-child{display:none}
+.items{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.duo>.note{margin:0}
+.duo>.note:only-child{grid-column:1/-1}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+.fields>.full{grid-column:1/-1}
+}
 `;
 }
 

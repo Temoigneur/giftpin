@@ -6,6 +6,8 @@ import {
   attributedLines,
   readLineProperty,
   cartAddPayload,
+  giftForValue,
+  GIFT_FOR_LABEL,
   ATTRIBUTION_PROPERTY,
 } from "../attribution";
 
@@ -160,6 +162,18 @@ describe("attributedLines", () => {
 });
 
 describe("cartAddPayload", () => {
+  it("shows whose gift it is, with the date, in a visible line property", () => {
+    const giftFor = giftForValue("Maya & Jared", "Wedding", new Date("2027-06-12T00:00:00Z"));
+    expect(giftFor).toBe("Maya & Jared · Wedding · Jun 12, 2027");
+    const props = cartAddPayload("1", 1, "r", "i", false, "Maya & Jared", giftFor).items[0].properties;
+    expect(props[GIFT_FOR_LABEL]).toBe(giftFor);
+    expect(verifyAttribution(props._rg)).toEqual({ r: "r", i: "i" });
+  });
+
+  it("leaves out the date when the registry has none", () => {
+    expect(giftForValue("Sam", "Birthday", null)).toBe("Sam · Birthday");
+  });
+
   it("builds a payload Shopify's /cart/add.js accepts", () => {
     const payload = cartAddPayload("40000001", 2, "reg_1", "item_1");
 
@@ -179,5 +193,12 @@ describe("cartAddPayload", () => {
   it("only adds the ship flag when asked", () => {
     expect(cartAddPayload("1", 1, "r", "i").items[0].properties._rg_ship).toBeUndefined();
     expect(cartAddPayload("1", 1, "r", "i", true).items[0].properties._rg_ship).toBe("1");
+  });
+
+  it("names who the gift ships to in a visible line property, never the address", () => {
+    const props = cartAddPayload("1", 1, "r", "i", true, "Maya & Jared").items[0].properties;
+    expect(props["Gift ships to"]).toMatch(/^Maya & Jared, at their address/);
+    expect(props["Gift ships to"]).toContain("Want it sent to you instead? Return to their registry page and untick the shipping box");
+    expect(cartAddPayload("1", 1, "r", "i", false, "Maya & Jared").items[0].properties["Gift ships to"]).toBeUndefined();
   });
 });

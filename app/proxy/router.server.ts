@@ -19,6 +19,8 @@ import {
   mintManageToken,
   readManageToken,
   updateRegistry,
+  setShippingAddress,
+  readShippingAddress,
   deleteRegistry,
   progressFor,
   checkRegistryPassword,
@@ -34,18 +36,37 @@ import {
   addFundItem,
   setItemFundGoal,
   parseFundGoal,
+  addLinkedItem,
   updateItem,
   removeItem,
   toDisplayItem,
   ItemError,
 } from "../models/item.server";
-import { placeClaim, confirmClaim, releaseClaim, readClaimToken } from "../models/claim.server";
-import { applyMatchChoice, getMatchPreview } from "../lib/store-match.server";
+import {
+  placeClaim,
+  confirmClaim,
+  confirmBoughtElsewhere,
+  releaseClaim,
+  readClaimToken,
+  mintUndoToken,
+  readUndoToken,
+  undoGuestPurchase,
+} from "../models/claim.server";
+import { applyMatchChoice, getMatchPreview, previewStoreMatch, storeMatchFields } from "../lib/store-match.server";
+import { previewUrl } from "../lib/resolver/index.server";
+import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
-import { cartAddPayload, contributionCartPayload } from "../lib/attribution";
+import { parseShippingAddressForm, SHIPPING_ADDRESS_ERRORS, type ShippingAddressError } from "../shared/shipping-address";
+import { cartAddPayload, contributionCartPayload, giftForValue } from "../lib/attribution";
 import { fundState, giftCardRecipientProperties } from "../shared/contributions";
 import { audit } from "../lib/audit.server";
 import { sendEmail } from "../lib/email.server";
+import {
+  addGuestReminder,
+  offersGuestReminder,
+  readGuestUnsubscribeToken,
+  removeGuestReminder,
+} from "../models/automations.server";
 import { InvalidProductUrl, canonicalizeUrl } from "../lib/resolver/canonical";
 import { renderRegistryPage } from "./render/registry-page";
 import { renderManagePage } from "./render/manage-page";
@@ -57,6 +78,8 @@ import {
   renderFindPage,
 } from "./render/create-page";
 import { escapeHtml } from "./render/layout";
+import { csvCell } from "../lib/csv";
+import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/branding";
 
 /**
  * Guest-surface router.
@@ -70,8 +93,11 @@ import { escapeHtml } from "./render/layout";
  *   GET  /confirm?c=<token>    → guest confirms an external purchase
  *   GET  /release?c=<token>    → guest releases their hold
  *   GET  /thank-you.csv        → thank-you list export
+ *   GET  /unsubscribe?u=<token> → guest stops pre-event reminders
  *   POST /create | /resend | /settings | /delete
- *   POST /cart-add | /claim | /bought | /add-external | /update-item | /remove-item
+ *   POST /cart-add | /claim | /bought | /undo-bought | /add-external | /update-item | /remove-item
+ *   POST /link-preview | /add-link   → the manage page's paste box (look up, then add)
+ *   POST /remind               → guest opts in to a pre-event reminder (Pro)
  *   POST /contribute | /add-fund | /item-fund | /contribution-settings  (Pro, SPIKE-C.md)
  */
 
@@ -94,9 +120,10 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   if (!shop) return new Response("Not found", { status: 404 });
 
   const settings = settingsFor(shop);
-  const brand = {
+  const brand: Brand = {
     shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
     accentColor: settings.accentColor,
+    branding: brandingFor(shop, settings),
   };
 
   const segments = ctx.path.split("/").filter(Boolean);
@@ -150,6 +177,9 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
       case "thank-you.csv":
         return await thankYouCsv(ctx);
 
+      case "unsubscribe":
+        return await unsubscribePage(ctx, brand);
+
       default:
         return page(
           renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere.", {
@@ -172,7 +202,23 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 // GET handlers
 // ---------------------------------------------------------------------------
 
-type Brand = { shopName: string; accentColor: string };
+type Brand = { shopName: string; accentColor: string; branding: PageBranding | null };
+
+/**
+ * Pro branding for every guest page (registry, create, manage, find, and the
+ * simple message pages). Null on Free: the saved logo/colours/font stay in
+ * settings but aren't applied, and "Powered by Giftpin" shows.
+ */
+function brandingFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): PageBranding | null {
+  if (!isPro(shop)) return null;
+  return {
+    logoUrl: cleanLogoUrl(settings.logoUrl) || null,
+    backgroundColor: cleanHexColor(settings.backgroundColor) || null,
+    textColor: cleanHexColor(settings.textColor) || null,
+    font: settings.fontFamily,
+    hidePoweredBy: true,
+  };
+}
 type ShopRecord = NonNullable<Awaited<ReturnType<typeof db.shop.findUnique>>>;
 
 async function registryPage(
@@ -270,11 +316,11 @@ function buildRegistryHtml(
     // No-op until a real affiliate network is signed up and its redirect
     // endpoint is set — see app/lib/affiliate.ts.
     affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
-    // Pro feature confirmed 22 Sep 2026 (Ben) — see app/routes/app.billing.tsx.
-    // Only this page's footer credit is gated so far; create/manage/find
-    // still show it regardless of plan (smaller, reviewable change — extend
-    // to those if Ben wants the removal to be everywhere Pro applies).
-    hidePoweredBy: isPro(shop),
+    artBaseUrl: process.env.SHOPIFY_APP_URL || null,
+    // "Powered by Giftpin" removal and the rest of Pro branding arrive via
+    // brand.branding (see brandingFor), on this page and every other one.
+    offerReminder: offersGuestReminder(shop, registry.eventDate),
+    shipToRegistrant: registry.shipToRegistrant,
     contributions: chipIn
       ? {
           variants: settings.contributionProduct!.variants,
@@ -353,6 +399,9 @@ async function managePage(
       })),
   );
 
+  const flash = flashFrom(ctx);
+  const shippingFlash = ctx.query.get("flash")?.startsWith("ship-") ? flash : null;
+
   return page(
     renderManagePage({
       ...brand,
@@ -373,8 +422,14 @@ async function managePage(
       version: registry.version,
       versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
       storeSearchUrl: "/collections/all",
+      artBaseUrl: process.env.SHOPIFY_APP_URL || null,
       gifts,
-      flash: flashFrom(ctx),
+      flash: shippingFlash ? null : flash,
+      shipping: {
+        enabled: registry.shipToRegistrant,
+        address: registry.shipToRegistrant ? readShippingAddress(registry) : null,
+        flash: shippingFlash,
+      },
       contributions: contributionsAvailable(shop, settings)
         ? { toRegistrant: registry.contributionsToRegistrant }
         : null,
@@ -427,6 +482,7 @@ async function findPage(
         eventDate: r.eventDate,
         url: proxyUrl(ctx, `r/${r.slug}`),
         names: r.registrants.map((p) => firstNameOnly(p.name)).join(" & "),
+        coverImageUrl: r.coverImageUrl,
       })),
     }),
     200,
@@ -476,6 +532,12 @@ async function releasePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   const claimId = readClaimToken(ctx.query.get("c"));
   if (claimId) await releaseClaim(claimId);
   return page(renderSimplePage(brand, "Put back on the list", "Thanks for letting us know."));
+}
+
+async function unsubscribePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const reminderId = readGuestUnsubscribeToken(ctx.query.get("u"));
+  if (reminderId) await removeGuestReminder(reminderId);
+  return page(renderSimplePage(brand, "You're unsubscribed", "We won't send you any more reminders about this registry."));
 }
 
 /** Small feature, disproportionate emotional value. Gets talked about. */
@@ -554,8 +616,14 @@ async function handlePost(
       return claimAction(request, ctx);
     case "bought":
       return boughtAction(request, ctx);
+    case "undo-bought":
+      return undoBoughtAction(request, ctx);
     case "add-external":
       return addExternalAction(request, ctx);
+    case "link-preview":
+      return linkPreviewAction(request, ctx, shop);
+    case "add-link":
+      return addLinkAction(request, ctx, shop);
     case "add-manual":
       return addManualAction(request, ctx);
     case "add-from-store":
@@ -572,8 +640,12 @@ async function handlePost(
       return matchPreviewAction(request, ctx);
     case "settings":
       return settingsAction(request, ctx);
+    case "shipping":
+      return shippingAction(request, ctx);
     case "delete":
       return deleteAction(request, ctx, brand);
+    case "remind":
+      return remindAction(request, ctx, shop);
     default:
       return new Response("Not found", { status: 404 });
   }
@@ -681,12 +753,13 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
 
   const item = await db.registryItem.findFirst({
     where: { id: itemId, sourceType: "internal", registry: { shop: { domain: ctx.shop } } },
-    include: { registry: true },
+    include: { registry: { include: { registrants: { select: { name: true } } } } },
   });
 
   if (!item || !item.variantGid?.endsWith(`/${variantId}`)) {
     return json({ ok: false, error: "That item is no longer on this registry" }, 404);
   }
+  const names = item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & ");
 
   return json({
     ok: true,
@@ -695,7 +768,10 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
       qty,
       item.registryId,
       item.id,
-      item.registry.shipToRegistrant,
+      // Only when the guest left "ship to the registrant" ticked.
+      item.registry.shipToRegistrant && body.shipToRegistrant === true,
+      names,
+      giftForValue(names, eventTypeLabel(item.registry.eventType), item.registry.eventDate),
     ),
   });
 }
@@ -843,7 +919,12 @@ async function claimAction(request: Request, ctx: ProxyContext): Promise<Respons
   return json({ ok: true, held: true, expiresAt: claim.expiresAt.toISOString() });
 }
 
-/** Guest confirming, from the registry page, that they bought an external item. */
+/**
+ * Guest confirming, from the registry page, that they bought an item. For
+ * external items that converts their hold. For store items it's the "Already
+ * bought it?" path (bought in person, or as a gift card, etc.); orders placed
+ * online are still counted by the webhook, not by this.
+ */
 async function boughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const body = await readJson(request);
   const itemId = String(body.itemId ?? "");
@@ -853,28 +934,51 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
     include: { claims: { where: { releasedAt: null } } },
   });
   if (!item) return json({ ok: false, error: "Item not found" }, 404);
-  if (item.sourceType === "internal" || item.sourceType === "fund") {
+
+  if (item.sourceType === "fund") {
     return json({ ok: false, error: "This item is tracked automatically" }, 400);
+  }
+
+  const details = {
+    buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
+    buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
+  };
+
+  if (item.sourceType === "internal") {
+    const purchase = await confirmBoughtElsewhere(item.id, details);
+    if (!purchase) return json({ ok: false, error: "This item is already taken care of" }, 409);
+    return json({ ok: true, undoToken: mintUndoToken(purchase.id) });
   }
 
   const fingerprint = guestFingerprint(request, item.id);
   const own = item.claims.find((c) => c.guestFingerprint === fingerprint) ?? item.claims[0];
 
   if (own) {
-    await confirmClaim(own.id, {
-      buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
-      buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
-    });
-    return json({ ok: true });
+    const purchase = await confirmClaim(own.id, details);
+    return json({ ok: true, undoToken: purchase ? mintUndoToken(purchase.id) : null });
   }
 
   // No hold in flight — the guest bought it without clicking through.
   const claim = await placeClaim(item.id, item.registryId, fingerprint);
   if (!claim) return json({ ok: false, error: "This item is already taken care of" }, 409);
-  await confirmClaim(claim.claimId, {
-    buyerName: typeof body.buyerName === "string" ? body.buyerName : null,
-    buyerMessage: typeof body.buyerMessage === "string" ? body.buyerMessage : null,
+  const purchase = await confirmClaim(claim.claimId, details);
+  return json({ ok: true, undoToken: purchase ? mintUndoToken(purchase.id) : null });
+}
+
+/** Guest undoing their own "I bought this", within the undo window. */
+async function undoBoughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const body = await readJson(request);
+  const purchaseId = readUndoToken(typeof body.token === "string" ? body.token : null);
+  if (!purchaseId) return json({ ok: false, error: "This can no longer be undone" }, 400);
+
+  // Scope to this shop, the same as every other guest action.
+  const purchase = await db.purchase.findFirst({
+    where: { id: purchaseId, item: { registry: { shop: { domain: ctx.shop } } } },
+    select: { id: true },
   });
+  if (!purchase || !(await undoGuestPurchase(purchase.id))) {
+    return json({ ok: false, error: "This can no longer be undone" }, 409);
+  }
   return json({ ok: true });
 }
 
@@ -898,6 +1002,95 @@ async function addExternalAction(request: Request, ctx: ProxyContext): Promise<R
       502,
     );
   }
+}
+
+/**
+ * Step one of the paste box: read the link now and show the registrant what
+ * we found (title, photo, price) plus the store's closest match, before
+ * anything is added. Read-only.
+ *
+ * `found: false` isn't an error — lots of big retailers refuse a server read —
+ * it just means the registrant fills in the name and price themselves.
+ */
+async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  let link: Awaited<ReturnType<typeof previewUrl>>;
+  try {
+    link = await previewUrl(String(body.url ?? ""));
+  } catch (err) {
+    if (err instanceof InvalidProductUrl) return json({ ok: false, error: err.message }, 400);
+    throw err;
+  }
+
+  const match = link.title ? await previewStoreMatch(shop.domain, shop.currency, link.title) : null;
+  return json({
+    ok: true,
+    found: link.title !== null,
+    url: link.url,
+    domain: link.domain,
+    title: link.title,
+    imageUrl: link.imageUrl,
+    price: link.price,
+    currency: link.currency ?? shop.currency,
+    match: match?.preview ?? null,
+  });
+}
+
+/**
+ * Step two of the paste box: add the link with the details the registrant
+ * confirmed. The store match is looked up again here rather than trusted from
+ * the browser, so nothing the page sends can put an arbitrary product in front
+ * of guests; `showMatch` only decides whether it starts out kept.
+ */
+async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const title = String(body.title ?? "").trim().slice(0, 300);
+  if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
+
+  // Required: a pasted item from a site that blocks our read has nothing else
+  // telling guests what it costs (Ben, 25 Sep 2026).
+  const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
+  if (!rawPrice) return json({ ok: false, error: "Please add the price, so guests know what it costs" }, 400);
+  const price = normalizePrice(rawPrice);
+  if (price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+
+  const match = await previewStoreMatch(shop.domain, shop.currency, title);
+
+  try {
+    const result = await addLinkedItem({
+      registryId: registry.id,
+      url: String(body.url ?? ""),
+      title,
+      imageUrl: typeof body.imageUrl === "string" ? body.imageUrl : null,
+      price,
+      currency: normalizeCurrency(typeof body.currency === "string" ? body.currency : null) ?? shop.currency,
+      note: cleanNote(body.note),
+      storeMatch: match ? storeMatchFields(match.match, keepMatch(match.preview.title, body) ? "kept" : "suggested") : null,
+    });
+    if (result.duplicate) {
+      return json({ ok: false, error: "That link is already on your list. Change its quantity below." }, 409);
+    }
+    return json({ ok: true, itemId: result.item.id });
+  } catch (err) {
+    if (err instanceof InvalidProductUrl || err instanceof ItemError) {
+      return json({ ok: false, error: err.message }, 400);
+    }
+    throw err;
+  }
+}
+
+/**
+ * Only keep the match the registrant actually saw: if they edited the name and
+ * the store's closest match moved, it starts out as a suggestion instead.
+ */
+function keepMatch(foundTitle: string, body: Record<string, unknown>): boolean {
+  return body.showMatch === true && typeof body.matchTitle === "string" && body.matchTitle === foundTitle;
 }
 
 /**
@@ -1200,6 +1393,54 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
   );
 }
 
+/**
+ * Registrant saves (or turns off) ship-to-registrant. Turning it off deletes
+ * the stored address rather than keeping it around unused.
+ */
+async function shippingAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  const form = await request.formData();
+  const back = (flash: string) =>
+    redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash }) + "#ship");
+
+  if (form.get("enabled") !== "on") {
+    await setShippingAddress(registry.id, null);
+    await logEvent(registry.id, "shipping_address_updated", { enabled: false });
+    return back("ship-off");
+  }
+
+  const parsed = parseShippingAddressForm(form);
+  if ("error" in parsed) return back(`ship-${parsed.error}`);
+
+  await setShippingAddress(registry.id, parsed.address);
+  await logEvent(registry.id, "shipping_address_updated", { enabled: true, country: parsed.address.countryCode });
+  return back("ship-saved");
+}
+
+/**
+ * Guest opts in to a pre-event reminder (Pro). Answers the same way whether or
+ * not the email was already signed up, so this can't be used to check who is.
+ */
+async function remindAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const body = await readJson(request);
+  const email = String(body.email ?? "").trim();
+  const registryId = String(body.registryId ?? "");
+  if (!isEmail(email)) return json({ ok: false, error: "Please enter a valid email address." }, 400);
+
+  const registry = await db.registry.findFirst({
+    where: { id: registryId, shopId: shop.id, status: "active" },
+    select: { id: true, eventDate: true },
+  });
+  if (!registry || !offersGuestReminder(shop, registry.eventDate)) {
+    return json({ ok: false, error: "Reminders aren't available for this registry." }, 404);
+  }
+
+  await addGuestReminder(registry.id, email);
+  return json({ ok: true });
+}
+
 async function deleteAction(request: Request, ctx: ProxyContext, brand: Brand): Promise<Response> {
   const registry = await requireManage(ctx);
   if (!registry) return new Response("Unauthorized", { status: 403 });
@@ -1283,15 +1524,15 @@ function firstNameOnly(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
 }
 
-function csvCell(value: string): string {
-  // Guard against CSV injection — these cells open in Excel.
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return `"${safe.replace(/"/g, '""')}"`;
-}
-
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
   const flash = ctx.query.get("flash");
   if (flash === "saved") return { kind: "ok", message: "Your changes are saved." };
+  if (flash === "ship-saved") return { kind: "ok", message: "Your shipping address is saved." };
+  if (flash === "ship-off") return { kind: "ok", message: "Gifts won't be sent to you, and your address has been deleted." };
+  const shipError = flash?.startsWith("ship-") ? flash.slice(5) : null;
+  if (shipError && shipError in SHIPPING_ADDRESS_ERRORS) {
+    return { kind: "err", message: SHIPPING_ADDRESS_ERRORS[shipError as ShippingAddressError] };
+  }
   return null;
 }
 

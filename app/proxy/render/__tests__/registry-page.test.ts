@@ -110,6 +110,22 @@ describe("registry page rendering", () => {
     expect(html).not.toContain('class="btn sm ghost js-claim"');
   });
 
+  it("gives internal items an in-cart state and an already-bought option", () => {
+    const html = page([item()]);
+    // The in-cart block is built by the script once the line is in the cart.
+    expect(html).toContain('<strong>In your cart</strong> <a class="btn sm" href="/cart">');
+    expect(html).toContain('class="btn sm js-add-btn" type="submit">Add to cart</button>');
+    expect(html).toContain('class="linkish js-bought" data-item="item_1" data-store="1"');
+    expect(html).toContain("Already bought it?");
+  });
+
+  it("greys out a store item once the order webhook has counted it", () => {
+    const html = page([item({ purchasedQty: 1, desiredQty: 1, remainingQty: 0, fulfilled: true })]);
+    expect(html).toContain('class="item done"');
+    expect(html).toContain("Already taken care of");
+    expect(html).not.toContain('<form class="row js-add"');
+  });
+
   it("gives external items an outbound link, never an add-to-cart", () => {
     const html = page([
       item({
@@ -218,7 +234,7 @@ describe("registry page rendering", () => {
   it("only ever declares a safe accent colour", () => {
     const html = page([item()], { accentColor: "red; } body { display:none } .x{" });
     expect(html).toContain("--accent:#1a1a1a");
-    expect(html).not.toContain("display:none");
+    expect(html).not.toContain("body { display:none }");
   });
 });
 
@@ -273,6 +289,37 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     // always matches whatever this merchant's brand color is.
     const html = page([item()], { coverImageUrl: null, eventType: "wedding" });
     expect(html).toContain("var(--accent)");
+  });
+
+  it("uses the painted wedding banner, served from the app origin, when one is known", () => {
+    const html = page([item()], {
+      coverImageUrl: null,
+      eventType: "wedding",
+      artBaseUrl: "https://app.example.com/",
+    });
+    expect(html).toContain('class="hero-img hero-painting"');
+    expect(html).toContain('src="https://app.example.com/art/wedding-v3-2016.webp"');
+    expect(html).toContain("https://app.example.com/art/wedding-v3-1024.webp 1024w");
+    expect(html).not.toContain('class="hero-art"');
+  });
+
+  it("keeps line art for event types without a painting", () => {
+    const html = page([item()], {
+      coverImageUrl: null,
+      eventType: "baby",
+      artBaseUrl: "https://app.example.com",
+    });
+    expect(html).toContain('class="hero-art"');
+    expect(html).not.toContain('class="hero-img hero-painting"');
+  });
+
+  it("still prefers an uploaded cover photo over the painted banner", () => {
+    const html = page([item()], {
+      coverImageUrl: "https://cdn.example.com/cover.jpg",
+      eventType: "wedding",
+      artBaseUrl: "https://app.example.com",
+    });
+    expect(html).not.toContain('class="hero-img hero-painting"');
   });
 });
 
@@ -400,6 +447,7 @@ describe("group gifts and cash funds (SPIKE-C.md)", () => {
     expect(html).toContain('class="js-chip chip"');
     expect(html).toContain('value="7001"');
     expect(html).toContain('value="7002"');
+    expect(html).toContain("/contribute");
     // A fund is not bought elsewhere: no claim or "I bought this".
     expect(html).not.toContain('data-item="fund_1" type="button">I bought this');
   });
@@ -434,5 +482,37 @@ describe("group gifts and cash funds (SPIKE-C.md)", () => {
     const html = page([item({ fund: { goal: 300, funded: 50, percent: 16, remaining: 250, complete: false } })]);
     expect(html).not.toContain("js-chip chip");
     expect(html).not.toContain("raised");
+    // Nor its script: other registries keep their page-weight budget.
+    expect(html).not.toContain("/contribute");
+  });
+});
+
+describe("pre-event reminder sign-up (Pro)", () => {
+  it("renders only when offered, hidden until the script shows it", () => {
+    expect(page([item()])).not.toContain('class="note js-remind"');
+    const html = page([item()], { offerReminder: true });
+    expect(html).toContain('class="note js-remind" method="post" hidden');
+    expect(html).toContain("Remind me");
+  });
+});
+
+describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
+  it("offers the box, ticked by default, when the registrant saved an address", () => {
+    const html = page([item()], { shipToRegistrant: true });
+    expect(html).toMatch(/class="js-ship-choice" data-label="[^"]*Want it sent to you instead[^"]*" checked/);
+    expect(html).toContain("/cart/change.js");
+    expect(html).toContain("Untick this to have it sent to you instead.");
+  });
+
+  it("doesn't offer it when ship-to-registrant is off", () => {
+    expect(page([item()], { shipToRegistrant: false })).not.toContain('class="js-ship-choice"');
+  });
+
+  it("doesn't offer it when there are no store items to ship", () => {
+    expect(page([item({ sourceType: "web" })], { shipToRegistrant: true })).not.toContain('class="js-ship-choice"');
+  });
+
+  it("sends the guest's choice with add to cart", () => {
+    expect(page([item()], { shipToRegistrant: true })).toContain("shipToRegistrant:shipEl?shipEl.checked:false");
   });
 });

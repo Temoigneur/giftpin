@@ -1,6 +1,6 @@
 import db from "../db.server";
 import type { Shop } from "@prisma/client";
-import { SHOP_SETTINGS_DEFAULTS, type ShopSettings } from "../shared/settings";
+import { mergeSettings, type ShopSettings } from "../shared/settings";
 
 /**
  * Shop record and merchant settings.
@@ -13,8 +13,7 @@ export { SHOP_SETTINGS_DEFAULTS, EVENT_TYPES, eventTypeLabel } from "../shared/s
 export type { ShopSettings } from "../shared/settings";
 
 export function settingsFor(shop: Pick<Shop, "settings">): ShopSettings {
-  const stored = (shop.settings ?? {}) as Partial<ShopSettings>;
-  return { ...SHOP_SETTINGS_DEFAULTS, ...stored };
+  return mergeSettings((shop.settings ?? {}) as Partial<ShopSettings>);
 }
 
 /** Idempotent: called on install and on every admin load. */
@@ -53,9 +52,19 @@ export async function updateSettings(domain: string, patch: Partial<ShopSettings
 }
 
 export async function markUninstalled(domain: string) {
+  // Shopify cancels the app subscription on uninstall, and the matching
+  // APP_SUBSCRIPTIONS_UPDATE webhook can't be relied on to reach an app
+  // that's already gone. Drop the cached plan here, or a reinstall comes
+  // back as "pro" with no live charge: Pro for free, and a Cancel button
+  // pointed at a subscription Shopify no longer has (App Store req. 1.2.2).
   await db.shop.updateMany({
     where: { domain },
-    data: { uninstalledAt: new Date() },
+    data: {
+      uninstalledAt: new Date(),
+      plan: "free",
+      shopifyChargeId: null,
+      planUpdatedAt: new Date(),
+    },
   });
 }
 

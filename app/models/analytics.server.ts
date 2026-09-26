@@ -228,3 +228,87 @@ export async function analyticsReport(shopId: string, range: AnalyticsRange, now
 
   return buildReport({ registries, items, purchases }, range, shop?.currency ?? "USD", now);
 }
+
+// ---------------------------------------------------------------------------
+// Registry sales report (Pro): money, month by month
+// ---------------------------------------------------------------------------
+
+/**
+ * One calendar month (UTC) of registry-driven sales in the merchant's store.
+ *
+ * Only gifts bought in this store count (source online/pos): a gift bought
+ * elsewhere or marked by the registrant earned the merchant nothing.
+ *
+ *   revenue       — registry gift lines at the price on the order, before
+ *                   order-level discounts (Purchase.amount; see
+ *                   app/lib/attribution.ts). Not the whole order total: other
+ *                   things in the same cart aren't recorded.
+ *   orders        — distinct orders with at least one registry gift.
+ *   newCustomers  — of those orders, how many were a first purchase at the
+ *                   shop (Purchase.isNewCustomer).
+ *   averageOrder  — revenue / orders, so registry spend per order.
+ */
+export interface MonthlySales {
+  /** ISO start of the month. */
+  month: string;
+  revenue: number;
+  orders: number;
+  newCustomers: number;
+  averageOrder: number;
+}
+
+export const SALES_REPORT_MONTHS = 12;
+
+export type SalesRow = Pick<AnalyticsRows["purchases"][number], "createdAt" | "source" | "amount" | "isNewCustomer" | "orderId"> & {
+  id: string;
+};
+
+/** Pure: 12 calendar months ending with this one, oldest first. */
+export function buildMonthlySales(rows: SalesRow[], now: Date, months = SALES_REPORT_MONTHS): MonthlySales[] {
+  const starts = Array.from(
+    { length: months },
+    (_, i) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (months - 1) + i, 1)),
+  );
+  const buckets = starts.map(() => ({ revenue: 0, orders: new Set<string>(), newCustomers: new Set<string>() }));
+
+  for (const row of rows) {
+    if (row.source !== "online" && row.source !== "pos") continue;
+    const t = row.createdAt.getTime();
+    if (t < starts[0].getTime() || t > now.getTime()) continue;
+    let i = starts.length - 1;
+    while (i > 0 && starts[i].getTime() > t) i--;
+
+    const amount = Number(row.amount ?? 0);
+    buckets[i].revenue += Number.isFinite(amount) ? amount : 0;
+    // A purchase with no order id (POS, later) is its own order.
+    const order = row.orderId ?? `purchase:${row.id}`;
+    buckets[i].orders.add(order);
+    if (row.isNewCustomer) buckets[i].newCustomers.add(order);
+  }
+
+  return starts.map((start, i) => {
+    const { revenue, orders, newCustomers } = buckets[i];
+    const rounded = Math.round(revenue * 100) / 100;
+    return {
+      month: start.toISOString(),
+      revenue: rounded,
+      orders: orders.size,
+      newCustomers: newCustomers.size,
+      averageOrder: orders.size > 0 ? Math.round((revenue / orders.size) * 100) / 100 : 0,
+    };
+  });
+}
+
+export async function monthlySales(shopId: string, now = new Date()): Promise<MonthlySales[]> {
+  const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (SALES_REPORT_MONTHS - 1), 1));
+  const rows = await db.purchase.findMany({
+    where: {
+      voidedAt: null,
+      source: { in: ["online", "pos"] },
+      createdAt: { gte: since },
+      item: { registry: { shopId } },
+    },
+    select: { id: true, createdAt: true, source: true, amount: true, isNewCustomer: true, orderId: true },
+  });
+  return buildMonthlySales(rows, now);
+}

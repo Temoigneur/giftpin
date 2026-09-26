@@ -3,6 +3,7 @@ import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
 import { requireShop, setPlanFromSubscription } from "../models/shop.server";
+import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
 
 /**
  * Merchant-facing upgrade/cancel page. Pricing (Free unlimited + Pro
@@ -34,6 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   return {
+    shopDomain: session.shop,
     plan: shop.plan,
     price: PRO_PLAN_PRICE,
     isTest: BILLING_IS_TEST,
@@ -69,7 +71,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Billing() {
-  const { plan, price, isTest, liveSubscriptionName } = useLoaderData<typeof loader>();
+  const { plan, price, isTest, liveSubscriptionName, shopDomain } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const busy = fetcher.state !== "idle";
   const isPro = plan === "pro";
@@ -84,8 +86,12 @@ export default function Billing() {
             </s-paragraph>
             <s-unordered-list>
               <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
-              <s-list-item>Priority support</s-list-item>
-              <s-list-item>The &quot;Powered by Giftpin&quot; credit removed from your registry pages</s-list-item>
+              <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
+              <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
+              <s-list-item>CSV export of registries and purchases</s-list-item>
+              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
+              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
+              <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="cancel" />
@@ -103,8 +109,12 @@ export default function Billing() {
             <s-paragraph>Pro (${price}/mo) adds:</s-paragraph>
             <s-unordered-list>
               <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
-              <s-list-item>Priority support</s-list-item>
-              <s-list-item>Remove the &quot;Powered by Giftpin&quot; credit from your registry pages</s-list-item>
+              <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
+              <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
+              <s-list-item>CSV export of registries and purchases</s-list-item>
+              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
+              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
+              <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="upgrade" />
@@ -119,6 +129,19 @@ export default function Billing() {
             <s-text color="subdued">Test mode — no card will actually be charged.</s-text>
           </s-paragraph>
         )}
+      </s-section>
+
+      <s-section heading={isPro ? "Priority support" : "Support"}>
+        <s-stack direction="block" gap="base">
+          <s-paragraph>
+            {isPro
+              ? `Email ${SUPPORT_EMAIL} from the button below and your message is marked Pro. ${PRO_SUPPORT_PROMISE}.`
+              : `Email ${SUPPORT_EMAIL} and we'll get back to you. Pro includes priority support: ${PRO_SUPPORT_PROMISE.toLowerCase()}.`}
+          </s-paragraph>
+          <s-button href={supportMailto(shopDomain, isPro)} target="_blank" variant="secondary">
+            Email support
+          </s-button>
+        </s-stack>
       </s-section>
     </s-page>
   );

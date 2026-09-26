@@ -319,3 +319,20 @@ function decodeEntities(value: string): string {
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+/**
+ * Titles a page reports when it isn't really showing the product: an
+ * unrendered app shell (sportchek.ca's product pages all say "General PDP
+ * Template" to a server fetch — seen live 25 Sep 2026), a bot check, or an
+ * error page. Treating these as "no title" sends the registrant to type the
+ * name themselves instead of putting a nonsense title on their list.
+ */
+export function looksLikePlaceholderTitle(title: string | null | undefined): boolean {
+  const t = (title ?? "").trim().toLowerCase();
+  if (!t) return true;
+  return (
+    /\btemplate\b/.test(t) ||
+    /^(untitled|home|homepage|product|products|shop|loading\.*|page not found|not found|404|403|error)$/.test(t) ||
+    /\b(access denied|just a moment|attention required|are you a robot|captcha|robot check|request blocked|forbidden)\b/.test(t)
+  );
+}

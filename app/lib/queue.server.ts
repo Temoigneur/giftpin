@@ -21,7 +21,8 @@ export type JobName =
   | "refresh-external"
   | "send-email"
   | "reap-claims"
-  | "purge-expired-data";
+  | "purge-expired-data"
+  | "registry-automations";
 
 export interface JobPayloads {
   "attribute-order": { shop: string; orderPayload: unknown };
@@ -32,6 +33,7 @@ export interface JobPayloads {
   "send-email": { template: string; to: string; data: Record<string, unknown> };
   "reap-claims": Record<string, never>;
   "purge-expired-data": Record<string, never>;
+  "registry-automations": { shop?: string };
 }
 
 type Handler<N extends JobName> = (payload: JobPayloads[N]) => Promise<void>;
@@ -126,6 +128,7 @@ function ensureHandlersLoaded(): Promise<void> {
       import("../lib/store-match.server"),
       import("../lib/email.server"),
       import("../models/retention.server"),
+      import("../models/automations.server"),
     ]).then(() => undefined);
   }
   return handlersLoaded;
@@ -189,5 +192,14 @@ export async function scheduleRecurring(): Promise<void> {
     "purge-expired-data",
     {},
     { repeat: { pattern: "43 4 * * *" }, jobId: "cron:purge-expired-data", ...DEFAULT_JOB_OPTIONS },
+  );
+
+  // Pro lifecycle emails and the completion discount — see
+  // app/models/automations.server.ts. 15:00 UTC lands in the morning to
+  // early afternoon across North America, not in the middle of the night.
+  await queue.add(
+    "registry-automations",
+    {},
+    { repeat: { pattern: "0 15 * * *" }, jobId: "cron:registry-automations", ...DEFAULT_JOB_OPTIONS },
   );
 }
