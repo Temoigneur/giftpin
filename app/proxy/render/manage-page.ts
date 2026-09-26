@@ -85,6 +85,7 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
   <p style="margin:0 0 8px"><strong>Your share link</strong></p>
   <p class="sub" style="word-break:break-all;margin:0 0 10px">${escapeHtml(data.shareUrl)}</p>
   <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share with guests</button>
+  ${renderShareMenu(data.title, data.shareUrl)}
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
 </div>
 
@@ -533,6 +534,25 @@ function renderGifts(data: ManagePageData): string {
 <p><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
 }
 
+/**
+ * Ways to share the guest link when the device has no share sheet of its own,
+ * or its share sheet fails. Hidden until the Share button needs it.
+ */
+function renderShareMenu(title: string, url: string): string {
+  const text = `${title}: ${url}`;
+  const links: [string, string][] = [
+    ["Email", `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`],
+    ["Text message", `sms:?&body=${encodeURIComponent(text)}`],
+    ["WhatsApp", `https://wa.me/?text=${encodeURIComponent(text)}`],
+    ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`],
+  ];
+  return `<style>.share-menu:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}</style>
+  <div class="share-menu js-share-menu" hidden>
+    <button class="btn sm js-share-copy" type="button" data-url="${escapeAttr(url)}">Copy link</button>
+    ${links.map(([label, href]) => `<a class="btn sm" href="${escapeAttr(href)}" target="_blank" rel="noopener">${label}</a>`).join("\n    ")}
+  </div>`;
+}
+
 function manageScript(): string {
   return `
 (function(){
@@ -897,11 +917,25 @@ function manageScript(): string {
       else{document.execCommand('copy');done();}
       return;
     }
+    // The phone or computer's own share sheet when it has one. It can fail
+    // without showing anything (Chrome on Windows refuses a second share
+    // while an earlier one is stuck), so any failure other than the person
+    // closing the sheet opens our own list of ways to share instead.
     var share=e.target.closest('.js-share');
     if(share){
-      var data={title:share.dataset.title,url:share.dataset.url};
-      if(navigator.share){navigator.share(data).catch(function(){});}
-      else if(navigator.clipboard){navigator.clipboard.writeText(share.dataset.url).then(function(){share.textContent='Link copied';});}
+      var menu=document.querySelector('.js-share-menu');
+      var showMenu=function(){if(menu)menu.hidden=false;};
+      if(navigator.share){
+        try{navigator.share({title:share.dataset.title,url:share.dataset.url}).catch(function(err){if(!err||err.name!=='AbortError')showMenu();});}
+        catch(_){showMenu();}
+      }else{showMenu();}
+      return;
+    }
+    var shareCopy=e.target.closest('.js-share-copy');
+    if(shareCopy){
+      var link=shareCopy.dataset.url,copied=function(){shareCopy.textContent='Link copied';};
+      if(navigator.clipboard){navigator.clipboard.writeText(link).then(copied,function(){prompt('Copy this link:',link);});}
+      else{prompt('Copy this link:',link);}
     }
   });
 })();`.trim();
