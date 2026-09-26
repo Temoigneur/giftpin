@@ -9,7 +9,7 @@
  *   action on "Get early access" (an email to support); set, they all become
  *   "Install on Shopify" and link here.
  */
-export const DEMO_VIDEO_URL = "";
+export const DEMO_VIDEO_URL = "https://youtu.be/3TeeSK2ZH0o";
 export const APP_STORE_URL = "";
 
 export const SITE_URL = "https://giftpin.app";
