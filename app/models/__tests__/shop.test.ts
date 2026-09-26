@@ -10,12 +10,17 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("../../db.server", () => ({
   default: {
-    shop: { update: vi.fn() },
+    shop: { update: vi.fn(), updateMany: vi.fn() },
   },
 }));
 
 import db from "../../db.server";
-import { isPro, planFromSubscriptionStatus, setPlanFromSubscription } from "../shop.server";
+import {
+  isPro,
+  markUninstalled,
+  planFromSubscriptionStatus,
+  setPlanFromSubscription,
+} from "../shop.server";
 
 const mockedUpdate = vi.mocked(db.shop.update);
 
@@ -65,5 +70,17 @@ describe("setPlanFromSubscription", () => {
       where: { domain: "shop.myshopify.com" },
       data: expect.objectContaining({ plan: "free", shopifyChargeId: null }),
     });
+  });
+});
+
+describe("markUninstalled", () => {
+  it("drops the cached plan so a reinstall starts on Free with no stale charge id", async () => {
+    const mockedUpdateMany = vi.mocked(db.shop.updateMany);
+    mockedUpdateMany.mockClear();
+    await markUninstalled("a.myshopify.com");
+    const data = mockedUpdateMany.mock.calls[0][0].data as Record<string, unknown>;
+    expect(data.plan).toBe("free");
+    expect(data.shopifyChargeId).toBeNull();
+    expect(data.uninstalledAt).toBeInstanceOf(Date);
   });
 });

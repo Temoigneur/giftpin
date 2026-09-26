@@ -1,9 +1,13 @@
+import type { PageBranding } from "../../shared/branding";
 import { storeMatchHref, layout, escapeHtml, escapeAttr, formatMoney, jsonForScript } from "./layout";
 import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
-import { eventHeroArt } from "../../shared/event-art";
+import { SHIP_TO_LABEL, shipToValue } from "../../lib/attribution";
+import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
+import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
+import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -31,6 +35,7 @@ export interface RegistryPageData {
   progress: RegistryProgress;
   shopName: string;
   accentColor: string;
+  branding?: PageBranding | null;
   indexable: boolean;
   currency: string;
   shareUrl: string;
@@ -49,6 +54,42 @@ export interface RegistryPageData {
   affiliateLinkWrapperBase?: string | null;
   /** Pro feature ("branding removal") — see app/routes/app.billing.tsx. */
   hidePoweredBy?: boolean;
+  /** Pro: show the "email me before the event" sign-up. See automations.server.ts. */
+  offerReminder?: boolean;
+  /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
+  artBaseUrl?: string | null;
+  /**
+   * The registrant saved a ship-to address. Guests still choose per purchase:
+   * the box below is ticked by default, and unticking it leaves the order's
+   * address alone (Ben, 25 Sep 2026: a guest may want it at their own door).
+   */
+  shipToRegistrant?: boolean;
+}
+
+function renderShipChoice(data: RegistryPageData): string {
+  if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
+  const who = data.registrantNames || "the registrant";
+  return `<div class="note">
+  <label class="check"><input type="checkbox" class="js-ship-choice" data-label="${escapeAttr(shipToValue(data.registrantNames))}" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
+  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead. Anything already in your cart updates too.</p>
+  <p class="hint js-ship-status" role="status"></p>
+</div>
+<script>(function(){
+  // Ticking or unticking the box also updates registry lines already in the
+  // cart, so the "Gift ships to" note at checkout always matches it.
+  var shipBox=document.querySelector('.js-ship-choice'),st=document.querySelector('.js-ship-status');
+  shipBox.addEventListener('change',function(){
+    var on=shipBox.checked;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
+      var lines=(cart.items||[]).filter(function(l){return l.properties&&l.properties._rg&&document.querySelector('.js-add[data-variant="'+String(l.variant_id)+'"]')&&(!!l.properties._rg_ship)!==on;});
+      return lines.reduce(function(p,l){return p.then(function(){
+        var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
+        if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=shipBox.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
+        return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
+      })},Promise.resolve()).then(function(){if(lines.length)st.textContent=on?'Your cart is updated: it ships to them.':'Your cart is updated: it ships to you.';});
+    }).catch(function(){st.textContent="Couldn't update your cart. Remove the item and add it again.";});
+  });
+})();</script>`;
 }
 
 export function renderRegistryPage(data: RegistryPageData): string {
@@ -72,7 +113,8 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
   ${
     data.coverImageUrl
       ? `<img class="hero-img" src="${escapeAttr(data.coverImageUrl)}" alt="" loading="eager">`
-      : `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`
+      : eventHeroImage(data.eventType, data.artBaseUrl) ??
+        `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`
   }
   <p class="sub">${escapeHtml(data.eventLabel)}${dateLine ? ` &middot; ${escapeHtml(dateLine)}` : ""}</p>
   <h1>${escapeHtml(data.title)}</h1>
@@ -94,6 +136,7 @@ ${renderShare(data)}
   <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
 </div>
 
+${renderShipChoice(data)}
 <div id="registro-items">${
   data.items.length === 0
     ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
@@ -102,7 +145,9 @@ ${renderShare(data)}
 
 ${renderDuplicateNotice(data)}
 
-<p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Registry owner? Manage this registry</a></p>
+${data.offerReminder ? renderReminderSignup() : ""}
+
+<p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your registry? Sign in or get your private edit link</a></p>
 
 <!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
@@ -121,6 +166,7 @@ ${renderDuplicateNotice(data)}
       accentColor: data.accentColor,
       indexable: data.indexable,
       shopName: data.shopName,
+      branding: data.branding,
       head,
       hidePoweredBy: data.hidePoweredBy,
     },
@@ -182,7 +228,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (item.isStale && price) meta.push("price may have changed");
   if (item.availability === "out_of_stock") meta.push("out of stock");
 
-  return `<li class="${classes.join(" ")}">
+  return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}">
   ${image}
   <div>
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
@@ -228,8 +274,9 @@ function renderItemAction(
     const max = Math.max(1, remaining);
     return `${heldNotice}<form class="row js-add" data-item="${escapeAttr(item.id)}" data-variant="${escapeAttr(variantId)}">
   ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">Quantity</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
-  <button class="btn sm" type="submit">Add to cart</button>
+  <button class="btn sm js-add-btn" type="submit">Add to cart</button>
   <span class="js-status item-meta" role="status"></span>
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
 </form>`;
   }
 
@@ -272,6 +319,17 @@ function renderShare(data: RegistryPageData): string {
 </div>`;
 }
 
+function renderReminderSignup(): string {
+  return `<form class="note js-remind" method="post" hidden>
+  <label for="registro-remind-email"><strong>Want a reminder?</strong> We'll email you once, about two weeks before the event.</label>
+  <div class="row" style="margin-top:8px">
+    <input id="registro-remind-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com" style="flex:1;min-height:44px;padding:0 12px;border:1px solid #ccc;border-radius:8px">
+    <button class="btn sm" type="submit">Remind me</button>
+  </div>
+  <span class="js-status item-meta" role="status"></span>
+</form>`;
+}
+
 function renderDuplicateNotice(data: RegistryPageData): string {
   if (data.progress.externalItems === 0) return "";
   return `<div class="note">
@@ -294,24 +352,88 @@ function clientScript(): string {
   // If this browser is the owner's (the manage page left a token in
   // localStorage), upgrade the always-visible owner link so it goes straight in.
   try{
-    var owned=JSON.parse(localStorage.getItem('registro.registries')||'[]');
+    var owned=JSON.parse(localStorage.getItem('${REGISTRIES_STORAGE_KEY}')||localStorage.getItem('${LEGACY_REGISTRIES_STORAGE_KEY}')||'[]');
     var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
     var ownerEl=document.getElementById('registro-owner');
     if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
   }catch(_){}
 
+  // Store items: once a line for this variant is in the guest's cart, swap
+  // "Add to cart" for a checkout prompt so nobody adds it twice by accident.
+  // The item only counts as bought when the order webhook lands.
+  function markInCart(form){
+    // Built here rather than rendered hidden on every item: the page has a
+    // strict byte budget and most items are never added.
+    var b=form.querySelector('.js-add-btn'),q=form.querySelector('.qty');
+    if(b)b.hidden=true;if(q)q.hidden=true;
+    if(!form.querySelector('.js-incart')){
+      var p=document.createElement('p');p.className='js-incart incart';
+      p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a>';
+      if(b)b.parentNode.insertBefore(p,b);else form.appendChild(p);
+    }
+  }
+  function syncCart(){
+    if(!document.querySelector('.js-add'))return;
+    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(cart){
+        if(!cart||!cart.items)return;
+        cart.items.forEach(function(line){
+          if(!line.properties||!line.properties._rg)return;
+          Array.prototype.forEach.call(document.querySelectorAll('.js-add[data-variant="'+String(line.variant_id)+'"]'),markInCart);
+        });
+      })
+      .catch(function(){});
+  }
+  syncCart();
+
+  // Undo for "I bought this". The token only ever lives in the browser that
+  // made the mark, and the server stops honouring it after a day.
+  var UNDO_KEY='${UNDO_STORAGE_KEY}';
+  function readUndo(){try{var m=JSON.parse(localStorage.getItem(UNDO_KEY)||'{}');return m&&typeof m==='object'?m:{};}catch(_){return {};}}
+  function writeUndo(m){try{localStorage.setItem(UNDO_KEY,JSON.stringify(m));}catch(_){}}
+  function saveUndo(id,t){var m=readUndo();m[id]={t:t,x:Date.now()+${UNDO_WINDOW_SECONDS * 1000}};writeUndo(m);}
+  function dropUndo(id){var m=readUndo();delete m[id];writeUndo(m);}
+  function showUndo(){
+    var m=readUndo(),now=Date.now(),changed=false;
+    Object.keys(m).forEach(function(id){
+      if(!m[id]||!(m[id].x>now)){delete m[id];changed=true;return;}
+      if(!/^[A-Za-z0-9_-]+$/.test(id))return;
+      var li=document.querySelector('#registro-items li[data-item="'+id+'"]');
+      if(!li||li.querySelector('.js-undo'))return;
+      var p=document.createElement('p');p.className='item-meta undo';
+      p.appendChild(document.createTextNode('You marked this as bought. '));
+      var b=document.createElement('button');b.type='button';b.className='linkish js-undo';b.dataset.item=id;b.textContent='Undo';
+      p.appendChild(b);li.appendChild(p);
+    });
+    if(changed)writeUndo(m);
+  }
+  showUndo();
+
+  // The reminder sign-up is JSON-only, so it stays hidden without script.
+  Array.prototype.forEach.call(document.querySelectorAll('.js-remind'),function(f){f.hidden=false;});
+
   document.addEventListener('submit',function(e){
+    var remind=e.target.closest('.js-remind');
+    if(remind){
+      e.preventDefault();var rb=remind.querySelector('button');rb.disabled=true;status(remind,'Saving...');
+      post('/remind',{registryId:cfg.registryId,email:remind.querySelector('[name=email]').value})
+        .then(function(res){if(res&&res.ok){status(remind,"Done. We'll email you before the event.");}else{status(remind,(res&&res.error)||'Could not save',false);rb.disabled=false;}})
+        .catch(function(){status(remind,'Could not save',false);rb.disabled=false;});
+      return;
+    }
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
     var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
     var qtyEl=form.querySelector('[name=qty]');
-    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1})
+    var shipEl=document.querySelector('.js-ship-choice');
+    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:shipEl?shipEl.checked:false})
       .then(function(res){
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token
         // travels on the cart LINE, which is what survives Shop Pay.
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
   });
 
@@ -325,10 +447,21 @@ function clientScript(): string {
     }
     var bought=e.target.closest('.js-bought');
     if(bought){
+      if(bought.dataset.store&&!confirm("Mark this as bought? Only do this if you got it some other way, like in the shop. Orders placed here are counted automatically."))return;
       bought.disabled=true;status(bought,'Saving...');
       post('/bought',{itemId:bought.dataset.item}).then(function(res){
-        if(res&&res.ok){location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
+        if(res&&res.ok){if(res.undoToken)saveUndo(bought.dataset.item,res.undoToken);location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
       }).catch(function(){status(bought,'Could not save',false);bought.disabled=false;});
+      return;
+    }
+    var undo=e.target.closest('.js-undo');
+    if(undo){
+      var u=readUndo()[undo.dataset.item];if(!u)return;
+      undo.disabled=true;undo.textContent='Undoing...';
+      post('/undo-bought',{token:u.t}).then(function(res){
+        dropUndo(undo.dataset.item);
+        if(res&&res.ok){location.reload();}else{undo.parentNode.textContent=(res&&res.error)||'Could not undo';}
+      }).catch(function(){undo.disabled=false;undo.textContent='Undo';});
       return;
     }
     var share=e.target.closest('.js-share');
@@ -370,6 +503,8 @@ function clientScript(): string {
           if(p&&cur)cur.innerHTML=p.innerHTML;
           cfg.version=next.version;
           banner.hidden=true;
+          syncCart();
+          showUndo();
         });
     }
     function checkVersion(){

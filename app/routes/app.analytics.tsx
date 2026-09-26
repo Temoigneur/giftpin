@@ -3,7 +3,15 @@ import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isPro, requireShop } from "../models/shop.server";
-import { analyticsReport, parseRange, type AnalyticsBucket, type Granularity } from "../models/analytics.server";
+import {
+  analyticsReport,
+  monthlySales,
+  parseRange,
+  type AnalyticsBucket,
+  type Granularity,
+  type MonthlySales,
+} from "../models/analytics.server";
+import { exportUrl } from "../models/export.server";
 import { eventTypeLabel } from "../shared/settings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -14,7 +22,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!isPro(shop)) return { locked: true as const };
 
   const range = parseRange(new URL(request.url).searchParams.get("range"));
-  return { locked: false as const, report: await analyticsReport(shop.id, range) };
+  const [report, sales] = await Promise.all([analyticsReport(shop.id, range), monthlySales(shop.id)]);
+  return { locked: false as const, report, sales, salesCsvUrl: exportUrl(shop.id, "sales") };
 };
 
 const RANGE_LABELS: Record<number, string> = { 30: "Last 30 days", 90: "Last 90 days", 365: "Last 12 months" };
@@ -54,7 +63,7 @@ export default function Analytics() {
     );
   }
 
-  const { report } = data;
+  const { report, sales, salesCsvUrl } = data;
   const { totals, previous } = report;
   const internalShare = totals.itemsAdded > 0 ? Math.round((totals.itemsAddedInternal / totals.itemsAdded) * 100) : 0;
   const range = String(report.range);
@@ -88,6 +97,8 @@ export default function Analytics() {
           <Stat label="New customers" value={String(totals.newCustomers)} note={change(totals.newCustomers, previous.newCustomers)} />
         </s-stack>
       </s-section>
+
+      <SalesReport sales={sales} currency={report.currency} csvUrl={salesCsvUrl} />
 
       <s-section heading="Registries created">
         <BarChart series={report.series} metric="registries" granularity={report.granularity} />
@@ -139,6 +150,80 @@ export default function Analytics() {
         </s-paragraph>
       </s-section>
     </s-page>
+  );
+}
+
+/**
+ * Registry-driven sales, calendar month by calendar month, always the last 12
+ * months whatever range is picked above: it's the report a merchant takes to
+ * their accountant or compares with Shopify's own, so it shouldn't move when
+ * the chart range does.
+ */
+function SalesReport({ sales, currency, csvUrl }: { sales: MonthlySales[]; currency: string; csvUrl: string }) {
+  const rows = [...sales].reverse();
+  const total = sales.reduce(
+    (t, m) => ({ revenue: t.revenue + m.revenue, orders: t.orders + m.orders, newCustomers: t.newCustomers + m.newCustomers }),
+    { revenue: 0, orders: 0, newCustomers: 0 },
+  );
+  const cents = (n: number) =>
+    new Intl.NumberFormat("en-CA", { style: "currency", currency, minimumFractionDigits: 2 }).format(n);
+
+  return (
+    <s-section heading="Registry sales by month">
+      <s-stack direction="block" gap="base">
+        <s-paragraph>
+          <s-text color="subdued">
+            Orders in your store that included a registry gift. Revenue is the registry gifts at the
+            price on the order, before order discounts, so the average is registry spend per order.
+            Refunded and cancelled gifts are left out.
+          </s-text>
+        </s-paragraph>
+        <s-table>
+          <s-table-header-row>
+            <s-table-header>Month</s-table-header>
+            <s-table-header format="currency">Revenue</s-table-header>
+            <s-table-header format="numeric">Orders</s-table-header>
+            <s-table-header format="numeric">New customers</s-table-header>
+            <s-table-header format="currency">Average order</s-table-header>
+          </s-table-header-row>
+          <s-table-body>
+            {rows.map((m) => (
+              <s-table-row key={m.month}>
+                <s-table-cell>
+                  {new Date(m.month).toLocaleDateString("en-CA", { month: "long", year: "numeric", timeZone: "UTC" })}
+                </s-table-cell>
+                <s-table-cell>{cents(m.revenue)}</s-table-cell>
+                <s-table-cell>{m.orders}</s-table-cell>
+                <s-table-cell>{m.newCustomers}</s-table-cell>
+                <s-table-cell>{m.orders > 0 ? cents(m.averageOrder) : "—"}</s-table-cell>
+              </s-table-row>
+            ))}
+            <s-table-row>
+              <s-table-cell>
+                <s-text type="strong">12 months</s-text>
+              </s-table-cell>
+              <s-table-cell>
+                <s-text type="strong">{cents(total.revenue)}</s-text>
+              </s-table-cell>
+              <s-table-cell>
+                <s-text type="strong">{total.orders}</s-text>
+              </s-table-cell>
+              <s-table-cell>
+                <s-text type="strong">{total.newCustomers}</s-text>
+              </s-table-cell>
+              <s-table-cell>
+                <s-text type="strong">{total.orders > 0 ? cents(total.revenue / total.orders) : "—"}</s-text>
+              </s-table-cell>
+            </s-table-row>
+          </s-table-body>
+        </s-table>
+        <s-stack direction="inline" gap="base">
+          <s-button href={csvUrl} target="_blank" variant="secondary" icon="download">
+            Download CSV
+          </s-button>
+        </s-stack>
+      </s-stack>
+    </s-section>
   );
 }
 

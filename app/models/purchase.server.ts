@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
 import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
+import { toMailingAddressInput } from "../shared/shipping-address";
 
 /**
  * Order attribution.
@@ -34,10 +35,35 @@ interface OrderPayload {
     first_name?: string;
     last_name?: string;
     email?: string;
+    created_at?: string;
+    /** Not sent by current API versions; kept in case an older payload has it. */
     orders_count?: number;
   } | null;
+  created_at?: string;
   cart_token?: string | null;
   financial_status?: string;
+}
+
+const NEW_CUSTOMER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether this order is the buyer's first at the shop, for the "new
+ * customers" figure. The order webhook's customer object no longer carries
+ * orders_count (a repeat buyer on 25 Sep 2026 was counted as new twice), and
+ * asking the Admin API would need read_customers, which we dropped. So a buyer
+ * counts as new when Shopify created their customer record within a day of
+ * this order. A record made earlier without buying (a newsletter sign-up)
+ * reads as returning: this errs toward under-counting, never inflating a
+ * number merchants may quote.
+ */
+export function isFirstPurchase(order: Pick<OrderPayload, "customer" | "created_at">): boolean {
+  const customer = order.customer;
+  if (!customer) return false;
+  if (typeof customer.orders_count === "number") return customer.orders_count <= 1;
+  const customerCreated = Date.parse(customer.created_at ?? "");
+  const orderCreated = Date.parse(order.created_at ?? "") || Date.now();
+  if (Number.isNaN(customerCreated)) return false;
+  return orderCreated - customerCreated <= NEW_CUSTOMER_WINDOW_MS;
 }
 
 registerHandler("attribute-order", async ({ shop, orderPayload }) => {
@@ -54,14 +80,22 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
 
   const settings = settingsFor(shopRecord);
 
-  // orders_count includes the order in hand, so 1 means first-ever purchase.
-  const isNewCustomer = Number(order.customer?.orders_count ?? 0) <= 1;
   const buyerName =
     [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(" ") || null;
   // Kept only so customers/redact can find and erase this buyer's name later.
   const buyerCustomerId = order.customer?.id ? String(order.customer.id) : null;
+  // A second order soon after the first still has a brand-new customer
+  // record, so also rule out buyers we've already seen on another order.
+  const isNewCustomer =
+    isFirstPurchase(order) &&
+    !(buyerCustomerId &&
+      (await db.purchase.findFirst({
+        where: { buyerCustomerId, orderId: { not: orderId } },
+        select: { id: true },
+      })));
 
   const touched = new Set<string>();
+  const shipped = new Set<string>();
 
   for (const line of lines) {
     // Scope the item lookup by registry AND shop. A token is signed by us, but
@@ -81,6 +115,10 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     }
 
     const registry = item.registry;
+    // Only when the guest chose it on this cart line (the registry page's
+    // "ship to the registrant" box) AND the registrant still has it on. A
+    // guest who wasn't asked, or unticked it, keeps the address they typed.
+    const shipToRegistrant = line.shipToRegistrant && registry.shipToRegistrant;
 
     const hiddenUntil =
       settings.hideBuyerUntilEvent && registry.eventDate && registry.eventDate > new Date()
@@ -106,7 +144,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             buyerCustomerId,
             buyerMessage: null,
             hiddenUntil,
-            shippedToRegistrant: line.shipToRegistrant,
+            shippedToRegistrant: shipToRegistrant,
             isNewCustomer,
           },
         });
@@ -131,14 +169,13 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       source: "online",
     });
 
-    // Only fires when the guest checked "ship to registrant" on this cart line.
-    // Safe to reach on every line of a multi-line registry order — the
-    // Purchase unique index above already skipped this block on any line
-    // whose (orderId, lineItemId) was already processed, so a redelivered
-    // webhook never re-issues the rewrite. See applyShipToRegistrant's own
-    // guardrails (fulfillment status, cross-jurisdiction) for what happens
-    // on genuine repeat attempts within the same order.
-    if (line.shipToRegistrant) {
+    // Once per order and registry. The Purchase unique index above already
+    // skipped this block on any line whose (orderId, lineItemId) was already
+    // processed, so a redelivered webhook never re-issues the rewrite. See
+    // applyShipToRegistrant's own guardrails (fulfillment status,
+    // cross-jurisdiction) for everything else.
+    if (shipToRegistrant && !shipped.has(registry.id)) {
+      shipped.add(registry.id);
       await shipToRegistrantForOrder(shopDomain, orderId, registry.id).catch((err) => {
         console.error(
           `[ship-to-registrant] order ${orderId} registry ${registry.id}:`,
@@ -391,12 +428,20 @@ export async function applyShipToRegistrant(
   }
 
   // Guardrail until the tax recalculation behaviour is understood in practice:
-  // only rewrite within the same province/state. Cross-jurisdiction moves are
+  // only rewrite within the same country and province/state. Cross-jurisdiction moves are
   // where the money actually changes.
+  const input = toMailingAddressInput(address);
   if (
-    address.provinceCode &&
+    input.countryCode &&
+    order.shippingAddress?.countryCodeV2 &&
+    input.countryCode !== order.shippingAddress.countryCodeV2
+  ) {
+    return { applied: false, reason: "cross_jurisdiction" };
+  }
+  if (
+    input.provinceCode &&
     order.shippingAddress?.provinceCode &&
-    address.provinceCode !== order.shippingAddress.provinceCode
+    input.provinceCode !== order.shippingAddress.provinceCode
   ) {
     return { applied: false, reason: "cross_jurisdiction" };
   }
@@ -405,7 +450,7 @@ export async function applyShipToRegistrant(
     variables: {
       input: {
         id: orderId,
-        shippingAddress: address,
+        shippingAddress: input,
         tags: ["registry-ship-to-registrant"],
       },
     },

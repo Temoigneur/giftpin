@@ -32,6 +32,29 @@ import { signToken, verifyToken } from "./crypto.server";
  */
 
 export const ATTRIBUTION_PROPERTY = "_rg";
+
+/** Visible cart/checkout line property naming who a gift ships to. */
+export const SHIP_TO_LABEL = "Gift ships to";
+/**
+ * Visible on every registry cart line, in the cart and at checkout, so a
+ * guest who opened the wrong same-named registry sees whose gift it is (and
+ * the date) before paying.
+ */
+export const GIFT_FOR_LABEL = "Gift for";
+
+/**
+ * The visible "Gift ships to" value, including how to undo it. Shared with the
+ * registry page, which rewrites cart lines when the guest unticks the box.
+ */
+export function shipToValue(names: string): string {
+  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and untick the shipping box above the gift list. Your cart will update automatically.`;
+}
+export function giftForValue(names: string, eventLabel: string, eventDate: Date | null): string {
+  const date = eventDate
+    ? new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(eventDate)
+    : null;
+  return [names || null, eventLabel || null, date].filter(Boolean).join(" · ");
+}
 const PURPOSE = "cart";
 
 export interface AttributionPayload {
@@ -135,11 +158,20 @@ export function cartAddPayload(
   registryId: string,
   itemId: string,
   shipToRegistrant = false,
+  shipToNames = "",
+  giftFor = "",
 ): { items: { id: string; quantity: number; properties: Record<string, string> }[] } {
   const properties: Record<string, string> = {
     [ATTRIBUTION_PROPERTY]: signAttribution(registryId, itemId),
   };
-  if (shipToRegistrant) properties["_rg_ship"] = "1";
+  if (giftFor) properties[GIFT_FOR_LABEL] = giftFor;
+  if (shipToRegistrant) {
+    properties["_rg_ship"] = "1";
+    // Deliberately visible (no leading underscore): the guest sees it under
+    // the item in the cart and at checkout, so a box ticked without reading
+    // isn't a silent redirect. Names only, never the address.
+    properties[SHIP_TO_LABEL] = shipToValue(shipToNames);
+  }
 
   return { items: [{ id: variantId, quantity, properties }] };
 }

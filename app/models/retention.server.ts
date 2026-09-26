@@ -21,6 +21,7 @@ import { deleteRegistry } from "./registry.server";
  *                                                      there is no event date
  *   Registries marked "deleted"                         30 days
  *   Claims (soft holds on outside items)                30 days after they end
+ *   Guest reminder sign-ups (email)                     once the event date passes
  *   Event log                                           24 months
  *   Audit log                                           12 months
  *   Webhook de-duplication ids                          7 days
@@ -67,6 +68,7 @@ export interface RetentionSummary {
   shippingAddressesCleared: number;
   registriesDeleted: number;
   claimsDeleted: number;
+  guestRemindersDeleted: number;
   eventsDeleted: number;
   auditRowsDeleted: number;
   webhookIdsDeleted: number;
@@ -87,6 +89,7 @@ export async function purgeExpiredData(
     shippingAddressesCleared: 0,
     registriesDeleted: 0,
     claimsDeleted: 0,
+    guestRemindersDeleted: 0,
     eventsDeleted: 0,
     auditRowsDeleted: 0,
     webhookIdsDeleted: 0,
@@ -169,6 +172,17 @@ export async function purgeExpiredData(
       return;
     }
     summary.claimsDeleted = (await db.claim.deleteMany({ where })).count;
+  });
+
+  await step("guest reminders", async () => {
+    // Only needed until the one reminder goes out; the event passing is the
+    // hard stop, sent or not.
+    const where = { registry: { eventDate: { lt: now } } };
+    if (dryRun) {
+      summary.guestRemindersDeleted = await db.guestReminder.count({ where });
+      return;
+    }
+    summary.guestRemindersDeleted = (await db.guestReminder.deleteMany({ where })).count;
   });
 
   await step("event log", async () => {

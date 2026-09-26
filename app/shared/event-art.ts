@@ -172,14 +172,45 @@ function generalArt(): string {
 
 const EVENT_ART: Record<string, () => string> = {
   wedding: weddingArt,
+  engagement: weddingArt,
+  "bridal-shower": weddingArt,
   baby: babyArt,
+  christening: babyArt,
   birthday: birthdayArt,
-  housewarming: housewarmingArt,
+  "coming-of-age": birthdayArt,
   graduation: graduationArt,
+  college: graduationArt,
+  housewarming: housewarmingArt,
   anniversary: anniversaryArt,
   corporate: corporateArt,
   other: generalArt,
 };
+
+/**
+ * Painted raster banners that replace the line art above for some event
+ * types. Files live in `public/art/` and are served from the app's own
+ * origin, so callers pass that origin (SHOPIFY_APP_URL) as `assetBase` —
+ * the guest page itself is served on the shop's domain through the app
+ * proxy, so a relative path wouldn't resolve. Wedding: Ben's own
+ * Midjourney image (v3, 25 Sep 2026: centred champagne toast on bokeh). Bump the filename
+ * when replacing a file so browsers don't keep a cached copy.
+ */
+const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => string }> = {
+  wedding: { widths: [1024, 2016], path: (w) => `/art/wedding-v3-${w}.webp` },
+};
+
+/**
+ * `<img>` hero for event types with a painted banner, or null (use
+ * `eventHeroArt` instead) for other types or when no asset base is known.
+ */
+export function eventHeroImage(eventType: string, assetBase: string | null | undefined): string | null {
+  const painting = EVENT_PAINTINGS[eventType];
+  const base = (assetBase ?? "").replace(/\/+$/, "");
+  if (!painting || !/^https?:\/\//.test(base)) return null;
+  const largest = painting.widths[painting.widths.length - 1];
+  const srcset = painting.widths.map((w) => `${base}${painting.path(w)} ${w}w`).join(", ");
+  return `<img class="hero-img hero-painting" src="${base}${painting.path(largest)}" srcset="${srcset}" sizes="(min-width:960px) 1056px, 100vw" alt="" loading="eager" decoding="async">`;
+}
 
 /** Inline SVG hero art for the given `eventType`. Falls back to a generic gift motif for an unrecognized value. */
 export function eventHeroArt(eventType: string): string {

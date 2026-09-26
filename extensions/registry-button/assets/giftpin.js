@@ -12,8 +12,21 @@
 
   ready(function () {
     var roots = document.querySelectorAll("[data-giftpin-root]");
+    // A merchant can end up with the block twice on one product template
+    // (added by hand, then again from the app's "Add Giftpin to your theme"
+    // link). Show one button per product; the theme editor still shows every
+    // copy so the merchant can see and remove the extra one.
+    var designMode = !!(window.Shopify && window.Shopify.designMode);
+    var seen = {};
     for (var i = 0; i < roots.length; i++) {
       if (roots[i].getAttribute("data-giftpin-ready")) continue;
+      var productId = roots[i].getAttribute("data-product-id");
+      if (!designMode && productId && seen[productId]) {
+        roots[i].hidden = true;
+        roots[i].style.display = "none";
+        continue;
+      }
+      if (productId) seen[productId] = true;
       roots[i].setAttribute("data-giftpin-ready", "1");
       init(roots[i]);
     }
@@ -69,11 +82,15 @@
       if (id) root.dataset.variantId = String(id);
     });
 
+    // Must match REGISTRIES_STORAGE_KEY in app/shared/storage-keys.ts (the
+    // manage page writes it). LEGACY_KEY covers browsers that last opened
+    // their registry before the rename.
     var STORE_KEY = "giftpin.registries";
+    var LEGACY_KEY = "registro.registries";
 
     function localRegistries() {
       try {
-        var raw = window.localStorage.getItem(STORE_KEY);
+        var raw = window.localStorage.getItem(STORE_KEY) || window.localStorage.getItem(LEGACY_KEY);
         if (!raw) return [];
         var parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed.filter(function (r) { return r && r.id && r.token; }) : [];
@@ -217,6 +234,7 @@
 
       if (result && result.ok) {
         status(labelKey("added", "Added to your registry"));
+        showBackLink(result._registryId, result._token);
         if (labelEl) {
           var original = labelEl.textContent;
           labelEl.textContent = "Added";
@@ -227,6 +245,23 @@
       } else {
         status((result && result.error) || labelKey("error", "Couldn't add that."), true);
       }
+    }
+
+    // Once something is added, give the registrant a one-tap way back to
+    // their manage page instead of several presses of the back button. With a
+    // saved token it opens that registry; without one (signed-in customer),
+    // /manage sends them to their own registry or a chooser.
+    function showBackLink(registryId, token) {
+      if (!statusEl) return;
+      var link = root.querySelector("[data-giftpin-back]");
+      if (!link) {
+        link = document.createElement("a");
+        link.className = "giftpin-back";
+        link.setAttribute("data-giftpin-back", "");
+        link.textContent = labelKey("back", "Back to your registry") + " \u2192";
+        statusEl.parentNode.insertBefore(link, statusEl.nextSibling);
+      }
+      link.href = proxy + "/manage" + (token ? "?t=" + encodeURIComponent(token) : "");
     }
 
     function showDuplicatePrompt(result) {
@@ -256,6 +291,8 @@
         dupConfirmBtn.disabled = true;
         status(labelKey("updating", "Updating..."));
 
+        var pendingRegistryId = pendingDup.registryId;
+        var pendingToken = pendingDup.token;
         confirmDuplicateQty(
           pendingDup.registryId,
           pendingDup.token,
@@ -268,6 +305,7 @@
             pendingDup = null;
             if (result && result.ok) {
               status(labelKey("updated", "Registry updated"));
+              showBackLink(pendingRegistryId, pendingToken);
             } else {
               status((result && result.error) || labelKey("error", "Couldn't update that."), true);
             }

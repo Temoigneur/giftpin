@@ -130,6 +130,8 @@ model Registry {
   items       RegistryItem[]
   events      RegistryEvent[]
 
+  guestReminders GuestReminder[]
+
   @@unique([shopId, slug])
   @@index([shopId, status])
   @@index([shopId, eventDate])
@@ -154,6 +156,24 @@ model Registrant {
   createdAt DateTime @default(now())
 
   @@index([registryId])
+  @@index([emailHash])
+}
+
+// A guest who asked, on the registry page, to be emailed before the event
+// (Pro: app/models/automations.server.ts). Opt-in only, one row per email per
+// registry, and deleted by the retention job once the event has passed.
+model GuestReminder {
+  id         String   @id @default(cuid())
+  registryId String
+  registry   Registry @relation(fields: [registryId], references: [id], onDelete: Cascade)
+
+  emailEnc  String // AES-256-GCM
+  emailHash String // blindIndex(), for dedup and customers/redact
+
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([registryId, emailHash])
   @@index([emailHash])
 }
 
