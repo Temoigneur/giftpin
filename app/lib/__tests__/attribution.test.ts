@@ -6,6 +6,8 @@ import {
   attributedLines,
   readLineProperty,
   cartAddPayload,
+  giftForValue,
+  GIFT_FOR_LABEL,
   ATTRIBUTION_PROPERTY,
 } from "../attribution";
 
@@ -160,6 +162,18 @@ describe("attributedLines", () => {
 });
 
 describe("cartAddPayload", () => {
+  it("shows whose gift it is, with the date, in a visible line property", () => {
+    const giftFor = giftForValue("Maya & Jared", "Wedding", new Date("2027-06-12T00:00:00Z"));
+    expect(giftFor).toBe("Maya & Jared · Wedding · Jun 12, 2027");
+    const props = cartAddPayload("1", 1, "r", "i", false, "Maya & Jared", giftFor).items[0].properties;
+    expect(props[GIFT_FOR_LABEL]).toBe(giftFor);
+    expect(verifyAttribution(props._rg)).toEqual({ r: "r", i: "i" });
+  });
+
+  it("leaves out the date when the registry has none", () => {
+    expect(giftForValue("Sam", "Birthday", null)).toBe("Sam · Birthday");
+  });
+
   it("builds a payload Shopify's /cart/add.js accepts", () => {
     const payload = cartAddPayload("40000001", 2, "reg_1", "item_1");
 

@@ -14,6 +14,7 @@ vi.mock("../../db.server", () => ({
     shop: { findUnique: vi.fn() },
     registryItem: { findFirst: vi.fn() },
     registry: { findUnique: vi.fn() },
+    purchase: { findFirst: vi.fn(async () => null) },
     $transaction: vi.fn(async () => undefined),
   },
 }));

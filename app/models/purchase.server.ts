@@ -80,11 +80,19 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
 
   const settings = settingsFor(shopRecord);
 
-  const isNewCustomer = isFirstPurchase(order);
   const buyerName =
     [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(" ") || null;
   // Kept only so customers/redact can find and erase this buyer's name later.
   const buyerCustomerId = order.customer?.id ? String(order.customer.id) : null;
+  // A second order soon after the first still has a brand-new customer
+  // record, so also rule out buyers we've already seen on another order.
+  const isNewCustomer =
+    isFirstPurchase(order) &&
+    !(buyerCustomerId &&
+      (await db.purchase.findFirst({
+        where: { buyerCustomerId, orderId: { not: orderId } },
+        select: { id: true },
+      })));
 
   const touched = new Set<string>();
   const shipped = new Set<string>();
