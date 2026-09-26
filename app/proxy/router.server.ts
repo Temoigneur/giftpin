@@ -26,12 +26,16 @@ import {
   checkRegistryPassword,
   logEvent,
   touchRegistry,
+  registrantEmail,
   type RegistryWithItems,
 } from "../models/registry.server";
 import {
   addInternalItem,
   addExternalItem,
   addManualItem,
+  addFundItem,
+  setItemFundGoal,
+  parseFundGoal,
   addLinkedItem,
   updateItem,
   removeItem,
@@ -53,7 +57,9 @@ import { previewUrl } from "../lib/resolver/index.server";
 import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
 import { parseShippingAddressForm, SHIPPING_ADDRESS_ERRORS, type ShippingAddressError } from "../shared/shipping-address";
-import { cartAddPayload, giftForValue } from "../lib/attribution";
+import { cartAddPayload, contributionCartPayload, giftForValue } from "../lib/attribution";
+import { fundState, giftCardRecipientProperties } from "../shared/contributions";
+import { audit } from "../lib/audit.server";
 import { sendEmail } from "../lib/email.server";
 import {
   addGuestReminder,
@@ -92,6 +98,7 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
  *   POST /cart-add | /claim | /bought | /undo-bought | /add-external | /update-item | /remove-item
  *   POST /link-preview | /add-link   → the manage page's paste box (look up, then add)
  *   POST /remind               → guest opts in to a pre-event reminder (Pro)
+ *   POST /contribute | /add-fund | /item-fund | /contribution-settings  (Pro, SPIKE-C.md)
  */
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
@@ -278,7 +285,12 @@ function buildRegistryHtml(
   settings: ShopSettings,
   brand: Brand,
 ): string {
-  const items = registry.items.map((item) => toDisplayItem(item));
+  const chipIn = contributionsAvailable(shop, settings);
+  // A fund nobody can pay into (plan lapsed, or the merchant removed the gift
+  // card product) is hidden rather than shown as a dead end.
+  const items = registry.items
+    .map((item) => toDisplayItem(item))
+    .filter((item) => chipIn || !item.isFund);
 
   return renderRegistryPage({
     ...brand,
@@ -309,6 +321,12 @@ function buildRegistryHtml(
     // brand.branding (see brandingFor), on this page and every other one.
     offerReminder: offersGuestReminder(shop, registry.eventDate),
     shipToRegistrant: registry.shipToRegistrant,
+    contributions: chipIn
+      ? {
+          variants: settings.contributionProduct!.variants,
+          toRegistrant: registry.contributionsToRegistrant,
+        }
+      : null,
   });
 }
 
@@ -376,6 +394,8 @@ async function managePage(
         qty: p.qty,
         hidden: p.hiddenUntil !== null && p.hiddenUntil > now,
         source: p.source as string,
+        isContribution: p.isContribution,
+        amount: p.amount === null ? null : Number(p.amount),
       })),
   );
 
@@ -410,6 +430,9 @@ async function managePage(
         address: registry.shipToRegistrant ? readShippingAddress(registry) : null,
         flash: shippingFlash,
       },
+      contributions: contributionsAvailable(shop, settings)
+        ? { toRegistrant: registry.contributionsToRegistrant }
+        : null,
     }),
   );
 }
@@ -537,7 +560,9 @@ async function thankYouCsv(ctx: ProxyContext): Promise<Response> {
       rows.push([
         item.snapshotTitle ?? "",
         hidden ? "(hidden until your event)" : (purchase.buyerName ?? "Anonymous"),
-        String(purchase.qty),
+        purchase.isContribution
+          ? `Chipped in ${purchase.amount ?? ""} ${purchase.currency ?? ""}`.trim()
+          : String(purchase.qty),
         purchase.buyerMessage ?? "",
         purchase.source === "external" ? "Bought elsewhere" : "This store",
         purchase.createdAt.toISOString().slice(0, 10),
@@ -579,6 +604,14 @@ async function handlePost(
       return unlockAction(request, ctx, segments[1]);
     case "cart-add":
       return cartAddAction(request, ctx);
+    case "contribute":
+      return contributeAction(request, ctx, shop, settings);
+    case "add-fund":
+      return addFundAction(request, ctx, shop);
+    case "item-fund":
+      return itemFundAction(request, ctx, shop);
+    case "contribution-settings":
+      return contributionSettingsAction(request, ctx);
     case "claim":
       return claimAction(request, ctx);
     case "bought":
@@ -743,6 +776,133 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
   });
 }
 
+// ---------------------------------------------------------------------------
+// Group gifts and cash funds (Pro) — see SPIKE-C.md
+// ---------------------------------------------------------------------------
+
+/** Chip-ins need Pro AND a gift card product the merchant picked in Settings. */
+function contributionsAvailable(shop: ShopRecord, settings: ShopSettings): boolean {
+  return isPro(shop) && (settings.contributionProduct?.variants.length ?? 0) > 0;
+}
+
+/**
+ * Guest chip-in. Mints the gift card line for the browser to post to
+ * /cart/add.js, exactly like cartAddAction does for a product.
+ *
+ * The couple's email only leaves the server when they opted in to receiving
+ * the cards themselves (Registry.contributionsToRegistrant) — it has to go on
+ * the cart line for Shopify to deliver to it, where the guest can see it.
+ */
+async function contributeAction(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+): Promise<Response> {
+  if (!contributionsAvailable(shop, settings)) {
+    return json({ ok: false, error: "Chipping in isn't available right now" }, 404);
+  }
+
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+  const variantId = String(body.variantId ?? "");
+
+  const variant = settings.contributionProduct!.variants.find((v) => v.id === variantId);
+  if (!variant) return json({ ok: false, error: "Please pick an amount" }, 400);
+
+  const item = await db.registryItem.findFirst({
+    where: { id: itemId, fundGoal: { not: null }, registry: { shopId: shop.id, status: "active" } },
+    include: { registry: { include: { registrants: true } } },
+  });
+  if (!item) return json({ ok: false, error: "That item is no longer on this registry" }, 404);
+
+  if (fundState(item.fundGoal, item.fundedAmount)?.complete) {
+    return json({ ok: false, error: "This has already been fully funded" }, 409);
+  }
+
+  let recipient: Record<string, string> | null = null;
+  const owner = item.registry.registrants[0];
+  const email = item.registry.contributionsToRegistrant && owner ? registrantEmail(owner) : null;
+  if (email && owner) {
+    await audit({
+      shop: ctx.shop,
+      actor: "guest:contribute",
+      action: "registrant_email_decrypted",
+      subject: item.registryId,
+      detail: { purpose: "gift_card_recipient", optedIn: true },
+    });
+    recipient = giftCardRecipientProperties({
+      email,
+      name: item.registry.registrants.map((r) => firstNameOnly(r.name)).join(" & "),
+      message: typeof body.message === "string" ? body.message : null,
+    });
+  }
+
+  return json({
+    ok: true,
+    toRegistrant: recipient !== null,
+    payload: contributionCartPayload(variant.id, item.registryId, item.id, recipient),
+  });
+}
+
+async function addFundAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: "Funds aren't available at this store" }, 403);
+
+  const body = await readJson(request);
+  const goal = parseFundGoal(body.goal);
+  if (!goal) return json({ ok: false, error: "Please enter a goal amount" }, 400);
+
+  try {
+    await addFundItem({
+      registryId: registry.id,
+      title: String(body.title ?? ""),
+      goal,
+      note: cleanNote(body.note),
+      currency: shop.currency,
+    });
+    return json({ ok: true });
+  } catch (err) {
+    if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
+    throw err;
+  }
+}
+
+/** Group gifting on/off for one of the store's own items. */
+async function itemFundAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  const itemId = String(body.itemId ?? "");
+  const turningOn = body.goal !== null && body.goal !== undefined && body.goal !== "";
+  // Switching OFF stays allowed after a downgrade, so nobody is stuck.
+  if (turningOn && !isPro(shop)) {
+    return json({ ok: false, error: "Group gifts aren't available at this store" }, 403);
+  }
+  const goal = turningOn ? parseFundGoal(body.goal) : null;
+  if (turningOn && !goal) return json({ ok: false, error: "Please enter a goal amount" }, 400);
+
+  try {
+    await setItemFundGoal(itemId, registry.id, goal);
+    return json({ ok: true });
+  } catch (err) {
+    if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
+    throw err;
+  }
+}
+
+async function contributionSettingsAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+
+  const body = await readJson(request);
+  await updateRegistry(registry.id, { contributionsToRegistrant: body.toRegistrant === true });
+  await logEvent(registry.id, "settings_updated", { contributionsToRegistrant: body.toRegistrant === true });
+  return json({ ok: true });
+}
+
 async function claimAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const body = await readJson(request);
   const itemId = String(body.itemId ?? "");
@@ -774,6 +934,10 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
     include: { claims: { where: { releasedAt: null } } },
   });
   if (!item) return json({ ok: false, error: "Item not found" }, 404);
+
+  if (item.sourceType === "fund") {
+    return json({ ok: false, error: "This item is tracked automatically" }, 400);
+  }
 
   const details = {
     buyerName: typeof body.buyerName === "string" ? body.buyerName : null,

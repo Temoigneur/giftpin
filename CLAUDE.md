@@ -85,6 +85,11 @@ reading Shopify's docs.
   the guest's saved one) is blocked on the `bentley.humphries+shopapp@gmail.com`
   test account — sign-in and SMS verification are both failing for that
   account/number. Needs a fresh Shop Pay test account, not a code fix.
+- **Group gifts and cash funds (Pro):** confirmed live on 26 Sep 2026 that
+  `_rg` and Shopify's gift card recipient properties survive both standard
+  checkout and Shop Pay on a gift card line (`SPIKE-C.md` Part 1). The app's
+  own fund totals (rows C1–C7) are still to be checked on the dev store once
+  deployed.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

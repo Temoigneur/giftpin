@@ -10,6 +10,7 @@ import {
   verifyPassword,
 } from "../lib/crypto.server";
 import { cache, registryCacheKey } from "../lib/cache.server";
+import { fundState } from "../shared/contributions";
 import type { Prisma, RegistryPrivacy } from "@prisma/client";
 
 /**
@@ -305,7 +306,7 @@ export function progressFor(registry: RegistryWithItems): RegistryProgress {
       externalValue += value;
     }
 
-    if (item.purchasedQty >= item.desiredQty) fulfilled++;
+    if (item.purchasedQty >= item.desiredQty || isFullyFunded(item)) fulfilled++;
   }
 
   const total = internalValue + externalValue;
@@ -317,6 +318,11 @@ export function progressFor(registry: RegistryWithItems): RegistryProgress {
     externalItems: external,
     merchantSharePercent: total > 0 ? Math.round((internalValue / total) * 100) : 100,
   };
+}
+
+/** A group gift or fund whose chip-ins have reached the goal (SPIKE-C.md). */
+function isFullyFunded(item: { fundGoal?: unknown; fundedAmount?: unknown }): boolean {
+  return fundState(item.fundGoal, item.fundedAmount)?.complete === true;
 }
 
 export function itemUnitPrice(item: {

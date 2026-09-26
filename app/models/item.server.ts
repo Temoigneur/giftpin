@@ -1,5 +1,6 @@
 import db from "../db.server";
 import { isGiftCategory } from "../shared/gift-categories";
+import { fundState, type FundState } from "../shared/contributions";
 import { touchRegistry, logEvent, itemUnitPrice, isUniqueViolation } from "./registry.server";
 import { settingsFor } from "./shop.server";
 import { enqueue } from "../lib/queue.server";
@@ -400,6 +401,79 @@ export async function removeItem(itemId: string, registryId: string) {
 // Display helpers — single source of truth for how an item renders
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Group gifts and cash funds (Pro) — see SPIKE-C.md
+//
+// Guests chip in with gift cards from THIS store, so a group gift only makes
+// sense on the store's own products: store credit can't buy an Amazon item.
+// Everything else (honeymoon, house deposit, "something from elsewhere") is a
+// fund. Pro gating is the caller's job (router.server.ts), since it needs the
+// shop row.
+// ---------------------------------------------------------------------------
+
+export const MAX_FUND_GOAL = 100_000;
+
+/** Parses a goal typed by a registrant. Null when it isn't a usable amount. */
+export function parseFundGoal(raw: unknown): string | null {
+  const value = Number(String(raw ?? "").replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(value) || value < 1 || value > MAX_FUND_GOAL) return null;
+  return value.toFixed(2);
+}
+
+export interface AddFundInput {
+  registryId: string;
+  title: string;
+  goal: string;
+  note?: string | null;
+  currency?: string | null;
+}
+
+export async function addFundItem(input: AddFundInput) {
+  const title = input.title.trim().slice(0, 300);
+  if (!title) throw new ItemError("Give your fund a name");
+
+  const item = await db.registryItem.create({
+    data: {
+      registryId: input.registryId,
+      sourceType: "fund",
+      snapshotTitle: title,
+      snapshotCurrency: input.currency ?? null,
+      fundGoal: input.goal,
+      desiredQty: 1,
+      note: input.note?.trim().slice(0, 500) || null,
+      // Funds sit with the store's own items, above anything from elsewhere.
+      priority: 1,
+    },
+  });
+
+  await touchRegistry(input.registryId);
+  await logEvent(input.registryId, "item_added", { sourceType: "fund" });
+  return item;
+}
+
+/**
+ * Turns group gifting on (goal) or off (null) for one item. A fund can't be
+ * switched off, only re-targeted: without a goal it would be an item nobody
+ * can buy.
+ */
+export async function setItemFundGoal(itemId: string, registryId: string, goal: string | null) {
+  const item = await db.registryItem.findFirst({ where: { id: itemId, registryId } });
+  if (!item) throw new ItemError("That item is no longer on this registry");
+  if (item.sourceType !== "internal" && item.sourceType !== "fund") {
+    throw new ItemError("Guests can only chip in toward this store's own products. Add a fund instead.");
+  }
+  if (item.sourceType === "fund" && goal === null) {
+    throw new ItemError("A fund needs a goal. Remove it instead if you no longer want it.");
+  }
+
+  const updated = await db.registryItem.update({
+    where: { id: itemId, registryId },
+    data: { fundGoal: goal },
+  });
+  await touchRegistry(registryId);
+  return updated;
+}
+
 export interface DisplayItem {
   id: string;
   sourceType: ItemSourceType;
@@ -435,6 +509,13 @@ export interface DisplayItem {
   isStale: boolean;
   availability: string;
   fulfilled: boolean;
+  /**
+   * Group gift or cash fund progress (Pro, SPIKE-C.md). Null when guests
+   * can't chip in toward this item.
+   */
+  fund?: FundState | null;
+  /** A cash fund: no product, contributions only. */
+  isFund?: boolean;
 }
 
 type ItemForDisplay = Prisma.RegistryItemGetPayload<{
@@ -451,6 +532,7 @@ export function toDisplayItem(item: ItemForDisplay, now = new Date()): DisplayIt
   const claimedQty = activeClaims.reduce((sum, c) => sum + c.qty, 0);
 
   const remaining = Math.max(0, item.desiredQty - item.purchasedQty - claimedQty);
+  const fund = fundState(item.fundGoal, item.fundedAmount);
 
   return {
     id: item.id,
@@ -484,7 +566,10 @@ export function toDisplayItem(item: ItemForDisplay, now = new Date()): DisplayIt
     // snapshot is only ever as good as the last weekly fetch.
     isStale: item.sourceType === "web" || item.sourceType === "manual",
     availability: source?.availability ?? "unknown",
-    fulfilled: item.purchasedQty >= item.desiredQty,
+    // Bought outright OR fully funded. Either one means "don't buy this".
+    fulfilled: item.purchasedQty >= item.desiredQty || fund?.complete === true,
+    fund,
+    isFund: item.sourceType === "fund",
   };
 }
 

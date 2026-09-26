@@ -19,13 +19,21 @@ import {
   cleanLogoUrl,
   contrastRatio,
 } from "../shared/branding";
+import { listGiftCardProducts } from "../lib/contribution-product.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
+  // Group gifts and funds (Pro, SPIKE-C.md). A failed lookup just shows an
+  // empty picker; it must never take the whole Settings page down.
+  const giftCards = await listGiftCardProducts((q, o) => admin.graphql(q, o)).catch((err) => {
+    console.error("[settings] gift card products:", (err as Error).message);
+    return [];
+  });
   return {
     settings: settingsFor(shop),
     pro: isPro(shop),
+    giftCards,
     shopDomain: session.shop,
     // 23 Sep 2026: a bare, repeatedly-fetched /apps/registry URL got stuck
     // behind a stale cached response for one merchant (a leftover from a
@@ -39,9 +47,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
+
+  // Separate form so saving it can't clobber (or be clobbered by) the rest.
+  if (form.get("intent") === "contributions") {
+    const productGid = String(form.get("contributionProduct") ?? "");
+    // Re-read from Shopify rather than trusting posted amounts: these are the
+    // denominations guests will be charged.
+    const picked = productGid
+      ? (await listGiftCardProducts((q, o) => admin.graphql(q, o))).find((p) => p.productGid === productGid) ?? null
+      : null;
+    await updateSettings(session.shop, { contributionProduct: picked });
+    return { ok: true, warnings: [] as string[] };
+  }
 
   // "Run now": the daily automations job (app/models/automations.server.ts)
   // for this shop only. Each automation still fires at most once per
@@ -121,9 +141,10 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 }
 
 export default function Settings() {
-  const { settings, pro } = useLoaderData<typeof loader>();
+  const { settings, pro, giftCards } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const runFetcher = useFetcher<typeof action>();
+  const giftFetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
 
   const saving = fetcher.state !== "idle";
@@ -348,6 +369,49 @@ export default function Settings() {
           ))}
         </s-section>
       </fetcher.Form>
+
+      <giftFetcher.Form method="post">
+        <input type="hidden" name="intent" value="contributions" />
+        <s-section heading="Group gifts and funds">
+          <s-paragraph>
+            Guests can chip in toward a big item or a cash fund, like a honeymoon, by buying one
+            of your gift cards. Every chip-in is a sale in your store, and the gift card gets
+            spent here.
+          </s-paragraph>
+          {!pro && (
+            <s-banner tone="info">
+              <s-paragraph>This is part of Giftpin Pro.</s-paragraph>
+            </s-banner>
+          )}
+          {giftCards.length === 0 ? (
+            <s-paragraph>
+              <s-text color="subdued">
+                First go to Products &rarr; Gift cards &rarr; Add a gift card product, with a few amounts such as
+                $25, $50 and $100. Then come back here and pick it.
+              </s-text>
+            </s-paragraph>
+          ) : (
+            <s-select
+              name="contributionProduct"
+              label="Gift card guests chip in with"
+              value={settings.contributionProduct?.productGid ?? ""}
+            >
+              <s-option value="">Off</s-option>
+              {giftCards.map((card) => (
+                <s-option key={card.productGid} value={card.productGid}>
+                  {card.title} ({card.variants.map((v) => v.amount).join(", ")})
+                </s-option>
+              ))}
+            </s-select>
+          )}
+          <s-stack direction="inline" gap="base">
+            <s-button type="submit" {...(giftFetcher.state !== "idle" ? { loading: true } : {})}>
+              Save
+            </s-button>
+            {giftFetcher.data?.ok && <s-text>Saved</s-text>}
+          </s-stack>
+        </s-section>
+      </giftFetcher.Form>
 
       {pro && (
         <runFetcher.Form method="post">

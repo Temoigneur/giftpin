@@ -11,6 +11,7 @@ import {
 import { unauthenticated } from "../shopify.server";
 import { settingsFor, isPro, type ShopSettings } from "./shop.server";
 import { logEvent, mintManageToken, registrantEmail } from "./registry.server";
+import { fundState } from "../shared/contributions";
 
 /**
  * Pro automations: one daily job (scheduled in queue.server.ts) that sends
@@ -60,11 +61,19 @@ export interface PlannerRegistry {
     productGid: string | null;
     desiredQty: number;
     purchasedQty: number;
+    /** Group gifts and funds (SPIKE-C.md): taken once fully funded. */
+    fundGoal?: unknown;
+    fundedAmount?: unknown;
     purchases: { voidedAt: Date | null }[];
   }[];
   /** Marker event types already logged for this registry. */
   sent: string[];
   guestRemindersPending: number;
+}
+
+/** Bought outright, or a group gift / fund that reached its goal. */
+function isTaken(item: { purchasedQty: number; desiredQty: number; fundGoal?: unknown; fundedAmount?: unknown }): boolean {
+  return item.purchasedQty >= item.desiredQty || fundState(item.fundGoal, item.fundedAmount)?.complete === true;
 }
 
 /** Whole days from `now` until the event; negative once it has passed. */
@@ -109,7 +118,7 @@ export function dueAutomations(
   }
 
   const total = registry.items.length;
-  const fulfilled = registry.items.filter((i) => i.purchasedQty >= i.desiredQty).length;
+  const fulfilled = registry.items.filter(isTaken).length;
   if (
     settings.mostGoneAlertEmails &&
     (days === null || days >= 0) &&
@@ -201,6 +210,8 @@ const registryInclude = {
       productGid: true,
       desiredQty: true,
       purchasedQty: true,
+      fundGoal: true,
+      fundedAmount: true,
       snapshotTitle: true,
       purchases: { select: { voidedAt: true, buyerName: true, qty: true } },
     },
@@ -340,7 +351,7 @@ async function ownerEmail(registry: AutomationRegistry, purpose: string): Promis
 }
 
 function remainingCount(registry: AutomationRegistry): number {
-  return registry.items.filter((i) => i.purchasedQty < i.desiredQty).length;
+  return registry.items.filter((i) => !isTaken(i)).length;
 }
 
 async function sendGuestReminders(registry: AutomationRegistry, now: Date): Promise<boolean> {

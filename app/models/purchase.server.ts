@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
 import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
+import { contributionValue, isContributionLine } from "../shared/contributions";
 import { toMailingAddressInput } from "../shared/shipping-address";
 
 /**
@@ -79,6 +80,8 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
   if (!shopRecord) return;
 
   const settings = settingsFor(shopRecord);
+  const contributionVariants = settings.contributionProduct?.variants ?? [];
+  const contributionVariantIds = new Set(contributionVariants.map((v) => v.id));
 
   const buyerName =
     [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(" ") || null;
@@ -120,6 +123,13 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     // guest who wasn't asked, or unticked it, keeps the address they typed.
     const shipToRegistrant = line.shipToRegistrant && registry.shipToRegistrant;
 
+    // A chip-in toward a group gift or fund (SPIKE-C.md) adds money, never a
+    // unit: 3 x $25 gift cards is $75 toward the goal, not 3 of the item.
+    const isContribution = isContributionLine(item, line, contributionVariantIds);
+    const contributionAmount = isContribution
+      ? contributionValue(line, contributionVariants)
+      : null;
+
     const hiddenUntil =
       settings.hideBuyerUntilEvent && registry.eventDate && registry.eventDate > new Date()
         ? registry.eventDate
@@ -138,20 +148,23 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             lineItemId: line.lineItemId,
             orderName: order.name ?? null,
             qty: line.quantity,
-            amount: line.amount,
+            amount: isContribution ? contributionAmount : line.amount,
             currency: order.currency ?? shopRecord.currency,
             buyerName,
             buyerCustomerId,
             buyerMessage: null,
             hiddenUntil,
-            shippedToRegistrant: shipToRegistrant,
+            shippedToRegistrant: isContribution ? false : shipToRegistrant,
             isNewCustomer,
+            isContribution,
           },
         });
 
         await tx.registryItem.update({
           where: { id: item.id },
-          data: { purchasedQty: { increment: line.quantity } },
+          data: isContribution
+            ? { fundedAmount: { increment: contributionAmount ?? "0" } }
+            : { purchasedQty: { increment: line.quantity } },
         });
       });
     } catch (err) {
@@ -165,8 +178,9 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       itemId: item.id,
       orderId,
       qty: line.quantity,
-      amount: line.amount,
+      amount: isContribution ? contributionAmount : line.amount,
       source: "online",
+      isContribution,
     });
 
     // Once per order and registry. The Purchase unique index above already
@@ -174,7 +188,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
     // processed, so a redelivered webhook never re-issues the rewrite. See
     // applyShipToRegistrant's own guardrails (fulfillment status,
     // cross-jurisdiction) for everything else.
-    if (shipToRegistrant && !shipped.has(registry.id)) {
+    if (shipToRegistrant && !isContribution && !shipped.has(registry.id)) {
       shipped.add(registry.id);
       await shipToRegistrantForOrder(shopDomain, orderId, registry.id).catch((err) => {
         console.error(
@@ -182,6 +196,18 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
           (err as Error).message,
         );
       });
+    }
+
+    if (isContribution) {
+      await notifyRegistrantOfContribution(registry, shopDomain, {
+        itemTitle: item.snapshotTitle ?? "your fund",
+        amount: contributionAmount,
+        currency: order.currency ?? shopRecord.currency,
+        buyerName,
+        hidden: hiddenUntil !== null,
+        sentToRegistrant: registry.contributionsToRegistrant,
+      });
+      continue;
     }
 
     await notifyRegistrant(registry, shopDomain, {
@@ -225,6 +251,7 @@ export async function voidPurchases(
     },
     include: { item: { select: { id: true, registryId: true } } },
   });
+  // isContribution/amount are on the Purchase row itself, so no extra select.
 
   if (purchases.length === 0) return;
 
@@ -242,14 +269,16 @@ export async function voidPurchases(
 
       const item = await tx.registryItem.findUnique({
         where: { id: purchase.itemId },
-        select: { purchasedQty: true },
+        select: { purchasedQty: true, fundedAmount: true },
       });
       if (!item) return;
 
       await tx.registryItem.update({
         where: { id: purchase.itemId },
-        // Never let the counter go negative, whatever order the webhooks arrive in.
-        data: { purchasedQty: Math.max(0, item.purchasedQty - purchase.qty) },
+        // Never let a counter go negative, whatever order the webhooks arrive in.
+        data: purchase.isContribution
+          ? { fundedAmount: Math.max(0, Number(item.fundedAmount) - Number(purchase.amount ?? 0)).toFixed(2) }
+          : { purchasedQty: Math.max(0, item.purchasedQty - purchase.qty) },
       });
     });
 
@@ -307,6 +336,50 @@ async function notifyRegistrant(
     qty: gift.qty,
     desiredQty: gift.desiredQty,
     buyerLine,
+    url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
+      t: mintManageToken(registry.id),
+    }),
+  });
+}
+
+async function notifyRegistrantOfContribution(
+  registry: { id: string; title: string; registrants: { emailEnc: string }[] },
+  shopDomain: string,
+  gift: {
+    itemTitle: string;
+    amount: string | null;
+    currency: string;
+    buyerName: string | null;
+    hidden: boolean;
+    sentToRegistrant: boolean;
+  },
+): Promise<void> {
+  const owner = registry.registrants[0];
+  if (!owner) return;
+
+  const email = registrantEmail(owner);
+  if (!email) return;
+
+  await audit({
+    shop: shopDomain,
+    actor: "system:notify-registrant",
+    action: "registrant_email_decrypted",
+    subject: registry.id,
+    detail: { purpose: "contribution_notification" },
+  });
+
+  const buyerLine = gift.hidden
+    ? "We'll tell you who it was after the event."
+    : gift.buyerName
+      ? `From ${gift.buyerName}.`
+      : "They chose not to share their name.";
+
+  await sendEmail("gift-contribution", email, {
+    itemTitle: gift.itemTitle,
+    amount: gift.amount,
+    currency: gift.currency,
+    buyerLine,
+    sentToRegistrant: gift.sentToRegistrant,
     url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
       t: mintManageToken(registry.id),
     }),

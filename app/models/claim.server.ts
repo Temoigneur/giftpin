@@ -54,7 +54,7 @@ export async function placeClaim(
     where: { id: itemId, registryId },
     include: { claims: { where: { releasedAt: null, expiresAt: { gt: now } } } },
   });
-  if (!item || item.sourceType === "internal") return null;
+  if (!item || item.sourceType === "internal" || item.sourceType === "fund") return null;
 
   const claimed = item.claims.reduce((sum, c) => sum + c.qty, 0);
   const available = item.desiredQty - item.purchasedQty - claimed;
