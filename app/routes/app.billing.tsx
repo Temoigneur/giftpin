@@ -91,6 +91,7 @@ export default function Billing() {
               <s-list-item>CSV export of registries and purchases</s-list-item>
               <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
               <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
+              <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
@@ -114,6 +115,7 @@ export default function Billing() {
               <s-list-item>CSV export of registries and purchases</s-list-item>
               <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
               <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
+              <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">

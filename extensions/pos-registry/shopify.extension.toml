@@ -1,0 +1,22 @@
+# In-store registry mode (Giftpin Pro). A Shopify POS UI extension: a tile on
+# the POS home screen that opens a modal where staff find or start a
+# customer's registry and ring up items from it. Backend: app/routes/api.pos.tsx.
+#
+# Ships with `npm run deploy` (shopify app deploy), not with the Railway
+# deploy of the web app.
+
+api_version = "2026-07"
+
+[[extensions]]
+type = "ui_extension"
+name = "Giftpin registry"
+handle = "pos-registry"
+description = "Find or start a gift registry for a customer at the counter."
+
+[[extensions.targeting]]
+module = "./src/Tile.tsx"
+target = "pos.home.tile.render"
+
+[[extensions.targeting]]
+module = "./src/Modal.tsx"
+target = "pos.home.modal.render"

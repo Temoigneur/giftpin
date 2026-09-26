@@ -115,6 +115,14 @@ database.
 
 ## Resolved (kept briefly for history)
 
+- ~~In-store (POS) attribution unverified live~~ — confirmed passing 26 Sep
+  2026 (order #1028, cash sale on the registro-dev store). The POS tile's
+  `_rg` line property survived into orders/create and credited the registry
+  item exactly once. The Purchase row records `source: "online"`, not
+  `"pos"`; relabelling it would rely on the order's `source_name`, which
+  hasn't been checked in a real payload yet. Getting the tile onto POS needs
+  the product published to the Point of Sale channel, and the tile added from
+  Point of Sale → POS editor → Add tile → Embedded Apps.
 - ~~Hard rule "no affiliate/tracking params on outbound links, ever"~~ —
   deliberately reversed 20 Sep 2026, Ben's explicit call. Giftpin now
   takes a disclosed affiliate commission from launch (see
