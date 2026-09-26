@@ -70,6 +70,31 @@ paid with Shop Pay is row C2.
    Untick it for row C4.
 5. On the registry page, the fund shows "Chip in".
 
+## Part 1: the Shopify-only check (no Giftpin code needed)
+
+The real risk is Shopify's behaviour, not ours, so check it before the branch
+is deployed. This needs only the gift card product from setup step 1.
+
+On any storefront page of the dev store, open the browser console and paste
+this. Swap in an inbox you can check for the recipient email:
+
+```js
+fetch('/products/registry-contribution.js').then(r=>r.json()).then(p=>fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{id:p.variants[0].id,quantity:1,properties:{_rg:'spike-c-test','Recipient email':'YOU+couple@gmail.com','Recipient name':'Sam & Alex',Message:'Spike C test',__shopify_send_gift_card_to_recipient:'true'}}]})})).then(r=>r.json()).then(console.log)
+```
+
+Run it once and check out by card (`4242…`). Run it again and pay with the
+Shop Pay button on the cart page. For each order, record:
+
+- **P1:** the admin order shows `_rg: spike-c-test` on the gift card line.
+- **P2:** the gift card email reaches the recipient address, not the buyer.
+- **P3:** the message "Spike C test" appears in that email.
+
+The live app ignores `_rg: spike-c-test` (it isn't signed), so these orders
+touch no registry.
+
+If P1 passes, attribution works. If P2 fails under Shop Pay, drop the
+recipient opt-in and always send the card to the guest.
+
 ## The matrix
 
 | # | Path | Steps | Pass when | Result |
