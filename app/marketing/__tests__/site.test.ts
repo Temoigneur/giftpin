@@ -5,6 +5,8 @@ import { loader as homeLoader } from "../../routes/_index";
 import { loader as featuresLoader } from "../../routes/features";
 import { loader as faqLoader } from "../../routes/faq";
 import { loader as pricingLoader } from "../../routes/pricing";
+import { loader as weddingLoader } from "../../routes/wedding-registry";
+import { loader as compareLoader } from "../../routes/compare";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
 import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
 import { videoEmbed } from "../layout";
@@ -19,7 +21,11 @@ async function page(path: string): Promise<string> {
         ? await featuresLoader()
         : path === "/pricing"
           ? await pricingLoader()
-          : await faqLoader();
+          : path === "/wedding-registry"
+            ? await weddingLoader()
+            : path === "/compare"
+              ? await compareLoader()
+              : await faqLoader();
   expect(res.status).toBe(200);
   expect(res.headers.get("Content-Type")).toContain("text/html");
   return res.text();
@@ -32,7 +38,7 @@ describe("marketing site", () => {
     });
   });
 
-  it.each(["/", "/features", "/pricing", "/faq"])("%s renders with the shared nav, footer and icon", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"])("%s renders with the shared nav, footer and icon", async (path) => {
     const html = await page(path);
     expect(html).toContain('href="/pricing"');
     expect(html).toContain('href="/privacy"');
@@ -55,7 +61,7 @@ describe("marketing site", () => {
   });
 
   it("doesn't advertise Pro features that aren't merged, or a yearly price that isn't set up", async () => {
-    for (const path of ["/", "/features", "/pricing", "/faq"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"]) {
       const html = (await page(path)).toLowerCase();
       expect(html).not.toContain("point of sale");
       expect(html).not.toContain(" pos ");
@@ -66,13 +72,15 @@ describe("marketing site", () => {
     }
   });
 
-  it("shows the demo placeholder until a video is set", async () => {
-    expect(await page("/")).toContain("Demo video coming soon");
+  it("embeds the demo video", async () => {
+    const html = await page("/");
+    expect(html).toContain("youtube-nocookie.com/embed/3TeeSK2ZH0o");
+    expect(html).not.toContain("Demo video coming soon");
   });
 
   it("every image the pages reference ships in public/", async () => {
     const pub = join(__dirname, "../../../public");
-    for (const path of ["/", "/features", "/pricing", "/faq"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"]) {
       const html = await page(path);
       for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/brand\/[^"]+)"/g)) {
         expect(existsSync(join(pub, m[1])), m[1]).toBe(true);
@@ -87,6 +95,8 @@ describe("marketing site", () => {
       "/features": "features.tsx",
       "/pricing": "pricing.tsx",
       "/faq": "faq.tsx",
+      "/wedding-registry": "wedding-registry.tsx",
+      "/compare": "compare.tsx",
       "/privacy": "privacy.tsx",
     };
     for (const p of MARKETING_PATHS) expect(existsSync(join(routes, file[p] ?? "missing")), p).toBe(true);

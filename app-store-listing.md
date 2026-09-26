@@ -23,11 +23,31 @@ Dev Dashboard show once `shopify app deploy` succeeds — renamed from
 
 ## Tagline (one line, shown in search results)
 
-Let guests build one gift registry from any store — not just yours.
+Wedding, baby and gift registries with items from any store, yours first.
+
+(Updated 26 Sep 2026 so the phrases merchants search for, "wedding
+registry" and "baby registry", appear in the search result. Previous:
+"Let guests build one gift registry from any store — not just yours.")
 
 ## App introduction (shown at the top of the listing, ~100 characters)
 
-A gift registry that isn't limited to your catalog.
+A wedding and baby registry that isn't limited to your catalog.
+
+## Search terms (Partner Dashboard listing field)
+
+Shopify matches these against what merchants type in the App Store. Paste
+one per box, in this order, and keep within whatever count and length limit
+the form shows:
+
+1. gift registry
+2. wedding registry
+3. baby registry
+4. wishlist
+5. universal registry
+
+## Demo video
+
+https://youtu.be/3TeeSK2ZH0o (also embedded on giftpin.app).
 
 ## App details (main listing body)
 

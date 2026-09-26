@@ -1,7 +1,7 @@
 import { SITE_URL } from "../marketing/config";
 
 /** giftpin.app/sitemap.xml: the public marketing pages. */
-export const MARKETING_PATHS = ["/", "/features", "/pricing", "/faq", "/privacy"];
+export const MARKETING_PATHS = ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/privacy"];
 
 export const loader = async () =>
   new Response(

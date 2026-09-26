@@ -45,7 +45,7 @@ export function htmlResponse(html: string): Response {
   });
 }
 
-type NavKey = "home" | "features" | "pricing" | "faq";
+type NavKey = "home" | "features" | "pricing" | "faq" | "guides";
 
 export function sitePage(opts: {
   path: string;
@@ -122,6 +122,7 @@ ${opts.body}
         <p>The gift registry for Shopify stores that isn't limited to your catalog, and still puts your products first.</p>
       </div>
       <div><h3>Product</h3><a href="/features">Features</a><a href="/pricing">Pricing</a><a href="/#demo">Demo</a><a href="/faq">FAQ</a></div>
+      <div><h3>Guides</h3><a href="/wedding-registry">Universal wedding registry</a><a href="/compare">Choosing a registry app</a></div>
       <div><h3>Company</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy">Privacy policy</a></div>
     </div>
     <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay and Google Pay are trademarks of their owners.</p>
@@ -369,7 +370,7 @@ p{margin:0}
 /* footer */
 .foot{background:var(--band); color:var(--band-soft); border-top:1px solid var(--band-line); padding-block:56px 32px; font-size:15px}
 .foot .brand{color:var(--band-ink); margin-bottom:12px}
-.foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:32px}
+.foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:32px}
 .foot-grid p{max-width:40ch}
 .foot h3{font-family:"Plus Jakarta Sans",sans-serif; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--band-ink); margin-bottom:12px}
 .foot-grid a:not(.brand){display:block; color:var(--band-soft); text-decoration:none; padding-block:4px; overflow-wrap:anywhere}
