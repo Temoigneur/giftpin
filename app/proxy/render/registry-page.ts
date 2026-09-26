@@ -418,7 +418,7 @@ function renderChipInAssets(data: RegistryPageData): string {
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'Added to cart');btn.disabled=false;})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});var s=form.querySelector('.js-status');if(s){s.style.color='';s.innerHTML='Added to cart <a class="btn sm" href="/cart">Check out &rarr;</a>';}btn.disabled=false;})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
   });
 })();</script>`;

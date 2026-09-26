@@ -448,6 +448,8 @@ describe("group gifts and cash funds (SPIKE-C.md)", () => {
     expect(html).toContain('value="7001"');
     expect(html).toContain('value="7002"');
     expect(html).toContain("/contribute");
+    // After a chip-in, the guest needs a way to the cart: the page has none of its own.
+    expect(html).toContain("Added to cart <a class=\"btn sm\" href=\"/cart\">Check out");
     // A fund is not bought elsewhere: no claim or "I bought this".
     expect(html).not.toContain('data-item="fund_1" type="button">I bought this');
   });
