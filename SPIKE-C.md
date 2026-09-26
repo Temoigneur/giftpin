@@ -26,7 +26,7 @@ the spike").
 ## What was built
 
 - The merchant creates a normal **gift card product** in Shopify admin
-  (Products → Gift cards) with a few denominations, e.g. $25 / $50 / $100 /
+  (Products → Gift cards → Add a gift card product) with a few denominations, e.g. $25 / $50 / $100 /
   $250. Then, in Giftpin → Settings → **Group gifts and funds**, they pick it.
   This needs no new API scope: Giftpin only reads the product.
 - A guest picks an amount on a fund or group-gift item. The page adds **one
@@ -58,7 +58,7 @@ paid with Shop Pay is row C2.
 
 ## Setup (~15 minutes)
 
-1. Dev store admin → **Products → Gift cards → Create gift card**. Title
+1. Dev store admin → **Products → Gift cards → Add a gift card product**. Title
    "Registry contribution", denominations $25, $50, $100. Gift cards don't
    track inventory, but check anyway (CLAUDE.md hard rule 6).
 2. Make the store's Giftpin plan Pro: start the free trial from Giftpin →

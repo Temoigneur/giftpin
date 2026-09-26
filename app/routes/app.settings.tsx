@@ -386,7 +386,7 @@ export default function Settings() {
           {giftCards.length === 0 ? (
             <s-paragraph>
               <s-text color="subdued">
-                First create a gift card in Products &rarr; Gift cards, with a few amounts such as
+                First go to Products &rarr; Gift cards &rarr; Add a gift card product, with a few amounts such as
                 $25, $50 and $100. Then come back here and pick it.
               </s-text>
             </s-paragraph>
