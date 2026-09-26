@@ -120,4 +120,10 @@ attributed and the feature doesn't ship.
 - P1: the admin order shows `_rg: spike-c-test` and `Recipient email` on the gift card line.
 - P2 and P3: the gift card email arrived at the recipient (+couple) address with the message.
 
-Part 1 with Shop Pay from the cart page is pending. Rows C1–C7 need the branch deployed.
+**Part 1, Shop Pay from the cart page (26 Sep 2026, Ben): ✅ passed.** `_rg`
+was on the order, and the gift card email went to the recipient address.
+
+This settles the Shopify-side risk: `_rg` and the recipient properties both
+survive standard checkout and Shop Pay on a gift card line. Rows C1–C7
+(Giftpin's own fund totals, and the opt-out delivering to the guest) need the
+branch deployed, and are checked on the dev store after merging.
