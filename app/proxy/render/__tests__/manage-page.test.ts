@@ -367,6 +367,18 @@ describe("paste box as the extension's backup (25 Sep 2026)", () => {
   });
 });
 
+// Ben, 25 Sep 2026: the extension is Chrome-on-a-computer only, so phone and
+// tablet users get told that where they'd otherwise try it — not a blanket
+// "desktop only" that would put guests off.
+describe("phone message for importing (25 Sep 2026)", () => {
+  it("tells touch-device users the extension needs a computer", () => {
+    const html = page();
+    expect(html).toMatch(/class="touch-only"[^>]*><strong>This part needs a computer/);
+    expect(html).toMatch(/class="hint touch-only">On a phone, big stores like Amazon, Wayfair and Target/);
+    expect(html).toContain('class="hint no-touch">On a computer?');
+  });
+});
+
 describe("ship-to-registrant form (25 Sep 2026)", () => {
   it("is off by default, with the address fields hidden", () => {
     const html = page();
