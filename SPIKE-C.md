@@ -116,4 +116,8 @@ attributed and the feature doesn't ship.
 
 ## Results
 
-_Not run yet._
+**Part 1, standard checkout (26 Sep 2026, Ben, test card): ✅ passed.**
+- P1: the admin order shows `_rg: spike-c-test` and `Recipient email` on the gift card line.
+- P2 and P3: the gift card email arrived at the recipient (+couple) address with the message.
+
+Part 1 with Shop Pay from the cart page is pending. Rows C1–C7 need the branch deployed.
