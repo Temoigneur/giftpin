@@ -107,6 +107,12 @@ export const FAQ_GROUPS: FaqGroup[] = [
         q: "What does Giftpin do with customer data?",
         a: `<p>Only what running the registry needs, such as the registrant's name, email and, if they choose, a shipping address, plus which orders were registry gifts. Email addresses are never shown to guests. The full details are in our <a href="/privacy">privacy policy</a>.</p>`,
       },
+      {
+        q: "Which affiliate programs does Giftpin work with?",
+        // Sovrn Commerce asks for one of its links to be live on the site
+        // (Ben, 26 Sep 2026). rel="sponsored" marks it as paid for search engines.
+        a: `<p>Giftpin works with affiliate networks such as Sovrn Commerce. Here's <a href="https://sovrn.co/194eluu" rel="sponsored nofollow noopener" target="_blank">an example partner link</a>: if you buy through a link like this, Giftpin may earn a small commission, at no extra cost to you.</p>`,
+      },
     ],
   },
 ];
