@@ -47,7 +47,7 @@ the form shows:
 
 ## Demo video
 
-https://youtu.be/3TeeSK2ZH0o (also embedded on giftpin.app).
+https://youtu.be/EbJI5aFbeo4 (also embedded on giftpin.app).
 
 ## App details (main listing body)
 
