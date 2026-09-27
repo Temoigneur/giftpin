@@ -917,15 +917,17 @@ function manageScript(): string {
       else{document.execCommand('copy');done();}
       return;
     }
-    // The phone or computer's own share sheet when it has one. It can fail
-    // without showing anything (Chrome on Windows refuses a second share
-    // while an earlier one is stuck), so any failure other than the person
-    // closing the sheet opens our own list of ways to share instead.
+    // On a phone, the phone's own share sheet. On a computer, our own list:
+    // desktop share sheets are unreliable (Chrome on Windows refuses a second
+    // share while an earlier one is stuck, and its "Copy link" can leave the
+    // clipboard empty). A phone sheet that fails for any reason other than
+    // the person closing it falls back to our list too.
     var share=e.target.closest('.js-share');
     if(share){
       var menu=document.querySelector('.js-share-menu');
       var showMenu=function(){if(menu)menu.hidden=false;};
-      if(navigator.share){
+      var phone=window.matchMedia&&matchMedia('(hover:none) and (pointer:coarse)').matches;
+      if(navigator.share&&phone){
         try{navigator.share({title:share.dataset.title,url:share.dataset.url}).catch(function(err){if(!err||err.name!=='AbortError')showMenu();});}
         catch(_){showMenu();}
       }else{showMenu();}
