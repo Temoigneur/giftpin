@@ -458,6 +458,8 @@ describe("group gifts and cash funds (SPIKE-C.md)", () => {
     expect(page([honeymoon], { contributions })).toContain("emailed to you, so you can pass it on");
     const optedIn = page([honeymoon], { contributions: { ...contributions, toRegistrant: true } });
     expect(optedIn).toContain("emailed straight to the couple");
+    // Shop Pay ignores the recipient properties (order #1031, 26 Sep 2026).
+    expect(optedIn).toContain("not Shop Pay");
     expect(optedIn).toContain('name="message"');
   });
 

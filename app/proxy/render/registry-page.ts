@@ -347,7 +347,7 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
     .join("");
   const id = escapeAttr(item.id);
   const delivery = setup.toRegistrant
-    ? "You'll buy a store gift card, and it's emailed straight to the couple."
+    ? "You'll buy a store gift card, and it's emailed straight to the couple. Use the Check out button, not Shop Pay: Shop Pay emails the card to you instead."
     : "You'll buy a store gift card. It's emailed to you, so you can pass it on or print it into a card.";
 
   return `<form class="js-chip chip" data-item="${id}">

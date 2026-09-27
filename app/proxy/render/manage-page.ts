@@ -482,7 +482,7 @@ function renderFundSetup(data: ManagePageData): string {
   <form class="js-contrib-to" style="margin-top:14px">
     <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
       <input type="checkbox" name="toRegistrant"${checked} style="width:auto;margin-top:4px">
-      <span>Email chip-in gift cards straight to me. <span class="hint" style="display:inline">Guests will see my email address in their cart and at checkout. Leave this off and each card goes to the guest to pass on.</span></span>
+      <span>Email chip-in gift cards straight to me. <span class="hint" style="display:inline">Guests will see my email address in their cart and at checkout. Guests who pay with Shop Pay still get the card themselves. Leave this off and each card goes to the guest to pass on.</span></span>
     </label>
     <span class="js-status item-meta" role="status"></span>
   </form>

@@ -23,6 +23,20 @@ describe("Pro automation emails", () => {
     expect(mail.html).toContain("Sam &amp; Alex");
   });
 
+  it("doesn't promise the couple a chip-in card that Shop Pay sent to the guest", () => {
+    const mail = templates["gift-contribution"]({
+      to: "sam@example.com",
+      amount: "25",
+      currency: "CAD",
+      itemTitle: "Honeymoon",
+      buyerLine: "From Taylor.",
+      sentToRegistrant: true,
+      url: "https://x/manage",
+    });
+    expect(mail.text).toContain("usually to this address");
+    expect(mail.text).toContain("Shop Pay");
+  });
+
   it("escapes registrant and buyer text in the thank-you list", () => {
     const mail = templates["thank-you-reminder"]({
       to: "sam@example.com",

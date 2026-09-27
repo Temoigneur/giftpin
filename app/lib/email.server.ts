@@ -113,7 +113,7 @@ const templates: Record<string, TemplateFn> = {
   "gift-contribution": (d) => {
     const money = d.amount ? `${Number(d.amount).toFixed(2)} ${d.currency}` : "A gift card";
     const where = d.sentToRegistrant
-      ? "The gift card itself is on its way to this address in a separate email from the store."
+      ? "The gift card itself comes in a separate email from the store, usually to this address. If your guest paid with Shop Pay, it went to them instead, so they can pass it on to you."
       : "The gift card was emailed to your guest, so they can pass it on to you.";
     return {
       to: d.to,

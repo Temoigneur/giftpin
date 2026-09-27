@@ -100,8 +100,8 @@ recipient opt-in and always send the card to the guest.
 | # | Path | Steps | Pass when | Result |
 |---|---|---|---|---|
 | C1 | Standard checkout, test card | Chip in $50 → cart → Checkout → `4242…` | Admin order shows the gift card line with `_rg`. `orders/create` has the line with `gift_card: true` and `_rg` in `properties`. Fund page shows "$50 of $500". | — |
-| C2 | **Shop Pay from the cart page**, recipient opted in | Chip in $25 → cart → Shop Pay button | Same as C1, **and** the gift card email goes to the couple's address, not the buyer's | — |
-| C3 | Standard checkout, recipient opted in | As C1 with the opt-in on | Couple receives the gift card email with the guest's message | — |
+| C2 | **Shop Pay from the cart page**, recipient opted in | Chip in $25 → cart → Shop Pay button | Same as C1, **and** the gift card email goes to the couple's address, not the buyer's | ❌ #1031 (26 Sep): fund credited, card emailed to the buyer |
+| C3 | Standard checkout, recipient opted in | As C1 with the opt-in on | Couple receives the gift card email with the guest's message | ✅ #1034 (27 Sep): card emailed to +couple, buyer gets a copy |
 | C4 | Opt-in off | As C1 | Gift card email goes to the buyer. The couple's email appears nowhere in the cart or checkout. | — |
 | C5 | Refund the C1 line from admin | Refund | Fund drops back by $50 | — |
 | C6 | Group gift on an internal item | Manage page → "Let guests chip in" on a $300 item → chip in $100, then buy the item outright via Add to cart | Chip-in shows "$100 of $300". The outright buy marks the item taken, same as today. | — |
@@ -127,3 +127,17 @@ This settles the Shopify-side risk: `_rg` and the recipient properties both
 survive standard checkout and Shop Pay on a gift card line. Rows C1–C7
 (Giftpin's own fund totals, and the opt-out delivering to the guest) need the
 branch deployed, and are checked on the dev store after merging.
+
+**Part 2, the app's own chip-in (26–27 Sep 2026, Ben).** Fund totals update
+(Honeymoon $100 of $500 after #1031/#1032). C3 passed: on #1034 (guest
+checkout, no Shop Pay) the card went to +couple as "gift card from <guest>",
+with a copy to the buyer. C2 failed: on #1031, paid with Shop Pay, the card
+went to the buyer even though the line carried the recipient properties. So
+the Part 1 Shop Pay pass above didn't hold for a real chip-in. Instead of the
+full fallback, Ben chose to keep sending to the couple: the chip-in form tells
+guests to use Check out rather than Shop Pay, and the couple's "chipped in"
+email says a Shop Pay guest has the card instead.
+
+Gift cards are only emailed once the line is fulfilled. A store set to "Don't
+fulfill any line items automatically" never sends them; use Settings →
+General → Order processing → "Automatically fulfill only the gift cards".
