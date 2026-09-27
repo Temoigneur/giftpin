@@ -347,7 +347,7 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
     .join("");
   const id = escapeAttr(item.id);
   const delivery = setup.toRegistrant
-    ? "You'll buy a store gift card, and it's emailed straight to the couple."
+    ? "You'll buy a store gift card, and it's emailed straight to the couple. Use the Check out button, not Shop Pay: Shop Pay emails the card to you instead."
     : "You'll buy a store gift card. It's emailed to you, so you can pass it on or print it into a card.";
 
   return `<form class="js-chip chip" data-item="${id}">
@@ -388,7 +388,7 @@ function renderDuplicateNotice(data: RegistryPageData): string {
   if (data.progress.externalItems === 0) return "";
   return `<div class="note">
   <p style="margin:0"><strong>Buying something from another store?</strong> Tap &ldquo;I bought this&rdquo; when you're done so nobody buys it twice. We hold it for you in the meantime.</p>
-  <p class="disclosure" style="margin:6px 0 0">Buying from another store through a link here may earn Giftpin a small commission — it never changes what you pay, and never applies to this store's own products.</p>
+  <p class="disclosure" style="margin:6px 0 0">Buying from another store through a link here may earn Giftpin a small commission — it never changes what you pay, and never applies to this store's own products. It helps us keep improving Giftpin.</p>
 </div>`;
 }
 
