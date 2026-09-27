@@ -9,7 +9,7 @@ import { loader as weddingLoader } from "../../routes/wedding-registry";
 import { loader as compareLoader } from "../../routes/compare";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
 import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
-import { videoEmbed } from "../layout";
+import { SKIMLINKS_SCRIPT_URL, videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
 
@@ -44,6 +44,18 @@ describe("marketing site", () => {
     expect(html).toContain('href="/privacy"');
     expect(html).toContain("/brand/giftpin-icon-64.png");
     expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}">`);
+  });
+
+  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"])("%s loads the Skimlinks script once, just before </body>", async (path) => {
+    const html = await page(path);
+    const tag = `<script type="text/javascript" src="${SKIMLINKS_SCRIPT_URL}"></script>`;
+    expect(html.split(SKIMLINKS_SCRIPT_URL)).toHaveLength(2);
+    expect(html.replace(/\s+<\/body>/, "</body>")).toContain(`${tag}</body>`);
+  });
+
+  it("keeps Skimlinks off the Sovrn example link on /faq", async () => {
+    const html = await page("/faq");
+    expect(html).toContain('<a class="noskim" href="https://sovrn.co/194eluu"');
   });
 
   it("quotes the price and trial from the billing constants", async () => {
