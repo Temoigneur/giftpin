@@ -86,7 +86,7 @@ describe("marketing site", () => {
 
   it("embeds the demo video", async () => {
     const html = await page("/");
-    expect(html).toContain("youtube-nocookie.com/embed/3TeeSK2ZH0o");
+    expect(html).toContain("youtube-nocookie.com/embed/EbJI5aFbeo4");
     expect(html).not.toContain("Demo video coming soon");
   });
 
