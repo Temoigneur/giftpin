@@ -78,6 +78,9 @@ reading Shopify's docs.
   need a pause.
 - **Ben wants short, direct answers** — plain instructions over
   explanations, options only when there's a real decision to make.
+- **Clueso videos: when a video is duplicated, use only the second copy.**
+  If the same recording shows up twice (uploaded twice, two clips of the
+  same scene), the second one is the one to keep; ignore or remove the first.
 
 ## Known gaps / not-yet-verified
 
