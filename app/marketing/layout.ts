@@ -14,6 +14,16 @@ import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL } from "./config";
  */
 
 export const SUPPORT = "support@giftpin.app";
+
+/**
+ * Skimlinks publisher script (Ben's account, 27 Sep 2026). It rewrites
+ * outbound merchant links on these pages into affiliate links. Skimlinks
+ * says it only works on giftpin.app, so it belongs on the marketing site
+ * only: never the embedded admin, the registry pages on merchants' stores
+ * (those use AFFILIATE_LINK_WRAPPER_BASE instead) or the Chrome extension.
+ * A link inside an element with class "noskim" is left alone.
+ */
+export const SKIMLINKS_SCRIPT_URL = "https://s.skimresources.com/js/309981X1798361.skimlinks.js";
 const EARLY_ACCESS = `mailto:${SUPPORT}?subject=${encodeURIComponent("Giftpin early access")}`;
 
 /** Primary call to action: the App Store listing once it exists. */
@@ -137,6 +147,7 @@ ${opts.body}
   document.querySelectorAll(".menu nav a").forEach(function(a){a.addEventListener("click",function(){a.closest("details").open=false})});
 })();
 </script>
+<script type="text/javascript" src="${SKIMLINKS_SCRIPT_URL}"></script>
 </body>
 </html>
 `;
