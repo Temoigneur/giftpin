@@ -546,8 +546,9 @@ function renderShareMenu(title: string, url: string): string {
     ["WhatsApp", `https://wa.me/?text=${encodeURIComponent(text)}`],
     ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`],
   ];
-  return `<style>.share-menu:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}</style>
+  return `<style>.share-menu:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.share-link{flex:1 1 100%;min-height:40px;padding:0 10px;border:1px solid #ccc;border-radius:8px;font:inherit}</style>
   <div class="share-menu js-share-menu" hidden>
+    <input class="share-link" type="text" readonly value="${escapeAttr(url)}" aria-label="Guest link" onfocus="this.select()">
     <button class="btn sm js-share-copy" type="button" data-url="${escapeAttr(url)}">Copy link</button>
     ${links.map(([label, href]) => `<a class="btn sm" href="${escapeAttr(href)}" target="_blank" rel="noopener">${label}</a>`).join("\n    ")}
   </div>`;
@@ -935,10 +936,18 @@ function manageScript(): string {
     }
     var shareCopy=e.target.closest('.js-share-copy');
     if(shareCopy){
-      var link=shareCopy.dataset.url,copied=function(){shareCopy.textContent='Link copied';};
-      if(navigator.clipboard){navigator.clipboard.writeText(link).then(copied,function(){prompt('Copy this link:',link);});}
-      else{prompt('Copy this link:',link);}
+      copyLink(shareCopy.dataset.url,function(){shareCopy.textContent='Link copied';});
     }
   });
+  function copyLink(link,done){
+    // execCommand first: it runs synchronously inside the click, so a
+    // storefront's clipboard permissions policy can't block it. The async
+    // clipboard API is the fallback, then a prompt the person copies from.
+    var ok=false;
+    try{var t=document.createElement('textarea');t.value=link;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');document.body.removeChild(t);}catch(_){ok=false;}
+    if(ok){done();return;}
+    if(navigator.clipboard){navigator.clipboard.writeText(link).then(done,function(){prompt('Copy this link:',link);});}
+    else{prompt('Copy this link:',link);}
+  }
 })();`.trim();
 }
