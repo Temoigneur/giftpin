@@ -362,6 +362,11 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
 </form>`;
 }
 
+/**
+ * Share: a phone's own share sheet on phones; on computers the button copies
+ * the link, since desktop share sheets can leave the clipboard empty. The copy
+ * uses execCommand first so a storefront's clipboard policy can't block it.
+ */
 function renderShare(data: RegistryPageData): string {
   const encoded = encodeURIComponent(data.shareUrl);
   const text = encodeURIComponent(`${data.title} — gift registry`);
@@ -425,6 +430,8 @@ function renderChipInAssets(data: RegistryPageData): string {
 }
 
 function clientScript(): string {
+  // Whole-line comments below are for us, not the guest: strip them so they
+  // don't count against the page's byte budget.
   return `
 (function(){
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
@@ -548,11 +555,12 @@ function clientScript(): string {
     }
     var share=e.target.closest('.js-share');
     if(share){
-      var data={title:share.dataset.title,url:share.dataset.url};
-      if(navigator.share){navigator.share(data).catch(function(){});}
-      else if(navigator.clipboard){navigator.clipboard.writeText(share.dataset.url).then(function(){share.textContent='Link copied';});}
+      var d=share.dataset,copy=function(){copyLink(d.url,function(){share.textContent='Link copied';});};
+      if(navigator.share&&matchMedia('(hover:none) and (pointer:coarse)').matches){try{navigator.share({title:d.title,url:d.url}).catch(function(e){if(!e||e.name!=='AbortError')copy();});}catch(_){copy();}}
+      else copy();
     }
   });
+  function copyLink(l,done){var ok=false;try{var t=document.createElement('textarea');t.value=l;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove();}catch(_){}if(ok)return done();if(navigator.clipboard)navigator.clipboard.writeText(l).then(done,function(){prompt('Copy this link:',l);});else prompt('Copy this link:',l);}
 
   // "New gift added" banner. The page is server-cached and correctly
   // invalidated the instant a write lands, so a newly-added item is already
@@ -612,5 +620,5 @@ function clientScript(): string {
     setInterval(checkVersion,20000);
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkVersion();});
   }
-})();`.trim();
+})();`.replace(/^\s*\/\/.*\n/gm, "").trim();
 }

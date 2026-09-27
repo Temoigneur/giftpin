@@ -415,5 +415,9 @@ describe("share with guests", () => {
     expect(html).toContain("mailto:?subject=");
     expect(html).toContain(encodeURIComponent("https://maple-clay.com/apps/registry/r/abc123"));
     expect(html).toContain('data-url="https://maple-clay.com/apps/registry/r/abc123">Copy link');
+    // The link itself is visible to copy by hand, and Copy link doesn't rely
+    // on the async clipboard API alone (Ben, 27 Sep 2026: it copied nothing).
+    expect(html).toContain('class="share-link" type="text" readonly value="https://maple-clay.com/apps/registry/r/abc123"');
+    expect(html).toContain("execCommand('copy')");
   });
 });

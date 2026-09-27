@@ -383,6 +383,14 @@ export default function Settings() {
               <s-paragraph>This is part of Giftpin Pro.</s-paragraph>
             </s-banner>
           )}
+          <s-banner tone="warning">
+            <s-paragraph>
+              Shopify only emails a gift card once its order is fulfilled. In Settings &rarr; General
+              &rarr; Order processing, choose &ldquo;Automatically fulfill only the gift cards&rdquo;
+              (or fulfill everything automatically), or chip-in gift cards won&rsquo;t arrive until you
+              fulfill each order yourself.
+            </s-paragraph>
+          </s-banner>
           {giftCards.length === 0 ? (
             <s-paragraph>
               <s-text color="subdued">
