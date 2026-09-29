@@ -13,6 +13,7 @@ import { ideaGuideFor } from "../../../shared/registry-ideas";
 
 function page(overrides: Partial<ManagePageData> = {}): string {
   return renderManagePage({
+    chromeExtensionUrl: "https://chromewebstore.google.com/detail/giftpin/abc",
     registryId: "registry_1",
     title: "Sam & Alex's Wedding",
     message: null,
@@ -355,6 +356,23 @@ describe("store-range suggestion button names the store (25 Sep 2026)", () => {
       }],
     });
     expect(html).toContain("See matching products in Maple &amp; Clay");
+  });
+});
+
+describe("before the Chrome extension is published (29 Sep 2026)", () => {
+  it("never mentions the extension when there's no store link for it", () => {
+    const html = page({ chromeExtensionUrl: null });
+    expect(html).not.toContain('id="extension"');
+    expect(html).not.toContain('href="#extension"');
+    expect(html).not.toContain("Copy connection link");
+    expect(html).toContain('"extension":false');
+    expect(html).toContain("Some big stores block us from reading their pages");
+  });
+
+  it("links to the extension's store page once it's set", () => {
+    const html = page();
+    expect(html).toContain('href="https://chromewebstore.google.com/detail/giftpin/abc"');
+    expect(html).toContain('"extension":true');
   });
 });
 
