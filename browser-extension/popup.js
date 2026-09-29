@@ -38,6 +38,7 @@
   var dupConfirmBtn = document.getElementById("dupConfirmBtn");
   var dupCancelBtn = document.getElementById("dupCancelBtn");
   var disconnectLink = document.getElementById("disconnectLink");
+  var connectedName = document.getElementById("connectedName");
 
   var STORAGE_KEY = "giftpin_connection"; // { proxyBase, token, title }
   var extracted = null; // metadata read off the current page, once per popup open
@@ -141,6 +142,7 @@
       connectView.hidden = true;
       addView.hidden = false;
       registryName.textContent = conn.title || "Your registry";
+      connectedName.textContent = conn.title || "your registry";
       readCurrentPage();
     });
   }

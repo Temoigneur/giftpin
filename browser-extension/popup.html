@@ -41,8 +41,8 @@
 <body>
 
   <section id="connectView">
-    <h1>Connect your registry</h1>
-    <p>Paste the "manage your registry" link you were emailed when you created your registry.</p>
+    <h1>Connect to my registry</h1>
+    <p>Paste the "manage your registry" link you were emailed when you created your registry. You only need to do this once in this browser.</p>
     <label for="manageLink">Manage link</label>
     <input type="text" id="manageLink" placeholder="https://yourstore.myshopify.com/apps/registry/manage?t=...">
     <button id="connectBtn">Connect</button>
@@ -72,7 +72,7 @@
       <button class="secondary" id="dupCancelBtn">Never mind</button>
     </div>
 
-    <p style="margin-top:16px;"><a class="link" href="#" id="disconnectLink">Use a different registry</a></p>
+    <p class="muted" style="margin-top:16px;">Connected to <span id="connectedName">your registry</span>. <a class="link" href="#" id="disconnectLink">Switch registry</a></p>
   </section>
 
   <script src="popup.js"></script>

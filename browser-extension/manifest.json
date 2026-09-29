@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Giftpin — Add to Registry",
   "short_name": "Giftpin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Add gifts from any online store to your Giftpin gift registry in one click — no copying and pasting product links.",
   "action": {
     "default_popup": "popup.html",
