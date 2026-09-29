@@ -207,6 +207,9 @@ const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => s
   "coming-of-age": { widths: [1024, 1952], path: (w) => `/art/coming-of-age-v1-${w}.webp` },
   graduation: { widths: [1024, 1952], path: (w) => `/art/graduation-v1-${w}.webp` },
   college: { widths: [1024, 1952], path: (w) => `/art/college-v1-${w}.webp` },
+  housewarming: { widths: [1024, 1952], path: (w) => `/art/housewarming-v1-${w}.webp` },
+  anniversary: { widths: [1024, 1952], path: (w) => `/art/anniversary-v1-${w}.webp` },
+  retirement: { widths: [1024, 1952], path: (w) => `/art/retirement-v1-${w}.webp` },
 };
 
 /**

@@ -312,6 +312,9 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     ["coming-of-age", "coming-of-age-v1"],
     ["graduation", "graduation-v1"],
     ["college", "college-v1"],
+    ["housewarming", "housewarming-v1"],
+    ["anniversary", "anniversary-v1"],
+    ["retirement", "retirement-v1"],
   ])("uses the painted %s banner", (eventType, file) => {
     const html = page([item()], { coverImageUrl: null, eventType, artBaseUrl: "https://app.example.com" });
     expect(html).toContain(`src="https://app.example.com/art/${file}-1952.webp"`);
@@ -321,7 +324,7 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
   it("keeps line art for event types without a painting", () => {
     const html = page([item()], {
       coverImageUrl: null,
-      eventType: "housewarming",
+      eventType: "corporate",
       artBaseUrl: "https://app.example.com",
     });
     expect(html).toContain('class="hero-art"');
