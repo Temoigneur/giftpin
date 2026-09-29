@@ -25,21 +25,54 @@ export async function upsertShop(
     Object.entries(data ?? {}).filter(([, value]) => value !== undefined && value !== null),
   );
 
-  return db.shop.upsert({
-    where: { domain },
-    create: { domain, ...clean },
-    update: { ...clean, uninstalledAt: null },
-  });
+  const upsert = () =>
+    db.shop.upsert({
+      where: { domain },
+      create: { domain, ...clean },
+      update: { ...clean, uninstalledAt: null },
+    });
+
+  try {
+    return await upsert();
+  } catch (err) {
+    // Two requests creating the row at once (see requireShop): the loser's
+    // insert hits the unique domain. The row exists now, so the retry updates.
+    if (isUniqueViolation(err)) return upsert();
+    throw err;
+  }
 }
 
 export async function getShop(domain: string) {
   return db.shop.findUnique({ where: { domain } });
 }
 
+/**
+ * The Shop row for an authenticated admin request, created if it isn't
+ * there yet.
+ *
+ * React Router runs the app.tsx layout loader (which upserts the row) and
+ * the page's own loader in parallel, so on the very first open after an
+ * install the page loader can get here before the row exists. That used to
+ * throw "Shop … is not installed" and show the merchant a 500 — the App
+ * Store reviewer hit exactly this on 27 Sep 2026. Only call this after
+ * authenticate.admin(), which proves the shop has installed the app.
+ */
 export async function requireShop(domain: string) {
   const shop = await getShop(domain);
-  if (!shop) throw new Error(`Shop ${domain} is not installed`);
-  return shop;
+  if (shop) return shop;
+
+  try {
+    return await db.shop.create({ data: { domain } });
+  } catch (err) {
+    if (!isUniqueViolation(err)) throw err;
+    const winner = await getShop(domain);
+    if (!winner) throw err;
+    return winner;
+  }
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return (err as { code?: string })?.code === "P2002";
 }
 
 export async function updateSettings(domain: string, patch: Partial<ShopSettings>) {

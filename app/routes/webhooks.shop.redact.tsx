@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
-import { authenticate } from "../shopify.server";
+import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
 import { audit } from "../lib/audit.server";
 
@@ -8,7 +8,7 @@ import { audit } from "../lib/audit.server";
  * Cascades take registries, items, claims, purchases and events with the Shop row.
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop } = await authenticate.webhook(request);
+  const { shop } = await authenticateLifecycleWebhook(request);
 
   await db.shop.deleteMany({ where: { domain: shop } });
   await db.session.deleteMany({ where: { shop } });

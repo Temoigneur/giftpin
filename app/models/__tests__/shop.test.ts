@@ -10,7 +10,13 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("../../db.server", () => ({
   default: {
-    shop: { update: vi.fn(), updateMany: vi.fn() },
+    shop: {
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      upsert: vi.fn(),
+    },
   },
 }));
 
@@ -19,7 +25,9 @@ import {
   isPro,
   markUninstalled,
   planFromSubscriptionStatus,
+  requireShop,
   setPlanFromSubscription,
+  upsertShop,
 } from "../shop.server";
 
 const mockedUpdate = vi.mocked(db.shop.update);
@@ -82,5 +90,50 @@ describe("markUninstalled", () => {
     expect(data.plan).toBe("free");
     expect(data.shopifyChargeId).toBeNull();
     expect(data.uninstalledAt).toBeInstanceOf(Date);
+  });
+});
+
+describe("requireShop", () => {
+  const domain = "new-shop.myshopify.com";
+  const uniqueViolation = Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+
+  it("returns the existing row", async () => {
+    vi.mocked(db.shop.findUnique).mockResolvedValueOnce({ domain } as never);
+    await expect(requireShop(domain)).resolves.toEqual({ domain });
+    expect(db.shop.create).not.toHaveBeenCalled();
+  });
+
+  // First open after install: app.tsx's upsert and the page loader run in
+  // parallel, so the page can arrive before the row exists. That was a 500.
+  it("creates the row instead of throwing when it doesn't exist yet", async () => {
+    vi.mocked(db.shop.findUnique).mockResolvedValueOnce(null);
+    vi.mocked(db.shop.create).mockResolvedValueOnce({ domain, plan: "free" } as never);
+    await expect(requireShop(domain)).resolves.toEqual({ domain, plan: "free" });
+    expect(db.shop.create).toHaveBeenCalledWith({ data: { domain } });
+  });
+
+  it("returns the winner's row when it loses the create race", async () => {
+    vi.mocked(db.shop.findUnique)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ domain, name: "Winner" } as never);
+    vi.mocked(db.shop.create).mockRejectedValueOnce(uniqueViolation);
+    await expect(requireShop(domain)).resolves.toEqual({ domain, name: "Winner" });
+  });
+
+  it("rethrows anything that isn't a unique violation", async () => {
+    vi.mocked(db.shop.findUnique).mockResolvedValueOnce(null);
+    vi.mocked(db.shop.create).mockRejectedValueOnce(new Error("db down"));
+    await expect(requireShop(domain)).rejects.toThrow("db down");
+  });
+});
+
+describe("upsertShop", () => {
+  it("retries once when a parallel create wins the insert", async () => {
+    const uniqueViolation = Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+    vi.mocked(db.shop.upsert)
+      .mockRejectedValueOnce(uniqueViolation)
+      .mockResolvedValueOnce({ domain: "s.myshopify.com" } as never);
+    await expect(upsertShop("s.myshopify.com", { name: "S" })).resolves.toEqual({ domain: "s.myshopify.com" });
+    expect(db.shop.upsert).toHaveBeenCalledTimes(2);
   });
 });
