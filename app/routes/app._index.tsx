@@ -6,6 +6,7 @@ import { isPro, requireShop, settingsFor } from "../models/shop.server";
 import { dashboardStats } from "../models/dashboard.server";
 import { checkThemeSupport, listThemes } from "../models/themes.server";
 import type { ThemeSupport } from "../lib/theme-support";
+import { SITE_URL } from "../marketing/config";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
@@ -69,11 +70,23 @@ export default function Dashboard() {
     </s-section>
   );
 
+  const setupGuide = (
+    <s-section slot="aside" heading="Setup guide">
+      <s-paragraph>
+        Step-by-step help with your theme, settings and Pro features, using the same button names you see here.
+      </s-paragraph>
+      <s-button href={`${SITE_URL}/setup`} target="_blank" variant="secondary">
+        Open the setup guide
+      </s-button>
+    </s-section>
+  );
+
   if (!hasData) {
     return (
       <s-page heading="Gift registry">
         {registryLinks}
         <ThemeSetup />
+        {setupGuide}
 
         <s-section slot="aside" heading="Why registries pay for themselves">
           <s-paragraph>
@@ -160,6 +173,8 @@ export default function Dashboard() {
           </s-unordered-list>
         </s-section>
       )}
+
+      {setupGuide}
 
       <s-section slot="aside" heading="This year">
         <s-paragraph>

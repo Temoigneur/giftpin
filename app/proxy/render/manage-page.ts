@@ -7,6 +7,7 @@ import { ideaGuideFor } from "../../shared/registry-ideas";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
+import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 
 /**
@@ -26,6 +27,15 @@ export interface ManagePageData {
   privacy: string;
   /** US | CA | GB | AU; null/absent = US. Picks which stores we link to. */
   country?: string | null;
+  /**
+   * Chrome Web Store page for the Giftpin extension (CHROME_EXTENSION_URL).
+   * Null hides every mention of the extension: it isn't approved yet (29 Sep
+   * 2026), and pointing registrants at something they can't install only
+   * frustrates them. Paste-a-link covers the same job meanwhile.
+   */
+  chromeExtensionUrl?: string | null;
+  /** Affiliate link-wrapper endpoint for the ideas guide's other-store links (see app/lib/affiliate.ts); null = links untouched. */
+  affiliateLinkWrapperBase?: string | null;
   items: DisplayItem[];
   shopName: string;
   accentColor: string;
@@ -89,9 +99,10 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
 </div>
 
-<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
+${data.chromeExtensionUrl ? `<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
 <h2 id="extension">Connect the browser extension</h2>
 <div class="note">
+  <p style="margin:0 0 10px"><a href="${escapeAttr(data.chromeExtensionUrl ?? "")}" target="_blank" rel="noopener">Get the Giftpin extension for Chrome</a></p>
   <p class="touch-only" style="margin:0 0 10px"><strong>This part needs a computer.</strong> The extension runs in Chrome on a computer, not on phones or tablets. Open this page on your computer to connect it.</p>
   <p style="margin:0 0 10px">Add gifts from Amazon, Etsy or any other website in one click. Copy the link below, open the Giftpin extension in Chrome, and paste it in.</p>
   <label class="sr" for="manage-link">Your private connection link</label>
@@ -102,6 +113,7 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
   </div>
   <p class="hint">This link is private &mdash; anyone who has it can edit your registry. It is not the guest share link above.</p>
 </div>
+` : ""}
 
 <h2>Add items</h2>
 
@@ -152,8 +164,12 @@ ${
       </div>
     </div>
   </form>
-  <p class="hint touch-only">On a phone, big stores like Amazon, Wayfair and Target block us from reading their pages, so you'll type the name and price yourself. To have the photo and price filled in for you, add those items with the <a href="#extension">Giftpin Chrome extension</a> on a computer.</p>
-  <p class="hint no-touch">On a computer? The <a href="#extension">Giftpin browser extension</a> is the easiest way: it picks up the photo and price even on sites that block us here.</p>
+  ${
+    data.chromeExtensionUrl
+      ? `<p class="hint touch-only">On a phone, big stores like Amazon, Wayfair and Target block us from reading their pages, so you'll type the name and price yourself. To have the photo and price filled in for you, add those items with the <a href="#extension">Giftpin Chrome extension</a> on a computer.</p>
+  <p class="hint no-touch">On a computer? The <a href="#extension">Giftpin browser extension</a> is the easiest way: it picks up the photo and price even on sites that block us here.</p>`
+      : `<p class="hint">Some big stores block us from reading their pages. If that happens, type the name and price yourself and we'll add it with the link.</p>`
+  }
   <p class="hint">We'll pull the name, photo and price from the page and show you anything similar in ${escapeHtml(data.shopName)}. Guests go to that store to buy it, and tell us when they have &mdash; so nobody buys it twice.</p>
 </div>`
     : ""
@@ -228,6 +244,8 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     token: data.token,
     shopName: data.shopName,
     retailers: retailerSearchLinks(data.country),
+    extension: Boolean(data.chromeExtensionUrl),
+    affiliateBase: affiliateEnabled(data.affiliateLinkWrapperBase) ? data.affiliateLinkWrapperBase : null,
     version: data.version ?? null,
     versionUrl: data.versionUrl ?? null,
   })}</script>
@@ -731,7 +749,7 @@ function manageScript(): string {
       var found=paste.querySelector('.js-paste-found');found.hidden=false;
       paste.querySelector('.js-paste-msg').textContent=res.found
         ?'Here\u2019s what we found on '+res.domain+'. Change anything that\u2019s not right.'
-        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link. (The browser extension can read it, if you\u2019re on a computer.)';
+        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link.'+(cfg.extension?' (The browser extension can read it, if you\u2019re on a computer.)':'');
       var img=paste.querySelector('.js-paste-img');
       if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
       paste.querySelector('[name=title]').value=res.title||'';
@@ -838,11 +856,17 @@ function manageScript(): string {
           var row=document.createElement('div');row.className='cat-grid';
           (cfg.retailers||[]).forEach(function(r){
             var a=document.createElement('a');a.className='cat-chip';a.target='_blank';a.rel='noopener noreferrer';
-            a.href=r.url.replace('{q}',encodeURIComponent(term));a.textContent=r.name;row.appendChild(a);
+            var dest=r.url.replace('{q}',encodeURIComponent(term));
+            a.href=cfg.affiliateBase?cfg.affiliateBase+encodeURIComponent(dest):dest;a.textContent=r.name;row.appendChild(a);
           });
           panel.appendChild(row);
+          if(cfg.affiliateBase){
+            var d=document.createElement('p');d.className='hint';
+            d.textContent='Buying through these links may earn Giftpin a small commission. It never changes the price.';
+            panel.appendChild(d);
+          }
           var h=document.createElement('p');h.className='hint';
-          h.textContent='Found one? Paste its link under \u201cFrom anywhere else\u201d below, or use the Giftpin browser extension.';
+          h.textContent='Found one? Paste its link under \u201cFrom anywhere else\u201d below'+(cfg.extension?', or use the Giftpin browser extension.':'.');
           panel.appendChild(h);
           reveal();
         })

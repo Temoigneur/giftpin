@@ -178,8 +178,8 @@ export default function Settings() {
           <s-paragraph>
             <s-text color="subdued">
               Items from other stores are links, not purchases. Guests buy them at that retailer and
-              tell us, so nobody buys the same gift twice. We never earn a commission on those
-              clicks.
+              tell us, so nobody buys the same gift twice. Giftpin may earn a small commission on
+              some of those clicks, which never changes the guest&apos;s price.
             </s-text>
           </s-paragraph>
 
