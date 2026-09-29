@@ -369,6 +369,14 @@ describe("before the Chrome extension is published (29 Sep 2026)", () => {
     expect(html).toContain("Some big stores block us from reading their pages");
   });
 
+  it("still shows the connection link with &extension=1, without an install link", () => {
+    const html = page({ chromeExtensionUrl: null, extensionConnect: true });
+    expect(html).toContain('<h2 id="extension">');
+    expect(html).toContain("Copy connection link");
+    expect(html).not.toContain("Get the Giftpin extension for Chrome");
+    expect(html).toContain('"extension":false');
+  });
+
   it("links to the extension's store page once it's set", () => {
     const html = page();
     expect(html).toContain('href="https://chromewebstore.google.com/detail/giftpin/abc"');
