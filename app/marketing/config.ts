@@ -10,6 +10,6 @@
  *   "Install on Shopify" and link here.
  */
 export const DEMO_VIDEO_URL = "https://youtu.be/EbJI5aFbeo4";
-export const APP_STORE_URL = "";
+export const APP_STORE_URL = "https://apps.shopify.com/giftpin-gift-registry";
 
 export const SITE_URL = "https://giftpin.app";
