@@ -8,15 +8,22 @@ describe("retailer links by country", () => {
     expect(DEFAULT_COUNTRY).toBe("US");
     for (const c of [undefined, null, "", "zz", "FR"]) {
       const urls = retailerSearchLinks(c).map((r) => r.url).join(" ");
-      expect(urls).toContain("https://www.amazon.com/s?k={q}");
+      expect(urls).toContain("https://www.target.com/s?searchTerm={q}");
       expect(urls).not.toContain(".ca");
     }
   });
 
   it("uses each country's own sites", () => {
-    expect(retailerSearchLinks("CA")[0].url).toContain("amazon.ca");
-    expect(retailerSearchLinks("gb")[0].url).toContain("amazon.co.uk");
-    expect(retailerSearchLinks("AU")[0].url).toContain("amazon.com.au");
+    expect(retailerSearchLinks("US")[0].url).toContain("target.com");
+    expect(retailerSearchLinks("CA")[0].url).toContain("walmart.ca");
+    expect(retailerSearchLinks("gb")[0].url).toContain("argos.co.uk");
+    expect(retailerSearchLinks("AU")[0].url).toContain("kmart.com.au");
+  });
+
+  it("never links to Amazon, which can't pay commission on merchants' storefronts", () => {
+    for (const c of COUNTRIES) {
+      expect(retailerSearchLinks(c.code).map((r) => r.url).join(" ")).not.toMatch(/amazon\./);
+    }
   });
 
   it("every country has links that take the search term", () => {
@@ -35,8 +42,9 @@ describe("retailer links by country", () => {
 });
 
 describe("country choice in the pages", () => {
-  const manage = (country?: string | null) =>
+  const manage = (country?: string | null, affiliateLinkWrapperBase?: string | null) =>
     renderManagePage({
+      affiliateLinkWrapperBase,
       registryId: "r", title: "T", message: null, eventType: "wedding", eventDate: null, privacy: "unlisted",
       country, items: [], shopName: "Shop", accentColor: "#2f5d50", currency: "CAD",
       shareUrl: "https://x/r/a", actionUrl: "/apps/registry", token: "tok", manageUrl: "https://x/m",
@@ -45,14 +53,19 @@ describe("country choice in the pages", () => {
 
   it("a Canadian-currency shop with no country chosen still links to .com stores", () => {
     const html = manage(null);
-    expect(html).toContain("amazon.com/s?k=");
-    expect(html).not.toContain("amazon.ca");
+    expect(html).toContain("walmart.com/search?q=");
+    expect(html).not.toContain("walmart.ca");
   });
 
   it("uses the registry's chosen country, and shows it selected in settings", () => {
     const html = manage("CA");
-    expect(html).toContain("amazon.ca/s?k=");
+    expect(html).toContain("walmart.ca/search?q=");
     expect(html).toContain('<option value="CA" selected>');
+  });
+
+  it("hands the affiliate wrapper to the ideas guide only when one is configured", () => {
+    expect(manage(null)).toContain('"affiliateBase":null');
+    expect(manage(null, "https://go.example.com/?u=")).toContain('"affiliateBase":"https://go.example.com/?u="');
   });
 
   it("the create form offers the countries with United States selected", () => {

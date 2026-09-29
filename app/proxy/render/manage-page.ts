@@ -7,6 +7,7 @@ import { ideaGuideFor } from "../../shared/registry-ideas";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
+import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 
 /**
@@ -26,6 +27,8 @@ export interface ManagePageData {
   privacy: string;
   /** US | CA | GB | AU; null/absent = US. Picks which stores we link to. */
   country?: string | null;
+  /** Affiliate link-wrapper endpoint for the ideas guide's other-store links (see app/lib/affiliate.ts); null = links untouched. */
+  affiliateLinkWrapperBase?: string | null;
   items: DisplayItem[];
   shopName: string;
   accentColor: string;
@@ -228,6 +231,7 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     token: data.token,
     shopName: data.shopName,
     retailers: retailerSearchLinks(data.country),
+    affiliateBase: affiliateEnabled(data.affiliateLinkWrapperBase) ? data.affiliateLinkWrapperBase : null,
     version: data.version ?? null,
     versionUrl: data.versionUrl ?? null,
   })}</script>
@@ -838,9 +842,15 @@ function manageScript(): string {
           var row=document.createElement('div');row.className='cat-grid';
           (cfg.retailers||[]).forEach(function(r){
             var a=document.createElement('a');a.className='cat-chip';a.target='_blank';a.rel='noopener noreferrer';
-            a.href=r.url.replace('{q}',encodeURIComponent(term));a.textContent=r.name;row.appendChild(a);
+            var dest=r.url.replace('{q}',encodeURIComponent(term));
+            a.href=cfg.affiliateBase?cfg.affiliateBase+encodeURIComponent(dest):dest;a.textContent=r.name;row.appendChild(a);
           });
           panel.appendChild(row);
+          if(cfg.affiliateBase){
+            var d=document.createElement('p');d.className='hint';
+            d.textContent='Buying through these links may earn Giftpin a small commission. It never changes the price.';
+            panel.appendChild(d);
+          }
           var h=document.createElement('p');h.className='hint';
           h.textContent='Found one? Paste its link under \u201cFrom anywhere else\u201d below, or use the Giftpin browser extension.';
           panel.appendChild(h);

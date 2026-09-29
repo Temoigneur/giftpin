@@ -412,6 +412,7 @@ async function managePage(
       eventDate: registry.eventDate,
       privacy: registry.privacy,
       country: registry.country,
+      affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
       items: registry.items.map((item) => toDisplayItem(item)),
       currency: shop.currency,
       shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),

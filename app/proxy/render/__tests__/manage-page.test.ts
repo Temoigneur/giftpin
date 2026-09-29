@@ -237,14 +237,14 @@ describe("connect-the-extension box and chip fallback", () => {
     const html = page({ eventType: "wedding", currency: "CAD" });
     expect(html).toContain("/search/suggest.json");
     expect(html).toContain("js-cat");
-    expect(html).toContain("amazon.com/s?k=");
+    expect(html).toContain("target.com/s?searchTerm=");
     expect(html).toContain("target.com");
-    expect(html).not.toContain("amazon.ca");
+    expect(html).not.toContain("walmart.ca");
   });
 
   it("ships Canadian retailers when the registry's country is Canada", () => {
     const html = page({ country: "CA", currency: "CAD" });
-    expect(html).toContain("amazon.ca");
+    expect(html).toContain("walmart.ca");
     expect(html).not.toContain("target.com");
   });
 

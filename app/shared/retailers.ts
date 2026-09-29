@@ -4,6 +4,12 @@
  * lands on their own market's sites. `{q}` is replaced with the search term.
  *
  * Not a `.server` file: the manage page script and the create form both use it.
+ *
+ * No Amazon (29 Sep 2026, Ben): Amazon Associates only pays on sites the
+ * publisher owns, and these links sit on merchants' storefronts, so Amazon
+ * links can never earn Giftpin anything. The US list leads with Target.
+ * Links are wrapped for affiliate credit on the manage page when
+ * AFFILIATE_LINK_WRAPPER_BASE is set (see app/lib/affiliate.ts).
  */
 
 export interface Retailer {
@@ -22,22 +28,19 @@ export const COUNTRIES: { code: string; label: string }[] = [
 
 const RETAILERS: Record<string, Retailer[]> = {
   US: [
-    { name: "Amazon", url: "https://www.amazon.com/s?k={q}" },
-    { name: "Walmart", url: "https://www.walmart.com/search?q={q}" },
     { name: "Target", url: "https://www.target.com/s?searchTerm={q}" },
+    { name: "Walmart", url: "https://www.walmart.com/search?q={q}" },
     { name: "Wayfair", url: "https://www.wayfair.com/keyword.php?keyword={q}" },
     { name: "Etsy", url: "https://www.etsy.com/search?q={q}" },
     { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
   ],
   CA: [
-    { name: "Amazon.ca", url: "https://www.amazon.ca/s?k={q}" },
     { name: "Walmart.ca", url: "https://www.walmart.ca/search?q={q}" },
     { name: "Wayfair.ca", url: "https://www.wayfair.ca/keyword.php?keyword={q}" },
     { name: "Etsy", url: "https://www.etsy.com/ca/search?q={q}" },
     { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
   ],
   GB: [
-    { name: "Amazon.co.uk", url: "https://www.amazon.co.uk/s?k={q}" },
     { name: "Argos", url: "https://www.argos.co.uk/search/{q}/" },
     { name: "John Lewis", url: "https://www.johnlewis.com/search?search-term={q}" },
     { name: "Wayfair.co.uk", url: "https://www.wayfair.co.uk/keyword.php?keyword={q}" },
@@ -45,7 +48,6 @@ const RETAILERS: Record<string, Retailer[]> = {
     { name: "Google Shopping", url: "https://www.google.co.uk/search?tbm=shop&q={q}" },
   ],
   AU: [
-    { name: "Amazon.com.au", url: "https://www.amazon.com.au/s?k={q}" },
     { name: "Kmart", url: "https://www.kmart.com.au/search/?searchTerm={q}" },
     { name: "Big W", url: "https://www.bigw.com.au/search?q={q}" },
     { name: "Etsy", url: "https://www.etsy.com/au/search?q={q}" },
