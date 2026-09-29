@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loader as homeLoader } from "../../routes/_index";
@@ -10,7 +10,7 @@ import { loader as compareLoader } from "../../routes/compare";
 import { loader as setupLoader } from "../../routes/setup";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
 import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
-import { SKIMLINKS_SCRIPT_URL, videoEmbed } from "../layout";
+import { videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
 
@@ -49,16 +49,19 @@ describe("marketing site", () => {
     expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}">`);
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup"])("%s loads the Skimlinks script once, just before </body>", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup"])("%s loads nothing from Skimlinks and doesn't mention it", async (path) => {
     const html = await page(path);
-    const tag = `<script type="text/javascript" src="${SKIMLINKS_SCRIPT_URL}"></script>`;
-    expect(html.split(SKIMLINKS_SCRIPT_URL)).toHaveLength(2);
-    expect(html.replace(/\s+<\/body>/, "</body>")).toContain(`${tag}</body>`);
+    expect(html.toLowerCase()).not.toContain("skim");
   });
 
-  it("keeps Skimlinks off the Sovrn example link on /faq", async () => {
+  it("privacy policy no longer mentions Skimlinks", () => {
+    const src = readFileSync(join(__dirname, "../../routes/privacy.tsx"), "utf8");
+    expect(src.toLowerCase()).not.toContain("skim");
+  });
+
+  it("keeps the Sovrn example link on /faq", async () => {
     const html = await page("/faq");
-    expect(html).toContain('<a class="noskim" href="https://sovrn.co/194eluu"');
+    expect(html).toContain('<a href="https://sovrn.co/194eluu" rel="sponsored nofollow noopener"');
   });
 
   it("quotes the price and trial from the billing constants", async () => {
