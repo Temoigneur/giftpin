@@ -61,7 +61,7 @@ describe("marketing site", () => {
 
   it("keeps the Sovrn example link on /faq", async () => {
     const html = await page("/faq");
-    expect(html).toContain('<a href="https://sovrn.co/194eluu" rel="sponsored nofollow noopener"');
+    expect(html).toContain('<a href="https://sovrn.co/0gve92m" rel="sponsored nofollow noopener"');
   });
 
   it("quotes the price and trial from the billing constants", async () => {
