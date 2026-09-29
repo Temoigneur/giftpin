@@ -191,12 +191,22 @@ const EVENT_ART: Record<string, () => string> = {
  * types. Files live in `public/art/` and are served from the app's own
  * origin, so callers pass that origin (SHOPIFY_APP_URL) as `assetBase` —
  * the guest page itself is served on the shop's domain through the app
- * proxy, so a relative path wouldn't resolve. Wedding: Ben's own
- * Midjourney image (v3, 25 Sep 2026: centred champagne toast on bokeh). Bump the filename
+ * proxy, so a relative path wouldn't resolve. All of these are Ben's own
+ * Midjourney images (29 Sep 2026, modern minimalist "New Yorker cover"
+ * style, subject centred so the phone crop keeps it). Bump the filename
  * when replacing a file so browsers don't keep a cached copy.
  */
-const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => string }> = {
-  wedding: { widths: [1024, 2016], path: (w) => `/art/wedding-v3-${w}.webp` },
+const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => string; position?: string }> = {
+  wedding: { widths: [1024, 1952], path: (w) => `/art/wedding-v4-${w}.webp` },
+  engagement: { widths: [1024, 1952], path: (w) => `/art/engagement-v1-${w}.webp` },
+  "bridal-shower": { widths: [1024, 1952], path: (w) => `/art/bridal-shower-v1-${w}.webp` },
+  baby: { widths: [1024, 1952], path: (w) => `/art/baby-v1-${w}.webp` },
+  christening: { widths: [1024, 1952], path: (w) => `/art/christening-v1-${w}.webp` },
+  // The cake sits right of centre; shift the phone crop so the balloons aren't clipped.
+  birthday: { widths: [1024, 1952], path: (w) => `/art/birthday-v1-${w}.webp`, position: "62% 50%" },
+  "coming-of-age": { widths: [1024, 1952], path: (w) => `/art/coming-of-age-v1-${w}.webp` },
+  graduation: { widths: [1024, 1952], path: (w) => `/art/graduation-v1-${w}.webp` },
+  college: { widths: [1024, 1952], path: (w) => `/art/college-v1-${w}.webp` },
 };
 
 /**
@@ -209,7 +219,8 @@ export function eventHeroImage(eventType: string, assetBase: string | null | und
   if (!painting || !/^https?:\/\//.test(base)) return null;
   const largest = painting.widths[painting.widths.length - 1];
   const srcset = painting.widths.map((w) => `${base}${painting.path(w)} ${w}w`).join(", ");
-  return `<img class="hero-img hero-painting" src="${base}${painting.path(largest)}" srcset="${srcset}" sizes="(min-width:960px) 1056px, 100vw" alt="" loading="eager" decoding="async">`;
+  const style = painting.position ? ` style="object-position:${painting.position}"` : "";
+  return `<img class="hero-img hero-painting"${style} src="${base}${painting.path(largest)}" srcset="${srcset}" sizes="(min-width:960px) 1056px, 100vw" alt="" loading="eager" decoding="async">`;
 }
 
 /** Inline SVG hero art for the given `eventType`. Falls back to a generic gift motif for an unrecognized value. */
