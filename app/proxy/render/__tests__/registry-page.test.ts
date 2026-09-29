@@ -315,17 +315,23 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     ["housewarming", "housewarming-v1"],
     ["anniversary", "anniversary-v1"],
     ["retirement", "retirement-v1"],
+    ["holiday", "holiday-v1"],
+    ["new-pet", "new-pet-v1"],
+    ["fundraiser", "fundraiser-v1"],
+    ["corporate", "corporate-v1"],
+    ["other", "other-v1"],
+    ["not-a-real-occasion", "other-v1"],
   ])("uses the painted %s banner", (eventType, file) => {
     const html = page([item()], { coverImageUrl: null, eventType, artBaseUrl: "https://app.example.com" });
     expect(html).toContain(`src="https://app.example.com/art/${file}-1952.webp"`);
     expect(html).not.toContain('class="hero-art"');
   });
 
-  it("keeps line art for event types without a painting", () => {
+  it("falls back to line art when the app origin is unknown", () => {
     const html = page([item()], {
       coverImageUrl: null,
       eventType: "corporate",
-      artBaseUrl: "https://app.example.com",
+      artBaseUrl: null,
     });
     expect(html).toContain('class="hero-art"');
     expect(html).not.toContain('class="hero-img hero-painting"');

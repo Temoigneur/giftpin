@@ -187,7 +187,7 @@ const EVENT_ART: Record<string, () => string> = {
 };
 
 /**
- * Painted raster banners that replace the line art above for some event
+ * Painted raster banners that replace the line art above for every event
  * types. Files live in `public/art/` and are served from the app's own
  * origin, so callers pass that origin (SHOPIFY_APP_URL) as `assetBase` —
  * the guest page itself is served on the shop's domain through the app
@@ -210,14 +210,20 @@ const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => s
   housewarming: { widths: [1024, 1952], path: (w) => `/art/housewarming-v1-${w}.webp` },
   anniversary: { widths: [1024, 1952], path: (w) => `/art/anniversary-v1-${w}.webp` },
   retirement: { widths: [1024, 1952], path: (w) => `/art/retirement-v1-${w}.webp` },
+  holiday: { widths: [1024, 1952], path: (w) => `/art/holiday-v1-${w}.webp` },
+  "new-pet": { widths: [1024, 1952], path: (w) => `/art/new-pet-v1-${w}.webp` },
+  fundraiser: { widths: [1024, 1952], path: (w) => `/art/fundraiser-v1-${w}.webp` },
+  corporate: { widths: [1024, 1952], path: (w) => `/art/corporate-v1-${w}.webp` },
+  other: { widths: [1024, 1952], path: (w) => `/art/other-v1-${w}.webp` },
 };
 
 /**
- * `<img>` hero for event types with a painted banner, or null (use
- * `eventHeroArt` instead) for other types or when no asset base is known.
+ * `<img>` hero for the event type's painted banner (an unrecognized type gets
+ * the "other" banner), or null (use `eventHeroArt` instead) when no asset
+ * base is known.
  */
 export function eventHeroImage(eventType: string, assetBase: string | null | undefined): string | null {
-  const painting = EVENT_PAINTINGS[eventType];
+  const painting = EVENT_PAINTINGS[eventType] ?? EVENT_PAINTINGS.other;
   const base = (assetBase ?? "").replace(/\/+$/, "");
   if (!painting || !/^https?:\/\//.test(base)) return null;
   const largest = painting.widths[painting.widths.length - 1];
