@@ -236,12 +236,6 @@ const HTML = `<!doctype html>
       third parties except service providers needed to run the app
       (hosting, database, and email delivery), each bound to use it only to
       provide that service.</p>
-    <p>Pages on the giftpin.app website (not the registry pages on
-      merchants' stores) load a script from Skimlinks, an affiliate
-      network. It turns links to other retailers into affiliate links and
-      may set cookies to record that a purchase came from one of those
-      links. See Skimlinks' own privacy policy for how it handles that
-      data.</p>
   </section>
 
   <section id="retention">

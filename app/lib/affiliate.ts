@@ -3,7 +3,7 @@
  * "no commission, ever" rule (see CLAUDE.md's "Resolved" section).
  *
  * Deliberately network-agnostic. The "auto-monetization" networks under
- * consideration (Sovrn Commerce, Skimlinks) — and Walmart Creator, which
+ * consideration (Sovrn Commerce, and Skimlinks until it turned Giftpin down on 29 Sep 2026) — and Walmart Creator, which
  * isn't one of those but still just redirects through its own domain — all
  * work the same simple way: prefix the real destination URL onto a redirect
  * endpoint of the network's own, e.g.
