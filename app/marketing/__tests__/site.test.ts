@@ -7,6 +7,7 @@ import { loader as faqLoader } from "../../routes/faq";
 import { loader as pricingLoader } from "../../routes/pricing";
 import { loader as weddingLoader } from "../../routes/wedding-registry";
 import { loader as compareLoader } from "../../routes/compare";
+import { loader as setupLoader } from "../../routes/setup";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
 import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
 import { SKIMLINKS_SCRIPT_URL, videoEmbed } from "../layout";
@@ -25,7 +26,9 @@ async function page(path: string): Promise<string> {
             ? await weddingLoader()
             : path === "/compare"
               ? await compareLoader()
-              : await faqLoader();
+              : path === "/setup"
+                ? await setupLoader()
+                : await faqLoader();
   expect(res.status).toBe(200);
   expect(res.headers.get("Content-Type")).toContain("text/html");
   return res.text();
@@ -38,7 +41,7 @@ describe("marketing site", () => {
     });
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"])("%s renders with the shared nav, footer and icon", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup"])("%s renders with the shared nav, footer and icon", async (path) => {
     const html = await page(path);
     expect(html).toContain('href="/pricing"');
     expect(html).toContain('href="/privacy"');
@@ -46,7 +49,7 @@ describe("marketing site", () => {
     expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}">`);
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"])("%s loads the Skimlinks script once, just before </body>", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup"])("%s loads the Skimlinks script once, just before </body>", async (path) => {
     const html = await page(path);
     const tag = `<script type="text/javascript" src="${SKIMLINKS_SCRIPT_URL}"></script>`;
     expect(html.split(SKIMLINKS_SCRIPT_URL)).toHaveLength(2);
@@ -84,6 +87,14 @@ describe("marketing site", () => {
     }
   });
 
+  it("setup guide walks through install, theme, settings and Pro, and is linked from every page", async () => {
+    const html = await page("/setup");
+    for (const label of ["Add button to product pages", "Add registry links", "Occasions", "Items from other stores", "Upgrade to Pro", "Automatically fulfill only the gift cards"]) {
+      expect(html).toContain(label);
+    }
+    expect(await page("/")).toContain('href="/setup"');
+  });
+
   it("embeds the demo video", async () => {
     const html = await page("/");
     expect(html).toContain("youtube-nocookie.com/embed/EbJI5aFbeo4");
@@ -109,6 +120,7 @@ describe("marketing site", () => {
       "/faq": "faq.tsx",
       "/wedding-registry": "wedding-registry.tsx",
       "/compare": "compare.tsx",
+      "/setup": "setup.tsx",
       "/privacy": "privacy.tsx",
     };
     for (const p of MARKETING_PATHS) expect(existsSync(join(routes, file[p] ?? "missing")), p).toBe(true);

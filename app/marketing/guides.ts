@@ -174,6 +174,158 @@ ${finalCta("See what a registry with no walls does for your store.")}
   });
 }
 
+/* ------------------------------------------------------------------ */
+
+/**
+ * Merchant setup guide at giftpin.app/setup. Every label in bold here is the
+ * exact text of a button, heading or menu item in the app (app/routes/app.*)
+ * or the Shopify admin, so a merchant can follow it literally. Update it
+ * whenever those labels change.
+ */
+type Step = { title: string; items: string[] };
+
+const steps = (list: Step[]) =>
+  `<div class="steps">${list
+    .map(
+      (st, i) => `<div class="card rise step">
+  <span class="step-n">${i + 1}</span>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol></div>
+</div>`,
+    )
+    .join("")}</div>`;
+
+// Items are trusted literals with inline <b> for UI labels; nothing here comes from a request.
+const GET_STARTED: Step[] = [
+  {
+    title: "Install Giftpin",
+    items: [
+      "Open Giftpin on the Shopify App Store and click <b>Install</b>.",
+      "Approve the permissions screen. Giftpin opens on its <b>Overview</b> page in your Shopify admin.",
+    ],
+  },
+  {
+    title: "Add Giftpin to your theme",
+    items: [
+      "On <b>Overview</b>, go to <b>Add Giftpin to your theme</b> and pick a theme. You can set up an unpublished copy first.",
+      "Click <b>Add button to product pages</b>. The theme editor opens with the Add to registry button already added. Drag it where you want it, then press <b>Save</b>.",
+      "Back in Giftpin, click <b>Add registry links</b>. This adds Create, Find and Manage registry links under your header. Press <b>Save</b> in the theme editor.",
+      "Using a vintage (pre-Online Store 2.0) theme? The blocks won't work there, but your registry pages still do: add a menu item pointing to <b>/apps/registry</b> in <b>Online Store → Navigation</b>.",
+    ],
+  },
+  {
+    title: "Check your registry pages",
+    items: [
+      "On <b>Overview</b>, under <b>Your registry pages</b>, click <b>Create a registry</b> to see the page your customers use.",
+      "Create a test registry, add a product with the Add to registry button, and open the guest link to see what guests see.",
+    ],
+  },
+];
+
+const SETTINGS: Step[] = [
+  {
+    title: "Choose your occasions",
+    items: [
+      "Open <b>Settings</b>. Under <b>Occasions</b>, tick the kinds of registry customers can create: weddings, baby showers, birthdays, graduations, housewarmings and more.",
+    ],
+  },
+  {
+    title: "Decide on items from other stores",
+    items: [
+      "Under <b>Items from other stores</b>, choose <b>Allow (recommended)</b>, <b>Allow, but keep my products in the majority</b>, or <b>My products only</b>.",
+      "Allowing them is what makes customers pick your registry as their main one. Giftpin suggests your closest matching product beside each outside item.",
+    ],
+  },
+  {
+    title: "Match your store's look",
+    items: [
+      "Under <b>Appearance</b>, set the <b>Button label</b> and <b>Accent colour</b>.",
+      "The Add to registry button and registry links have their own settings in the theme editor: label, icon, colours, size and spacing.",
+      "With Pro, <b>Your branding</b> adds your logo, colours and font to registry pages and removes the Powered by Giftpin credit.",
+    ],
+  },
+  {
+    title: "Set privacy",
+    items: [
+      "Under <b>Privacy</b>, choose whether to hide who gave what until the event date, and whether to turn on the public find-a-registry page. Only registries whose owners opt in are listed there.",
+    ],
+  },
+];
+
+const PRO_STEPS: Step[] = [
+  {
+    title: "Start Pro",
+    items: [
+      `Open <b>Plan</b> in Giftpin's menu and click <b>Upgrade to Pro</b>. You get a ${TRIAL}, then ${PRO_NAME} is ${PRICE}/month. <b>Cancel Pro</b> is on the same page.`,
+    ],
+  },
+  {
+    title: "Group gifts and funds",
+    items: [
+      "In your Shopify admin, go to <b>Products → Gift cards → Add a gift card product</b>, with a few amounts such as $25, $50 and $100.",
+      "In <b>Settings → General → Order processing</b>, choose <b>Automatically fulfill only the gift cards</b>. Shopify only sends a gift card once its order is fulfilled.",
+      "In Giftpin, open <b>Settings</b>. Under <b>Group gifts and funds</b>, pick that gift card and press <b>Save</b>. Guests can now chip in toward a big item or a cash fund.",
+    ],
+  },
+  {
+    title: "After-event discount and automatic emails",
+    items: [
+      "Under <b>After the event (Pro)</b>, turn on a one-time discount for your products still on the registry, and set the percentage and how long the code works.",
+      "Under <b>Automatic emails (Pro)</b>, choose the guest reminder, the most-of-your-list-is-bought alert and the thank-you note reminder.",
+    ],
+  },
+  {
+    title: "In-store mode",
+    items: [
+      "Open <b>In-store</b> in Giftpin's menu to find a customer's registry or start one for them at the counter.",
+      "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Embedded Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel.",
+    ],
+  },
+];
+
+const SETUP_FAQ = [
+  {
+    q: "Where do I see my customers' registries?",
+    a: "Open Registries in Giftpin's menu. Overview shows registry revenue, new customers and gifts given.",
+  },
+  {
+    q: "Do registrants or guests need an account?",
+    a: "No. Registrants get a private manage link by email, and guests only need the registry link.",
+  },
+  {
+    q: "What happens to the theme blocks if I uninstall?",
+    a: "Shopify removes both Giftpin blocks from your themes automatically.",
+  },
+  {
+    q: "I'm stuck. Who do I contact?",
+    a: "Email support@giftpin.app with your store's .myshopify.com address and what you were trying to do.",
+  },
+];
+
+export function setupHtml(): string {
+  const body = `
+${hero(
+  `${icon("list")} Setup guide`,
+  `Set up Giftpin<br><span class="grad-text">in about ten minutes</span>`,
+  "Everything a merchant needs, from install to your first registry. Bold text is exactly what you'll see on screen.",
+)}
+${section("Get started", "", steps(GET_STARTED))}
+${section("Make it yours", "All in Giftpin's Settings page.", steps(SETTINGS), true)}
+${section(`${PRO_NAME}`, "Optional extras for stores that want more.", steps(PRO_STEPS))}
+${section("Common questions", "", faqList(SETUP_FAQ), true)}
+${finalCta("Ready to give your customers a registry?")}
+`;
+  return sitePage({
+    path: "/setup",
+    nav: "guides",
+    title: "Giftpin setup guide for Shopify merchants",
+    description:
+      "How to install Giftpin, add the registry button and links to your Shopify theme, choose occasions and settings, and turn on Pro features.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(SETUP_FAQ)],
+  });
+}
+
 const CSS = `
 .qa{max-width:760px; margin:0 auto; display:grid; gap:12px}
 .qa details{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 20px}
@@ -185,4 +337,10 @@ const CSS = `
 .cmp thead th{font-size:14px; text-transform:uppercase; letter-spacing:.04em}
 .cmp td:last-child{font-weight:700}
 .fine-note{max-width:900px; margin:16px auto 0; font-size:14px; opacity:.75}
+.steps{max-width:860px; margin:0 auto; display:grid; gap:16px}
+.step{display:flex; gap:18px; align-items:flex-start}
+.step-n{flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-weight:800; color:#fff; background:var(--accent)}
+.step h3{margin:4px 0 8px}
+.step ol{margin:0; padding-left:20px; display:grid; gap:6px}
+.step b{font-weight:700}
 `;
