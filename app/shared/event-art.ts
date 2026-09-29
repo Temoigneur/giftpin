@@ -188,7 +188,7 @@ const EVENT_ART: Record<string, () => string> = {
 
 /**
  * Painted raster banners that replace the line art above for every event
- * types. Files live in `public/art/` and are served from the app's own
+ * type. Files live in `public/art/` and are served from the app's own
  * origin, so callers pass that origin (SHOPIFY_APP_URL) as `assetBase` —
  * the guest page itself is served on the shop's domain through the app
  * proxy, so a relative path wouldn't resolve. All of these are Ben's own
