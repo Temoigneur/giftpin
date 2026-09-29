@@ -34,6 +34,12 @@ export interface ManagePageData {
    * frustrates them. Paste-a-link covers the same job meanwhile.
    */
   chromeExtensionUrl?: string | null;
+  /**
+   * Show the "Connect the browser extension" link even while
+   * chromeExtensionUrl is unset (manage URL with &extension=1), so Ben and
+   * Chrome Web Store reviewers can connect the unpublished extension.
+   */
+  extensionConnect?: boolean;
   /** Affiliate link-wrapper endpoint for the ideas guide's other-store links (see app/lib/affiliate.ts); null = links untouched. */
   affiliateLinkWrapperBase?: string | null;
   items: DisplayItem[];
@@ -99,10 +105,10 @@ ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escape
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
 </div>
 
-${data.chromeExtensionUrl ? `<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
+${data.chromeExtensionUrl || data.extensionConnect ? `<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
 <h2 id="extension">Connect the browser extension</h2>
 <div class="note">
-  <p style="margin:0 0 10px"><a href="${escapeAttr(data.chromeExtensionUrl ?? "")}" target="_blank" rel="noopener">Get the Giftpin extension for Chrome</a></p>
+  ${data.chromeExtensionUrl ? `<p style="margin:0 0 10px"><a href="${escapeAttr(data.chromeExtensionUrl)}" target="_blank" rel="noopener">Get the Giftpin extension for Chrome</a></p>` : ""}
   <p class="touch-only" style="margin:0 0 10px"><strong>This part needs a computer.</strong> The extension runs in Chrome on a computer, not on phones or tablets. Open this page on your computer to connect it.</p>
   <p style="margin:0 0 10px">Add gifts from Amazon, Etsy or any other website in one click. Copy the link below, open the Giftpin extension in Chrome, and paste it in.</p>
   <label class="sr" for="manage-link">Your private connection link</label>

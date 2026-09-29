@@ -414,6 +414,7 @@ async function managePage(
       country: registry.country,
       affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
       chromeExtensionUrl: process.env.CHROME_EXTENSION_URL || null,
+      extensionConnect: ctx.query.get("extension") === "1",
       items: registry.items.map((item) => toDisplayItem(item)),
       currency: shop.currency,
       shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
