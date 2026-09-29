@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
-import { authenticate } from "../shopify.server";
+import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
 import { blindIndex } from "../lib/crypto.server";
 import { audit } from "../lib/audit.server";
@@ -12,7 +12,7 @@ import { deleteRegistry } from "../models/registry.server";
  * deletion path is a first-class feature, not a compliance bolt-on.
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop, payload } = await authenticate.webhook(request);
+  const { shop, payload } = await authenticateLifecycleWebhook(request);
 
   const body = payload as { customer?: { id?: number | string; email?: string } };
   const email = body.customer?.email;

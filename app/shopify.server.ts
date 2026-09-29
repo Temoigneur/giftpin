@@ -54,7 +54,27 @@ const shopify = shopifyApp({
 export default shopify;
 export const apiVersion = ApiVersion.July26;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
-export const authenticate = shopify.authenticate;
+
+/**
+ * authenticate.admin() throws a raw TypeError, which React Router turns into
+ * a 500, when the `host` query param isn't a valid base64 admin host (the
+ * App Store review's probes send e.g. host=9991062684009999999). A garbled
+ * request is a 400, not a server error.
+ */
+const authenticateAdmin: typeof shopify.authenticate.admin = async (request) => {
+  try {
+    return await shopify.authenticate.admin(request);
+  } catch (err) {
+    if (isInvalidUrlError(err)) throw new Response("Bad Request", { status: 400 });
+    throw err;
+  }
+};
+
+function isInvalidUrlError(err: unknown): boolean {
+  return err instanceof TypeError && (err as { code?: string }).code === "ERR_INVALID_URL";
+}
+
+export const authenticate = { ...shopify.authenticate, admin: authenticateAdmin };
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;

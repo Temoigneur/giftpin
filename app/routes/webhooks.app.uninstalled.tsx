@@ -1,15 +1,13 @@
 import type { ActionFunctionArgs } from "react-router";
-import { authenticate } from "../shopify.server";
+import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
 import { markUninstalled } from "../models/shop.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop, session } = await authenticate.webhook(request);
+  const { shop } = await authenticateLifecycleWebhook(request);
 
   // Fires more than once, and can arrive after the app is already gone.
-  if (session) {
-    await db.session.deleteMany({ where: { shop } });
-  }
+  await db.session.deleteMany({ where: { shop } });
 
   // Registries are NOT deleted here. A merchant who reinstalls next week
   // expects their customers' registries to still exist, and a wedding registry
