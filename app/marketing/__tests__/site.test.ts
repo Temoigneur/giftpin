@@ -59,9 +59,9 @@ describe("marketing site", () => {
     expect(src.toLowerCase()).not.toContain("skim");
   });
 
-  it("keeps the Sovrn example link on /faq", async () => {
-    const html = await page("/faq");
-    expect(html).toContain('<a href="https://sovrn.co/0gve92m" rel="sponsored nofollow noopener"');
+  it("no longer mentions Sovrn on /faq", async () => {
+    const html = (await page("/faq")).toLowerCase();
+    expect(html).not.toContain("sovrn");
   });
 
   it("quotes the price and trial from the billing constants", async () => {
