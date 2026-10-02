@@ -182,16 +182,19 @@ ${finalCta("See what a registry with no walls does for your store.")}
  * or the Shopify admin, so a merchant can follow it literally. Update it
  * whenever those labels change.
  */
-type Step = { title: string; items: string[]; img?: { src: string; alt: string } };
+type Shot = { src: string; alt: string };
+type Step = { title: string; items: string[]; img?: Shot | Shot[] };
+const shots = (img: Step["img"]) =>
+  (img ? (Array.isArray(img) ? img : [img]) : [])
+    .map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`)
+    .join("");
 
 const steps = (list: Step[]) =>
   `<div class="steps">${list
     .map(
       (st, i) => `<div class="card rise step">
   <span class="step-n">${i + 1}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol>${
-    st.img ? `<img class="shot" src="${esc(st.img.src)}" alt="${esc(st.img.alt)}" loading="lazy">` : ""
-  }</div>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol>${shots(st.img)}</div>
 </div>`,
     )
     .join("")}</div>`;
@@ -213,12 +216,21 @@ const GET_STARTED: Step[] = [
       "Back in Giftpin, click <b>Add registry links</b>. This adds Create, Find and Manage registry links under your header. Press <b>Save</b> in the theme editor.",
       "Using a vintage (pre-Online Store 2.0) theme? The blocks won't work there, but your registry pages still do: add a menu item pointing to <b>/apps/registry</b> in <b>Online Store → Navigation</b>.",
     ],
+    img: [
+      { src: "/guides/m1-overview.png", alt: "Giftpin's Overview page with the Add Giftpin to your theme card, the Add button to product pages and Add registry links buttons" },
+      { src: "/guides/m2-theme-editor.png", alt: "The Shopify theme editor with the Add to registry block selected on a product page" },
+    ],
   },
   {
     title: "Check your registry pages",
     items: [
       "On <b>Overview</b>, under <b>Your registry pages</b>, click <b>Create a registry</b> to see the page your customers use.",
       "Create a test registry, add a product with the Add to registry button, and open the guest link to see what guests see.",
+      "Every registry your customers create shows up under <b>Registries</b> in Giftpin's menu.",
+    ],
+    img: [
+      { src: "/guides/m3-product-page.png", alt: "A storefront product page with the Add to registry button under Buy it now, and the Create, Find and Manage registry links above" },
+      { src: "/guides/m7-registries.png", alt: "Giftpin's Registries page listing two wedding registries with their items and progress" },
     ],
   },
 ];
@@ -229,6 +241,7 @@ const SETTINGS: Step[] = [
     items: [
       "Open <b>Settings</b>. Under <b>Occasions</b>, tick the kinds of registry customers can create: weddings, baby showers, birthdays, graduations, housewarmings and more.",
     ],
+    img: { src: "/guides/m5-occasions.png", alt: "Giftpin Settings showing the Occasions checklist and the Items from other stores choices" },
   },
   {
     title: "Decide on items from other stores",
@@ -244,6 +257,7 @@ const SETTINGS: Step[] = [
       "The Add to registry button and registry links have their own settings in the theme editor: label, icon, colours, size and spacing.",
       "With Pro, <b>Your branding</b> adds your logo, colours and font to registry pages and removes the Powered by Giftpin credit.",
     ],
+    img: { src: "/guides/m6-appearance.png", alt: "Giftpin Settings Appearance section with the Button label and Accent colour fields" },
   },
   {
     title: "Set privacy",

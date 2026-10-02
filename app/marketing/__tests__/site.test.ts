@@ -117,9 +117,9 @@ describe("marketing site", () => {
 
   it("every image the pages reference ships in public/", async () => {
     const pub = join(__dirname, "../../../public");
-    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup", "/registry-guide"]) {
       const html = await page(path);
-      for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/brand\/[^"]+)"/g)) {
+      for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/(?:brand|guides)\/[^"]+)"/g)) {
         expect(existsSync(join(pub, m[1])), m[1]).toBe(true);
       }
     }
