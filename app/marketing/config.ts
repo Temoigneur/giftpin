@@ -12,6 +12,6 @@
 export const DEMO_VIDEO_URL = "https://youtu.be/EbJI5aFbeo4";
 // Paused 29 Sep 2026 until the Chrome extension is approved. To relaunch,
 // set this back to "https://apps.shopify.com/giftpin-gift-registry".
-export const APP_STORE_URL = "";
+export const APP_STORE_URL = "https://apps.shopify.com/giftpin-gift-registry";
 
 export const SITE_URL = "https://giftpin.app";
