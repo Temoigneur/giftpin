@@ -123,7 +123,7 @@ ${opts.body}
         <p>The gift registry for Shopify stores that isn't limited to your catalog, and still puts your products first.</p>
       </div>
       <div><h3>Product</h3><a href="/features">Features</a><a href="/pricing">Pricing</a><a href="/#demo">Demo</a><a href="/faq">FAQ</a></div>
-      <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/wedding-registry">Universal wedding registry</a><a href="/compare">Choosing a registry app</a></div>
+      <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/gift-registry-app">Gift registry app</a><a href="/wedding-registry">Universal wedding registry</a><a href="/baby-registry">Baby registry</a><a href="/compare">Choosing a registry app</a></div>
       <div><h3>Company</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy">Privacy policy</a></div>
     </div>
     <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay and Google Pay are trademarks of their owners.</p>

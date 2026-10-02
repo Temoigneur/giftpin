@@ -176,6 +176,135 @@ ${finalCta("See what a registry with no walls does for your store.")}
 
 /* ------------------------------------------------------------------ */
 
+const APP_FAQ = [
+  {
+    q: "What does a gift registry app do for a Shopify store?",
+    a: "It lets customers build a list of gifts they want for an occasion and share one link with friends and family. Guests buy from your store, and most of them are new customers.",
+  },
+  {
+    q: "Which occasions does Giftpin support?",
+    a: "Weddings, baby showers, birthdays, graduations, housewarmings, holidays, new pets and more. You choose which ones your store offers in Giftpin's settings.",
+  },
+  {
+    q: "Do I need to edit my theme code?",
+    a: "No. Giftpin adds an Add to registry button and registry links as theme blocks you place in the theme editor, and registry pages live on your store's own domain.",
+  },
+  {
+    q: "What does it cost?",
+    a: `Free covers unlimited registries, items and guests. ${PRO_NAME} is ${PRICE} a month with a ${TRIAL}. Neither plan takes a cut of your product sales.`,
+  },
+];
+
+export function giftRegistryAppHtml(): string {
+  const body = `
+${hero(
+  `${icon("gift")} Gift registry app for Shopify`,
+  `A gift registry for your store<br><span class="grad-text">that brings in new customers.</span>`,
+  "Every registry your customers share sends their friends and family to your store. Giftpin gives them one list for every gift, keeps your products front and centre, and stops duplicate gifts.",
+)}
+${section(
+  "How a registry wins you customers",
+  "A registrant shares one link. Everyone who opens it lands on your store, ready to buy.",
+  cards([
+    { icon: "link", title: "One link, many guests", detail: "Registrants share their registry in a text, an invitation or a wedding website. Each guest is a shopper you didn't pay to reach." },
+    { icon: "store", title: "On your own domain", detail: "Registry pages live on your store and link guests straight to your products and your checkout." },
+    { icon: "mail", title: "Registrants come back", detail: `With ${PRO_NAME}, registrants get a single-use completion discount after their event for your products still on their list.` },
+  ]),
+)}
+${section(
+  "Built for how people really register",
+  "Registrants want everything on one list. Giftpin lets them have it, and puts your catalog first.",
+  cards([
+    { icon: "globe", title: "Gifts from any store", detail: "Registrants paste a link from almost any online shop, or add it with the Giftpin Chrome extension." },
+    { icon: "sparkle", title: "Your product, suggested first", detail: "When a gift comes from another shop, Giftpin shows your closest match beside it, one tap to swap." },
+    { icon: "shield", title: "No duplicate gifts", detail: "The registry shows Someone may be buying this while a guest checks out, and frees the gift if they don't." },
+  ]),
+  true,
+)}
+${section(
+  "Set up in minutes",
+  "",
+  cards([
+    { icon: "puzzle", title: "Theme blocks, no code", detail: "Add the Add to registry button and registry links in the theme editor." },
+    { icon: "card", title: "Every checkout credited", detail: "Shop Pay, Apple Pay, Google Pay and the Shop app orders are credited to the right registry item." },
+    { icon: "heart", title: "Your occasions", detail: "Turn weddings, baby showers, birthdays and more on or off for your store." },
+  ]),
+)}
+${section("Questions merchants ask", "", faqList(APP_FAQ), true)}
+${finalCta("Turn every registry into new customers.")}
+`;
+  return sitePage({
+    path: "/gift-registry-app",
+    nav: "guides",
+    title: "Gift registry app for Shopify stores | Giftpin",
+    description:
+      "Giftpin is a gift registry app for Shopify that brings new customers to your store: registries on your own domain, gifts from any shop on one list, your products suggested first, and no duplicate gifts.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(APP_FAQ)],
+  });
+}
+
+/* ------------------------------------------------------------------ */
+
+const BABY_FAQ = [
+  {
+    q: "Can my Shopify store offer a baby registry?",
+    a: "Yes. With Giftpin, parents-to-be start a baby registry on your store, add your products and anything else they need from other shops, and share one link with family and friends.",
+  },
+  {
+    q: "Can gifts ship straight to the parents?",
+    a: "Yes. Parents save a shipping address once, and guests can send gifts from your store straight to them. Guests never see the address.",
+  },
+  {
+    q: "Does Giftpin help parents decide what to add?",
+    a: "Yes. A baby registry ideas guide lists what a new baby needs, from sleep and feeding to bath time, with your products one tap away.",
+  },
+];
+
+export function babyRegistryHtml(): string {
+  const body = `
+${hero(
+  `${icon("heart")} Baby registries for Shopify`,
+  `A baby registry<br><span class="grad-text">that starts in your store.</span>`,
+  "Parents-to-be need a lot, from a crib to sleep sacks, and they rarely find it all in one shop. Giftpin lets them build one baby registry with your products and anything else they need, then share a single link.",
+)}
+${section(
+  "Why parents choose it",
+  "",
+  cards([
+    { icon: "globe", title: "Everything baby needs, one list", detail: "Parents paste a link from almost any online shop and Giftpin fills in the photo, name and price." },
+    { icon: "bulb", title: "Ideas by what baby needs", detail: "A baby registry ideas guide covers sleep, feeding, bath time and more." },
+    { icon: "truck", title: "Gifts ship to their door", detail: "Guests can send gifts from your store straight to the parents' saved address." },
+  ]),
+)}
+${section(
+  "Why it's good for your store",
+  "Baby shower guests are often family who buy more than one gift. Giftpin keeps them on your products.",
+  cards([
+    { icon: "sparkle", title: "Your product, suggested first", detail: "When parents add something from another shop, Giftpin shows your closest match beside it, one tap to swap." },
+    { icon: "shield", title: "No duplicate gifts", detail: "The registry shows Someone may be buying this while a guest checks out." },
+    { icon: "list", title: "Thank-you list included", detail: "Parents get a who-gave-what list, downloadable as a spreadsheet." },
+  ]),
+  true,
+)}
+${section("Questions merchants ask", "", faqList(BABY_FAQ))}
+${finalCta("Give parents-to-be one registry for everything.")}
+`;
+  return sitePage({
+    path: "/baby-registry",
+    nav: "guides",
+    title: "Baby registry app for Shopify stores | Giftpin",
+    description:
+      "Offer parents-to-be a baby registry on your Shopify store: gifts from any shop on one list, your products suggested first, gifts shipped to the parents, and no duplicate gifts.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(BABY_FAQ)],
+  });
+}
+
+/* ------------------------------------------------------------------ */
+
 /**
  * Merchant setup guide at giftpin.app/setup. Every label in bold here is the
  * exact text of a button, heading or menu item in the app (app/routes/app.*)

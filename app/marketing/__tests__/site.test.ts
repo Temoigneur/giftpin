@@ -7,6 +7,8 @@ import { loader as faqLoader } from "../../routes/faq";
 import { loader as pricingLoader } from "../../routes/pricing";
 import { loader as weddingLoader } from "../../routes/wedding-registry";
 import { loader as compareLoader } from "../../routes/compare";
+import { loader as giftRegistryAppLoader } from "../../routes/gift-registry-app";
+import { loader as babyRegistryLoader } from "../../routes/baby-registry";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
@@ -15,8 +17,15 @@ import { videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
 
+const LANDING: Record<string, () => Promise<Response>> = {
+  "/gift-registry-app": giftRegistryAppLoader,
+  "/baby-registry": babyRegistryLoader,
+};
+
 async function page(path: string): Promise<string> {
-  const res =
+  const res = LANDING[path]
+    ? await LANDING[path]()
+    :
     path === "/"
       ? await homeLoader(req("https://giftpin.app/"))
       : path === "/features"
@@ -44,7 +53,7 @@ describe("marketing site", () => {
     });
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup", "/registry-guide"])("%s renders with the shared nav, footer and icon", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/compare", "/setup", "/registry-guide"])("%s renders with the shared nav, footer and icon", async (path) => {
     const html = await page(path);
     expect(html).toContain('href="/pricing"');
     expect(html).toContain('href="/privacy"');
@@ -52,7 +61,7 @@ describe("marketing site", () => {
     expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}">`);
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup"])("%s loads nothing from Skimlinks and doesn't mention it", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/compare", "/setup"])("%s loads nothing from Skimlinks and doesn't mention it", async (path) => {
     const html = await page(path);
     expect(html.toLowerCase()).not.toContain("skim");
   });
@@ -82,7 +91,7 @@ describe("marketing site", () => {
   });
 
   it("doesn't advertise Pro features that aren't merged, or a yearly price that isn't set up", async () => {
-    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/compare"]) {
       const html = (await page(path)).toLowerCase();
       expect(html).not.toContain("point of sale");
       expect(html).not.toContain(" pos ");
@@ -109,6 +118,11 @@ describe("marketing site", () => {
     expect(await page("/")).toContain('href="/registry-guide"');
   });
 
+  it("links the search landing pages from the footer of every page", async () => {
+    const html = await page("/");
+    for (const p of ["/gift-registry-app", "/wedding-registry", "/baby-registry", "/compare"]) expect(html).toContain(`href="${p}"`);
+  });
+
   it("embeds the demo video", async () => {
     const html = await page("/");
     expect(html).toContain("youtube-nocookie.com/embed/EbJI5aFbeo4");
@@ -117,7 +131,7 @@ describe("marketing site", () => {
 
   it("every image the pages reference ships in public/", async () => {
     const pub = join(__dirname, "../../../public");
-    for (const path of ["/", "/features", "/pricing", "/faq", "/wedding-registry", "/compare", "/setup", "/registry-guide"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/compare", "/setup", "/registry-guide"]) {
       const html = await page(path);
       for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/(?:brand|guides)\/[^"]+)"/g)) {
         expect(existsSync(join(pub, m[1])), m[1]).toBe(true);
@@ -132,7 +146,9 @@ describe("marketing site", () => {
       "/features": "features.tsx",
       "/pricing": "pricing.tsx",
       "/faq": "faq.tsx",
+      "/gift-registry-app": "gift-registry-app.tsx",
       "/wedding-registry": "wedding-registry.tsx",
+      "/baby-registry": "baby-registry.tsx",
       "/compare": "compare.tsx",
       "/setup": "setup.tsx",
       "/registry-guide": "registry-guide.tsx",
