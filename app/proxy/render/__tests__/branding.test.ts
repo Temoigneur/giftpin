@@ -12,14 +12,14 @@ function branding(overrides: Partial<PageBranding> = {}): PageBranding {
 describe("Pro branding in the guest page layout", () => {
   it("Free (no branding): default look, credit shown, no logo or web font", () => {
     const html = layout(base, "<p>body</p>");
-    expect(html).toContain("Powered by Giftpin");
+    expect(html).toContain("Powered by <a href=\"https://giftpin.app/?utm_source=registry");
     expect(html).not.toContain("brand-logo");
     expect(html).not.toContain("fonts.googleapis.com");
   });
 
   it("removes the credit on every page that gets branding, not just the registry page", () => {
     const html = renderSimplePage({ shopName: "Maple & Oak", accentColor: "#123456", branding: branding() }, "Hi", "There");
-    expect(html).not.toContain("Powered by Giftpin");
+    expect(html).not.toContain("Powered by");
   });
 
   it("renders the logo, escaped, linking to the storefront", () => {

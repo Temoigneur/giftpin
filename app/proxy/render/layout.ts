@@ -95,7 +95,7 @@ ${body}
 </div>
 <footer class="foot">
   <p>Registry by <strong>${escapeHtml(options.shopName)}</strong></p>
-  ${hidePoweredBy ? "" : `<p class="powered-by">Powered by Giftpin</p>`}
+  ${hidePoweredBy ? "" : `<p class="powered-by">Powered by <a href="https://giftpin.app/?utm_source=registry&amp;utm_medium=powered_by" target="_blank" rel="noopener nofollow">Giftpin</a></p>`}
 </footer>
 </body>
 </html>`;
@@ -195,6 +195,7 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 @media (prefers-color-scheme:dark){.err{background:#3a1f1c;border-color:#6b322c;color:#f5b5ae}.ok{background:#1b2f20;border-color:#356b3f;color:#a8d5b1}}
 .foot{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 32px}
 .powered-by{font-size:11px;opacity:.7;margin:2px 0 0}
+.powered-by a{color:inherit}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
 
 /* --- ideas guide, Not sure what to add (every occasion) ---------------- */

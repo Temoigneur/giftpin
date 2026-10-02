@@ -240,12 +240,12 @@ describe("registry page rendering", () => {
 
 describe("registry page branding credit (Pro plan, confirmed 22 Sep 2026)", () => {
   it("shows the Powered-by credit by default", () => {
-    expect(page([item()])).toContain("Powered by Giftpin");
+    expect(page([item()])).toContain("Powered by <a href=\"https://giftpin.app/?utm_source=registry");
   });
 
   it("hides the credit only when the shop is on Pro", () => {
     const html = page([item()], { hidePoweredBy: true });
-    expect(html).not.toContain("Powered by Giftpin");
+    expect(html).not.toContain("Powered by");
     // The merchant's own attribution line is a separate, unrelated feature —
     // Pro removes Giftpin's credit, never the merchant's own name.
     expect(html).toContain("Registry by <strong>Maple &amp; Clay</strong>");
