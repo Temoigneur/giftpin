@@ -86,11 +86,11 @@ const templates: Record<string, TemplateFn> = {
   "registry-link": (d) => ({
     to: d.to,
     subject: `Your ${d.registryTitle} registry`,
-    text: `Open your registry: ${d.url}\n\nThis link works for 30 days. Anyone with it can edit your registry, so keep it to yourself.`,
+    text: `Open your registry: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit your registry, so keep it to yourself.`,
     html: shell(
       "Here's your registry",
       `<p>Use this link whenever you want to add items or see what's been bought.</p>
-       <p style="color:#6b6b6b;font-size:13px">The link works for 30 days, and anyone who has it can edit your registry — so keep it to yourself. The <em>share</em> link you send to guests is different and is view-only.</p>`,
+       <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit your registry — so keep it to yourself. The <em>share</em> link you send to guests is different and is view-only.</p>`,
       { label: "Open my registry", url: d.url },
     ),
   }),

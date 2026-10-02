@@ -360,14 +360,16 @@ const REG_START: Step[] = [
       "Under <b>Where will your guests shop?</b>, pick your guests' country. Giftpin uses it to suggest stores for things this store doesn't sell.",
       "Optionally write <b>A note for your guests</b>, then click <b>Create my registry</b>.",
     ],
+    img: { src: "/guides/r1-start.png", alt: "The Start a registry form with the occasion, registry name, date, name, email and country filled in" },
   },
   {
     title: "Keep your private link",
     items: [
-      "Giftpin emails you a private link to manage your registry. You don't need an account or a password: that link is your way in, so keep the email.",
-      "Lost it? On the store's <b>Create a gift registry</b> page, under <b>Already have one?</b>, enter your email and click <b>Email me my link</b>.",
+      "Giftpin emails you a private link to manage your registry. You don't need an account or a password: that link is your way in, so keep the email. It works for 90 days.",
+      "Lost it, or it stopped working? On the store's <b>Create a gift registry</b> page, under <b>Already have one?</b>, enter your email and click <b>Email me my link</b>.",
       "Never share this link. Anyone who has it can edit your registry. Guests get a different link (see Share it below).",
     ],
+    img: { src: "/guides/r2-manage-link.png", alt: "The email Giftpin sends, with the Open my registry button" },
   },
 ];
 
@@ -379,6 +381,7 @@ const REG_ADD: Step[] = [
       "Pressing it again on the same product asks how many you'd like in total, so nothing gets added twice by accident.",
       "Using a different phone or computer? Open your private link from the email there first, so the button knows which registry is yours.",
     ],
+    img: { src: "/guides/r4-added.png", alt: "A product page after pressing Add to registry, showing Added to your registry and a Back to your registry link" },
   },
   {
     title: "Add gifts from any other website",
@@ -387,6 +390,7 @@ const REG_ADD: Step[] = [
       "Some big stores block this. If that happens, type the <b>Name</b> and <b>Price</b> yourself and click <b>Add to registry</b>.",
       "Giftpin may show something similar from this store. Click <b>Preview &amp; swap</b> to see it, or keep your original.",
     ],
+    img: { src: "/guides/r5-paste-link.png", alt: "The Add items box with a Target link looked up, showing the photo, name and price it found" },
   },
   {
     title: "Or use the Chrome extension",
@@ -395,6 +399,7 @@ const REG_ADD: Step[] = [
       "On your registry, under <b>Connect the browser extension</b>, click <b>Copy connection link</b>. Open the extension, paste it into <b>Manage link</b> and click <b>Connect</b>. You only do this once.",
       "Now, on any product page on any website, open the extension, choose the <b>Quantity</b> and click <b>Add to registry</b>.",
     ],
+    img: { src: "/guides/r6-extension.png", alt: "The Giftpin extension on a Walmart product page, with the quantity and Add to registry button" },
   },
   {
     title: "Fine-tune your list",
@@ -402,6 +407,7 @@ const REG_ADD: Step[] = [
       "Under <b>Your list</b>, open any item to change <b>How many you'd like</b>, add a <b>Note for guests</b> (a size or colour, say) or pick a <b>Category</b>, then click <b>Update</b>.",
       "Not sure what to add? Your registry suggests ideas for your occasion.",
     ],
+    img: { src: "/guides/r7-item.png", alt: "An item on the list opened for editing, with a note for guests, the quantity and the category" },
   },
 ];
 
@@ -412,6 +418,10 @@ const REG_SHARE: Step[] = [
       "At the top of your registry, click <b>Share with guests</b> and send the link by email, text message, WhatsApp or Facebook, or click <b>Copy link</b>.",
       "Guests see your gifts and what's still needed. They never see your email or address, and they don't need an account.",
     ],
+    img: [
+      { src: "/guides/r3-share.png", alt: "The share link with Copy link, Email, Text message, WhatsApp and Facebook buttons" },
+      { src: "/guides/r10-guest-view.png", alt: "What guests see: the registry with a store item, a gift already taken care of, and an item from Walmart" },
+    ],
   },
   {
     title: "Choose who can see it",
@@ -419,6 +429,7 @@ const REG_SHARE: Step[] = [
       "Under <b>Registry settings</b>, use <b>Who can see this</b>: <b>Anyone with the link (recommended)</b>, <b>Anyone with the link and a password</b>, or <b>Listed publicly, so guests can search for it</b> on the store's <b>Find a gift registry</b> page.",
       "Click <b>Save changes</b>. The same section lets you change the name, occasion, date and note.",
     ],
+    img: { src: "/guides/r9-privacy.png", alt: "The Who can see this menu with its three choices" },
   },
   {
     title: "Have gifts shipped to you",
@@ -426,6 +437,7 @@ const REG_SHARE: Step[] = [
       "Under <b>Send gifts to me</b>, tick the box and enter your shipping address, then click <b>Save</b>. Gifts bought from this store are then sent straight to you.",
       "Guests never see your address, and each guest can still choose to have their gift sent to themselves.",
     ],
+    img: { src: "/guides/r8-ship.png", alt: "The Send gifts to me section with the box ticked and a shipping address filled in" },
   },
 ];
 
