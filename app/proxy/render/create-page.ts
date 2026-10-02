@@ -80,7 +80,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
   <select id="c-country" name="country">
     ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
   </select>
-  <p class="hint">When this store doesn't carry something, we'll suggest that country's stores, like Amazon and Walmart.</p>
+  <p class="hint">When this store doesn't carry something, we'll suggest that country's other big stores.</p>
   </div>
 
   <div class="full">

@@ -182,14 +182,16 @@ ${finalCta("See what a registry with no walls does for your store.")}
  * or the Shopify admin, so a merchant can follow it literally. Update it
  * whenever those labels change.
  */
-type Step = { title: string; items: string[] };
+type Step = { title: string; items: string[]; img?: { src: string; alt: string } };
 
 const steps = (list: Step[]) =>
   `<div class="steps">${list
     .map(
       (st, i) => `<div class="card rise step">
   <span class="step-n">${i + 1}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol></div>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol>${
+    st.img ? `<img class="shot" src="${esc(st.img.src)}" alt="${esc(st.img.alt)}" loading="lazy">` : ""
+  }</div>
 </div>`,
     )
     .join("")}</div>`;
@@ -326,6 +328,136 @@ ${finalCta("Ready to give your customers a registry?")}
   });
 }
 
+/* ------------------------------------------------------------------ */
+
+/**
+ * Registry creator guide at giftpin.app/registry-guide: for the customer who
+ * starts a registry on a store that uses Giftpin. Same rule as the setup
+ * guide: bold text is the exact on-screen label (app/proxy/render/*.ts, the
+ * theme blocks in extensions/registry-button, browser-extension/popup.html).
+ * The store's own name appears where the page says "this store".
+ */
+const REG_START: Step[] = [
+  {
+    title: "Start your registry",
+    items: [
+      "On the store's website, click <b>Create a gift registry</b> (usually under the header or in the menu). You can also press <b>Add to registry</b> on any product, and you'll be asked to start one.",
+      "Choose the occasion under <b>What's the occasion?</b>, then fill in <b>Registry name</b>, <b>When is it?</b>, <b>Your name</b> and <b>Your email</b>.",
+      "Under <b>Where will your guests shop?</b>, pick your guests' country. Giftpin uses it to suggest stores for things this store doesn't sell.",
+      "Optionally write <b>A note for your guests</b>, then click <b>Create my registry</b>.",
+    ],
+  },
+  {
+    title: "Keep your private link",
+    items: [
+      "Giftpin emails you a private link to manage your registry. You don't need an account or a password: that link is your way in, so keep the email.",
+      "Lost it? On the store's <b>Create a gift registry</b> page, under <b>Already have one?</b>, enter your email and click <b>Email me my link</b>.",
+      "Never share this link. Anyone who has it can edit your registry. Guests get a different link (see Share it below).",
+    ],
+  },
+];
+
+const REG_ADD: Step[] = [
+  {
+    title: "Add this store's products",
+    items: [
+      "Browse the store and click <b>Add to registry</b> on any product page. You'll see <b>Added to your registry</b> and a <b>Back to your registry</b> link.",
+      "Pressing it again on the same product asks how many you'd like in total, so nothing gets added twice by accident.",
+      "Using a different phone or computer? Open your private link from the email there first, so the button knows which registry is yours.",
+    ],
+  },
+  {
+    title: "Add gifts from any other website",
+    items: [
+      "On your registry, go to <b>Add items</b>, paste the product's address into <b>Product link</b> and click <b>Look it up</b>. Giftpin fills in the name, photo and price.",
+      "Some big stores block this. If that happens, type the <b>Name</b> and <b>Price</b> yourself and click <b>Add to registry</b>.",
+      "Giftpin may show something similar from this store. Click <b>Preview &amp; swap</b> to see it, or keep your original.",
+    ],
+  },
+  {
+    title: "Or use the Chrome extension",
+    items: [
+      `On a computer, install <a href="https://chromewebstore.google.com/detail/giftpin-%E2%80%94-add-to-registry/hfmielpmefknpgpekhfehnfdlhiobdkk" target="_blank" rel="noopener">the Giftpin extension for Chrome</a>.`,
+      "On your registry, under <b>Connect the browser extension</b>, click <b>Copy connection link</b>. Open the extension, paste it into <b>Manage link</b> and click <b>Connect</b>. You only do this once.",
+      "Now, on any product page on any website, open the extension, choose the <b>Quantity</b> and click <b>Add to registry</b>.",
+    ],
+  },
+  {
+    title: "Fine-tune your list",
+    items: [
+      "Under <b>Your list</b>, open any item to change <b>How many you'd like</b>, add a <b>Note for guests</b> (a size or colour, say) or pick a <b>Category</b>, then click <b>Update</b>.",
+      "Not sure what to add? Your registry suggests ideas for your occasion.",
+    ],
+  },
+];
+
+const REG_SHARE: Step[] = [
+  {
+    title: "Share it with guests",
+    items: [
+      "At the top of your registry, click <b>Share with guests</b> and send the link by email, text message, WhatsApp or Facebook, or click <b>Copy link</b>.",
+      "Guests see your gifts and what's still needed. They never see your email or address, and they don't need an account.",
+    ],
+  },
+  {
+    title: "Choose who can see it",
+    items: [
+      "Under <b>Registry settings</b>, use <b>Who can see this</b>: <b>Anyone with the link (recommended)</b>, <b>Anyone with the link and a password</b>, or <b>Listed publicly, so guests can search for it</b> on the store's <b>Find a gift registry</b> page.",
+      "Click <b>Save changes</b>. The same section lets you change the name, occasion, date and note.",
+    ],
+  },
+  {
+    title: "Have gifts shipped to you",
+    items: [
+      "Under <b>Send gifts to me</b>, tick the box and enter your shipping address, then click <b>Save</b>. Gifts bought from this store are then sent straight to you.",
+      "Guests never see your address, and each guest can still choose to have their gift sent to themselves.",
+    ],
+  },
+];
+
+const REG_FAQ = [
+  {
+    q: "How do guests avoid buying the same thing?",
+    a: "Orders from this store update your registry automatically. For gifts from other websites, guests tap I bought this after buying, and the item shows as taken. Guests who change their mind can undo it for 24 hours.",
+  },
+  {
+    q: "How do I know who gave me what?",
+    a: "Your registry has a Who gave what list for your thank-you notes, and Giftpin emails you when someone buys a gift.",
+  },
+  {
+    q: "Can guests chip in toward something big?",
+    a: "If the store offers it, yes. Your registry can turn an item into a group gift, or hold a cash fund for a honeymoon or a house, paid as the store's gift cards.",
+  },
+  {
+    q: "Can I delete my registry?",
+    a: "Yes. Under Registry settings, click Delete registry. This removes every item and the record of who bought what, and it can't be undone.",
+  },
+];
+
+export function registryGuideHtml(): string {
+  const body = `
+${hero(
+  `${icon("gift")} Registry guide`,
+  `Create your gift registry<br><span class="grad-text">and share one link</span>`,
+  "How to start a Giftpin registry, add gifts from this store and anywhere else, and share it with your guests. Bold text is exactly what you'll see on screen.",
+)}
+${section("Get started", "", steps(REG_START))}
+${section("Add your gifts", "From this store, and from any other website.", steps(REG_ADD), true)}
+${section("Share it", "", steps(REG_SHARE))}
+${section("Common questions", "", faqList(REG_FAQ), true)}
+`;
+  return sitePage({
+    path: "/registry-guide",
+    nav: "guides",
+    title: "How to create a gift registry with Giftpin",
+    description:
+      "How to start a Giftpin gift registry on a store, add gifts from that store and any other website, share it with guests and have gifts shipped to you.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(REG_FAQ)],
+  });
+}
+
 const CSS = `
 .qa{max-width:760px; margin:0 auto; display:grid; gap:12px}
 .qa details{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 20px}
@@ -343,4 +475,5 @@ const CSS = `
 .step h3{margin:4px 0 8px}
 .step ol{margin:0; padding-left:20px; display:grid; gap:6px}
 .step b{font-weight:700}
+.shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
 `;
