@@ -305,6 +305,68 @@ ${finalCta("Give parents-to-be one registry for everything.")}
 
 /* ------------------------------------------------------------------ */
 
+const HOME_FAQ = [
+  {
+    q: "Can a home goods or kitchen store offer wedding registries on Shopify?",
+    a: "Yes. With Giftpin, couples start a wedding or housewarming registry on your store, add your cookware, linens and tableware, and share one link with their guests.",
+  },
+  {
+    q: "What if a couple wants something I don't carry?",
+    a: "They can add it from another store, so the registry stays complete. Giftpin shows your closest match beside it, one tap to swap, so your products come first.",
+  },
+  {
+    q: "Do guests need an account?",
+    a: "No. Guests open the link, see what's already taken and check out on your store.",
+  },
+  {
+    q: "What does it cost?",
+    a: `Free covers unlimited registries, items and guests. ${PRO_NAME} is ${PRICE} a month with a ${TRIAL}. Neither plan takes a cut of your product sales.`,
+  },
+];
+
+export function homeGoodsRegistryHtml(): string {
+  const body = `
+${hero(
+  `${icon("store")} Registries for home goods stores`,
+  `A wedding registry for your<br><span class="grad-text">kitchen and home store.</span>`,
+  "Couples register for the things you sell: cookware, dinnerware, linens, decor. Giftpin lets them build that registry on your store, so their guests shop with you.",
+)}
+${section(
+  "Why home goods stores fit",
+  "Wedding and housewarming registries are mostly home goods. Today couples build them somewhere else.",
+  cards([
+    { icon: "link", title: "One link, many guests", detail: "Every registry sends a couple's friends and family to your store, ready to buy." },
+    { icon: "store", title: "On your own domain", detail: "Registry pages live on your store and link guests to your products and your checkout." },
+    { icon: "shield", title: "No duplicate gifts", detail: "The registry shows Someone may be buying this while a guest checks out." },
+  ]),
+)}
+${section(
+  "Your products come first",
+  "Couples can still add what you don't carry, and you stay at the top of the list.",
+  cards([
+    { icon: "sparkle", title: "Your closest match, suggested", detail: "When a couple adds an item from another store, Giftpin shows your nearest product beside it." },
+    { icon: "globe", title: "A complete registry", detail: "Couples keep everything on one list, so they have no reason to leave for a bigger registry." },
+    { icon: "puzzle", title: "No theme code", detail: "Add the Add to registry button and registry links as theme blocks in the theme editor." },
+  ]),
+  true,
+)}
+${section("Questions merchants ask", "", faqList(HOME_FAQ))}
+${finalCta("Give couples a registry that starts in your store.")}
+`;
+  return sitePage({
+    path: "/home-goods-registry",
+    nav: "guides",
+    title: "Wedding registry app for home goods and kitchen stores | Giftpin",
+    description:
+      "Offer wedding and housewarming registries on your Shopify home goods or kitchen store: couples add your products first, anything else from other shops, and guests buy from you.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(HOME_FAQ)],
+  });
+}
+
+/* ------------------------------------------------------------------ */
+
 /**
  * Merchant setup guide at giftpin.app/setup. Every label in bold here is the
  * exact text of a button, heading or menu item in the app (app/routes/app.*)
