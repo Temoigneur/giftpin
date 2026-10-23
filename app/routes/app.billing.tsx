@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
-import { requireShop, setPlanFromSubscription } from "../models/shop.server";
+import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
+import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, PRO_TRIAL_DAYS } from "../shared/plans";
 import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
 
 /**
@@ -40,6 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     price: PRO_PLAN_PRICE,
     isTest: BILLING_IS_TEST,
     liveSubscriptionName,
+    founding: shop.plan !== "pro" && (await foundingOfferEligible(shop)),
   };
 };
 
@@ -50,8 +52,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "upgrade") {
     // Throws a redirect to Shopify's confirmation page (embedded-safe via
-    // App Bridge) — this never returns normally.
-    return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST });
+    // App Bridge) — this never returns normally. Founding-offer stores get
+    // the same plan with a longer trial; eligibility is re-checked here
+    // rather than trusted from the form.
+    const shop = await requireShop(session.shop);
+    const trialDays = (await foundingOfferEligible(shop)) ? FOUNDING_OFFER_TRIAL_DAYS : PRO_TRIAL_DAYS;
+    return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST, trialDays });
   }
 
   if (intent === "cancel") {
@@ -71,7 +77,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Billing() {
-  const { plan, price, isTest, liveSubscriptionName, shopDomain } = useLoaderData<typeof loader>();
+  const { plan, price, isTest, liveSubscriptionName, shopDomain, founding } =
+    useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const busy = fetcher.state !== "idle";
   const isPro = plan === "pro";
@@ -107,6 +114,16 @@ export default function Billing() {
               Unlimited registries, funded by the disclosed affiliate commission on external-store
               purchases — never billed to you.
             </s-paragraph>
+            {founding && (
+              <s-banner tone="success" heading="Founding store offer: Pro free for a year">
+                <s-paragraph>
+                  You&apos;re one of the first {FOUNDING_OFFER_SLOTS} stores to install Giftpin, so
+                  Pro is free for your first year. Shopify will ask you to approve it. After the
+                  year it&apos;s ${price}/mo unless you cancel, and you can cancel any time before
+                  then at no charge.
+                </s-paragraph>
+              </s-banner>
+            )}
             <s-paragraph>Pro (${price}/mo) adds:</s-paragraph>
             <s-unordered-list>
               <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
@@ -121,7 +138,7 @@ export default function Billing() {
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="upgrade" />
               <s-button type="submit" {...(busy ? { loading: true } : {})}>
-                Upgrade to Pro — ${price}/mo
+                {founding ? "Start my free year of Pro" : `Upgrade to Pro — $${price}/mo`}
               </s-button>
             </fetcher.Form>
           </s-stack>

@@ -16,12 +16,14 @@ vi.mock("../../db.server", () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       upsert: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
 
 import db from "../../db.server";
 import {
+  foundingOfferEligible,
   isPro,
   markUninstalled,
   planFromSubscriptionStatus,
@@ -135,5 +137,31 @@ describe("upsertShop", () => {
       .mockResolvedValueOnce({ domain: "s.myshopify.com" } as never);
     await expect(upsertShop("s.myshopify.com", { name: "S" })).resolves.toEqual({ domain: "s.myshopify.com" });
     expect(db.shop.upsert).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("foundingOfferEligible", () => {
+  const start = new Date("2026-10-23T04:00:00Z");
+  const mockedCount = vi.mocked(db.shop.count);
+
+  it("leaves out stores installed before the offer started, without querying", async () => {
+    mockedCount.mockClear();
+    expect(await foundingOfferEligible({ installedAt: new Date(start.getTime() - 1) })).toBe(false);
+    expect(mockedCount).not.toHaveBeenCalled();
+  });
+
+  it("gives the first ten stores installed since the start a slot", async () => {
+    mockedCount.mockResolvedValueOnce(9);
+    expect(await foundingOfferEligible({ installedAt: start })).toBe(true);
+    expect(mockedCount).toHaveBeenLastCalledWith({
+      where: { installedAt: { gte: start, lt: start } },
+    });
+  });
+
+  it("doesn't give the eleventh store a slot", async () => {
+    mockedCount.mockResolvedValueOnce(10);
+    expect(await foundingOfferEligible({ installedAt: new Date(start.getTime() + 1000) })).toBe(
+      false,
+    );
   });
 });
