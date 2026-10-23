@@ -1,6 +1,7 @@
 import db from "../db.server";
 import type { Shop } from "@prisma/client";
 import { mergeSettings, type ShopSettings } from "../shared/settings";
+import { FOUNDING_OFFER_STARTS_AT, isFoundingSlot } from "../shared/plans";
 
 /**
  * Shop record and merchant settings.
@@ -105,6 +106,21 @@ export async function markUninstalled(domain: string) {
 // Billing — see app/routes/app.billing.tsx and
 // app/routes/webhooks.app_subscriptions.update.tsx
 // ---------------------------------------------------------------------------
+
+/**
+ * Whether this shop is one of the first stores installed since the founding
+ * offer started (see FOUNDING_OFFER_* in app/shared/plans.ts), and so gets
+ * the long free Pro trial when it upgrades.
+ */
+export async function foundingOfferEligible(
+  shop: Pick<Shop, "installedAt">,
+): Promise<boolean> {
+  if (!isFoundingSlot(shop.installedAt, 0)) return false;
+  const earlierInstalls = await db.shop.count({
+    where: { installedAt: { gte: FOUNDING_OFFER_STARTS_AT, lt: shop.installedAt } },
+  });
+  return isFoundingSlot(shop.installedAt, earlierInstalls);
+}
 
 export function isPro(shop: Pick<Shop, "plan">): boolean {
   return shop.plan === "pro";
