@@ -155,6 +155,7 @@ describe("marketing site", () => {
       "/compare": "compare.tsx",
       "/setup": "setup.tsx",
       "/registry-guide": "registry-guide.tsx",
+      "/gift-cards": "gift-cards.tsx",
       "/privacy": "privacy.tsx",
     };
     for (const p of MARKETING_PATHS) expect(existsSync(join(routes, file[p] ?? "missing")), p).toBe(true);

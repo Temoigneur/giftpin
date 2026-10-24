@@ -209,3 +209,76 @@ export function contributionCartPayload(
     ],
   };
 }
+
+// ---------------------------------------------------------------------------
+// Gift cards sold through Giftpin's gift card listing (giftpin.app/gift-cards)
+//
+// A separate property from `_rg` on purpose: these lines belong to no
+// registry, so they must never reach the registry arithmetic above. Same
+// signing as `_rg`, bound to the shop that minted it, so a token copied from
+// one store's page credits nothing at another. Same theme caveat as `_rg`:
+// the leading underscore hides it only by convention (hard rule 3).
+// ---------------------------------------------------------------------------
+
+export const GIFT_CARD_PROPERTY = "_gpc";
+const GIFT_CARD_PURPOSE = "giftcard";
+
+export interface GiftCardAttribution {
+  /** Shop domain the token was minted for. */
+  s: string;
+  /** "directory" (giftpin.app) or "store". */
+  src: "directory" | "store";
+}
+
+export function signGiftCardAttribution(shopDomain: string, source: "directory" | "store"): string {
+  return signToken({ p: GIFT_CARD_PURPOSE, s: shopDomain, src: source });
+}
+
+export function verifyGiftCardAttribution(token: string | null | undefined): GiftCardAttribution | null {
+  const payload = verifyToken<{ p: string; s?: unknown; src?: unknown }>(token, GIFT_CARD_PURPOSE);
+  if (!payload || typeof payload.s !== "string" || !payload.s) return null;
+  return { s: payload.s, src: payload.src === "directory" ? "directory" : "store" };
+}
+
+export interface GiftCardLine {
+  lineItemId: string;
+  quantity: number;
+  amount: string;
+  source: "directory" | "store";
+}
+
+/**
+ * Gift card lines in an order that came through Giftpin's listing. Only gift
+ * card lines count (by the payload's `gift_card` flag, or one of the
+ * merchant's configured denominations if the flag is missing), and only with
+ * a token minted for this shop: anything else is skipped silently, exactly
+ * like an `_rg` that doesn't verify.
+ */
+export function giftCardLines(
+  lineItems: OrderLineItem[] | undefined | null,
+  shopDomain: string,
+  giftCardVariantIds: ReadonlySet<string> = new Set(),
+): GiftCardLine[] {
+  if (!Array.isArray(lineItems)) return [];
+  const out: GiftCardLine[] = [];
+  for (const line of lineItems) {
+    const payload = verifyGiftCardAttribution(readLineProperty(line, GIFT_CARD_PROPERTY));
+    if (!payload || payload.s !== shopDomain) continue;
+
+    const variantId = line.variant_id === null || line.variant_id === undefined ? null : String(line.variant_id);
+    const isGiftCard = line.gift_card === true || (variantId !== null && giftCardVariantIds.has(variantId));
+    if (!isGiftCard) continue;
+
+    const quantity = Math.floor(Number(line.quantity));
+    const unitPrice = line.price ? Number.parseFloat(line.price) : NaN;
+    if (!Number.isFinite(quantity) || quantity < 1 || !Number.isFinite(unitPrice)) continue;
+
+    out.push({
+      lineItemId: String(line.id),
+      quantity,
+      amount: (unitPrice * quantity).toFixed(2),
+      source: payload.src,
+    });
+  }
+  return out;
+}

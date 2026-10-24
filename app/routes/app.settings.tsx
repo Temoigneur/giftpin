@@ -20,6 +20,7 @@ import {
   contrastRatio,
 } from "../shared/branding";
 import { listGiftCardProducts } from "../lib/contribution-product.server";
+import { GIFT_CARD_BLURB_MAX, MAX_LISTED_GIFT_CARD, cleanGiftCardBlurb, listedGiftCardAmounts } from "../shared/gift-card-listing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
@@ -59,8 +60,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const picked = productGid
       ? (await listGiftCardProducts((q, o) => admin.graphql(q, o))).find((p) => p.productGid === productGid) ?? null
       : null;
-    await updateSettings(session.shop, { contributionProduct: picked });
-    return { ok: true, warnings: [] as string[] };
+    // Gift cards on giftpin.app sell the same product. Saved on any plan so
+    // the choice survives a plan change; the directory and the store page
+    // check Pro themselves (giftCardListingLive).
+    const giftCardListing = {
+      enabled: form.get("giftCardListingEnabled") === "on",
+      blurb: cleanGiftCardBlurb(form.get("giftCardBlurb")),
+    };
+    await updateSettings(session.shop, { contributionProduct: picked, giftCardListing });
+    const warnings: string[] = [];
+    if (giftCardListing.enabled && listedGiftCardAmounts(picked).length === 0) {
+      warnings.push(
+        `To list your gift cards on giftpin.app, pick a gift card with at least one amount of ${MAX_LISTED_GIFT_CARD} or less.`,
+      );
+    }
+    return { ok: true, warnings };
   }
 
   // "Run now": the daily automations job (app/models/automations.server.ts)
@@ -141,7 +155,7 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 }
 
 export default function Settings() {
-  const { settings, pro, giftCards } = useLoaderData<typeof loader>();
+  const { settings, pro, giftCards, shopDomain, cacheBust } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const runFetcher = useFetcher<typeof action>();
   const giftFetcher = useFetcher<typeof action>();
@@ -412,12 +426,45 @@ export default function Settings() {
               ))}
             </s-select>
           )}
+          <s-heading>Sell gift cards on giftpin.app</s-heading>
+          <s-paragraph>
+            List your store at giftpin.app/gift-cards. Shoppers pick an amount and buy your gift card at
+            your own checkout, so the money and any unspent balance stay with you. Uses the gift card
+            above, in amounts up to {MAX_LISTED_GIFT_CARD}.
+          </s-paragraph>
+          <s-checkbox
+            name="giftCardListingEnabled"
+            label="List my gift cards on giftpin.app"
+            {...(settings.giftCardListing.enabled ? { checked: true } : {})}
+          />
+          <s-text-field
+            name="giftCardBlurb"
+            label="One line about your store"
+            details="Shown under your store name on giftpin.app."
+            maxLength={GIFT_CARD_BLURB_MAX}
+            value={settings.giftCardListing.blurb}
+          />
+          {settings.giftCardListing.enabled && pro && (
+            <s-paragraph>
+              <s-text color="subdued">
+                Your gift card page:{" "}
+                <s-link href={`https://${shopDomain}/apps/registry/gift-card?cb=${cacheBust}`} target="_blank">
+                  /apps/registry/gift-card
+                </s-link>
+              </s-text>
+            </s-paragraph>
+          )}
           <s-stack direction="inline" gap="base">
             <s-button type="submit" {...(giftFetcher.state !== "idle" ? { loading: true } : {})}>
               Save
             </s-button>
             {giftFetcher.data?.ok && <s-text>Saved</s-text>}
           </s-stack>
+          {giftFetcher.data?.warnings?.map((warning) => (
+            <s-banner key={warning} tone="warning">
+              <s-paragraph>{warning}</s-paragraph>
+            </s-banner>
+          ))}
         </s-section>
       </giftFetcher.Form>
 

@@ -30,6 +30,10 @@ export const BILLING_FAQ: QA[] = [
     a: "<p>No. Neither plan adds a fee to your own product sales.</p>",
   },
   {
+    q: "What is the giftpin.app gift card directory?",
+    a: "<p>A page at <a href=\"/gift-cards\">giftpin.app/gift-cards</a> where shoppers can buy gift cards from stores that use Giftpin. It's part of Pro. Shoppers pay at your own checkout for your own Shopify gift card, so you keep the money and any unspent balance. Giftpin never sells or holds gift card money.</p>",
+  },
+  {
     q: "Is there a limit on registries or guests?",
     a: "<p>No. Both plans include unlimited registries, items and guests.</p>",
   },
