@@ -20,6 +20,7 @@ import {
   contrastRatio,
 } from "../shared/branding";
 import { listGiftCardProducts } from "../lib/contribution-product.server";
+import { PERKS_MAX_LENGTH, PERKS_MAX_LINES, cleanPerks } from "../shared/perks";
 import { GIFT_CARD_BLURB_MAX, MAX_LISTED_GIFT_CARD, cleanGiftCardBlurb, listedGiftCardAmounts } from "../shared/gift-card-listing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -129,6 +130,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     thankYouReminderEmails: form.get("thankYouReminderEmails") === "on",
     guestEventReminderEmails: form.get("guestEventReminderEmails") === "on",
     mostGoneAlertEmails: form.get("mostGoneAlertEmails") === "on",
+    soldOutItems: form.get("soldOutItems") === "hide" ? "hide" : "show",
+    // Saved on any plan, like the automations; only shown to registrants on Pro.
+    registryPerks: cleanPerks(form.get("registryPerks")),
     ...branding,
   });
 
@@ -160,6 +164,7 @@ export default function Settings() {
   const runFetcher = useFetcher<typeof action>();
   const giftFetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
+  const [soldOutItems, setSoldOutItems] = useState(settings.soldOutItems);
 
   const saving = fetcher.state !== "idle";
 
@@ -232,6 +237,52 @@ export default function Settings() {
               </s-paragraph>
             </s-banner>
           )}
+        </s-section>
+
+        <s-section heading="Sold-out products">
+          <s-paragraph>
+            <s-text color="subdued">
+              When one of your products on a registry sells out. It always stays on the registry, so
+              it comes back by itself when you restock.
+            </s-text>
+          </s-paragraph>
+          <s-choice-list
+            name="soldOutItems"
+            values={[soldOutItems]}
+            onChange={(event) => {
+              const [selected] = event.currentTarget.values ?? [];
+              if (selected === "show" || selected === "hide") setSoldOutItems(selected);
+            }}
+          >
+            <s-choice value="show">Show it as sold out (guests can&apos;t add it to their cart)</s-choice>
+            <s-choice value="hide">Hide it from guests until it&apos;s back in stock</s-choice>
+          </s-choice-list>
+        </s-section>
+
+        <s-section heading="Registry perks (Pro)">
+          <s-paragraph>
+            <s-text color="subdued">
+              What you offer people who register with you, like free gift wrapping or a gift when the
+              registry reaches a total. Shown to registrants when they start a registry and on their own
+              registry page, not to guests. One perk per line, up to {PERKS_MAX_LINES}.
+            </s-text>
+          </s-paragraph>
+          {!pro && (
+            <s-banner tone="info">
+              <s-paragraph>
+                Perks show on Giftpin Pro. <s-link href="/app/billing">Upgrade</s-link> to turn them on.
+              </s-paragraph>
+            </s-banner>
+          )}
+          <s-text-area
+            name="registryPerks"
+            label="Your perks"
+            value={settings.registryPerks}
+            rows={4}
+            maxLength={PERKS_MAX_LENGTH}
+            placeholder={"Free gift wrapping on every registry gift\nA free gift when your registry reaches $500"}
+            details="If the after-event discount below is on, it's listed for you."
+          />
         </s-section>
 
         <s-section heading="Appearance">

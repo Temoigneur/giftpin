@@ -79,9 +79,12 @@ import {
   renderPasswordPage,
   renderFindPage,
 } from "./render/create-page";
-import { escapeHtml } from "./render/layout";
+import { escapeHtml, formatMoney } from "./render/layout";
 import { csvCell } from "../lib/csv";
 import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/branding";
+import { applyStock, hiddenFromGuests, type StockMap } from "../lib/stock";
+import { fetchVariantStock, findVariantsByCode, getVariant } from "../lib/catalog.server";
+import { registrantPerks } from "../shared/perks";
 
 /**
  * Guest-surface router.
@@ -143,6 +146,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
           ...brand,
           actionUrl: ctx.pathPrefix,
           enabledEventTypes: settings.eventTypes,
+          perks: perksFor(shop, settings),
         }));
 
       case "r":
@@ -227,6 +231,25 @@ function brandingFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): Pa
 }
 type ShopRecord = NonNullable<Awaited<ReturnType<typeof db.shop.findUnique>>>;
 
+/** Registry perks (Pro) for the create and manage pages. See app/shared/perks.ts. */
+function perksFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): string[] {
+  return registrantPerks({
+    pro: isPro(shop),
+    registryPerks: settings.registryPerks,
+    completionDiscountEnabled: settings.completionDiscountEnabled,
+    completionDiscountPercent: settings.completionDiscountPercent,
+  });
+}
+
+/**
+ * The barcode reader for phones without a built-in one (iPhone Safari). It's
+ * served from the app, not a CDN, and only fetched when someone taps Scan.
+ */
+function scannerScriptUrl(): string | null {
+  const base = process.env.SHOPIFY_APP_URL;
+  return base ? `${base.replace(/\/+$/, "")}/vendor/zxing-library-0.21.3.min.js` : null;
+}
+
 async function registryPage(
   request: Request,
   ctx: ProxyContext,
@@ -258,7 +281,7 @@ async function registryPage(
   const html = await cached(
     registryCacheKey(registry.id, registry.version, registry.privacy === "password" ? "pw" : "page"),
     60,
-    async () => buildRegistryHtml(registry, ctx, shop, settings, brand),
+    async () => buildRegistryHtml(registry, ctx, shop, settings, brand, await registryStock(ctx.shop, registry)),
   );
 
   return page(html, 200, registry.indexable && registry.privacy === "public_");
@@ -284,19 +307,32 @@ async function registryVersionAction(ctx: ProxyContext, slug: string | undefined
   );
 }
 
+/**
+ * Live stock for the registry's store products, fetched inside the page
+ * cache above, so it costs at most one Admin API call per registry a minute.
+ */
+async function registryStock(shopDomain: string, registry: RegistryWithItems): Promise<StockMap> {
+  const variantGids = registry.items
+    .filter((i) => i.sourceType === "internal" && i.variantGid && i.purchasedQty < i.desiredQty)
+    .map((i) => i.variantGid!);
+  return variantGids.length ? fetchVariantStock(shopDomain, variantGids) : new Map();
+}
+
 function buildRegistryHtml(
   registry: RegistryWithItems,
   ctx: ProxyContext,
   shop: ShopRecord,
   settings: ShopSettings,
   brand: Brand,
+  stock: StockMap = null,
 ): string {
   const chipIn = contributionsAvailable(shop, settings);
   // A fund nobody can pay into (plan lapsed, or the merchant removed the gift
-  // card product) is hidden rather than shown as a dead end.
-  const items = registry.items
-    .map((item) => toDisplayItem(item))
-    .filter((item) => chipIn || !item.isFund);
+  // card product) is hidden rather than shown as a dead end. Sold-out store
+  // products are left off too when the merchant chose that (app/lib/stock.ts).
+  const items = applyStock(registry.items.map((item) => toDisplayItem(item)), stock)
+    .filter((item) => chipIn || !item.isFund)
+    .filter((item) => !hiddenFromGuests(item, settings.soldOutItems));
 
   return renderRegistryPage({
     ...brand,
@@ -421,7 +457,11 @@ async function managePage(
       affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
       chromeExtensionUrl: process.env.CHROME_EXTENSION_URL || null,
       extensionConnect: ctx.query.get("extension") === "1",
-      items: registry.items.map((item) => toDisplayItem(item)),
+      items: applyStock(registry.items.map((item) => toDisplayItem(item)), await registryStock(ctx.shop, registry)),
+      soldOutHidden: settings.soldOutItems === "hide",
+      perks: perksFor(shop, settings),
+      scanner: isPro(shop),
+      scannerScriptUrl: scannerScriptUrl(),
       currency: shop.currency,
       shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
       actionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}`,
@@ -637,6 +677,10 @@ async function handlePost(
       return addManualAction(request, ctx);
     case "add-from-store":
       return addFromStoreAction(request, ctx, shop);
+    case "scan-lookup":
+      return scanLookupAction(request, ctx, shop);
+    case "scan-add":
+      return scanAddAction(request, ctx, shop);
     case "ext-add":
       return extAddAction(request, ctx, shop);
     case "update-item":
@@ -682,6 +726,7 @@ async function createRegistryAction(
         ...brand,
         actionUrl: ctx.pathPrefix,
         enabledEventTypes: settings.eventTypes,
+        perks: perksFor(shop, settings),
         error: "Please fill in your name, a registry name and a valid email address.",
         values,
       }),
@@ -1193,6 +1238,82 @@ async function addFromStoreAction(
   }
 
   return json({ ok: true });
+}
+
+/**
+ * In-store scanning (Pro): the registrant walks the shop with their own phone,
+ * scans a product's barcode on the manage page, and adds it. Same manage-token
+ * authorisation as every other edit. The product details come from the
+ * merchant's catalog, never from the phone.
+ */
+async function scanLookupAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: "Scanning isn't available in this store" }, 403);
+
+  const body = await readJson(request);
+  try {
+    const variants = await findVariantsByCode(ctx.shop, body.code);
+    return json({
+      ok: true,
+      matches: variants.slice(0, 5).map((v) => ({
+        variantId: v.variantGid.split("/").pop(),
+        title: v.title,
+        imageUrl: v.imageUrl,
+        price: formatMoney(Number(v.price), shop.currency) || null,
+        availableForSale: v.availableForSale,
+        onRegistry: registry.items.some((i) => i.variantGid === v.variantGid),
+      })),
+    });
+  } catch (err) {
+    console.error("[scan] lookup failed:", (err as Error).message);
+    return json({ ok: false, error: "Couldn't look that up. Try again in a moment." }, 502);
+  }
+}
+
+async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: "Scanning isn't available in this store" }, 403);
+
+  const body = await readJson(request);
+  const variantId = String(body.variantId ?? "");
+  if (!/^\d+$/.test(variantId)) return json({ ok: false, error: "Missing product details" }, 400);
+  const variantGid = `gid://shopify/ProductVariant/${variantId}`;
+
+  // Already on the list: only a deliberate "add one more" changes the count,
+  // the same rule as the product-page button (no silent bumps).
+  const existing = registry.items.find((i) => i.variantGid === variantGid);
+  if (existing) {
+    if (body.addOne !== true) {
+      return json({ ok: true, duplicate: true, currentQty: existing.desiredQty });
+    }
+    const desiredQty = Math.min(99, existing.desiredQty + 1);
+    await updateItem(existing.id, registry.id, { desiredQty });
+    return json({ ok: true, desiredQty });
+  }
+
+  let variant;
+  try {
+    variant = await getVariant(ctx.shop, variantGid);
+  } catch (err) {
+    console.error("[scan] variant lookup failed:", (err as Error).message);
+    return json({ ok: false, error: "Couldn't add that. Try again in a moment." }, 502);
+  }
+  if (!variant) return json({ ok: false, error: "That product isn't available in the store" }, 404);
+
+  const result = await addInternalItem({
+    registryId: registry.id,
+    productGid: variant.productGid,
+    variantGid: variant.variantGid,
+    title: variant.title.slice(0, 300),
+    imageUrl: variant.imageUrl,
+    price: variant.price,
+    currency: shop.currency,
+    desiredQty: 1,
+  });
+  if (result.duplicate) return json({ ok: true, duplicate: true, currentQty: result.item.desiredQty });
+  return json({ ok: true, added: true });
 }
 
 /** GET .../ext-verify?t=<token> — the browser extension's one-time "connect" check. */

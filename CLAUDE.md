@@ -99,6 +99,16 @@ reading Shopify's docs.
   Part 3. Never let copy suggest a "Giftpin card" spendable at more than one
   store: that would mean holding customer funds (money transmitter and gift
   card laws), which is why each card is the merchant's own.
+- **Gift Reggie switcher features (built 24 Oct 2026, not live-tested):**
+  sold-out store products (live `availableForSale` check on each guest page
+  render, Settings → Sold-out products), registry perks (Pro), the in-store
+  phone barcode scanner on the manage page (Pro) and the CSV registry
+  importer (admin → Registries → Import). Checked live: the Admin API fields
+  and the `barcode:`/`sku:` search (exact match, hence the UPC/EAN forms).
+  Not yet checked: that the phone camera opens on an app proxy page (a
+  storefront Permissions-Policy could block it; typing the number still
+  works), and the importer against a real Gift Reggie export (column names
+  are guessed loosely, see `app/shared/registry-import.ts`).
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

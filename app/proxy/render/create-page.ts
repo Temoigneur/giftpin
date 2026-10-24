@@ -19,8 +19,19 @@ export interface CreatePageData {
   branding?: PageBranding | null;
   actionUrl: string;
   enabledEventTypes: string[];
+  /** Registry perks (Pro), already cleaned. See app/shared/perks.ts. */
+  perks?: string[];
   error?: string | null;
   values?: Record<string, string>;
+}
+
+/** "Perks of registering with us". Shared with the manage page. */
+export function renderPerks(shopName: string, perks: string[] | undefined): string {
+  if (!perks || perks.length === 0) return "";
+  return `<div class="note perks">
+  <p style="margin:0 0 6px"><strong>Perks when you register with ${escapeHtml(shopName)}</strong></p>
+  <ul style="margin:0;padding-left:20px">${perks.map((p) => `<li>${escapeHtml(p)}</li>`).join("")}</ul>
+</div>`;
 }
 
 export function renderCreatePage(data: CreatePageData): string {
@@ -35,6 +46,8 @@ export function renderCreatePage(data: CreatePageData): string {
   const body = `
 <h1>Start a registry</h1>
 <p class="sub">Tell your guests what you'd love. They buy it, you get one list.</p>
+
+${renderPerks(data.shopName, data.perks)}
 
 ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
