@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
 import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
-import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
+import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, GIFT_CARD_FEE_CAP, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
 
 /**
@@ -140,6 +140,15 @@ export default function Billing() {
               <s-list-item>Your gift cards on giftpin.app and registry pages: shoppers buy them at your own checkout ({GIFT_CARD_FEE_PERCENT}% fee per card sold this way, none during your free trial)</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
+            <s-banner tone="info" heading={`About the "app spending limit" Shopify shows when you approve`}>
+              <s-paragraph>
+                That limit is only for the {GIFT_CARD_FEE_PERCENT}% fee on gift cards sold through
+                your giftpin.app gift card listing. It is the most we can charge in 30 days
+                (${GIFT_CARD_FEE_CAP} USD). If you sell no gift cards this way, or never turn the
+                listing on, you pay nothing extra. No fee during your free trial. Nothing else
+                is ever billed through it.
+              </s-paragraph>
+            </s-banner>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="upgrade" />
               <s-button type="submit" {...(busy ? { loading: true } : {})}>
