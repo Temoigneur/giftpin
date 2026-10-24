@@ -145,7 +145,7 @@ export default function Analytics() {
 
       <s-section slot="aside" heading="Gift cards sold through giftpin.app">
         <s-paragraph>
-          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money(giftCards.total, giftCards.currency)}
+          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money2(giftCards.total, giftCards.currency)}
         </s-paragraph>
         <s-paragraph>
           <s-text color="subdued">
