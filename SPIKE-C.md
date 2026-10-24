@@ -157,16 +157,16 @@ giftpin.app ticked, gift cards set to auto-fulfil):
 
 | # | Path | Pass when | Result |
 |---|---|---|---|
-| G1 | giftpin.app/gift-cards | The store is listed with its amounts; unticking the setting removes it within ~5 minutes (page cache) | — |
-| G2 | Store page → $50 → Add to cart → Check out (test card) | Cart lands on /cart with the gift card; admin order line shows `_gpc`; a `GiftCardSale` row exists with `source = directory`; Analytics shows 1 gift card | — |
-| G3 | As G2, "Email it straight to someone" ticked | Card emailed to the recipient, not the buyer | — |
-| G4 | As G2 but pay with Shop Pay | `_gpc` survives (`GiftCardSale` row exists). Recipient delivery expected to fail as in C2; the page already warns | — |
-| G5 | Refund the G2 line | `GiftCardSale.voidedAt` set; Analytics drops back | — |
-| G6 | Store page with JavaScript off | Form still adds the card; no recipient fields posted | — |
-| G7 | Open any registry on the store | "Rather give a gift card? Buy a … gift card" link shows and opens the gift card page; a sale from it records `source = registry` | — |
-| G8 | giftpin.app/gift-cards after opening Giftpin's admin once | The store sits under its country heading (Shop.country filled from the billing address) | — |
+| G1 | giftpin.app/gift-cards | The store is listed with its amounts; unticking the setting removes it within ~5 minutes (page cache) | **Pass 24 Oct 2026.** giftpin-merchant-view and Giftpin Registry listed; unticking removed it within 5 min. |
+| G2 | Store page → $50 → Add to cart → Check out (test card) | Cart lands on /cart with the gift card; admin order line shows `_gpc`; a `GiftCardSale` row exists with `source = directory`; Analytics shows 1 gift card | **Pass 24 Oct 2026** (order #1001): `_gpc` with source `directory`; Analytics 1 card. Card issued at the list price ($50) although the Canada price list charged $47.50: Shopify ignores market price lists for the card value; the sale records the amount paid. |
+| G3 | As G2, "Email it straight to someone" ticked | Card emailed to the recipient, not the buyer | **Pass 24 Oct 2026** (#1002, source `store`). Recipient got the card; buyer got Shopify's separate "sent to" copy. |
+| G4 | As G2 but pay with Shop Pay | `_gpc` survives (`GiftCardSale` row exists). Recipient delivery expected to fail as in C2; the page already warns | **Pass 24 Oct 2026** (registro-dev, Shop Pay, source `directory`): `_gpc` survived; Analytics recorded the sale. Not testable on giftpin-merchant-view (test gateway offers no Shop Pay). |
+| G5 | Refund the G2 line | `GiftCardSale.voidedAt` set; Analytics drops back | **Pass 24 Oct 2026** (refund of #1002): `voidedAt` set, Analytics dropped. The refund also deactivated the recipient's card (admin shows it deactivated). |
+| G6 | Store page with JavaScript off | Form still adds the card; no recipient fields posted | **Pass 24 Oct 2026.** |
+| G7 | Open any registry on the store | "Rather give a gift card? Buy a … gift card" link shows and opens the gift card page; a sale from it records `source = registry` | **Pass 24 Oct 2026** (#1003): link shows and opens the page; source `registry`. Link text was too small; enlarged in #70. |
+| G8 | giftpin.app/gift-cards after opening Giftpin's admin once | The store sits under its country heading (Shop.country filled from the billing address) | **Pass 24 Oct 2026:** store sits under United States, Giftpin Registry under Canada. |
 
-## Part 4: the 2% gift card fee (built 24 Oct 2026, not yet checked live)
+## Part 4: the 2% gift card fee (built 24 Oct 2026, checked live 24 Oct 2026 except F1/F6)
 
 A daily job (`charge-gift-card-fees`, 16:30 UTC, also run by Settings → "Run
 now") bills 2% of each `GiftCardSale` as a Shopify usage charge on the Pro
@@ -177,12 +177,12 @@ founding store's free year. Dev stores are always billed in test mode.
 
 | # | Check | Pass when | Result |
 |---|---|---|---|
-| F1 | On a dev store already on Pro (subscribed before this change), sell a card, press Run now | `GiftCardSale.feeStatus = waived_no_usage_line` (old subscription has no usage line; Shopify doesn't add one without re-approval) | — |
-| F2 | Cancel Pro and upgrade again on the dev store | Shopify's approval screen shows "$9.99 every 30 days" **and** the usage terms with a $100 cap | — |
-| F3 | Sell a card during that new subscription's trial, Run now | `feeStatus = waived_trial` | — |
-| F4 | Same, but the trial already over (or a subscription with no trial) | `feeStatus = charged`, `usageRecordId` set; Partner Dashboard / store's Billing shows the usage charge | — |
-| F5 | Refund a card before its fee runs, Run now | `feeStatus = waived_voided`, nothing billed | — |
-| F6 | Is a usage record accepted during a trial at all? | Answered by F3/F4 on Shopify's side; until then we never try | — |
+| F1 | On a dev store already on Pro (subscribed before this change), sell a card, press Run now | `GiftCardSale.feeStatus = waived_no_usage_line` (old subscription has no usage line; Shopify doesn't add one without re-approval) | Not run: no store with a pre-change subscription was left to test. |
+| F2 | Cancel Pro and upgrade again on the dev store | Shopify's approval screen shows "$9.99 every 30 days" **and** the usage terms with a $100 cap | **Fail on the claim, 24 Oct 2026.** Shopify's approval page shows only "App spending limit … maximum of $100.00 USD per 30 days"; our `terms` text is NOT displayed (docs say it is). Mitigated by a banner above Upgrade on the Plan page. Also: a re-subscribe on a test store got a full 14-day trial again (used trial days are not carried over there). |
+| F3 | Sell a card during that new subscription's trial, Run now | `feeStatus = waived_trial` | **Pass 24 Oct 2026** (#1001, #1003, #1037 on a trial): `waived_trial`. |
+| F4 | Same, but the trial already over (or a subscription with no trial) | `feeStatus = charged`, `usageRecordId` set; Partner Dashboard / store's Billing shows the usage charge | **Pass 24 Oct 2026** (#1038, CA$25 on registro-dev, no-trial dev subscription): `charged`, `feeAmount` 0.36 USD (CA$0.50 at the ECB rate), usage record `AppUsageRecord/557118750869`. Dev stores now request 0 trial days for this reason (#72). |
+| F5 | Refund a card before its fee runs, Run now | `feeStatus = waived_voided`, nothing billed | **Pass 24 Oct 2026** (#1002): `waived_voided`. |
+| F6 | Is a usage record accepted during a trial at all? | Answered by F3/F4 on Shopify's side; until then we never try | **Answered 24 Oct 2026:** F3 shows we skip trial sales on our side; Shopify's own stance on usage records during a trial is still untested (we never try). |
 
 Refunds after a fee was charged: Shopify has no app-side API to reverse a
 usage charge (`appCreditCreate` is Partner API only). Issue a credit from
