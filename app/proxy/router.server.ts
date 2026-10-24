@@ -57,7 +57,9 @@ import { previewUrl } from "../lib/resolver/index.server";
 import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
 import { parseShippingAddressForm, SHIPPING_ADDRESS_ERRORS, type ShippingAddressError } from "../shared/shipping-address";
-import { cartAddPayload, contributionCartPayload, giftForValue } from "../lib/attribution";
+import { cartAddPayload, contributionCartPayload, giftForValue, signGiftCardAttribution } from "../lib/attribution";
+import { giftCardListingLive, giftCardSource, listedGiftCardAmounts } from "../shared/gift-card-listing";
+import { renderGiftCardPage } from "./render/gift-card-page";
 import { fundState, giftCardRecipientProperties } from "../shared/contributions";
 import { audit } from "../lib/audit.server";
 import { sendEmail } from "../lib/email.server";
@@ -94,6 +96,7 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
  *   GET  /release?c=<token>    → guest releases their hold
  *   GET  /thank-you.csv        → thank-you list export
  *   GET  /unsubscribe?u=<token> → guest stops pre-event reminders
+ *   GET  /gift-card?src=       → buy the store's gift card (giftpin.app listing, Pro)
  *   POST /create | /resend | /settings | /delete
  *   POST /cart-add | /claim | /bought | /undo-bought | /add-external | /update-item | /remove-item
  *   POST /link-preview | /add-link   → the manage page's paste box (look up, then add)
@@ -179,6 +182,9 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 
       case "unsubscribe":
         return await unsubscribePage(ctx, brand);
+
+      case "gift-card":
+        return giftCardPage(ctx, shop, settings, brand);
 
       default:
         return page(
@@ -784,6 +790,36 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
 // ---------------------------------------------------------------------------
 
 /** Chip-ins need Pro AND a gift card product the merchant picked in Settings. */
+/**
+ * The store's gift card page, where giftpin.app/gift-cards sends shoppers.
+ * Only while the listing is live (Pro, switched on, amounts to sell): a
+ * lapsed listing says so rather than selling through a page the merchant
+ * turned off.
+ */
+function giftCardPage(ctx: ProxyContext, shop: ShopRecord, settings: ShopSettings, brand: Brand): Response {
+  const live = giftCardListingLive({
+    pro: isPro(shop),
+    uninstalled: shop.uninstalledAt !== null,
+    listing: settings.giftCardListing,
+    product: settings.contributionProduct,
+  });
+  if (!live) {
+    return page(
+      renderSimplePage(brand, "Gift cards aren't available here", "This store isn't selling gift cards through Giftpin right now."),
+      404,
+    );
+  }
+  return page(
+    renderGiftCardPage({
+      ...brand,
+      currency: shop.currency,
+      amounts: listedGiftCardAmounts(settings.contributionProduct),
+      blurb: settings.giftCardListing.blurb,
+      token: signGiftCardAttribution(ctx.shop, giftCardSource(ctx.query.get("src"))),
+    }),
+  );
+}
+
 function contributionsAvailable(shop: ShopRecord, settings: ShopSettings): boolean {
   return isPro(shop) && (settings.contributionProduct?.variants.length ?? 0) > 0;
 }

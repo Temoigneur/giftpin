@@ -12,6 +12,7 @@ import {
   type MonthlySales,
 } from "../models/analytics.server";
 import { exportUrl } from "../models/export.server";
+import { giftCardSalesSummary } from "../models/gift-card-sale.server";
 import { eventTypeLabel } from "../shared/settings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -22,8 +23,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!isPro(shop)) return { locked: true as const };
 
   const range = parseRange(new URL(request.url).searchParams.get("range"));
-  const [report, sales] = await Promise.all([analyticsReport(shop.id, range), monthlySales(shop.id)]);
-  return { locked: false as const, report, sales, salesCsvUrl: exportUrl(shop.id, "sales") };
+  const giftCardsSince = new Date(Date.now() - range * 86_400_000);
+  const [report, sales, giftCards] = await Promise.all([
+    analyticsReport(shop.id, range),
+    monthlySales(shop.id),
+    giftCardSalesSummary(shop.id, giftCardsSince, shop.currency),
+  ]);
+  return { locked: false as const, report, sales, giftCards, salesCsvUrl: exportUrl(shop.id, "sales") };
 };
 
 const RANGE_LABELS: Record<number, string> = { 30: "Last 30 days", 90: "Last 90 days", 365: "Last 12 months" };
@@ -63,7 +69,7 @@ export default function Analytics() {
     );
   }
 
-  const { report, sales, salesCsvUrl } = data;
+  const { report, sales, giftCards, salesCsvUrl } = data;
   const { totals, previous } = report;
   const internalShare = totals.itemsAdded > 0 ? Math.round((totals.itemsAddedInternal / totals.itemsAdded) * 100) : 0;
   const range = String(report.range);
@@ -129,6 +135,17 @@ export default function Analytics() {
         </s-unordered-list>
         <s-paragraph>
           <s-text color="subdued">Refunded and cancelled purchases are not counted.</s-text>
+        </s-paragraph>
+      </s-section>
+
+      <s-section slot="aside" heading="Gift cards sold through giftpin.app">
+        <s-paragraph>
+          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money(giftCards.total, giftCards.currency)}
+        </s-paragraph>
+        <s-paragraph>
+          <s-text color="subdued">
+            From your listing at giftpin.app/gift-cards. Turn it on in Settings. Refunded cards are not counted.
+          </s-text>
         </s-paragraph>
       </s-section>
 

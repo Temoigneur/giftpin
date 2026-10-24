@@ -107,8 +107,9 @@ POS mode or cash funds until they ship.
 - **Giftpin Pro — $9.99 every 30 days, 14-day free trial** — registry
   analytics, a monthly registry sales report, your branding on registry
   pages (with the "Powered by Giftpin" credit removed), a completion
-  discount for the registrant, automatic registry emails, CSV export, and
-  priority email support (replies within one business day). Upgrade or
+  discount for the registrant, automatic registry emails, CSV export, a
+  listing for your gift cards at giftpin.app/gift-cards (sold at your own
+  checkout), and priority email support (replies within one business day). Upgrade or
   cancel any time from the app's Plan page.
 
 Neither tier changes what a guest pays or adds a fee on the merchant's own

@@ -15,6 +15,7 @@ import { unauthenticated } from "../shopify.server";
 import { audit } from "../lib/audit.server";
 import { contributionValue, isContributionLine } from "../shared/contributions";
 import { toMailingAddressInput } from "../shared/shipping-address";
+import { recordGiftCardSales, voidGiftCardSales } from "./gift-card-sale.server";
 
 /**
  * Order attribution.
@@ -72,6 +73,10 @@ registerHandler("attribute-order", async ({ shop, orderPayload }) => {
 });
 
 export async function attributeOrder(shopDomain: string, order: OrderPayload): Promise<void> {
+  // Gift cards from Giftpin's gift card listing carry `_gpc`, not `_rg`, and
+  // never touch a registry. Recorded first, before the early return below.
+  await recordGiftCardSales(shopDomain, order);
+
   const lines = attributedLines(order.line_items);
   if (lines.length === 0) return;
 
@@ -242,6 +247,8 @@ export async function voidPurchases(
   lineItemIds: string[] | undefined,
   reason: string,
 ): Promise<void> {
+  await voidGiftCardSales(shopDomain, orderId, lineItemIds);
+
   const purchases = await db.purchase.findMany({
     where: {
       orderId,

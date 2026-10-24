@@ -67,7 +67,8 @@ model Shop {
   shopifyChargeId String? // gid://shopify/AppSubscription/123 of the active subscription, if any
   planUpdatedAt   DateTime?
 
-  registries Registry[]
+  registries    Registry[]
+  giftCardSales GiftCardSale[]
 
   @@index([uninstalledAt])
 }
@@ -377,6 +378,33 @@ model Purchase {
   @@unique([orderId, lineItemId])
   @@index([itemId, voidedAt])
   @@index([buyerCustomerId])
+}
+
+// A gift card sold through Giftpin's gift card listing (giftpin.app/gift-cards
+// and the store's own /apps/registry/gift-card page), not tied to a registry.
+// Recorded from orders/create by the signed `_gpc` line property. The merchant
+// keeps the money; this row is for their analytics and, later, a usage fee.
+model GiftCardSale {
+  id     String @id @default(cuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  orderId    String // gid://shopify/Order/123
+  lineItemId String
+  orderName  String?
+
+  qty      Int     @default(1)
+  amount   Decimal @db.Decimal(12, 2)
+  currency String
+
+  // Where the guest came from: "directory" (giftpin.app) or "store".
+  source String @default("store")
+
+  voidedAt  DateTime? // refund or cancellation
+  createdAt DateTime  @default(now())
+
+  @@unique([orderId, lineItemId])
+  @@index([shopId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

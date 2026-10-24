@@ -374,7 +374,7 @@ ${finalCta("Give couples a registry that starts in your store.")}
  * whenever those labels change.
  */
 type Shot = { src: string; alt: string };
-type Step = { title: string; items: string[]; img?: Shot | Shot[] };
+type Step = { title: string; items: string[]; img?: Shot | Shot[]; id?: string };
 const shots = (img: Step["img"]) =>
   (img ? (Array.isArray(img) ? img : [img]) : [])
     .map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`)
@@ -383,7 +383,7 @@ const shots = (img: Step["img"]) =>
 const steps = (list: Step[]) =>
   `<div class="steps">${list
     .map(
-      (st, i) => `<div class="card rise step">
+      (st, i) => `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
   <span class="step-n">${i + 1}</span>
   <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol>${shots(st.img)}</div>
 </div>`,
@@ -471,6 +471,15 @@ const PRO_STEPS: Step[] = [
       "In your Shopify admin, go to <b>Products → Gift cards → Add a gift card product</b>, with a few amounts such as $25, $50 and $100.",
       "In <b>Settings → General → Order processing</b>, choose <b>Automatically fulfill only the gift cards</b>. Shopify only sends a gift card once its order is fulfilled.",
       "In Giftpin, open <b>Settings</b>. Under <b>Group gifts and funds</b>, pick that gift card and press <b>Save</b>. Guests can now chip in toward a big item or a cash fund.",
+    ],
+  },
+  {
+    id: "gift-cards",
+    title: "Sell gift cards on giftpin.app",
+    items: [
+      "Set up the gift card in the step above first. The listing uses the same gift card, in amounts up to $500.",
+      "In Giftpin, open <b>Settings</b>. Under <b>Sell gift cards on giftpin.app</b>, tick <b>List my gift cards on giftpin.app</b>, add <b>One line about your store</b>, and press <b>Save</b>.",
+      "Your store now appears at <a href=\"/gift-cards\">giftpin.app/gift-cards</a>. Shoppers buy your gift card at your own checkout, so you keep the money and any unspent balance. Gift cards sold this way show up in Giftpin's <b>Analytics</b>.",
     ],
   },
   {

@@ -141,3 +141,27 @@ email says a Shop Pay guest has the card instead.
 Gift cards are only emailed once the line is fulfilled. A store set to "Don't
 fulfill any line items automatically" never sends them; use Settings →
 General → Order processing → "Automatically fulfill only the gift cards".
+
+## Part 3: gift cards on giftpin.app (built 24 Oct 2026, not yet checked live)
+
+Opted-in Pro stores are listed at giftpin.app/gift-cards. Each links to the
+store's own `/apps/registry/gift-card?src=directory`, a plain form that posts
+the merchant's gift card variant to `/cart/add` with a signed `_gpc` line
+property (not `_rg`: these lines belong to no registry). orders/create
+records a `GiftCardSale`; refunds and cancellations void it. The merchant
+keeps the money; Giftpin never sells or issues a card. Same gift card product
+as group gifts, amounts up to $500 (custom amounts need Plus, see above).
+
+Check on the dev store after deploying (Pro, Settings → Sell gift cards on
+giftpin.app ticked, gift cards set to auto-fulfil):
+
+| # | Path | Pass when | Result |
+|---|---|---|---|
+| G1 | giftpin.app/gift-cards | The store is listed with its amounts; unticking the setting removes it within ~5 minutes (page cache) | — |
+| G2 | Store page → $50 → Add to cart → Check out (test card) | Cart lands on /cart with the gift card; admin order line shows `_gpc`; a `GiftCardSale` row exists with `source = directory`; Analytics shows 1 gift card | — |
+| G3 | As G2, "Email it straight to someone" ticked | Card emailed to the recipient, not the buyer | — |
+| G4 | As G2 but pay with Shop Pay | `_gpc` survives (`GiftCardSale` row exists). Recipient delivery expected to fail as in C2; the page already warns | — |
+| G5 | Refund the G2 line | `GiftCardSale.voidedAt` set; Analytics drops back | — |
+| G6 | Store page with JavaScript off | Form still adds the card; no recipient fields posted | — |
+
+Not built yet (phase 2): a usage fee on these sales via Shopify usage billing.

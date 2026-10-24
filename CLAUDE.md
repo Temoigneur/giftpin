@@ -93,6 +93,12 @@ reading Shopify's docs.
   checkout and Shop Pay on a gift card line (`SPIKE-C.md` Part 1). The app's
   own fund totals (rows C1–C7) are still to be checked on the dev store once
   deployed.
+- **Gift cards on giftpin.app (Pro, built 24 Oct 2026):** the `_gpc` tag,
+  the store page `/apps/registry/gift-card` and the `GiftCardSale` table
+  haven't been checked on a live store yet; rows G1–G6 are in `SPIKE-C.md`
+  Part 3. Never let copy suggest a "Giftpin card" spendable at more than one
+  store: that would mean holding customer funds (money transmitter and gift
+  card laws), which is why each card is the merchant's own.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

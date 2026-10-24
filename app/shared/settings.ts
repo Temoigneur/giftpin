@@ -9,6 +9,7 @@
  */
 
 import type { ContributionProduct } from "./contributions";
+import { GIFT_CARD_LISTING_DEFAULTS, type GiftCardListing } from "./gift-card-listing";
 
 export interface ShopSettings {
   /** Event types the merchant has switched on. */
@@ -37,6 +38,11 @@ export interface ShopSettings {
    * (Pro). Null until the merchant picks one. See app/shared/contributions.ts.
    */
   contributionProduct: ContributionProduct | null;
+  /**
+   * List this store's gift cards on giftpin.app (Pro). Sells the same gift
+   * card product as contributionProduct. See app/shared/gift-card-listing.ts.
+   */
+  giftCardListing: GiftCardListing;
 
   // Pro automations (app/models/automations.server.ts). Ignored on Free.
   /**
@@ -112,6 +118,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   findARegistryEnabled: false,
   hideBuyerUntilEvent: false,
   contributionProduct: null,
+  giftCardListing: GIFT_CARD_LISTING_DEFAULTS,
   completionDiscountEnabled: false,
   completionDiscountPercent: 15,
   completionDiscountValidDays: 60,
