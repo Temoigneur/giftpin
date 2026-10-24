@@ -221,6 +221,7 @@ details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offs
 @media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}
+.owner-link.big{font-size:clamp(24px,6vw,44px);line-height:1.25}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
 .store-link{font-size:13px}
 .match-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink);padding:16px 18px}

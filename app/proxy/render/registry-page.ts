@@ -162,9 +162,9 @@ ${renderDuplicateNotice(data)}
 
 ${data.offerReminder ? renderReminderSignup() : ""}
 
-${data.giftCardUrl ? `<p class="owner-link"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? Buy a ${escapeHtml(data.shopName)} gift card</a></p>` : ""}
+${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? Buy a ${escapeHtml(data.shopName)} gift card</a></p>` : ""}
 
-<p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your registry? Sign in or get your private edit link</a></p>
+<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your registry? Sign in or get your private edit link</a></p>
 
 <!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
