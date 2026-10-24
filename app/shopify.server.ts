@@ -7,7 +7,13 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import { PRO_PLAN, PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "./shared/plans";
+import {
+  GIFT_CARD_FEE_CAP,
+  GIFT_CARD_FEE_TERMS,
+  PRO_PLAN,
+  PRO_PLAN_PRICE,
+  PRO_TRIAL_DAYS,
+} from "./shared/plans";
 
 // Confirmed 22 Sep 2026 (Ben): Free (unlimited) + Pro at $9.99/mo, funded on
 // the Free side by the disclosed affiliate commission. See
@@ -39,6 +45,15 @@ const shopify = shopifyApp({
           amount: PRO_PLAN_PRICE,
           currencyCode: "USD",
           interval: BillingInterval.Every30Days,
+        },
+        // Gift card listing fee (app/models/gift-card-fee.server.ts). A
+        // subscription made before this line existed has no usage line, and
+        // its sales are simply never charged.
+        {
+          amount: GIFT_CARD_FEE_CAP,
+          currencyCode: "USD",
+          interval: BillingInterval.Usage,
+          terms: GIFT_CARD_FEE_TERMS,
         },
       ],
     },

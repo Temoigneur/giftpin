@@ -326,6 +326,14 @@ function buildRegistryHtml(
     // "Powered by Giftpin" removal and the rest of Pro branding arrive via
     // brand.branding (see brandingFor), on this page and every other one.
     offerReminder: offersGuestReminder(shop, registry.eventDate),
+    giftCardUrl: giftCardListingLive({
+      pro: isPro(shop),
+      uninstalled: shop.uninstalledAt !== null,
+      listing: settings.giftCardListing,
+      product: settings.contributionProduct,
+    })
+      ? `${ctx.pathPrefix.replace(/\/+$/, "")}/gift-card?src=registry`
+      : null,
     shipToRegistrant: registry.shipToRegistrant,
     contributions: chipIn
       ? {

@@ -64,6 +64,11 @@ export interface RegistryPageData {
     /** The couple opted in to receiving the cards directly. */
     toRegistrant: boolean;
   } | null;
+  /**
+   * The store's gift card page (/apps/registry/gift-card?src=registry), shown
+   * as "Rather give a gift card?" while its giftpin.app listing is live.
+   */
+  giftCardUrl?: string | null;
   /** Pro: show the "email me before the event" sign-up. See automations.server.ts. */
   offerReminder?: boolean;
   /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
@@ -156,6 +161,8 @@ ${renderShipChoice(data)}
 ${renderDuplicateNotice(data)}
 
 ${data.offerReminder ? renderReminderSignup() : ""}
+
+${data.giftCardUrl ? `<p class="owner-link"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? Buy a ${escapeHtml(data.shopName)} gift card</a></p>` : ""}
 
 <p class="owner-link" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your registry? Sign in or get your private edit link</a></p>
 

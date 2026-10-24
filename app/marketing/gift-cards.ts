@@ -1,6 +1,7 @@
 import { esc, icon, sitePage } from "./layout";
 import { PRO_NAME } from "./plans-copy";
-import { formatGiftCardAmount, MAX_LISTED_GIFT_CARD } from "../shared/gift-card-listing";
+import { GIFT_CARD_FEE_PERCENT } from "../shared/plans";
+import { countryName, formatGiftCardAmount, MAX_LISTED_GIFT_CARD } from "../shared/gift-card-listing";
 
 /**
  * giftpin.app/gift-cards: the gift card directory. Two readers: a shopper
@@ -18,6 +19,7 @@ import { formatGiftCardAmount, MAX_LISTED_GIFT_CARD } from "../shared/gift-card-
 export interface DirectoryStore {
   domain: string;
   name: string;
+  country?: string | null;
   blurb: string;
   currency: string;
   amounts: { amount: number }[];
@@ -34,7 +36,7 @@ export const GIFT_CARD_FAQ = [
   },
   {
     q: "How do I list my store here?",
-    a: `Install Giftpin on your Shopify store, add a gift card product, and in Giftpin Settings tick "List my gift cards on giftpin.app". It's part of ${PRO_NAME}. You keep every sale and any unspent balance.`,
+    a: `Install Giftpin on your Shopify store, add a gift card product, and in Giftpin Settings tick "List my gift cards on giftpin.app". It's part of ${PRO_NAME}, with a ${GIFT_CARD_FEE_PERCENT}% fee on gift cards sold this way (none during your free trial). The money and any unspent balance stay with you.`,
   },
 ];
 
@@ -50,9 +52,30 @@ function storeCard(store: DirectoryStore): string {
 </div>`;
 }
 
+/**
+ * Stores under their country's name, countries A to Z, stores A to Z within
+ * each. A store whose country isn't known yet (it fills in the next time the
+ * merchant opens Giftpin) goes under "Other countries", last.
+ */
+export function groupByCountry(stores: DirectoryStore[]): { heading: string; stores: DirectoryStore[] }[] {
+  const groups = new Map<string, DirectoryStore[]>();
+  for (const store of stores) {
+    const heading = countryName(store.country) ?? "Other countries";
+    groups.set(heading, [...(groups.get(heading) ?? []), store]);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => (a === "Other countries" ? 1 : b === "Other countries" ? -1 : a.localeCompare(b)))
+    .map(([heading, list]) => ({ heading, stores: [...list].sort((x, y) => x.name.localeCompare(y.name)) }));
+}
+
 export function giftCardsHtml(stores: DirectoryStore[]): string {
   const list = stores.length
-    ? `<div class="grid-3">${stores.map(storeCard).join("")}</div>`
+    ? groupByCountry(stores)
+        .map(
+          (group) =>
+            `<h2 class="gc-country rise">${esc(group.heading)}</h2><div class="grid-3">${group.stores.map(storeCard).join("")}</div>`,
+        )
+        .join("")
     : `<div class="card gc-empty rise"><h3>No stores listed yet</h3><p>Check back soon. Run a Shopify store? You could be the first.</p></div>`;
 
   const body = `
@@ -87,6 +110,8 @@ export function giftCardsHtml(stores: DirectoryStore[]): string {
 .gc-store .btn{margin-top:auto; align-self:flex-start}
 .gc-amounts{color:var(--ink-soft); font-weight:600}
 .gc-empty{max-width:640px; margin:0 auto; text-align:center}
+.gc-country{font-size:22px; margin:36px 0 16px}
+.gc-country:first-child{margin-top:0}
 .qa{max-width:760px; margin:0 auto; display:grid; gap:12px}
 .qa details{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 20px}
 .qa summary{font-weight:700; cursor:pointer}

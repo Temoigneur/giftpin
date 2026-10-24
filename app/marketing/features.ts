@@ -1,3 +1,4 @@
+import { GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 import { esc, finalCta, icon, sitePage } from "./layout";
 import { PRICE, PRO_FEATURES, PRO_NAME, TRIAL, type Feature } from "./plans-copy";
 
@@ -112,7 +113,7 @@ const MERCHANT: Feature[] = [
   { icon: "globe", title: "On your own domain", detail: "Registry pages live on your store's domain and link guests back to your products." },
   { icon: "heart", title: "You choose the occasions", detail: "Turn each occasion on or off for your store in Giftpin's settings." },
   { icon: "chart", title: "Overview dashboard", detail: "Registries, items and gifts at a glance, right in your Shopify admin." },
-  { icon: "percent", title: "No fee on your sales", detail: "Free is free. Pro is a flat monthly price. Neither takes a cut of your own product sales." },
+  { icon: "percent", title: "No fee on your sales", detail: `Free is free. Pro is a flat monthly price. Neither takes a cut of your own product sales. The only fee is ${GIFT_CARD_FEE_PERCENT}% on gift cards sold through the optional giftpin.app listing.` },
   { icon: "lock", title: "Read-only on your catalog", detail: "Giftpin never edits your products, prices or inventory." },
   { icon: "bolt", title: "Unlimited everything", detail: "Registries, items and guests, on both plans." },
 ];

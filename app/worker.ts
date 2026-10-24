@@ -18,6 +18,7 @@ import "./lib/store-match.server";
 import "./lib/email.server";
 import "./models/retention.server";
 import "./models/automations.server";
+import "./models/gift-card-fee.server";
 
 async function main() {
   const worker = startWorker();

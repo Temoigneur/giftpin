@@ -22,7 +22,8 @@ export type JobName =
   | "send-email"
   | "reap-claims"
   | "purge-expired-data"
-  | "registry-automations";
+  | "registry-automations"
+  | "charge-gift-card-fees";
 
 export interface JobPayloads {
   "attribute-order": { shop: string; orderPayload: unknown };
@@ -34,6 +35,7 @@ export interface JobPayloads {
   "reap-claims": Record<string, never>;
   "purge-expired-data": Record<string, never>;
   "registry-automations": { shop?: string };
+  "charge-gift-card-fees": { shop?: string };
 }
 
 type Handler<N extends JobName> = (payload: JobPayloads[N]) => Promise<void>;
@@ -129,6 +131,7 @@ function ensureHandlersLoaded(): Promise<void> {
       import("../lib/email.server"),
       import("../models/retention.server"),
       import("../models/automations.server"),
+      import("../models/gift-card-fee.server"),
     ]).then(() => undefined);
   }
   return handlersLoaded;
@@ -201,5 +204,13 @@ export async function scheduleRecurring(): Promise<void> {
     "registry-automations",
     {},
     { repeat: { pattern: "0 15 * * *" }, jobId: "cron:registry-automations", ...DEFAULT_JOB_OPTIONS },
+  );
+
+  // Giftpin's fee on gift cards sold through giftpin.app — see
+  // app/models/gift-card-fee.server.ts. Each sale waits out a refund hold first.
+  await queue.add(
+    "charge-gift-card-fees",
+    {},
+    { repeat: { pattern: "30 16 * * *" }, jobId: "cron:charge-gift-card-fees", ...DEFAULT_JOB_OPTIONS },
   );
 }

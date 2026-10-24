@@ -20,6 +20,7 @@ import {
   contrastRatio,
 } from "../shared/branding";
 import { listGiftCardProducts } from "../lib/contribution-product.server";
+import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 import { GIFT_CARD_BLURB_MAX, MAX_LISTED_GIFT_CARD, cleanGiftCardBlurb, listedGiftCardAmounts } from "../shared/gift-card-listing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -81,7 +82,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   // for this shop only. Each automation still fires at most once per
   // registry, so pressing it twice sends nothing new.
   if (form.get("intent") === "run-automations") {
-    if (isPro(shop)) await enqueue("registry-automations", { shop: session.shop });
+    if (isPro(shop)) {
+      await enqueue("registry-automations", { shop: session.shop });
+      // Gift card fees too: on a dev store there's no refund hold, so this
+      // is how the fee flow gets tested (SPIKE-C.md Part 4).
+      await enqueue("charge-gift-card-fees", { shop: session.shop });
+    }
     return { ok: true, ran: isPro(shop), warnings: [] as string[] };
   }
 
@@ -428,9 +434,16 @@ export default function Settings() {
           )}
           <s-heading>Sell gift cards on giftpin.app</s-heading>
           <s-paragraph>
-            List your store at giftpin.app/gift-cards. Shoppers pick an amount and buy your gift card at
-            your own checkout, so the money and any unspent balance stay with you. Uses the gift card
-            above, in amounts up to {MAX_LISTED_GIFT_CARD}.
+            List your store at giftpin.app/gift-cards, and add a &ldquo;Buy a gift card&rdquo; link to your
+            registry pages. Shoppers pick an amount and buy your gift card at your own checkout, so the money
+            and any unspent balance stay with you. Uses the gift card above, in amounts up to{" "}
+            {MAX_LISTED_GIFT_CARD}.
+          </s-paragraph>
+          <s-paragraph>
+            <s-text color="subdued">
+              Giftpin charges {GIFT_CARD_FEE_PERCENT}% of each gift card sold this way, on your Shopify bill, after a{" "}
+              {GIFT_CARD_FEE_HOLD_DAYS}-day refund window. No fee during your free trial.
+            </s-text>
           </s-paragraph>
           <s-checkbox
             name="giftCardListingEnabled"
@@ -474,8 +487,8 @@ export default function Settings() {
           <s-section heading="Run the after-event emails and discounts now">
             <s-paragraph>
               <s-text color="subdued">
-                They run on their own once a day. This runs them now for your store, which is handy for
-                checking your settings. Nothing is sent twice.
+                They run on their own once a day, along with gift card fees. This runs them now for your store,
+                which is handy for checking your settings. Nothing is sent or charged twice.
               </s-text>
             </s-paragraph>
             <s-stack direction="inline" gap="base">

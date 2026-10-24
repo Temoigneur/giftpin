@@ -109,11 +109,13 @@ POS mode or cash funds until they ship.
   pages (with the "Powered by Giftpin" credit removed), a completion
   discount for the registrant, automatic registry emails, CSV export, a
   listing for your gift cards at giftpin.app/gift-cards (sold at your own
-  checkout), and priority email support (replies within one business day). Upgrade or
+  checkout; Giftpin charges 2% of each card sold through it as a Shopify
+  usage charge, capped at $100 per 30 days, none during the free trial), and
+  priority email support (replies within one business day). Upgrade or
   cancel any time from the app's Plan page.
 
 Neither tier changes what a guest pays or adds a fee on the merchant's own
-product sales — the commission (Free tier) and the subscription (Pro tier)
+product sales (the optional gift card listing's 2% is the one usage charge) — the commission (Free tier) and the subscription (Pro tier)
 are the only two revenue paths, and they don't stack on the same purchase.
 
 ## Screenshots needed (not yet captured)

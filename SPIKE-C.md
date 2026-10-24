@@ -163,5 +163,27 @@ giftpin.app ticked, gift cards set to auto-fulfil):
 | G4 | As G2 but pay with Shop Pay | `_gpc` survives (`GiftCardSale` row exists). Recipient delivery expected to fail as in C2; the page already warns | — |
 | G5 | Refund the G2 line | `GiftCardSale.voidedAt` set; Analytics drops back | — |
 | G6 | Store page with JavaScript off | Form still adds the card; no recipient fields posted | — |
+| G7 | Open any registry on the store | "Rather give a gift card? Buy a … gift card" link shows and opens the gift card page; a sale from it records `source = registry` | — |
+| G8 | giftpin.app/gift-cards after opening Giftpin's admin once | The store sits under its country heading (Shop.country filled from the billing address) | — |
 
-Not built yet (phase 2): a usage fee on these sales via Shopify usage billing.
+## Part 4: the 2% gift card fee (built 24 Oct 2026, not yet checked live)
+
+A daily job (`charge-gift-card-fees`, 16:30 UTC, also run by Settings → "Run
+now") bills 2% of each `GiftCardSale` as a Shopify usage charge on the Pro
+subscription's usage line, converted to USD at the ECB rate. Sales wait 14
+days first (none on a partner development store, `Shop.devStore`), and no fee
+is charged on sales during the subscription's free trial, which covers a
+founding store's free year. Dev stores are always billed in test mode.
+
+| # | Check | Pass when | Result |
+|---|---|---|---|
+| F1 | On a dev store already on Pro (subscribed before this change), sell a card, press Run now | `GiftCardSale.feeStatus = waived_no_usage_line` (old subscription has no usage line; Shopify doesn't add one without re-approval) | — |
+| F2 | Cancel Pro and upgrade again on the dev store | Shopify's approval screen shows "$9.99 every 30 days" **and** the usage terms with a $100 cap | — |
+| F3 | Sell a card during that new subscription's trial, Run now | `feeStatus = waived_trial` | — |
+| F4 | Same, but the trial already over (or a subscription with no trial) | `feeStatus = charged`, `usageRecordId` set; Partner Dashboard / store's Billing shows the usage charge | — |
+| F5 | Refund a card before its fee runs, Run now | `feeStatus = waived_voided`, nothing billed | — |
+| F6 | Is a usage record accepted during a trial at all? | Answered by F3/F4 on Shopify's side; until then we never try | — |
+
+Refunds after a fee was charged: Shopify has no app-side API to reverse a
+usage charge (`appCreditCreate` is Partner API only). Issue a credit from
+Partner Dashboard → the store → App credits if a merchant asks.

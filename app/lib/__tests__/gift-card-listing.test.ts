@@ -17,7 +17,8 @@ import {
 } from "../../shared/gift-card-listing";
 import { mergeSettings } from "../../shared/settings";
 import { renderGiftCardPage } from "../../proxy/render/gift-card-page";
-import { giftCardsHtml } from "../../marketing/gift-cards";
+import { giftCardsHtml, groupByCountry } from "../../marketing/gift-cards";
+import { renderRegistryPage } from "../../proxy/render/registry-page";
 
 /** Gift cards on giftpin.app: the signed `_gpc` tag, the listing rules and the two pages. */
 
@@ -116,6 +117,7 @@ describe("listing rules", () => {
     expect(cleanGiftCardBlurb("  Hand-made\n  pottery  ")).toBe("Hand-made pottery");
     expect(cleanGiftCardBlurb("x".repeat(400))).toHaveLength(160);
     expect(giftCardSource("directory")).toBe("directory");
+    expect(giftCardSource("registry")).toBe("registry");
     expect(giftCardSource("anything")).toBe("store");
   });
 });
@@ -166,5 +168,61 @@ describe("giftpin.app/gift-cards", () => {
     expect(html).not.toContain("giftpin card");
     expect(html).not.toContain("any store");
     expect(html).toContain("only be spent at that store");
+  });
+});
+
+describe("directory by country", () => {
+  const store = (name: string, country: string | null) => ({
+    domain: `${name.toLowerCase()}.myshopify.com`,
+    name,
+    country,
+    blurb: "",
+    currency: "USD",
+    amounts: [{ amount: 50 }],
+  });
+
+  it("groups stores under country names, A to Z, unknown last", () => {
+    const groups = groupByCountry([store("Zed", "US"), store("Alder", "CA"), store("Birch", null), store("Ash", "US")]);
+    expect(groups.map((g) => g.heading)).toEqual(["Canada", "United States", "Other countries"]);
+    expect(groups[1].stores.map((s) => s.name)).toEqual(["Ash", "Zed"]);
+  });
+
+  it("puts the country headings on the page", () => {
+    const html = giftCardsHtml([store("Alder", "CA")]);
+    expect(html).toContain('<h2 class="gc-country rise">Canada</h2>');
+  });
+});
+
+describe("registry page gift card link", () => {
+  const base = {
+    title: "Maya & Jared",
+    message: null,
+    eventType: "wedding",
+    eventLabel: "Wedding",
+    eventDate: null,
+    coverImageUrl: null,
+    registrantNames: "Maya & Jared",
+    registryId: "reg_1",
+    items: [],
+    progress: { totalItems: 0, fulfilledItems: 0 },
+    shopName: "Maple & Co",
+    accentColor: "#123456",
+    indexable: false,
+    currency: "CAD",
+    shareUrl: "https://maple.example/apps/registry/r/abc",
+    actionUrl: "/apps/registry",
+    version: 1,
+    versionUrl: "/apps/registry/r/abc/version",
+  } as never;
+
+  it("links to the store's gift card page only when given the URL", () => {
+    const withLink = renderRegistryPage({ ...(base as object), giftCardUrl: "/apps/registry/gift-card?src=registry" } as never);
+    expect(withLink).toContain('href="/apps/registry/gift-card?src=registry"');
+    expect(withLink).toContain("Buy a Maple &amp; Co gift card");
+    expect(renderRegistryPage(base)).not.toContain("gift-card?src=registry");
+  });
+
+  it("carries the registry source on the signed tag", () => {
+    expect(verifyGiftCardAttribution(signGiftCardAttribution(SHOP, "registry"))).toEqual({ s: SHOP, src: "registry" });
   });
 });
