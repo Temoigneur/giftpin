@@ -60,4 +60,4 @@ export const GIFT_CARD_FEE_CAP = 100;
  * the app; a refund after this needs a credit from the Partner Dashboard.
  */
 export const GIFT_CARD_FEE_HOLD_DAYS = 14;
-export const GIFT_CARD_FEE_TERMS = `${GIFT_CARD_FEE_PERCENT}% of the value of gift cards sold through your giftpin.app gift card listing. No fee during your free trial.`;
+export const GIFT_CARD_FEE_TERMS = `Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of the value of each gift card sold through your giftpin.app gift card listing, up to $${GIFT_CARD_FEE_CAP} USD per 30 days. This spending limit is used for nothing else. No fee during your free trial.`;
