@@ -93,11 +93,15 @@ reading Shopify's docs.
   checkout and Shop Pay on a gift card line (`SPIKE-C.md` Part 1). The app's
   own fund totals (rows C1–C7) are still to be checked on the dev store once
   deployed.
-- **Gift cards on giftpin.app (Pro, built 24 Oct 2026):** the `_gpc` tag,
-  the store page `/apps/registry/gift-card` and the `GiftCardSale` table
-  haven't been checked on a live store yet; rows G1–G8 are in `SPIKE-C.md`
-  Part 3. The 2% usage fee (`gift-card-fee.server.ts`) is unverified too:
-  rows F1–F6 in Part 4. Never let copy suggest a "Giftpin card" spendable at more than one
+- **Gift cards on giftpin.app (Pro, built 24 Oct 2026):** checked live the
+  same day: rows G1-G8 and F2-F5 in `SPIKE-C.md` Parts 3-4 pass, including the
+  `_gpc` tag through Shop Pay, refund voiding, and a real 2% usage charge
+  (order #1038). Still open: F1 (pre-change subscription gets
+  `waived_no_usage_line`) and whether Shopify accepts usage records during a
+  trial. **Shopify's approval page does not show our usage `terms`** (its docs
+  say it does), so the Plan page banner is what explains the fee. Gift card
+  value ignores market price lists (a 5% Canada list charged $47.50 for a $50
+  card). Never let copy suggest a "Giftpin card" spendable at more than one
   store: that would mean holding customer funds (money transmitter and gift
   card laws), which is why each card is the merchant's own.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
