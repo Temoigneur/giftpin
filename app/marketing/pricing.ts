@@ -47,7 +47,7 @@ export function pricingHtml(): string {
   <div class="wrap">
     <div class="sec-head center rise">
       <h2>Compare plans</h2>
-      <p class="lede">Both plans include unlimited registries, items and guests, and neither takes a cut of your sales.</p>
+      <p class="lede">Both plans include unlimited registries, items and guests, and neither takes a cut of your product sales.</p>
     </div>
     <div class="table-wrap rise">
       <table class="compare">

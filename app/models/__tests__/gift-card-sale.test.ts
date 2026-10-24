@@ -86,13 +86,13 @@ describe("listedGiftCardStores", () => {
   it("lists only shops whose listing is live", async () => {
     const product = { productGid: "p", title: "Gift card", variants: [{ id: "1", amount: 50 }] };
     vi.mocked(db.shop.findMany).mockResolvedValue([
-      { domain: "b.myshopify.com", name: "Birch", currency: "CAD", plan: "pro", uninstalledAt: null, settings: { contributionProduct: product, giftCardListing: { enabled: true, blurb: "Wood" } } },
+      { domain: "b.myshopify.com", name: "Birch", currency: "CAD", country: "CA", plan: "pro", uninstalledAt: null, settings: { contributionProduct: product, giftCardListing: { enabled: true, blurb: "Wood" } } },
       { domain: "a.myshopify.com", name: "Alder", currency: "USD", plan: "pro", uninstalledAt: null, settings: { contributionProduct: product, giftCardListing: { enabled: false, blurb: "" } } },
       { domain: "c.myshopify.com", name: null, currency: "USD", plan: "pro", uninstalledAt: null, settings: { giftCardListing: { enabled: true, blurb: "" } } },
     ] as never);
     const stores = await listedGiftCardStores();
     expect(stores).toEqual([
-      { domain: "b.myshopify.com", name: "Birch", blurb: "Wood", currency: "CAD", amounts: [{ id: "1", amount: 50 }] },
+      { domain: "b.myshopify.com", name: "Birch", country: "CA", blurb: "Wood", currency: "CAD", amounts: [{ id: "1", amount: 50 }] },
     ]);
   });
 });

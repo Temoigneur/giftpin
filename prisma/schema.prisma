@@ -51,6 +51,13 @@ model Shop {
   domain      String   @unique // foo.myshopify.com
   name        String?
   currency    String   @default("USD")
+  // ISO 3166-1 alpha-2 from Shopify's shop billing address, refreshed on
+  // every admin load. Groups the giftpin.app gift card directory by country.
+  country     String?
+  // Shopify partner development store (shop.plan.partnerDevelopment). Such a
+  // store can only accept test charges, so billing always uses isTest there,
+  // and gift card fees skip their refund hold so they can be tested at once.
+  devStore    Boolean  @default(false)
   moneyFormat String?
   installedAt DateTime @default(now())
   uninstalledAt DateTime?
@@ -397,14 +404,26 @@ model GiftCardSale {
   amount   Decimal @db.Decimal(12, 2)
   currency String
 
-  // Where the guest came from: "directory" (giftpin.app) or "store".
+  // Where the guest came from: "directory" (giftpin.app), "registry" (a
+  // registry page's gift card link) or "store".
   source String @default("store")
+
+  // Giftpin's usage fee on this sale (app/models/gift-card-fee.server.ts).
+  // Null until the daily fee job has looked at it, after the refund hold.
+  // charged | waived_trial | waived_no_usage_line | waived_not_pro | waived_voided | failed
+  feeStatus     String?
+  feeAmount     Decimal?  @db.Decimal(12, 2) // in feeCurrency (the subscription's, USD)
+  feeCurrency   String?
+  feeRate       Decimal?  @db.Decimal(14, 6) // shop currency → feeCurrency, at charge time
+  usageRecordId String?   // gid://shopify/AppUsageRecord/...
+  feeCheckedAt  DateTime?
 
   voidedAt  DateTime? // refund or cancellation
   createdAt DateTime  @default(now())
 
   @@unique([orderId, lineItemId])
   @@index([shopId, createdAt])
+  @@index([feeStatus, createdAt])
 }
 
 // ---------------------------------------------------------------------------

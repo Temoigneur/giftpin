@@ -1,3 +1,4 @@
+import { GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 import { PRICE, PRO_NAME, TRIAL_DAYS } from "./plans-copy";
 
 /**
@@ -27,11 +28,11 @@ export const BILLING_FAQ: QA[] = [
   },
   {
     q: "Does Giftpin take a cut of my sales?",
-    a: "<p>No. Neither plan adds a fee to your own product sales.</p>",
+    a: `<p>Not on your products or registry gifts. Neither plan adds a fee to them. The one exception is optional: if you list your gift cards on giftpin.app with Pro, Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each gift card sold through the listing, on your Shopify bill, and nothing during your free trial.</p>`,
   },
   {
     q: "What is the giftpin.app gift card directory?",
-    a: "<p>A page at <a href=\"/gift-cards\">giftpin.app/gift-cards</a> where shoppers can buy gift cards from stores that use Giftpin. It's part of Pro. Shoppers pay at your own checkout for your own Shopify gift card, so you keep the money and any unspent balance. Giftpin never sells or holds gift card money.</p>",
+    a: `<p>A page at <a href="/gift-cards">giftpin.app/gift-cards</a> where shoppers can buy gift cards from stores that use Giftpin. It's part of Pro. Shoppers pay at your own checkout for your own Shopify gift card, so you keep the money and any unspent balance. Giftpin never sells or holds gift card money. Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each gift card sold this way, with no fee during your free trial.</p>`,
   },
   {
     q: "Is there a limit on registries or guests?",

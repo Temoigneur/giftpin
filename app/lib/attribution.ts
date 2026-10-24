@@ -1,4 +1,5 @@
 import { signToken, verifyToken } from "./crypto.server";
+import { giftCardSource, type GiftCardSource } from "../shared/gift-card-listing";
 
 /**
  * Cart attribution.
@@ -226,25 +227,24 @@ const GIFT_CARD_PURPOSE = "giftcard";
 export interface GiftCardAttribution {
   /** Shop domain the token was minted for. */
   s: string;
-  /** "directory" (giftpin.app) or "store". */
-  src: "directory" | "store";
+  src: GiftCardSource;
 }
 
-export function signGiftCardAttribution(shopDomain: string, source: "directory" | "store"): string {
+export function signGiftCardAttribution(shopDomain: string, source: GiftCardSource): string {
   return signToken({ p: GIFT_CARD_PURPOSE, s: shopDomain, src: source });
 }
 
 export function verifyGiftCardAttribution(token: string | null | undefined): GiftCardAttribution | null {
   const payload = verifyToken<{ p: string; s?: unknown; src?: unknown }>(token, GIFT_CARD_PURPOSE);
   if (!payload || typeof payload.s !== "string" || !payload.s) return null;
-  return { s: payload.s, src: payload.src === "directory" ? "directory" : "store" };
+  return { s: payload.s, src: giftCardSource(payload.src) };
 }
 
 export interface GiftCardLine {
   lineItemId: string;
   quantity: number;
   amount: string;
-  source: "directory" | "store";
+  source: GiftCardSource;
 }
 
 /**

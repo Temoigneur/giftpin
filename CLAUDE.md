@@ -95,8 +95,9 @@ reading Shopify's docs.
   deployed.
 - **Gift cards on giftpin.app (Pro, built 24 Oct 2026):** the `_gpc` tag,
   the store page `/apps/registry/gift-card` and the `GiftCardSale` table
-  haven't been checked on a live store yet; rows G1–G6 are in `SPIKE-C.md`
-  Part 3. Never let copy suggest a "Giftpin card" spendable at more than one
+  haven't been checked on a live store yet; rows G1–G8 are in `SPIKE-C.md`
+  Part 3. The 2% usage fee (`gift-card-fee.server.ts`) is unverified too:
+  rows F1–F6 in Part 4. Never let copy suggest a "Giftpin card" spendable at more than one
   store: that would mean holding customer funds (money transmitter and gift
   card laws), which is why each card is the merchant's own.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by

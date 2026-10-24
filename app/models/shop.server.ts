@@ -20,7 +20,7 @@ export function settingsFor(shop: Pick<Shop, "settings">): ShopSettings {
 /** Idempotent: called on install and on every admin load. */
 export async function upsertShop(
   domain: string,
-  data?: Partial<Pick<Shop, "name" | "currency" | "moneyFormat">>,
+  data?: Partial<Pick<Shop, "name" | "currency" | "moneyFormat" | "country" | "devStore">>,
 ) {
   const clean = Object.fromEntries(
     Object.entries(data ?? {}).filter(([, value]) => value !== undefined && value !== null),

@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
 import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
-import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, PRO_TRIAL_DAYS } from "../shared/plans";
+import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
 
 /**
@@ -24,11 +24,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Display-only freshness check against Shopify's own record, in case a
   // webhook delivery was missed. Never trusted for a write — see above.
+  // A partner development store can only take test charges (shop.devStore),
+  // whatever BILLING_TEST_MODE says for real merchants.
+  const isTest = BILLING_IS_TEST || shop.devStore;
   let liveSubscriptionName: string | null = null;
   try {
     const { appSubscriptions } = await billing.check({
       plans: [PRO_PLAN],
-      isTest: BILLING_IS_TEST,
+      isTest,
     });
     liveSubscriptionName = appSubscriptions[0]?.name ?? null;
   } catch (err) {
@@ -39,7 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopDomain: session.shop,
     plan: shop.plan,
     price: PRO_PLAN_PRICE,
-    isTest: BILLING_IS_TEST,
+    isTest,
     liveSubscriptionName,
     founding: shop.plan !== "pro" && (await foundingOfferEligible(shop)),
   };
@@ -57,7 +60,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // rather than trusted from the form.
     const shop = await requireShop(session.shop);
     const trialDays = (await foundingOfferEligible(shop)) ? FOUNDING_OFFER_TRIAL_DAYS : PRO_TRIAL_DAYS;
-    return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST, trialDays });
+    return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST || shop.devStore, trialDays });
   }
 
   if (intent === "cancel") {
@@ -65,7 +68,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (shop.shopifyChargeId) {
       await billing.cancel({
         subscriptionId: shop.shopifyChargeId,
-        isTest: BILLING_IS_TEST,
+        isTest: BILLING_IS_TEST || shop.devStore,
         prorate: true,
       });
     }
@@ -99,7 +102,7 @@ export default function Billing() {
               <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
               <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
               <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
-              <s-list-item>Your gift cards on giftpin.app: shoppers buy them at your own checkout, and you keep every sale</s-list-item>
+              <s-list-item>Your gift cards on giftpin.app and registry pages: shoppers buy them at your own checkout ({GIFT_CARD_FEE_PERCENT}% fee per card sold this way, none during your free trial)</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
@@ -134,7 +137,7 @@ export default function Billing() {
               <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
               <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
               <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
-              <s-list-item>Your gift cards on giftpin.app: shoppers buy them at your own checkout, and you keep every sale</s-list-item>
+              <s-list-item>Your gift cards on giftpin.app and registry pages: shoppers buy them at your own checkout ({GIFT_CARD_FEE_PERCENT}% fee per card sold this way, none during your free trial)</s-list-item>
               <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
             </s-unordered-list>
             <fetcher.Form method="post">
