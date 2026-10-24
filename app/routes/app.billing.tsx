@@ -59,7 +59,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // the same plan with a longer trial; eligibility is re-checked here
     // rather than trusted from the form.
     const shop = await requireShop(session.shop);
-    const trialDays = (await foundingOfferEligible(shop)) ? FOUNDING_OFFER_TRIAL_DAYS : PRO_TRIAL_DAYS;
+    // Dev stores bill in test mode only, so skip the trial there: it is the only
+    // way to see a real usage charge (SPIKE-C.md F4) without waiting 14 days.
+    const trialDays = shop.devStore
+      ? 0
+      : (await foundingOfferEligible(shop))
+        ? FOUNDING_OFFER_TRIAL_DAYS
+        : PRO_TRIAL_DAYS;
     return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST || shop.devStore, trialDays });
   }
 
