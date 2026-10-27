@@ -32,6 +32,9 @@ export default function Registries() {
 
   return (
     <s-page heading="Registries">
+      <s-button slot="secondary-actions" href="/app/import">
+        Import registries
+      </s-button>
       <s-section>
         {registries.length === 0 ? (
           <s-paragraph>No registries yet.</s-paragraph>

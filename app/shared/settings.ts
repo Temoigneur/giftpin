@@ -70,6 +70,19 @@ export interface ShopSettings {
   textColor: string;
   /** A BRAND_FONTS value. */
   fontFamily: string;
+  /**
+   * Store products that are sold out (Shopify's availableForSale is false).
+   * "show": guests see them marked sold out, with no Add to cart button.
+   * "hide": they're left off the guest page until they're back in stock.
+   * Either way the item stays on the registry; nothing is ever deleted, so a
+   * restock brings it straight back. See app/lib/stock.ts.
+   */
+  soldOutItems: "show" | "hide";
+  /**
+   * Registry perks (Pro): one perk per line, shown to registrants on the
+   * create and manage pages. See app/shared/perks.ts.
+   */
+  registryPerks: string;
 }
 
 export const EVENT_TYPES: { value: string; label: string }[] = [
@@ -129,6 +142,8 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   backgroundColor: "",
   textColor: "",
   fontFamily: "system",
+  soldOutItems: "show",
+  registryPerks: "",
 };
 
 export const COMPLETION_DISCOUNT_PERCENT_RANGE = { min: 5, max: 50 } as const;

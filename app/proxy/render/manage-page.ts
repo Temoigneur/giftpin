@@ -9,6 +9,8 @@ import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../sha
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
+import { renderPerks } from "./create-page";
+import { isSoldOutStoreItem } from "../../lib/stock";
 
 /**
  * The registrant's own view. Reached only with a valid magic-link token or a
@@ -87,6 +89,14 @@ export interface ManagePageData {
     /** Registry.contributionsToRegistrant. */
     toRegistrant: boolean;
   } | null;
+  /** The store hides sold-out products from guests (ShopSettings.soldOutItems). */
+  soldOutHidden?: boolean;
+  /** Registry perks (Pro). See app/shared/perks.ts. */
+  perks?: string[];
+  /** In-store barcode scanning on the registrant's phone (Pro). */
+  scanner?: boolean;
+  /** Barcode reader for phones without a built-in one; null = typing the number only. */
+  scannerScriptUrl?: string | null;
 }
 
 export function renderManagePage(data: ManagePageData): string {
@@ -96,6 +106,8 @@ ${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${ev
 <h1>${escapeHtml(data.title)}</h1>
 
 ${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
+
+${renderPerks(data.shopName, data.perks)}
 
 <div class="note">
   <p style="margin:0 0 8px"><strong>Your share link</strong></p>
@@ -130,6 +142,7 @@ ${renderIdeaGuide(data)}
   <p style="margin:0 0 10px"><strong>From ${escapeHtml(data.shopName)}</strong></p>
   <a class="btn sm block" href="${escapeAttr(data.storeSearchUrl)}">Browse the store</a>
   <p class="hint">Look for the &ldquo;Add to registry&rdquo; button on any product page. These are the items guests can buy in one tap.</p>
+  ${data.scanner ? renderScanner(data) : ""}
 </div>
 
 ${
@@ -397,6 +410,11 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
         ? fundLine(item, data)
         : [price, `${item.purchasedQty} of ${item.desiredQty} bought`, item.fund ? fundLine(item, data) : ""].filter(Boolean).join(" &middot; ")
     }</p>
+    ${
+      isSoldOutStoreItem(item) && !item.fulfilled
+        ? `<p class="item-meta"><strong>Sold out right now.</strong> ${data.soldOutHidden ? "Guests won't see it until it's back in stock." : "Guests can't add it to their cart until it's back in stock."}</p>`
+        : ""
+    }
     ${renderStoreMatch(item, data)}
     ${renderGroupGift(item, data)}
     <form class="row js-item" data-item="${escapeAttr(item.id)}">
@@ -419,6 +437,139 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
     </form>
   </div>
 </li>`;
+}
+
+/**
+ * In-store scanning (Pro). The registrant is in the shop with their own phone:
+ * they scan the barcode on a tag or box and the product goes on their list.
+ *
+ * Uses the phone's built-in barcode reader where there is one (Chrome on
+ * Android). iPhone Safari has none, so the ZXing reader is fetched from the
+ * app, only once someone taps Scan. Typing the number always works, camera or
+ * not. The server looks the code up in the store's own catalog (barcode or
+ * SKU), so the store needs barcodes filled in on its products.
+ */
+function renderScanner(data: ManagePageData): string {
+  return `<div class="scan js-scan" data-zxing="${escapeAttr(data.scannerScriptUrl ?? "")}">
+  <button class="btn sm block js-scan-open" type="button" style="margin-top:10px">Scan a barcode in the store</button>
+  <p class="hint">In the shop? Scan the barcode on a product's tag or box with your phone to add it.</p>
+  <div class="js-scan-panel" hidden>
+    <video class="js-scan-video" playsinline muted hidden style="width:100%;max-height:260px;border-radius:10px;background:#000;object-fit:cover"></video>
+    <p class="item-meta js-scan-msg" role="status"></p>
+    <form class="row js-scan-form" novalidate>
+      <label class="sr" for="scan-code">Barcode number</label>
+      <input id="scan-code" name="code" type="text" inputmode="numeric" autocomplete="off" maxlength="64" placeholder="Or type the barcode number" style="flex:1;min-height:44px">
+      <button class="btn sm ghost" type="submit">Look up</button>
+    </form>
+    <div class="js-scan-result"></div>
+    <button class="linkish js-scan-close" type="button">Done scanning</button>
+  </div>
+</div>
+<script>${scannerScript()}</script>`;
+}
+
+function scannerScript(): string {
+  return `
+(function(){
+  var cfg=JSON.parse(document.getElementById('registro-config')?document.getElementById('registro-config').textContent:'{}');
+  var root=document.querySelector('.js-scan');if(!root)return;
+  var panel=root.querySelector('.js-scan-panel'),video=root.querySelector('.js-scan-video'),msg=root.querySelector('.js-scan-msg'),out=root.querySelector('.js-scan-result'),form=root.querySelector('.js-scan-form');
+  var stream=null,reader=null,paused=false,running=false;
+  function say(t,bad){msg.textContent=t;msg.style.color=bad?'#8c1d13':'';}
+  function call(path,body){
+    // The config script sits below this one on the page, so read it on use.
+    if(!cfg.actionUrl)cfg=JSON.parse(document.getElementById('registro-config').textContent);
+    return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()});
+  }
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML;}
+  function stop(){
+    running=false;
+    if(reader){try{reader.reset();}catch(_){}reader=null;}
+    if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null;}
+    video.hidden=true;
+  }
+  function found(code){
+    if(paused)return;paused=true;
+    try{if(navigator.vibrate)navigator.vibrate(60);}catch(_){}
+    lookup(code);
+  }
+  function loadZxing(){
+    return new Promise(function(ok,fail){
+      if(window.ZXing)return ok();
+      var src=root.getAttribute('data-zxing');if(!src)return fail();
+      var s=document.createElement('script');s.src=src;s.onload=function(){ok()};s.onerror=fail;document.head.appendChild(s);
+    });
+  }
+  function start(){
+    if(running)return;paused=false;
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser can\\'t use the camera. Type the number under the barcode instead.');return;}
+    say('Starting the camera...');running=true;
+    var constraints={video:{facingMode:{ideal:'environment'}},audio:false};
+    if('BarcodeDetector' in window){
+      var want=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
+      Promise.resolve(window.BarcodeDetector.getSupportedFormats?window.BarcodeDetector.getSupportedFormats():want).then(function(have){
+        var formats=want.filter(function(f){return have.indexOf(f)>=0});
+        var detector=new window.BarcodeDetector(formats.length?{formats:formats}:undefined);
+        return navigator.mediaDevices.getUserMedia(constraints).then(function(s){
+          stream=s;video.srcObject=s;video.hidden=false;return video.play();
+        }).then(function(){
+          say('Point the camera at a barcode.');
+          (function tick(){
+            if(!running)return;
+            if(paused||video.readyState<2)return setTimeout(tick,300);
+            detector.detect(video).then(function(codes){if(codes&&codes[0]&&codes[0].rawValue)found(codes[0].rawValue);}).catch(function(){}).then(function(){setTimeout(tick,250)});
+          })();
+        });
+      }).catch(fail);
+      return;
+    }
+    loadZxing().then(function(){
+      reader=new window.ZXing.BrowserMultiFormatReader();
+      video.hidden=false;say('Point the camera at a barcode.');
+      return reader.decodeFromConstraints(constraints,video,function(result){if(result&&!paused)found(result.getText());});
+    }).catch(fail);
+  }
+  function fail(err){
+    stop();
+    var denied=err&&(err.name==='NotAllowedError'||err.name==='SecurityError');
+    say(denied?'Camera access is off for this page. Allow the camera in your browser settings, or type the number under the barcode.':'The camera didn\\'t start. Type the number under the barcode instead.',true);
+  }
+  function resume(){out.innerHTML='';paused=false;if(running)say('Point the camera at a barcode.');else start();}
+  function lookup(code){
+    code=String(code||'').trim();if(!code){paused=false;return;}
+    say('Looking up '+code+'...');out.innerHTML='';
+    call('/scan-lookup',{code:code}).then(function(res){
+      if(!res||!res.ok)throw new Error(res&&res.error||'Couldn\\'t look that up');
+      if(!res.matches.length){
+        say('No product in this store has the barcode '+code+'. Ask someone in the shop, or try another.',true);
+        out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">Scan again</button>';return;
+      }
+      say(res.matches.length>1?'Pick the one you want.':'Found it.');
+      out.innerHTML=res.matches.map(function(m){
+        return '<div class="md-card" style="margin-top:10px">'+(m.imageUrl?'<img class="item-img" src="'+esc(m.imageUrl)+'" alt="" width="72" height="72">':'')+
+          '<div class="md-info"><p class="item-title">'+esc(m.title)+'</p><p class="item-meta">'+esc(m.price||'')+(m.availableForSale?'':' &middot; sold out right now')+'</p>'+
+          '<div class="row"><button class="btn sm js-scan-add" type="button" data-variant="'+esc(m.variantId)+'">'+(m.onRegistry?'On your list: add one more':'Add to registry')+'</button><span class="js-status item-meta" role="status"></span></div></div></div>';
+      }).join('')+'<button class="btn sm ghost js-scan-next" type="button" style="margin-top:10px">Scan another</button>';
+      out.querySelectorAll('.js-scan-add').forEach(function(b){if(/add one more/.test(b.textContent))b.dataset.more='1';});
+    }).catch(function(e){say(e.message,true);out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">Try again</button>';});
+  }
+  root.addEventListener('click',function(e){
+    if(e.target.closest('.js-scan-open')){panel.hidden=false;e.target.closest('.js-scan-open').hidden=true;start();return;}
+    if(e.target.closest('.js-scan-close')){stop();panel.hidden=true;out.innerHTML='';say('');root.querySelector('.js-scan-open').hidden=false;return;}
+    if(e.target.closest('.js-scan-next')){resume();return;}
+    var add=e.target.closest('.js-scan-add');
+    if(add){
+      var st=add.parentNode.querySelector('.js-status');add.disabled=true;st.textContent='Adding...';st.style.color='';
+      call('/scan-add',{variantId:add.dataset.variant,addOne:add.dataset.more==='1'}).then(function(res){
+        if(!res||!res.ok)throw new Error(res&&res.error||'Couldn\\'t add that');
+        if(res.duplicate){add.disabled=false;add.dataset.more='1';add.textContent='Add one more';st.textContent='Already on your list ('+res.currentQty+' wanted).';return;}
+        add.textContent=res.desiredQty?'Now '+res.desiredQty+' on your list':'Added';st.textContent='';
+      }).catch(function(err){add.disabled=false;st.textContent=err.message;st.style.color='#8c1d13';});
+    }
+  });
+  form.addEventListener('submit',function(e){e.preventDefault();var v=form.querySelector('[name=code]');paused=true;lookup(v.value);v.value='';});
+  window.addEventListener('pagehide',stop);
+})();`.replace(/^\s*\/\/.*\n/gm, "").trim();
 }
 
 /**

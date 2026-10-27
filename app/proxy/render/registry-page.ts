@@ -9,6 +9,7 @@ import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
 import type { ContributionVariant } from "../../shared/contributions";
+import { isSoldOutStoreItem } from "../../lib/stock";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -243,7 +244,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (price && !item.isFund) meta.push(`<span class="price">${price}</span>`);
   if (item.desiredQty > 1) meta.push(`${item.purchasedQty} of ${item.desiredQty} bought`);
   if (item.isStale && price) meta.push("price may have changed");
-  if (item.availability === "out_of_stock") meta.push("out of stock");
+  if (item.availability === "out_of_stock" && item.isExternal) meta.push("out of stock");
 
   return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}">
   ${image}
@@ -287,6 +288,15 @@ function renderItemAction(
 
   const chipIn = renderChipIn(item, data);
   if (item.isFund) return chipIn;
+
+  // --- Internal but sold out: no Add to cart that Shopify would refuse ----
+  if (isSoldOutStoreItem(item)) {
+    return `${heldNotice}<p class="item-meta"><strong>Sold out right now.</strong> Check back soon.</p>
+<div class="row">
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
+  <span class="js-status item-meta" role="status"></span>
+</div>${chipIn}`;
+  }
 
   // --- Internal: buy here, one tap, fully attributed --------------------
   if (!item.isExternal && item.variantGid) {
