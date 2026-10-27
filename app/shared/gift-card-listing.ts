@@ -65,10 +65,20 @@ export function giftCardListingLive(shop: {
 }
 
 /** Where the guest came from, carried on the signed cart line. */
-export type GiftCardSource = "directory" | "store";
+export type GiftCardSource = "directory" | "registry" | "store";
 
 export function giftCardSource(raw: unknown): GiftCardSource {
-  return raw === "directory" ? "directory" : "store";
+  return raw === "directory" || raw === "registry" ? raw : "store";
+}
+
+/** English country name for a directory heading, or null when unknown. */
+export function countryName(code: string | null | undefined): string | null {
+  if (!code || !/^[A-Z]{2}$/.test(code)) return null;
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** Shopify's own amount formatting is per shop; this is the directory's plain fallback. */

@@ -132,7 +132,7 @@ export function homeHtml(): string {
     <div class="sec-head rise">
       <p class="eyebrow">Features</p>
       <h2>Everything a registry needs, on the free plan.</h2>
-      <p class="lede">Unlimited registries, items and guests. No per-registry fees and no fee on your sales.</p>
+      <p class="lede">Unlimited registries, items and guests. No per-registry fees and no fee on your product sales.</p>
     </div>
     <div class="bento">
       <div class="card wide rise">

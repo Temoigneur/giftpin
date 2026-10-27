@@ -1,4 +1,5 @@
 import {
+  GIFT_CARD_FEE_PERCENT,
   PRO_PLAN_DISPLAY_NAME,
   PRO_PLAN_PRICE,
   PRO_TRIAL_DAYS,
@@ -39,7 +40,7 @@ export const PRO_FEATURES: Feature[] = [
   { icon: "palette", title: "Your branding on registry pages", detail: "Your logo, colours and font, with the \"Powered by Giftpin\" credit removed." },
   { icon: "percent", title: "Completion discount", detail: "After the event, the registrant gets a single-use code for your products still on their list. You choose the percentage and how long it lasts." },
   { icon: "bell", title: "Automatic registry emails", detail: "A reminder before the event to guests who opt in, an alert when most items are gone, and a thank-you reminder listing who gave what." },
-  { icon: "gift", title: "Your gift cards on giftpin.app", detail: "List your store in the giftpin.app gift card directory. Shoppers buy your gift cards at your own checkout, and you keep every sale." },
+  { icon: "gift", title: "Your gift cards on giftpin.app", detail: `List your store in the giftpin.app gift card directory and add a gift card link to registry pages. Shoppers buy your gift cards at your own checkout. Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each card sold this way, nothing during your free trial.` },
   { icon: "download", title: "CSV export", detail: "Every registry and purchase, ready for your spreadsheet or email tool." },
   { icon: "headset", title: "Priority email support", detail: "Replies within one business day." },
 ];

@@ -12,6 +12,8 @@ const SHOP_QUERY = `#graphql
       name
       currencyCode
       currencyFormats { moneyFormat }
+      billingAddress { countryCodeV2 }
+      plan { partnerDevelopment }
     }
   }`;
 
@@ -24,20 +26,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let name: string | undefined;
   let currency: string | undefined;
   let moneyFormat: string | undefined;
+  let country: string | undefined;
+  let devStore: boolean | undefined;
 
   try {
     const response = await admin.graphql(SHOP_QUERY);
     const body = (await response.json()) as {
-      data?: { shop?: { name?: string; currencyCode?: string; currencyFormats?: { moneyFormat?: string } } };
+      data?: {
+        shop?: {
+          name?: string;
+          currencyCode?: string;
+          currencyFormats?: { moneyFormat?: string };
+          billingAddress?: { countryCodeV2?: string | null } | null;
+          plan?: { partnerDevelopment?: boolean } | null;
+        };
+      };
     };
     name = body.data?.shop?.name;
     currency = body.data?.shop?.currencyCode;
     moneyFormat = body.data?.shop?.currencyFormats?.moneyFormat;
+    country = body.data?.shop?.billingAddress?.countryCodeV2 ?? undefined;
+    devStore = body.data?.shop?.plan?.partnerDevelopment;
   } catch (err) {
     console.error("[app] could not read shop info:", (err as Error).message);
   }
 
-  await upsertShop(session.shop, { name, currency, moneyFormat });
+  await upsertShop(session.shop, { name, currency, moneyFormat, country, devStore });
 
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };

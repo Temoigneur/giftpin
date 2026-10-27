@@ -42,3 +42,22 @@ export function isFoundingSlot(installedAt: Date, earlierInstalls: number): bool
     earlierInstalls < FOUNDING_OFFER_SLOTS
   );
 }
+
+/**
+ * Giftpin's fee on gift cards sold through the giftpin.app gift card listing
+ * (Ben, 24 Oct 2026): 2% of the card's value, billed as a Shopify usage
+ * charge on the Pro subscription. Founding-offer stores pay nothing during
+ * their free year; in practice no fee is charged during any free trial (see
+ * app/models/gift-card-fee.server.ts). It never applies to a store's own
+ * product sales or to registry gifts.
+ */
+export const GIFT_CARD_FEE_PERCENT = 2;
+/** Shopify usage line cap per 30-day cycle, in USD (the subscription's currency). */
+export const GIFT_CARD_FEE_CAP = 100;
+/**
+ * Days a sale waits before its fee is charged, so a card refunded in that
+ * time is never billed. Shopify has no API for reversing a usage charge from
+ * the app; a refund after this needs a credit from the Partner Dashboard.
+ */
+export const GIFT_CARD_FEE_HOLD_DAYS = 14;
+export const GIFT_CARD_FEE_TERMS = `Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of the value of each gift card sold through your giftpin.app gift card listing, up to $${GIFT_CARD_FEE_CAP} USD per 30 days. This spending limit is used for nothing else. No fee during your free trial.`;

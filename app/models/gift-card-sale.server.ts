@@ -81,6 +81,8 @@ export interface GiftCardSalesSummary {
   count: number;
   total: number;
   currency: string;
+  /** Giftpin's fee actually charged on these sales, in the billing currency (USD). */
+  feesCharged: number;
 }
 
 /** Live (not refunded) gift cards sold through the listing since a date. */
@@ -89,20 +91,31 @@ export async function giftCardSalesSummary(
   since: Date,
   currency: string,
 ): Promise<GiftCardSalesSummary> {
-  const result = await db.giftCardSale.aggregate({
-    where: { shopId, voidedAt: null, createdAt: { gte: since } },
-    _sum: { amount: true, qty: true },
-  });
+  const [result, fees] = await Promise.all([
+    db.giftCardSale.aggregate({
+      where: { shopId, voidedAt: null, createdAt: { gte: since } },
+      _sum: { amount: true, qty: true },
+    }),
+    // A fee stays charged even if the card is refunded later (Shopify has no
+    // API to reverse it), so this one ignores voidedAt.
+    db.giftCardSale.aggregate({
+      where: { shopId, feeStatus: "charged", createdAt: { gte: since } },
+      _sum: { feeAmount: true },
+    }),
+  ]);
   return {
     count: result._sum.qty ?? 0,
     total: Number(result._sum.amount ?? 0),
     currency,
+    feesCharged: Number(fees._sum.feeAmount ?? 0),
   };
 }
 
 export interface ListedStore {
   domain: string;
   name: string;
+  /** ISO country code, or null when not known yet. */
+  country: string | null;
   blurb: string;
   currency: string;
   amounts: ContributionVariant[];
@@ -116,7 +129,7 @@ export interface ListedStore {
 export async function listedGiftCardStores(): Promise<ListedStore[]> {
   const shops = await db.shop.findMany({
     where: { plan: "pro", uninstalledAt: null },
-    select: { domain: true, name: true, currency: true, settings: true, plan: true, uninstalledAt: true },
+    select: { domain: true, name: true, currency: true, country: true, settings: true, plan: true, uninstalledAt: true },
   });
   return shops
     .map((shop) => ({ shop, settings: settingsFor(shop) }))
@@ -131,6 +144,7 @@ export async function listedGiftCardStores(): Promise<ListedStore[]> {
     .map(({ shop, settings }) => ({
       domain: shop.domain,
       name: shop.name ?? shop.domain.replace(".myshopify.com", ""),
+      country: shop.country ?? null,
       blurb: settings.giftCardListing.blurb,
       currency: shop.currency,
       amounts: listedGiftCardAmounts(settings.contributionProduct),

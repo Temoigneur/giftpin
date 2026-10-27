@@ -14,6 +14,7 @@ import {
 import { exportUrl } from "../models/export.server";
 import { giftCardSalesSummary } from "../models/gift-card-sale.server";
 import { eventTypeLabel } from "../shared/settings";
+import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -36,6 +37,10 @@ const RANGE_LABELS: Record<number, string> = { 30: "Last 30 days", 90: "Last 90 
 
 function money(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+}
+
+function money2(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-CA", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
 }
 
 function change(current: number, previous: number): string {
@@ -140,11 +145,18 @@ export default function Analytics() {
 
       <s-section slot="aside" heading="Gift cards sold through giftpin.app">
         <s-paragraph>
-          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money(giftCards.total, giftCards.currency)}
+          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money2(giftCards.total, giftCards.currency)}
         </s-paragraph>
         <s-paragraph>
           <s-text color="subdued">
-            From your listing at giftpin.app/gift-cards. Turn it on in Settings. Refunded cards are not counted.
+            From your listing at giftpin.app/gift-cards and the gift card link on your registry pages. Turn it on in
+            Settings. Refunded cards are not counted.
+          </s-text>
+        </s-paragraph>
+        <s-paragraph>
+          <s-text color="subdued">
+            Giftpin fee charged: {money2(giftCards.feesCharged, "USD")} ({GIFT_CARD_FEE_PERCENT}% of each card, billed by Shopify
+            {" "}after a {GIFT_CARD_FEE_HOLD_DAYS}-day refund window, and never during your free trial).
           </s-text>
         </s-paragraph>
       </s-section>

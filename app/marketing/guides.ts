@@ -1,5 +1,6 @@
 import { esc, finalCta, icon, sitePage } from "./layout";
 import { PRICE, PRO_NAME, TRIAL } from "./plans-copy";
+import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 
 /**
  * Search landing pages: each answers one thing a merchant types into Google
@@ -479,7 +480,8 @@ const PRO_STEPS: Step[] = [
     items: [
       "Set up the gift card in the step above first. The listing uses the same gift card, in amounts up to $500.",
       "In Giftpin, open <b>Settings</b>. Under <b>Sell gift cards on giftpin.app</b>, tick <b>List my gift cards on giftpin.app</b>, add <b>One line about your store</b>, and press <b>Save</b>.",
-      "Your store now appears at <a href=\"/gift-cards\">giftpin.app/gift-cards</a>. Shoppers buy your gift card at your own checkout, so you keep the money and any unspent balance. Gift cards sold this way show up in Giftpin's <b>Analytics</b>.",
+      "Your store now appears at <a href=\"/gift-cards\">giftpin.app/gift-cards</a>, under your country, and your registry pages get a <b>Rather give a gift card?</b> link. Shoppers buy your gift card at your own checkout, so you keep the money and any unspent balance. Gift cards sold this way show up in Giftpin's <b>Analytics</b>.",
+      `Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each gift card sold this way, on your Shopify bill, ${GIFT_CARD_FEE_HOLD_DAYS} days after the sale so a refunded card is never charged. There's no fee during your free trial.`,
     ],
   },
   {
