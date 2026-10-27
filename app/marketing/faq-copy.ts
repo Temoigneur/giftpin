@@ -54,6 +54,10 @@ export const FAQ_GROUPS: FaqGroup[] = [
         a: "<p>From your store. Giftpin adds theme blocks you place with the theme editor: an <strong>Add to registry</strong> button for product pages, and <strong>Create</strong>, <strong>Find</strong> and <strong>Manage</strong> registry links you can put on any page. The registry pages themselves live on your own store's domain.</p>",
       },
       {
+        q: "Can I move my registries from another registry app?",
+        a: "<p>Yes, on both plans. Export your registries from your old app as a spreadsheet (CSV) and upload it in Giftpin under <strong>Registries &rarr; Import registries</strong>. You see what will be imported before anything is created. Items are matched to your products by SKU or barcode, and gifts that were already bought stay marked as bought.</p>",
+      },
+      {
         q: "Do I need to know how to code?",
         a: "<p>No. You add Giftpin's blocks in Shopify's theme editor, and everything else is set up from the Giftpin page in your Shopify admin.</p>",
       },
@@ -82,6 +86,10 @@ export const FAQ_GROUPS: FaqGroup[] = [
       {
         q: "Can gifts ship straight to the registrant?",
         a: "<p>Yes, for gifts bought from your store. When the registrant saves a shipping address, Giftpin puts it on the order so the gift goes straight to them. Guests never see the address.</p>",
+      },
+      {
+        q: "Can registrants add gifts while they're in my store?",
+        a: "<p>Yes, with Pro. On their registry page, the registrant taps <strong>Scan a barcode in the store</strong> and points their own phone at a product's barcode. Giftpin finds the product in your catalog and adds it in one tap. They can also type the number under the barcode. Your products need a barcode or SKU filled in in Shopify.</p>",
       },
       {
         q: "How do registrants know who gave what?",

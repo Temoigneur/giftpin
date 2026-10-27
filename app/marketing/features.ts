@@ -104,6 +104,7 @@ const GUESTS: Feature[] = [
   { icon: "lock", title: "No account needed", detail: "Guests open the link and shop. Nothing to sign up for and nothing to install." },
   { icon: "chart", title: "See what's left at a glance", detail: "A progress bar and clear labels for what's available, possibly taken and already gifted." },
   { icon: "globe", title: "Straight to the right shop", detail: "Gifts from other stores link straight to the original product page." },
+  { icon: "box", title: "No sold-out surprises", detail: "Your products that are sold out are marked before anyone tries to buy them, or hidden until they're back in stock. Your choice." },
 ];
 
 const MERCHANT: Feature[] = [
@@ -116,6 +117,7 @@ const MERCHANT: Feature[] = [
   { icon: "percent", title: "No fee on your sales", detail: `Free is free. Pro is a flat monthly price. Neither takes a cut of your own product sales. The only fee is ${GIFT_CARD_FEE_PERCENT}% on gift cards sold through the optional giftpin.app listing.` },
   { icon: "lock", title: "Read-only on your catalog", detail: "Giftpin never edits your products, prices or inventory." },
   { icon: "bolt", title: "Unlimited everything", detail: "Registries, items and guests, on both plans." },
+  { icon: "upload", title: "Bring your registries with you", detail: "Switching from another registry app? Import its spreadsheet. Items match your products by SKU or barcode, and gifts already bought stay bought, so nobody gives the same thing twice." },
 ];
 
 const CSS = `
