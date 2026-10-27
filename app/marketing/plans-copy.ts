@@ -31,6 +31,8 @@ export const FREE_FEATURES: Feature[] = [
   { icon: "list", title: "Who-gave-what list for thank-you notes", detail: "Registrants can download it as a spreadsheet." },
   { icon: "puzzle", title: "Theme blocks for your store", detail: "An Add to registry button on product pages, and create, find and manage links anywhere." },
   { icon: "chart", title: "Overview dashboard", detail: "Registries, items and gifts at a glance." },
+  { icon: "box", title: "Sold-out products handled", detail: "Registries check your live stock. Sold-out items show as sold out, or hide until you restock." },
+  { icon: "upload", title: "Import registries from another app", detail: "Upload a spreadsheet from your old registry app. Items match your products by SKU or barcode, and gifts already bought stay bought." },
   { icon: "mail", title: "Email support", detail: "" },
 ];
 
@@ -41,6 +43,8 @@ export const PRO_FEATURES: Feature[] = [
   { icon: "percent", title: "Completion discount", detail: "After the event, the registrant gets a single-use code for your products still on their list. You choose the percentage and how long it lasts." },
   { icon: "bell", title: "Automatic registry emails", detail: "A reminder before the event to guests who opt in, an alert when most items are gone, and a thank-you reminder listing who gave what." },
   { icon: "gift", title: "Your gift cards on giftpin.app", detail: `List your store in the giftpin.app gift card directory and add a gift card link to registry pages. Shoppers buy your gift cards at your own checkout. Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each card sold this way, nothing during your free trial.` },
+  { icon: "scan", title: "In-store barcode scanner", detail: "Registrants shopping in your store scan a product's barcode with their own phone and add it to their registry. No app to install and no extra hardware." },
+  { icon: "star", title: "Registry perks", detail: "Tell registrants what they get for registering with you, like free gift wrapping. Shown when they start a registry and on their own registry page." },
   { icon: "download", title: "CSV export", detail: "Every registry and purchase, ready for your spreadsheet or email tool." },
   { icon: "headset", title: "Priority email support", detail: "Replies within one business day." },
 ];
