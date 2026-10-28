@@ -495,3 +495,21 @@ describe("partner (co-registrant)", () => {
     expect(page()).not.toContain('id="partner"');
   });
 });
+
+describe("share QR code", () => {
+  it("puts a QR code button next to Copy link, with the code and a download", () => {
+    const html = page();
+    expect(html).toMatch(/js-share-copy[^>]*>Copy link<\/button>\s*<button[^>]*js-qr-toggle[^>]*>QR code<\/button>/);
+    expect(html).toContain('<div class="share-qr" id="share-qr" hidden>');
+    expect(html).toContain('download="registry-qr-code.svg"');
+    expect(html).toMatch(/<svg[^>]*role="img"[^>]*aria-label="QR code for your registry&#39;s guest link"/);
+  });
+
+  it("encodes a different code for a different link", () => {
+    const a = page({ shareUrl: "https://maple-clay.com/apps/registry/r/abc123" });
+    const b = page({ shareUrl: "https://maple-clay.com/apps/registry/r/xyz789" });
+    const path = (html: string) => html.match(/<path d="(M[^"]+)" fill="#000"\/>/)?.[1];
+    expect(path(a)).toBeTruthy();
+    expect(path(a)).not.toEqual(path(b));
+  });
+});

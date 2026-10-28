@@ -11,6 +11,7 @@ import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 import { renderPerks } from "./create-page";
 import { isSoldOutStoreItem } from "../../lib/stock";
+import { qrSvg } from "./qr";
 
 /**
  * The registrant's own view. Reached only with a valid magic-link token or a
@@ -119,7 +120,9 @@ ${renderPerks(data.shopName, data.perks)}
   <p class="sub" style="word-break:break-all;margin:0 0 10px">${escapeHtml(data.shareUrl)}</p>
   <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share with guests</button>
   <button class="btn sm ghost js-share-copy" type="button" data-url="${escapeAttr(data.shareUrl)}">Copy link</button>
+  <button class="btn sm ghost js-qr-toggle" type="button" aria-expanded="false" aria-controls="share-qr">QR code</button>
   ${renderShareMenu(data.title, data.shareUrl)}
+  ${renderShareQr(data.shareUrl)}
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
   ${renderLinkElsewhere(data.eventType, data.privacy)}
 </div>
@@ -768,6 +771,22 @@ function renderLinkElsewhere(eventType: string, privacy: string): string {
 }
 
 /**
+ * The guest link as a QR code, for printed invitations, shower signs and
+ * save-the-dates. Drawn on the server (no script, no outside service); the
+ * download is the same SVG, which prints sharp at any size, and the script
+ * swaps in a PNG for people pasting it into Word or Canva.
+ */
+function renderShareQr(url: string): string {
+  const svg = qrSvg(url, "QR code for your registry's guest link");
+  const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  return `<style>.share-qr:not([hidden]){display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:12px}.share-qr svg{width:168px;height:168px;display:block;border:1px solid #ddd;border-radius:8px}.share-qr p{flex:1 1 200px;margin:0}</style>
+  <div class="share-qr" id="share-qr" hidden>
+    ${svg}
+    <p class="hint">Guests can point their phone camera at this to open your registry. Add it to invitations or a sign at the event.<br><a class="btn sm ghost js-qr-download" href="${escapeAttr(href)}" download="registry-qr-code.svg" style="margin-top:8px">Download QR code</a></p>
+  </div>`;
+}
+
+/**
  * Ways to share the guest link when the device has no share sheet of its own,
  * or its share sheet fails. Hidden until the Share button needs it.
  */
@@ -1175,11 +1194,30 @@ function manageScript(): string {
       }else{showMenu();}
       return;
     }
+    var qrToggle=e.target.closest('.js-qr-toggle');
+    if(qrToggle){
+      var qr=document.getElementById('share-qr');qr.hidden=!qr.hidden;
+      qrToggle.setAttribute('aria-expanded',String(!qr.hidden));
+      if(!qr.hidden)pngQr(qr);
+      return;
+    }
     var shareCopy=e.target.closest('.js-share-copy');
     if(shareCopy){
       copyLink(shareCopy.dataset.url,function(){shareCopy.textContent='Link copied';});
     }
   });
+  // Swap the SVG download for a 1024px PNG, which more apps accept. If the
+  // canvas can't be read, the SVG link stays as it is.
+  function pngQr(qr){
+    var a=qr.querySelector('.js-qr-download');
+    if(!a||a.dataset.png)return;a.dataset.png='1';
+    var img=new Image();
+    img.onload=function(){
+      try{var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(img,0,0,1024,1024);
+        a.href=c.toDataURL('image/png');a.download='registry-qr-code.png';}catch(_){}
+    };
+    img.src=a.href;
+  }
   function copyLink(link,done){
     // execCommand first: it runs synchronously inside the click, so a
     // storefront's clipboard permissions policy can't block it. The async
