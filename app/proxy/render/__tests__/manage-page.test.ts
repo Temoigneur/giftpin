@@ -447,3 +447,30 @@ describe("share with guests", () => {
     expect(html).toContain("execCommand('copy')");
   });
 });
+
+describe("linking the registry from The Knot or a wedding website (28 Oct 2026)", () => {
+  it("offers a direct Copy link button for the guest link", () => {
+    const html = page();
+    expect(html).toContain(
+      '<button class="btn sm ghost js-share-copy" type="button" data-url="https://maple-clay.com/apps/registry/r/abc123">Copy link</button>',
+    );
+  });
+
+  it("names The Knot for a wedding registry, as plain text", () => {
+    const html = page({ eventType: "wedding" });
+    expect(html).toContain("Using The Knot or a wedding website?");
+    expect(html).not.toMatch(/<img[^>]*knot/i);
+  });
+
+  it("stays generic for other occasions", () => {
+    const html = page({ eventType: "baby" });
+    expect(html).not.toContain("The Knot");
+    expect(html).toContain("Add this as a registry from another store");
+  });
+
+  it("warns only when the registry needs a password", () => {
+    expect(page({ privacy: "password" })).toContain("Your registry has a password");
+    expect(page({ privacy: "unlisted" })).not.toContain("Your registry has a password");
+    expect(page({ privacy: "public_" })).not.toContain("Your registry has a password");
+  });
+});
