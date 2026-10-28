@@ -544,3 +544,35 @@ describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
     expect(page([item()], { shipToRegistrant: true })).toContain("shipToRegistrant:shipEl?shipEl.checked:false");
   });
 });
+
+describe("sort and still-needed filter", () => {
+  const four = (extra: Partial<DisplayItem> = {}) =>
+    Array.from({ length: 4 }, (_, i) => item({ id: `item_${i}`, ...extra }));
+
+  it("offers the tools on a list of four or more, hidden until the script runs", () => {
+    const html = page(four());
+    expect(html).toContain('<div id="tools" hidden>');
+    expect(html).toContain("Price: low to high");
+    expect(html).toContain("Only show what's still needed");
+  });
+
+  it("leaves them off a short list", () => {
+    expect(page([item()])).not.toContain('id="tools"');
+  });
+
+  it("gives priced items a sort price, and funds none", () => {
+    expect(page([item({ price: 180 })])).toContain('data-p="180"');
+    expect(page([item({ isFund: true, price: 0 })])).not.toContain("data-p=");
+  });
+
+  it("counts an item whose last one someone may be buying as not needed", () => {
+    // Hard rule 5: never let a held item look available, including here.
+    const html = page([item({ desiredQty: 1, claimedQty: 1, remainingQty: 0 })]);
+    expect(html).toMatch(/class="item held taken"/);
+  });
+
+  it("still counts a partly held item as needed", () => {
+    const html = page([item({ desiredQty: 2, claimedQty: 1, remainingQty: 1 })]);
+    expect(html).toMatch(/class="item held"/);
+  });
+});
