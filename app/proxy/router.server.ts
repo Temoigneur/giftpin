@@ -27,6 +27,12 @@ import {
   logEvent,
   touchRegistry,
   registrantEmail,
+  addPartner,
+  removePartner,
+  ownerOf,
+  manageTokenFor,
+  readManageGrant,
+  renewManageToken,
   type RegistryWithItems,
 } from "../models/registry.server";
 import {
@@ -431,7 +437,7 @@ async function managePage(
 
   // A fresh token on every visit: the page's own writes, the copyable link and
   // the browser's saved token all use it, so an active owner never expires.
-  const freshToken = mintManageToken(registry.id);
+  const freshToken = token ? renewManageToken(token, registry.id) : mintManageToken(registry.id);
 
   const now = new Date();
   const gifts = registry.items.flatMap((item) =>
@@ -490,8 +496,14 @@ async function managePage(
       contributions: contributionsAvailable(shop, settings)
         ? { toRegistrant: registry.contributionsToRegistrant }
         : null,
+      partner: partnerFor(registry),
     }),
   );
+}
+
+function partnerFor(registry: RegistryWithItems): { name: string } | null {
+  const partner = registry.registrants.find((r) => r.role === "co");
+  return partner ? { name: partner.name } : null;
 }
 
 async function findPage(
@@ -521,7 +533,7 @@ async function findPage(
               { registrants: { some: { name: { contains: query, mode: "insensitive" } } } },
             ],
           },
-          include: { registrants: true },
+          include: { registrants: { orderBy: { createdAt: "asc" } } },
           take: 25,
           orderBy: { eventDate: "asc" },
         })
@@ -703,6 +715,10 @@ async function handlePost(
       return settingsAction(request, ctx);
     case "shipping":
       return shippingAction(request, ctx);
+    case "partner":
+      return partnerAction(request, ctx, brand);
+    case "partner-remove":
+      return partnerRemoveAction(ctx, brand);
     case "delete":
       return deleteAction(request, ctx, brand);
     case "remind":
@@ -777,9 +793,11 @@ async function resendAction(
   if (isEmail(email)) {
     const registries = await findByEmail(shop.id, email);
     for (const registry of registries.slice(0, 5)) {
+      const registrant = registry.registrants[0];
+      if (!registrant) continue;
       await sendEmail("registry-link", email, {
         registryTitle: registry.title,
-        url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: mintManageToken(registry.id) }),
+        url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: manageTokenFor(registry.id, registrant) }),
       });
     }
   }
@@ -904,7 +922,7 @@ async function contributeAction(
 
   const item = await db.registryItem.findFirst({
     where: { id: itemId, fundGoal: { not: null }, registry: { shopId: shop.id, status: "active" } },
-    include: { registry: { include: { registrants: true } } },
+    include: { registry: { include: { registrants: { orderBy: { createdAt: "asc" } } } } },
   });
   if (!item) return json({ ok: false, error: "That item is no longer on this registry" }, 404);
 
@@ -913,7 +931,9 @@ async function contributeAction(
   }
 
   let recipient: Record<string, string> | null = null;
-  const owner = item.registry.registrants[0];
+  // The owner's address only, never the partner's: it's what the owner opted
+  // in to, and what the manage page tells them.
+  const owner = ownerOf(item.registry.registrants);
   const email = item.registry.contributionsToRegistrant && owner ? registrantEmail(owner) : null;
   if (email && owner) {
     await audit({
@@ -1588,6 +1608,52 @@ async function shippingAction(request: Request, ctx: ProxyContext): Promise<Resp
 }
 
 /**
+ * Owner adds their partner. The partner gets their own copy of the private
+ * manage link by email; from then on they can do anything the owner can,
+ * including removing themselves. See addPartner().
+ */
+async function partnerAction(request: Request, ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  const form = await request.formData();
+  const name = String(form.get("name") ?? "").trim();
+  const email = String(form.get("email") ?? "").trim();
+  const back = (flash: string) =>
+    redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash }) + "#partner");
+
+  if (!name || !isEmail(email)) return back("partner-invalid");
+
+  const result = await addPartner(registry.id, { name, email });
+  if (!result.ok) return back(`partner-${result.error === "has_partner" ? "exists" : "self"}`);
+
+  await logEvent(registry.id, "partner_added", {});
+  const owner = ownerOf(registry.registrants);
+  await sendEmail("registry-partner", email, {
+    registryTitle: registry.title,
+    inviterName: owner ? firstNameOnly(owner.name) : "",
+    shopName: brand.shopName,
+    url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", {
+      t: manageTokenFor(registry.id, { id: result.partner.id, role: "co" }),
+    }),
+  });
+  return back("partner-added");
+}
+
+async function partnerRemoveAction(ctx: ProxyContext, brand: Brand): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (!registry) return new Response("Unauthorized", { status: 403 });
+
+  await removePartner(registry.id);
+  await logEvent(registry.id, "partner_removed", {});
+  // The partner removed themselves, so their link no longer opens the page.
+  if (readManageGrant(ctx.query.get("t"))?.partnerId) {
+    return page(renderSimplePage(brand, "You've left this registry", "Your link to manage it no longer works."));
+  }
+  return redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: "partner-removed" }) + "#partner");
+}
+
+/**
  * Guest opts in to a pre-event reminder (Pro). Answers the same way whether or
  * not the email was already signed up, so this can't be used to check who is.
  */
@@ -1692,10 +1758,19 @@ function firstNameOnly(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
 }
 
+const PARTNER_FLASH: Record<string, { kind: "ok" | "err"; message: string }> = {
+  "partner-added": { kind: "ok", message: "Done. We've emailed your partner their own link to this registry." },
+  "partner-removed": { kind: "ok", message: "Your partner has been removed. Links already sent to them stop working." },
+  "partner-invalid": { kind: "err", message: "Please enter your partner's name and a valid email address." },
+  "partner-exists": { kind: "err", message: "This registry already has a partner. Remove them first to add someone else." },
+  "partner-self": { kind: "err", message: "That email is already on this registry." },
+};
+
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
   const flash = ctx.query.get("flash");
   if (flash === "saved") return { kind: "ok", message: "Your changes are saved." };
   if (flash === "ship-saved") return { kind: "ok", message: "Your shipping address is saved." };
+  if (flash?.startsWith("partner-") && flash in PARTNER_FLASH) return PARTNER_FLASH[flash];
   if (flash === "ship-off") return { kind: "ok", message: "Gifts won't be sent to you, and your address has been deleted." };
   const shipError = flash?.startsWith("ship-") ? flash.slice(5) : null;
   if (shipError && shipError in SHIPPING_ADDRESS_ERRORS) {

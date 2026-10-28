@@ -3,7 +3,7 @@ import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
 import { blindIndex } from "../lib/crypto.server";
 import { audit } from "../lib/audit.server";
-import { deleteRegistry } from "../models/registry.server";
+import { deleteRegistry, touchRegistry } from "../models/registry.server";
 
 /**
  * GDPR: erase everything we hold about this customer.
@@ -18,12 +18,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const email = body.customer?.email;
   const customerId = body.customer?.id ? String(body.customer.id) : null;
 
+  // Registries this customer owns go entirely. Being someone else's partner
+  // only takes their own Registrant row: erasing a partner must never delete
+  // the owner's registry.
   const registries = await db.registry.findMany({
     where: {
       shop: { domain: shop },
       OR: [
         ...(customerId ? [{ customerId }] : []),
-        ...(email ? [{ registrants: { some: { emailHash: blindIndex(email) } } }] : []),
+        ...(email ? [{ registrants: { some: { emailHash: blindIndex(email), role: "owner" as const } } }] : []),
       ],
     },
     select: { id: true },
@@ -31,6 +34,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   for (const registry of registries) {
     await deleteRegistry(registry.id);
+  }
+
+  let partnerRecords = 0;
+  if (email) {
+    const partners = await db.registrant.findMany({
+      where: { emailHash: blindIndex(email), role: "co", registry: { shop: { domain: shop } } },
+      select: { id: true, registryId: true },
+    });
+    for (const partner of partners) {
+      await db.registrant.delete({ where: { id: partner.id } });
+      // The guest page shows the registrants' names.
+      await touchRegistry(partner.registryId).catch(() => {});
+    }
+    partnerRecords = partners.length;
   }
 
   // Buyer details on someone else's registry are personal data too. Purchases
@@ -62,7 +79,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     actor: "shopify:gdpr",
     action: "customer_redacted",
     subject: customerId,
-    detail: { registriesDeleted: registries.length, purchasesScrubbed: buyerRecords, guestReminders },
+    detail: { registriesDeleted: registries.length, partnerRecords, purchasesScrubbed: buyerRecords, guestReminders },
   });
 
   console.log(`[gdpr] redacted ${registries.length} registries, ${buyerRecords} purchases for ${shop}`);

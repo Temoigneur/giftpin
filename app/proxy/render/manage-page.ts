@@ -97,6 +97,11 @@ export interface ManagePageData {
   scanner?: boolean;
   /** Barcode reader for phones without a built-in one; null = typing the number only. */
   scannerScriptUrl?: string | null;
+  /**
+   * The registry's partner (co-registrant), if one was added. Undefined hides
+   * the whole section, so older callers and tests render as before.
+   */
+  partner?: { name: string } | null;
 }
 
 export function renderManagePage(data: ManagePageData): string {
@@ -248,6 +253,8 @@ ${renderShipping(data)}
     <button class="btn" type="submit">Save changes</button>
   </div>
 </form>
+
+${renderPartner(data)}
 
 <div class="note">
   <p style="margin:0 0 8px"><strong>Delete this registry</strong></p>
@@ -712,6 +719,36 @@ function renderGifts(data: ManagePageData): string {
 }
 
 /**
+ * Partner (co-registrant). One per registry. They get their own private link
+ * by email and can do everything here; removing them turns that link off.
+ */
+function renderPartner(data: ManagePageData): string {
+  if (data.partner === undefined) return "";
+  const action = (path: string) => `${escapeAttr(data.actionUrl)}/${path}?t=${encodeURIComponent(data.token)}`;
+  const inner = data.partner
+    ? `<p style="margin:0 0 10px"><strong>${escapeHtml(data.partner.name)}</strong> can also manage this registry.</p>
+  <form method="post" action="${action("partner-remove")}" class="js-confirm-partner">
+    <button class="btn sm ghost" type="submit">Remove partner</button>
+  </form>
+  <p class="hint">Removing them turns off their link straight away. Gifts and settings stay as they are.</p>`
+    : `<p style="margin:0 0 10px">Planning this with someone? Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.</p>
+  <form method="post" action="${action("partner")}">
+    <label for="p-name">Their name</label>
+    <input id="p-name" type="text" name="name" maxlength="120" required autocomplete="off">
+    <label for="p-email">Their email</label>
+    <input id="p-email" type="email" name="email" maxlength="254" required autocomplete="off">
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm" type="submit">Add partner</button>
+    </div>
+  </form>
+  <p class="hint">Their name appears next to yours on the registry page. Their email is never shown to guests.</p>`;
+  return `<h2 id="partner">Your partner</h2>
+<div class="note">
+  ${inner}
+</div>`;
+}
+
+/**
  * Couples who also keep a registry elsewhere usually gather them on one page
  * (The Knot's registry page or a wedding website), which can link a registry
  * from another store by its address. Names are plain text: no partnership.
@@ -997,6 +1034,8 @@ function manageScript(): string {
     }
     var del=e.target.closest('.js-confirm-delete');
     if(del&&!confirm('Delete this registry and everything on it? This cannot be undone.')){e.preventDefault();}
+    var rp=e.target.closest('.js-confirm-partner');
+    if(rp&&!confirm('Remove your partner? Their link to this registry will stop working.')){e.preventDefault();}
   });
 
   document.addEventListener('change',function(e){

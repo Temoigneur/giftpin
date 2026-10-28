@@ -474,3 +474,24 @@ describe("linking the registry from The Knot or a wedding website (28 Oct 2026)"
     expect(page({ privacy: "public_" })).not.toContain("Your registry has a password");
   });
 });
+
+describe("partner (co-registrant)", () => {
+  it("offers to add a partner when there isn't one", () => {
+    const html = page({ partner: null });
+    expect(html).toContain('id="partner"');
+    expect(html).toContain('action="/apps/registry/partner?t=tok_abc"');
+    expect(html).toContain('name="email"');
+    expect(html).not.toContain("Remove partner");
+  });
+
+  it("names the partner and offers to remove them once added", () => {
+    const html = page({ partner: { name: "Alex <b>" } });
+    expect(html).toContain("<strong>Alex &lt;b&gt;</strong> can also manage this registry.");
+    expect(html).toContain('action="/apps/registry/partner-remove?t=tok_abc"');
+    expect(html).not.toContain('action="/apps/registry/partner?t=');
+  });
+
+  it("leaves the section out when the caller doesn't say", () => {
+    expect(page()).not.toContain('id="partner"');
+  });
+});

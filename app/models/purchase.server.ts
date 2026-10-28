@@ -7,6 +7,8 @@ import {
   registrantEmail,
   readShippingAddress,
   mintManageToken,
+  manageTokenFor,
+  ownerOf,
 } from "./registry.server";
 import { settingsFor } from "./shop.server";
 import { sendEmail } from "../lib/email.server";
@@ -114,7 +116,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
         registryId: line.registryId,
         registry: { shopId: shopRecord.id },
       },
-      include: { registry: { include: { registrants: true } } },
+      include: { registry: { include: { registrants: { orderBy: { createdAt: "asc" } } } } },
     });
 
     if (!item) {
@@ -308,7 +310,7 @@ export async function voidPurchases(
 // ---------------------------------------------------------------------------
 
 async function notifyRegistrant(
-  registry: { id: string; title: string; registrants: { emailEnc: string }[] },
+  registry: { id: string; title: string; registrants: { id: string; emailEnc: string; role: string }[] },
   shopDomain: string,
   gift: {
     itemTitle: string;
@@ -318,11 +320,11 @@ async function notifyRegistrant(
     hidden: boolean;
   },
 ): Promise<void> {
-  const owner = registry.registrants[0];
-  if (!owner) return;
-
-  const email = registrantEmail(owner);
-  if (!email) return;
+  // Everyone on the registry hears about a gift: the owner and their partner.
+  const recipients = registry.registrants
+    .map((r) => ({ registrant: r, email: registrantEmail(r) }))
+    .filter((r): r is { registrant: typeof r.registrant; email: string } => Boolean(r.email));
+  if (recipients.length === 0) return;
 
   await audit({
     shop: shopDomain,
@@ -338,19 +340,21 @@ async function notifyRegistrant(
       ? `From ${gift.buyerName}.`
       : "The buyer chose not to share their name.";
 
-  await sendEmail("gift-purchased", email, {
-    itemTitle: gift.itemTitle,
-    qty: gift.qty,
-    desiredQty: gift.desiredQty,
-    buyerLine,
-    url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
-      t: mintManageToken(registry.id),
-    }),
-  });
+  for (const { registrant, email } of recipients) {
+    await sendEmail("gift-purchased", email, {
+      itemTitle: gift.itemTitle,
+      qty: gift.qty,
+      desiredQty: gift.desiredQty,
+      buyerLine,
+      url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
+        t: manageTokenFor(registry.id, registrant),
+      }),
+    });
+  }
 }
 
 async function notifyRegistrantOfContribution(
-  registry: { id: string; title: string; registrants: { emailEnc: string }[] },
+  registry: { id: string; title: string; registrants: { emailEnc: string; role: string }[] },
   shopDomain: string,
   gift: {
     itemTitle: string;
@@ -361,7 +365,9 @@ async function notifyRegistrantOfContribution(
     sentToRegistrant: boolean;
   },
 ): Promise<void> {
-  const owner = registry.registrants[0];
+  // Owner only: the email says the card went "to this address", which is the
+  // owner's (see contributeAction), never the partner's.
+  const owner = ownerOf(registry.registrants);
   if (!owner) return;
 
   const email = registrantEmail(owner);
@@ -547,3 +553,5 @@ export async function applyShipToRegistrant(
 
   return { applied: true };
 }
+
+export const __testables = { notifyRegistrant };

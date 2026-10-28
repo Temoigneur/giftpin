@@ -95,6 +95,22 @@ const templates: Record<string, TemplateFn> = {
     ),
   }),
 
+  /** A registrant added their partner. Their own link, so it can be revoked. */
+  "registry-partner": (d) => {
+    const who = d.inviterName ? `${d.inviterName} added you` : "You've been added";
+    return {
+      to: d.to,
+      subject: `${who} to the ${d.registryTitle} registry`,
+      text: `${who} to the ${d.registryTitle} registry at ${d.shopName}. You can add gifts and see what's been bought.\n\nOpen the registry: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit the registry, so keep it to yourself. If it expires, ask for a new one on the store's registry page with this email address.`,
+      html: shell(
+        `${who} to a registry`,
+        `<p>${escapeHtml(who)} to the <strong>${escapeHtml(d.registryTitle)}</strong> registry at ${escapeHtml(d.shopName)}. You can add gifts and see what's been bought.</p>
+       <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit the registry, so keep it to yourself. If it expires, ask for a new one on the store's registry page with this email address.</p>`,
+        { label: "Open the registry", url: d.url },
+      ),
+    };
+  },
+
   /** The moment that sells the app. */
   "gift-purchased": (d) => ({
     to: d.to,
