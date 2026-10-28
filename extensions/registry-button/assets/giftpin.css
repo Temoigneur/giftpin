@@ -127,3 +127,13 @@
 @media (prefers-reduced-motion: reduce) {
   .giftpin-btn { transition: none; }
 }
+
+.giftpin-choice .giftpin-row {
+  flex-wrap: wrap;
+  align-items: stretch;
+  margin-top: 0;
+}
+
+.giftpin-choice .giftpin-btn--sm {
+  flex: 1 1 140px;
+}

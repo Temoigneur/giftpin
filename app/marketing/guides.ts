@@ -447,6 +447,7 @@ const SETTINGS: Step[] = [
     items: [
       "Under <b>Appearance</b>, set the <b>Button label</b> and <b>Accent colour</b>.",
       "The Add to registry button and registry links have their own settings in the theme editor: label, icon, colours, size and spacing.",
+      "To let shoppers who keep their registry somewhere else use your button too, tick <b>Also offer Babylist</b> or <b>Also offer \"Another registry\"</b> (copies the product link for sites like Zola) in the button's settings. The button then asks which registry.",
       "With Pro, <b>Your branding</b> adds your logo, colours and font to registry pages and removes the Powered by Giftpin credit.",
     ],
     img: { src: "/guides/m6-appearance.png", alt: "Giftpin Settings Appearance section with the Button label and Accent colour fields" },

@@ -113,8 +113,10 @@ ${renderPerks(data.shopName, data.perks)}
   <p style="margin:0 0 8px"><strong>Your share link</strong></p>
   <p class="sub" style="word-break:break-all;margin:0 0 10px">${escapeHtml(data.shareUrl)}</p>
   <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share with guests</button>
+  <button class="btn sm ghost js-share-copy" type="button" data-url="${escapeAttr(data.shareUrl)}">Copy link</button>
   ${renderShareMenu(data.title, data.shareUrl)}
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
+  ${renderLinkElsewhere(data.eventType, data.privacy)}
 </div>
 
 ${data.chromeExtensionUrl || data.extensionConnect ? `<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
@@ -707,6 +709,25 @@ function renderGifts(data: ManagePageData): string {
 <p class="sub">For your thank-you notes.</p>
 <ul class="items">${rows}</ul>
 <p><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
+}
+
+/**
+ * Couples who also keep a registry elsewhere usually gather them on one page
+ * (The Knot's registry page or a wedding website), which can link a registry
+ * from another store by its address. Names are plain text: no partnership.
+ * A password registry still works there, but every guest arriving that way
+ * will be asked for the password, so say so.
+ */
+function renderLinkElsewhere(eventType: string, privacy: string): string {
+  const where =
+    eventType === "wedding"
+      ? "Using The Knot or a wedding website? Add this as a registry from another store and paste the link above."
+      : "Using a wedding website or another registry site? Add this as a registry from another store and paste the link above.";
+  const passwordNote =
+    privacy === "password"
+      ? ` <strong>Your registry has a password</strong>, so guests who arrive from there will need it too. You can change this under Who can see this.`
+      : "";
+  return `<p class="hint">${escapeHtml(where)}${passwordNote}</p>`;
 }
 
 /**

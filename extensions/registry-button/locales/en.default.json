@@ -6,6 +6,12 @@
     "choose": "Choose a registry",
     "create": "Start a registry",
     "error": "Couldn't add that. Please try again.",
-    "no_registry": "You'll need a registry first."
+    "no_registry": "You'll need a registry first.",
+    "which": "Which registry?",
+    "store_option": "My {{ shop }} registry",
+    "babylist_option": "My Babylist registry",
+    "babylist_error": "Couldn't open Babylist. Please try again.",
+    "other_option": "Another registry (copy link)",
+    "link_copied": "Product link copied. In your other registry, paste it where it asks for a link, or use that site's own button, like Add to Zola."
   }
 }
