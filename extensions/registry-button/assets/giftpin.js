@@ -168,16 +168,77 @@
         encodeURIComponent(window.location.pathname + window.location.search);
     }
 
-    // "Add to any registry": with the merchant's Babylist option on, the
-    // button first asks which registry, so shoppers who keep theirs on
-    // Babylist still get a reason to use this store's button.
+    // "Add to any registry": when the merchant turns on another registry
+    // option, the button first asks which registry, so shoppers who keep
+    // theirs elsewhere still get a reason to use this store's button. Each
+    // option button carries data-giftpin-option="<key>" and is handled by
+    // CHOICES[key]; a handler returns a promise so its button can show it's
+    // busy. To add a registry, add its toggle and button in
+    // add-to-registry.liquid and its handler here.
     var choicePanel = root.querySelector("[data-giftpin-choice]");
-    var choiceStoreBtn = root.querySelector("[data-giftpin-choice-store]");
-    var choiceBabylistBtn = root.querySelector("[data-giftpin-choice-babylist]");
-    var offersBabylist = !!(root.dataset.babylistPartner && choicePanel);
+    var offersChoice = !!(root.dataset.offersChoice && choicePanel);
+
+    var CHOICES = {
+      store: function () {
+        startGiftpinAdd();
+        return Promise.resolve();
+      },
+      babylist: function () {
+        var babylist = window.GiftpinBabylist;
+        return (babylist ? babylist.add(root, currentVariantId()) : Promise.reject(new Error("not loaded")))
+          .then(function () {
+            status("");
+          })
+          .catch(function (err) {
+            status(root.dataset.labelBabylistError || "Couldn't open Babylist. Please try again.", true);
+            throw err;
+          });
+      },
+      // Zola, The Knot and most other registries have no retailer button,
+      // only their own app or browser button that takes a product link.
+      other: function () {
+        var variantId = currentVariantId();
+        var link =
+          window.location.origin + window.location.pathname + (variantId ? "?variant=" + variantId : "");
+        return copyText(link).then(
+          function () {
+            status(
+              root.dataset.labelLinkCopied ||
+                "Product link copied. In your other registry, paste it where it asks for a link.",
+            );
+          },
+          function (err) {
+            window.prompt("Copy this link:", link);
+            throw err;
+          },
+        );
+      },
+    };
+
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise(function (resolve, reject) {
+        var field = document.createElement("textarea");
+        field.value = text;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        var ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } catch (_) {}
+        document.body.removeChild(field);
+        if (ok) resolve();
+        else reject(new Error("copy failed"));
+      });
+    }
 
     openBtn.addEventListener("click", function () {
-      if (offersBabylist) {
+      if (offersChoice) {
         choicePanel.hidden = !choicePanel.hidden;
         if (picker) picker.hidden = true;
         if (dupPanel) dupPanel.hidden = true;
@@ -187,30 +248,21 @@
       startGiftpinAdd();
     });
 
-    if (choiceStoreBtn) {
-      choiceStoreBtn.addEventListener("click", function () {
-        choicePanel.hidden = true;
-        startGiftpinAdd();
-      });
-    }
-
-    if (choiceBabylistBtn) {
-      choiceBabylistBtn.addEventListener("click", function () {
-        choiceBabylistBtn.disabled = true;
-        var babylist = window.GiftpinBabylist;
-        (babylist ? babylist.add(root, currentVariantId()) : Promise.reject(new Error("not loaded")))
+    if (choicePanel) {
+      choicePanel.addEventListener("click", function (event) {
+        var btn = event.target.closest("[data-giftpin-option]");
+        var handler = btn && CHOICES[btn.getAttribute("data-giftpin-option")];
+        if (!handler || btn.disabled) return;
+        btn.disabled = true;
+        handler()
+          .then(
+            function () {
+              choicePanel.hidden = true;
+            },
+            function () {},
+          )
           .then(function () {
-            choicePanel.hidden = true;
-            status("");
-          })
-          .catch(function () {
-            status(
-              root.dataset.labelBabylistError || "Couldn't open Babylist. Please try again.",
-              true,
-            );
-          })
-          .then(function () {
-            choiceBabylistBtn.disabled = false;
+            btn.disabled = false;
           });
       });
     }

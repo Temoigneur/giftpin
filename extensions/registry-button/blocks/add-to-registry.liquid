@@ -10,6 +10,10 @@
 {% endcomment %}
 
 {%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign offers_choice = false -%}
+{%- if block.settings.offer_babylist or block.settings.offer_other_registry -%}
+  {%- assign offers_choice = true -%}
+{%- endif -%}
 
 <div
   class="giftpin-block"
@@ -22,12 +26,15 @@
   data-currency="{{ cart.currency.iso_code }}"
   data-proxy="{{ block.settings.proxy_path | default: '/apps/registry' }}"
   data-customer-id="{{ customer.id }}"
+  {%- if offers_choice %}
+    data-offers-choice="1"
+  {%- endif %}
   {%- if block.settings.offer_babylist %}
     data-babylist-partner="{{ shop.domain | escape }}"
-    data-label-choose="{{ 'add_to_registry.which' | t | escape }}"
-    data-label-store="{{ 'add_to_registry.store_option' | t: shop: shop.name | escape }}"
-    data-label-babylist="{{ 'add_to_registry.babylist_option' | t | escape }}"
     data-label-babylist-error="{{ 'add_to_registry.babylist_error' | t | escape }}"
+  {%- endif %}
+  {%- if block.settings.offer_other_registry %}
+    data-label-link-copied="{{ 'add_to_registry.link_copied' | t | escape }}"
   {%- endif %}
   {{ block.shopify_attributes }}
   style="
@@ -48,28 +55,45 @@
 
   <p class="giftpin-status" data-giftpin-status role="status" aria-live="polite"></p>
 
-  {%- if block.settings.offer_babylist -%}
+  {%- if offers_choice -%}
     {%- comment -%}
-      "Add to any registry": shoppers whose registry lives on Babylist can add
-      this product there instead. Babylist's own retailer script
-      (babylist.com/add-to-babylist-integration) does the adding, and it only
-      loads once a shopper picks Babylist, so stores that leave this off (the
-      default), and shoppers who never pick it, load nothing extra. Babylist is
-      named in plain text, never with its logo: Giftpin has no partnership
-      with Babylist. Purchases made from a Babylist registry aren't tracked by
-      Giftpin.
+      "Add to any registry": shoppers whose registry lives elsewhere can still
+      use this store's button. Each option is a merchant toggle, off by
+      default. To add another registry later, add a toggle in the schema, a
+      button here and a handler in CHOICES in giftpin.js. Names are plain
+      text, never logos: Giftpin has no partnership with these sites, and
+      purchases made from their registries aren't tracked by Giftpin.
+
+      Babylist: its own retailer script
+      (babylist.com/add-to-babylist-integration) does the adding, and loads
+      only once a shopper picks Babylist.
     {%- endcomment -%}
     <div class="giftpin-picker giftpin-choice" data-giftpin-choice hidden>
       <p class="giftpin-label">{{ 'add_to_registry.which' | t }}</p>
       <div class="giftpin-row">
-        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-choice-store>
+        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="store">
           {{ 'add_to_registry.store_option' | t: shop: shop.name }}
         </button>
-        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-choice-babylist>
-          {{ 'add_to_registry.babylist_option' | t }}
-        </button>
+        {%- if block.settings.offer_babylist -%}
+          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="babylist">
+            {{ 'add_to_registry.babylist_option' | t }}
+          </button>
+        {%- endif -%}
+        {%- if block.settings.offer_other_registry -%}
+          {%- comment -%}
+            Zola and most other registries have no retailer button, only their
+            own app or browser button that takes a product link, so this copies
+            the link and says where to paste it. No deep links: none of them
+            document one.
+          {%- endcomment -%}
+          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="other">
+            {{ 'add_to_registry.other_option' | t }}
+          </button>
+        {%- endif -%}
       </div>
     </div>
+  {%- endif -%}
+  {%- if block.settings.offer_babylist -%}
     {%- comment -%}
       Per-variant details for Babylist, so the item it saves matches the
       variant the shopper has selected (Babylist's own Shopify example needs
@@ -218,6 +242,13 @@
       "label": "Also offer Babylist",
       "default": false,
       "info": "Shoppers can choose your registry or their Babylist registry. Babylist's add script loads only when a shopper picks it. Purchases from Babylist registries aren't tracked by Giftpin."
+    },
+    {
+      "type": "checkbox",
+      "id": "offer_other_registry",
+      "label": "Also offer \"Another registry\"",
+      "default": false,
+      "info": "Copies the product link and tells shoppers to paste it into their registry's own app or browser button (for example Zola's). Purchases from other registries aren't tracked by Giftpin."
     },
     {
       "type": "text",
