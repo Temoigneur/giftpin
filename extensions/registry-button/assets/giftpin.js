@@ -168,7 +168,54 @@
         encodeURIComponent(window.location.pathname + window.location.search);
     }
 
+    // "Add to any registry": with the merchant's Babylist option on, the
+    // button first asks which registry, so shoppers who keep theirs on
+    // Babylist still get a reason to use this store's button.
+    var choicePanel = root.querySelector("[data-giftpin-choice]");
+    var choiceStoreBtn = root.querySelector("[data-giftpin-choice-store]");
+    var choiceBabylistBtn = root.querySelector("[data-giftpin-choice-babylist]");
+    var offersBabylist = !!(root.dataset.babylistPartner && choicePanel);
+
     openBtn.addEventListener("click", function () {
+      if (offersBabylist) {
+        choicePanel.hidden = !choicePanel.hidden;
+        if (picker) picker.hidden = true;
+        if (dupPanel) dupPanel.hidden = true;
+        status("");
+        return;
+      }
+      startGiftpinAdd();
+    });
+
+    if (choiceStoreBtn) {
+      choiceStoreBtn.addEventListener("click", function () {
+        choicePanel.hidden = true;
+        startGiftpinAdd();
+      });
+    }
+
+    if (choiceBabylistBtn) {
+      choiceBabylistBtn.addEventListener("click", function () {
+        choiceBabylistBtn.disabled = true;
+        var babylist = window.GiftpinBabylist;
+        (babylist ? babylist.add(root, currentVariantId()) : Promise.reject(new Error("not loaded")))
+          .then(function () {
+            choicePanel.hidden = true;
+            status("");
+          })
+          .catch(function () {
+            status(
+              root.dataset.labelBabylistError || "Couldn't open Babylist. Please try again.",
+              true,
+            );
+          })
+          .then(function () {
+            choiceBabylistBtn.disabled = false;
+          });
+      });
+    }
+
+    function startGiftpinAdd() {
       openBtn.disabled = true;
       status(labelKey("adding", "Adding..."));
 
@@ -205,7 +252,7 @@
           status(labelKey("error", "Couldn't add that. Please try again."), true);
           openBtn.disabled = false;
         });
-    });
+    }
 
     if (confirmBtn) {
       confirmBtn.addEventListener("click", function () {

@@ -22,6 +22,13 @@
   data-currency="{{ cart.currency.iso_code }}"
   data-proxy="{{ block.settings.proxy_path | default: '/apps/registry' }}"
   data-customer-id="{{ customer.id }}"
+  {%- if block.settings.offer_babylist %}
+    data-babylist-partner="{{ shop.domain | escape }}"
+    data-label-choose="{{ 'add_to_registry.which' | t | escape }}"
+    data-label-store="{{ 'add_to_registry.store_option' | t: shop: shop.name | escape }}"
+    data-label-babylist="{{ 'add_to_registry.babylist_option' | t | escape }}"
+    data-label-babylist-error="{{ 'add_to_registry.babylist_error' | t | escape }}"
+  {%- endif %}
   {{ block.shopify_attributes }}
   style="
     --giftpin-accent: {{ block.settings.accent_color }};
@@ -40,6 +47,56 @@
   </button>
 
   <p class="giftpin-status" data-giftpin-status role="status" aria-live="polite"></p>
+
+  {%- if block.settings.offer_babylist -%}
+    {%- comment -%}
+      "Add to any registry": shoppers whose registry lives on Babylist can add
+      this product there instead. Babylist's own retailer script
+      (babylist.com/add-to-babylist-integration) does the adding, and it only
+      loads once a shopper picks Babylist, so stores that leave this off (the
+      default), and shoppers who never pick it, load nothing extra. Babylist is
+      named in plain text, never with its logo: Giftpin has no partnership
+      with Babylist. Purchases made from a Babylist registry aren't tracked by
+      Giftpin.
+    {%- endcomment -%}
+    <div class="giftpin-picker giftpin-choice" data-giftpin-choice hidden>
+      <p class="giftpin-label">{{ 'add_to_registry.which' | t }}</p>
+      <div class="giftpin-row">
+        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-choice-store>
+          {{ 'add_to_registry.store_option' | t: shop: shop.name }}
+        </button>
+        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-choice-babylist>
+          {{ 'add_to_registry.babylist_option' | t }}
+        </button>
+      </div>
+    </div>
+    {%- comment -%}
+      Per-variant details for Babylist, so the item it saves matches the
+      variant the shopper has selected (Babylist's own Shopify example needs
+      theme code for this; reading it here avoids that).
+    {%- endcomment -%}
+    <script type="application/json" data-giftpin-babylist-product>
+      {
+        "url": {{ shop.url | append: product.url | json }},
+        "title": {{ product.title | json }},
+        "vendor": {{ product.vendor | json }},
+        "image": {% if product.featured_image %}{{ product.featured_image | image_url: width: 800 | json }}{% else %}null{% endif %},
+        "variants": [
+          {%- for variant in product.variants -%}
+            {
+              "id": {{ variant.id | json }},
+              "title": {% if product.has_only_default_variant %}null{% else %}{{ variant.title | json }}{% endif %},
+              "price": {{ variant.price | json }},
+              "sku": {{ variant.sku | json }},
+              "barcode": {{ variant.barcode | json }},
+              "available": {{ variant.available | json }},
+              "image": {% if variant.featured_image %}{{ variant.featured_image | image_url: width: 800 | json }}{% else %}null{% endif %}
+            }{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        ]
+      }
+    </script>
+  {%- endif -%}
 
   {%- comment -%}
     The picker only appears once a customer has more than one registry, so the
@@ -94,6 +151,9 @@
 </div>
 
 {{ 'giftpin.css' | asset_url | stylesheet_tag }}
+{%- if block.settings.offer_babylist -%}
+  <script src="{{ 'giftpin-babylist.js' | asset_url }}" defer></script>
+{%- endif %}
 <script src="{{ 'giftpin.js' | asset_url }}" defer></script>
 
 {% schema %}
@@ -151,6 +211,13 @@
       "step": 4,
       "unit": "px",
       "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "offer_babylist",
+      "label": "Also offer Babylist",
+      "default": false,
+      "info": "Shoppers can choose your registry or their Babylist registry. Babylist's add script loads only when a shopper picks it. Purchases from Babylist registries aren't tracked by Giftpin."
     },
     {
       "type": "text",

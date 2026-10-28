@@ -6,6 +6,10 @@
     "choose": "Choose a registry",
     "create": "Start a registry",
     "error": "Couldn't add that. Please try again.",
-    "no_registry": "You'll need a registry first."
+    "no_registry": "You'll need a registry first.",
+    "which": "Which registry?",
+    "store_option": "My {{ shop }} registry",
+    "babylist_option": "My Babylist registry",
+    "babylist_error": "Couldn't open Babylist. Please try again."
   }
 }
