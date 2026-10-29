@@ -316,7 +316,7 @@ export default function Settings() {
           <s-checkbox
             name="findARegistryEnabled"
             label="Enable the public find-a-registry page"
-            details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown."
+            details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown. The Registry links theme block's “Find a gift registry” link opens this page."
             {...(settings.findARegistryEnabled ? { checked: true } : {})}
           />
         </s-section>

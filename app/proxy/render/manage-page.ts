@@ -4,6 +4,7 @@ import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor } from "../../shared/registry-ideas";
+import { IDEA_MATCH_JS } from "../../shared/idea-match";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
@@ -581,6 +582,7 @@ function renderShareMenu(title: string, url: string): string {
 function manageScript(): string {
   return `
 (function(){
+  ${IDEA_MATCH_JS}
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
 
   // Hand this registry's token to the storefront.
@@ -849,15 +851,35 @@ function manageScript(): string {
       panel.hidden=false;panel.textContent='Checking '+cfg.shopName+'...';
       var reveal=function(){try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}};
       reveal();
-      fetch('/search/suggest.json?q='+encodeURIComponent(term)+'&resources[type]=product&resources[limit]=1',{headers:{Accept:'application/json'}})
+      // Shopify's predictive search is loose on purpose (prefix and typo
+      // matching), so a store with no stockpot still answers "Stockpot" with
+      // anything starting "sto". Ask for its top 10 and keep only real
+      // matches (gpIdeaMatch, app/shared/idea-match.ts), best first.
+      fetch('/search/suggest.json?q='+encodeURIComponent(term)+'&resources[type]=product&resources[limit]=10&resources[options][unavailable_products]=last',{headers:{Accept:'application/json'}})
         .then(function(r){return r.ok?r.json():null})
         .then(function(data){
           var list=data&&data.resources&&data.resources.results&&data.resources.results.products;
-          // Found one, or couldn't tell: go to the store's own search.
-          if(!Array.isArray(list)||list.length>0){location.href=href;return;}
+          // Couldn't tell (search off, theme quirk): go to the store's own search.
+          if(!Array.isArray(list)){location.href=href;return;}
+          var hits=gpIdeaMatch(term,list).slice(0,6);
           panel.textContent='';
+          if(hits.length){
+            var fp=document.createElement('p');fp.className='item-meta';
+            fp.textContent=(hits.length===1?'Found at ':'Found '+hits.length+' at ')+cfg.shopName+':';
+            panel.appendChild(fp);
+            var fr=document.createElement('div');fr.className='cat-grid';
+            hits.forEach(function(prod){
+              var a=document.createElement('a');a.className='cat-chip';a.href=prod.url||href;a.textContent=prod.title;fr.appendChild(a);
+            });
+            panel.appendChild(fr);
+            var fh=document.createElement('p');fh.className='hint';
+            fh.textContent='Open one and use its \u201cAdd to registry\u201d button.';
+            panel.appendChild(fh);
+            reveal();
+            return;
+          }
           var p=document.createElement('p');p.className='item-meta';
-          p.textContent=cfg.shopName+' doesn\u2019t carry \u201c'+term+'\u201d yet. Look for it at:';
+          p.textContent='No match for \u201c'+term+'\u201d at '+cfg.shopName+'. Look for it at:';
           panel.appendChild(p);
           var row=document.createElement('div');row.className='cat-grid';
           (cfg.retailers||[]).forEach(function(r){

@@ -243,6 +243,16 @@ describe("connect-the-extension box and chip fallback", () => {
     expect(html).not.toContain("walmart.ca");
   });
 
+  it("filters the store's loose search results with the strict idea matcher (29 Oct 2026)", () => {
+    const html = page({ eventType: "wedding" });
+    expect(html).toContain("function gpIdeaMatch(term,products)");
+    expect(html).toContain("gpIdeaMatch(term,list)");
+    expect(html).toContain("resources[limit]=10");
+    expect(html).toContain("No match for");
+    // A result no longer sends the registrant to the store's own (loose) search page.
+    expect(html).not.toContain("list.length>0){location.href=href");
+  });
+
   it("ships Canadian retailers when the registry's country is Canada", () => {
     const html = page({ country: "CA", currency: "CAD" });
     expect(html).toContain("walmart.ca");
