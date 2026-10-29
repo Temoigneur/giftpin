@@ -15,9 +15,23 @@ describe("retailer links by country", () => {
 
   it("uses each country's own sites", () => {
     expect(retailerSearchLinks("US")[0].url).toContain("target.com");
-    expect(retailerSearchLinks("CA")[0].url).toContain("walmart.ca");
+    expect(retailerSearchLinks("CA")[0].url).toContain("crateandbarrel.ca");
     expect(retailerSearchLinks("gb")[0].url).toContain("argos.co.uk");
     expect(retailerSearchLinks("AU")[0].url).toContain("kmart.com.au");
+  });
+
+  it("leads with home and kitchen stores for the US and Canada, since most registries are weddings", () => {
+    const names = (c: string) => retailerSearchLinks(c).map((r) => r.name);
+    for (const c of ["US", "CA"]) {
+      expect(names(c)).toEqual(expect.arrayContaining(["Crate & Barrel", "Williams Sonoma"]));
+      expect(names(c)).toContain("Google Shopping");
+      // HomeSense sells in-store only, so there's no search page to link to.
+      expect(names(c).join(" ")).not.toMatch(/homesense/i);
+    }
+    expect(names("US")).not.toContain("Walmart");
+    const ca = retailerSearchLinks("CA").map((r) => r.url).join(" ");
+    expect(ca).toContain("canadiantire.ca/en/search-results.html?q={q}");
+    expect(ca).not.toMatch(/crateandbarrel\.com|williams-sonoma\.com/);
   });
 
   it("never links to Amazon, which can't pay commission on merchants' storefronts", () => {
@@ -53,13 +67,13 @@ describe("country choice in the pages", () => {
 
   it("a Canadian-currency shop with no country chosen still links to .com stores", () => {
     const html = manage(null);
-    expect(html).toContain("walmart.com/search?q=");
-    expect(html).not.toContain("walmart.ca");
+    expect(html).toContain("crateandbarrel.com/search?query=");
+    expect(html).not.toContain("crateandbarrel.ca");
   });
 
   it("uses the registry's chosen country, and shows it selected in settings", () => {
     const html = manage("CA");
-    expect(html).toContain("walmart.ca/search?q=");
+    expect(html).toContain("crateandbarrel.ca/search?query=");
     expect(html).toContain('<option value="CA" selected>');
   });
 

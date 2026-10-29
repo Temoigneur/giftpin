@@ -243,9 +243,21 @@ describe("connect-the-extension box and chip fallback", () => {
     expect(html).not.toContain("walmart.ca");
   });
 
+  it("filters the store's loose search results with the strict idea matcher (29 Oct 2026)", () => {
+    const html = page({ eventType: "wedding" });
+    expect(html).toContain("function gpIdeaMatch(term,products)");
+    expect(html).toContain("gpIdeaMatch(names,list)");
+    // Other names an item is sold under ride along on the chip.
+    expect(html).toContain('data-term="Skillet" data-aliases="frying pan|fry pan"');
+    expect(html).toContain("resources[limit]=10");
+    expect(html).toContain("No match for");
+    // A result no longer sends the registrant to the store's own (loose) search page.
+    expect(html).not.toContain("list.length>0){location.href=href");
+  });
+
   it("ships Canadian retailers when the registry's country is Canada", () => {
     const html = page({ country: "CA", currency: "CAD" });
-    expect(html).toContain("walmart.ca");
+    expect(html).toContain("canadiantire.ca");
     expect(html).not.toContain("target.com");
   });
 
@@ -472,5 +484,43 @@ describe("linking the registry from The Knot or a wedding website (28 Oct 2026)"
     expect(page({ privacy: "password" })).toContain("Your registry has a password");
     expect(page({ privacy: "unlisted" })).not.toContain("Your registry has a password");
     expect(page({ privacy: "public_" })).not.toContain("Your registry has a password");
+  });
+});
+
+describe("manage page item tiles (29 Oct 2026)", () => {
+  const item = (o: Partial<DisplayItem>): DisplayItem =>
+    ({
+      id: "i1", sourceType: "shopify_internal", title: "Linen Pillowcase Pair", imageUrl: null, price: 71.25, currency: "CAD",
+      desiredQty: 4, purchasedQty: 1, claimedQty: 0, remainingQty: 3, note: null, category: null, storeMatch: null,
+      variantGid: "gid://shopify/ProductVariant/1", externalUrl: null, externalDomain: null, isExternal: false, isStale: false,
+      availability: "in_stock", fulfilled: false, ...o,
+    }) as DisplayItem;
+
+  it("shows the price, the bought count and a bar that matches it", () => {
+    const html = page({ items: [item({})] });
+    expect(html).toContain("1 of 4 bought");
+    expect(html).toContain('<div class="mi-bar" aria-hidden="true"><i style="width:25%"></i></div>');
+  });
+
+  it("marks a fully bought item clearly, and never offers Remove on it", () => {
+    const html = page({ items: [item({ purchasedQty: 4, remainingQty: 0, fulfilled: true })] });
+    expect(html).toContain('class="item mi done"');
+    expect(html).toContain("All bought");
+    expect(html).not.toContain('class="mi-remove js-remove"');
+  });
+
+  it("gives the hero picture its own edge so it never merges into the page background", () => {
+    expect(page()).toContain(".manage .hero-img,.manage .hero-art{");
+  });
+
+  it("keeps the ideas box a plain card, not an accent-tinted grey", () => {
+    expect(page()).toContain(".manage details.ideas{background:var(--card)");
+  });
+
+  it("ships its own styles, and skips the background wash when a Pro store picked its own background", () => {
+    expect(page()).toContain("body.manage{background:");
+    const branded = page({ branding: { backgroundColor: "#fff8ef" } as ManagePageData["branding"] });
+    expect(branded).not.toContain("body.manage{background:");
+    expect(branded).toContain(".mi-bar");
   });
 });

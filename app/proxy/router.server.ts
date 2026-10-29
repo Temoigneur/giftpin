@@ -502,8 +502,19 @@ async function findPage(
   brand: Brand,
   settings: ShopSettings,
 ): Promise<Response> {
+  // The theme's "Registry links" block shows a "Find a gift registry" link by
+  // default, and the theme can't see this setting, so a store that hasn't
+  // turned the search on used to send that link to "Page not found" (Ben, 29
+  // Oct 2026). Tell the guest what to do instead of showing a dead end.
   if (!settings.findARegistryEnabled) {
-    return page(renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere."), 404);
+    return page(
+      renderSimplePage(
+        brand,
+        "Find a gift registry",
+        `${brand.shopName} doesn't have a public registry search. Ask the person you're shopping for to send you their registry link.`,
+        { label: "Start your own registry", href: ctx.pathPrefix },
+      ),
+    );
   }
 
   const query = (ctx.query.get("q") ?? "").trim().slice(0, 80);
