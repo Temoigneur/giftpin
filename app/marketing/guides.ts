@@ -127,6 +127,7 @@ const ROWS: Row[] = [
   { label: "Your products when a gift comes from elsewhere", catalogOnly: "The couple leaves to register somewhere else", giftpin: "Your closest match suggested beside it" },
   { label: "Credit for Shop Pay, Apple Pay and Google Pay orders", catalogOnly: "Varies", giftpin: "Yes, every gift credited to the right item" },
   { label: "Duplicate-gift protection for gifts bought elsewhere", catalogOnly: "Not applicable", giftpin: "Held while a guest buys" },
+  { label: "Shoppers whose registry is on another site", catalogOnly: "Usually not served", giftpin: "Your button can add to Babylist, or copy the link for any registry that takes one" },
   { label: "Registry pages on your own domain", catalogOnly: "Varies", giftpin: "Yes" },
   { label: "Accounts for registrants and guests", catalogOnly: "Often required", giftpin: "Not needed" },
 ];
@@ -258,6 +259,10 @@ const BABY_FAQ = [
     a: "Yes. Parents save a shipping address once, and guests can send gifts from your store straight to them. Guests never see the address.",
   },
   {
+    q: "What about parents who already have a Babylist registry?",
+    a: "Your Add to registry button can offer it. Turn on Also offer Babylist in the button's settings and shoppers get a choice: your store's registry, or their own Babylist registry, added through Babylist's add-to-Babylist script. Giftpin isn't affiliated with Babylist and doesn't track purchases made from Babylist registries.",
+  },
+  {
     q: "Does Giftpin help parents decide what to add?",
     a: "Yes. A baby registry ideas guide lists what a new baby needs, from sleep and feeding to bath time, with your products one tap away.",
   },
@@ -286,6 +291,9 @@ ${section(
     { icon: "sparkle", title: "Your product, suggested first", detail: "When parents add something from another shop, Giftpin shows your closest match beside it, one tap to swap." },
     { icon: "shield", title: "No duplicate gifts", detail: "The registry shows Someone may be buying this while a guest checks out." },
     { icon: "list", title: "Thank-you list included", detail: "Parents get a who-gave-what list, downloadable as a spreadsheet." },
+    { icon: "link", title: "Already on Babylist? Still welcome", detail: "Your Add to registry button can ask Which registry? and add your product to the parents' Babylist registry, so they shop with you either way." },
+    { icon: "box", title: "No sold-out surprises", detail: "Products you've sold out of are marked on registries, or hidden until they're back in stock." },
+    { icon: "upload", title: "Switching registry apps?", detail: "Import registries from your old app's spreadsheet. Gifts already bought stay bought." },
   ]),
   true,
 )}

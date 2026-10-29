@@ -80,6 +80,10 @@ export const FAQ_GROUPS: FaqGroup[] = [
         a: "<p>The registrant pastes a product link and Giftpin fills in the photo, name and price from that page. Guests buy those gifts on the original store's website, and Giftpin marks the gift as possibly taken while they do. Nothing from another store is added to your catalog, and you're never asked to fulfil it.</p>",
       },
       {
+        q: "What if a shopper already has a registry somewhere else?",
+        a: "<p>Your Add to registry button can still help. In the button's settings in the theme editor, tick <strong>Also offer Babylist</strong>, <strong>Also offer \"Another registry\"</strong>, or both. The button then asks <em>Which registry?</em> Babylist adds the product, with the variant the shopper picked, through Babylist's own add-to-Babylist script. <em>Another registry (copy link)</em> copies the product link so they can paste it into any registry that adds gifts from a link, or use that site's own button, like Add to Zola. Both are free on every plan. Giftpin isn't affiliated with Babylist or Zola, and it doesn't track purchases made from registries on other sites.</p>",
+      },
+      {
         q: "How does Giftpin stop two guests buying the same gift?",
         a: "<p>When a guest heads off to buy something, the registry immediately shows <em>Someone may be buying this</em>. If they don't go through with it, the gift becomes available again. For gifts from your store, the registry updates as soon as the order comes in.</p>",
       },

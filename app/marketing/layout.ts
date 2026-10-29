@@ -126,7 +126,7 @@ ${opts.body}
       <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/gift-registry-app">Gift registry app</a><a href="/wedding-registry">Universal wedding registry</a><a href="/baby-registry">Baby registry</a><a href="/home-goods-registry">Home goods stores</a><a href="/compare">Choosing a registry app</a><a href="/gift-cards">Gift cards</a></div>
       <div><h3>Company</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy">Privacy policy</a></div>
     </div>
-    <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay and Google Pay are trademarks of their owners.</p>
+    <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay, Google Pay, Babylist and Zola are trademarks of their owners. Giftpin isn't affiliated with Babylist or Zola.</p>
   </div>
 </footer>
 <script>
@@ -333,6 +333,9 @@ p{margin:0}
 .page-hero{padding-block:clamp(56px,9vw,104px) clamp(56px,8vw,96px); text-align:center}
 .page-hero h1{font-size:clamp(38px,6vw,64px); margin-bottom:18px}
 .page-hero .lede{margin-inline:auto}
+.founding{display:flex; gap:8px; align-items:flex-start; margin-top:18px; max-width:52ch; font-size:14.5px; font-weight:600; color:var(--band-ink); padding:12px 16px; border-radius:14px; border:1px solid var(--band-line); background:var(--band-chip)}
+.founding .i{width:18px; height:18px; flex:none; margin-top:2px; color:var(--accent)}
+.page-hero .founding{margin-inline:auto; text-align:left}
 
 /* cards */
 .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:28px}

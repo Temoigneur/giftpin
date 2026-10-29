@@ -13,7 +13,8 @@ import { loader as homeGoodsLoader } from "../../routes/home-goods-registry";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
 import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
-import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
+import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
+import { SHOW_FOUNDING_OFFER } from "../config";
 import { videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
@@ -101,6 +102,50 @@ describe("marketing site", () => {
       expect(html).not.toContain("group gift");
       expect(html).not.toContain("/yr");
       expect(html).not.toContain("per year");
+    }
+  });
+
+  it("explains the Which registry? choice for Babylist and copy-link registries", async () => {
+    for (const path of ["/", "/features", "/faq"]) {
+      const html = await page(path);
+      expect(html).toContain("Which registry?");
+      expect(html).toContain("Babylist");
+      expect(html).toContain("copy");
+    }
+    expect(await page("/")).toContain("Another registry (copy link)");
+    expect(await page("/baby-registry")).toContain("Babylist");
+  });
+
+  it("never claims a Babylist partnership, Amazon support or the unreleased share-menu app", async () => {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide"]) {
+      const html = (await page(path)).toLowerCase();
+      expect(html).not.toContain("amazon");
+      expect(html).not.toMatch(/babylist[^<.]{0,40}(partner|endorse|official|certified)/);
+      expect(html).not.toMatch(/(partner|endorsed|official|certified)[^<.]{0,40}babylist/);
+      expect(html).not.toMatch(/<img[^>]+babylist/);
+      expect(html).not.toContain("share menu");
+      expect(html).not.toContain("share sheet");
+      expect(html).toContain("giftpin isn't affiliated with babylist or zola");
+    }
+  });
+
+  it("shows honest trust signals and no made-up social proof", async () => {
+    const home = await page("/");
+    for (const s of ["Made in Canada", "Reviewed by Shopify", 'href="#demo"', "two co-founders"]) expect(home).toContain(s);
+    for (const path of ["/", "/features", "/pricing", "/faq"]) {
+      const html = (await page(path)).toLowerCase();
+      expect(html).not.toContain("★");
+      expect(html).not.toContain("testimonial");
+      expect(html).not.toMatch(/\d[\d,]*\+? (merchants|installs|happy)|\d[\d,]*\+? stores (use|trust|love)/);
+    }
+  });
+
+  it("quotes the founding offer from the billing constants, or hides it when switched off", async () => {
+    for (const path of ["/", "/pricing"]) {
+      const html = await page(path);
+      const line = `first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get a ${FOUNDING_OFFER_TRIAL_DAYS}-day free trial`;
+      if (SHOW_FOUNDING_OFFER) expect(html).toContain(line);
+      else expect(html).not.toContain("Founding offer");
     }
   });
 

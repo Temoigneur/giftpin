@@ -1,9 +1,12 @@
 import {
+  FOUNDING_OFFER_SLOTS,
+  FOUNDING_OFFER_TRIAL_DAYS,
   GIFT_CARD_FEE_PERCENT,
   PRO_PLAN_DISPLAY_NAME,
   PRO_PLAN_PRICE,
   PRO_TRIAL_DAYS,
 } from "../shared/plans";
+import { SHOW_FOUNDING_OFFER } from "./config";
 
 /**
  * What each plan includes, as the marketing site words it. Price, trial and
@@ -18,6 +21,15 @@ export const PRO_NAME = PRO_PLAN_DISPLAY_NAME;
 export const TRIAL = `${PRO_TRIAL_DAYS}-day free trial`;
 export const TRIAL_DAYS = PRO_TRIAL_DAYS;
 
+/**
+ * One line on the founding offer, or "" once SHOW_FOUNDING_OFFER is off.
+ * Worded so it stays true while spots remain: the Plan page, not the site,
+ * tells a store whether it got one.
+ */
+export const FOUNDING_OFFER = SHOW_FOUNDING_OFFER
+  ? `Founding offer: the first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get a ${FOUNDING_OFFER_TRIAL_DAYS}-day free trial of ${PRO_PLAN_DISPLAY_NAME}, then ${PRICE}/month unless you cancel. Your Plan page shows if you got a spot.`
+  : "";
+
 export type Feature = { icon: string; title: string; detail: string };
 
 export const FREE_FEATURES: Feature[] = [
@@ -29,6 +41,7 @@ export const FREE_FEATURES: Feature[] = [
   { icon: "card", title: "Credited through every checkout", detail: "Including Shop Pay, Apple Pay, Google Pay and the Shop app." },
   { icon: "truck", title: "Gifts ship straight to the registrant", detail: "When they save an address, gifts bought from your store go to them." },
   { icon: "list", title: "Who-gave-what list for thank-you notes", detail: "Registrants can download it as a spreadsheet." },
+  { icon: "link", title: "Add to the registry they already have", detail: "Your Add to registry button can offer their Babylist registry, or copy the product link for any registry that takes one." },
   { icon: "puzzle", title: "Theme blocks for your store", detail: "An Add to registry button on product pages, and create, find and manage links anywhere." },
   { icon: "chart", title: "Overview dashboard", detail: "Registries, items and gifts at a glance." },
   { icon: "box", title: "Sold-out products handled", detail: "Registries check your live stock. Sold-out items show as sold out, or hide until you restock." },
