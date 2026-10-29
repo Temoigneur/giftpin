@@ -8,6 +8,12 @@
  * No Amazon (29 Sep 2026, Ben): Amazon Associates only pays on sites the
  * publisher owns, and these links sit on merchants' storefronts, so Amazon
  * links can never earn Giftpin anything. The US list leads with Target.
+ *
+ * Home and kitchen first (29 Oct 2026, Ben): registries are mostly weddings,
+ * so Crate & Barrel and Williams Sonoma replace Walmart. HomeSense was the
+ * ask, but it has no online shop (in-store only in Canada), so there's
+ * nothing to search. Linen Chest is a good Canadian fit but its search page
+ * couldn't be checked (robots-blocked), so it's left out until it is.
  * Links are wrapped for affiliate credit on the manage page when
  * AFFILIATE_LINK_WRAPPER_BASE is set (see app/lib/affiliate.ts).
  */
@@ -29,14 +35,17 @@ export const COUNTRIES: { code: string; label: string }[] = [
 const RETAILERS: Record<string, Retailer[]> = {
   US: [
     { name: "Target", url: "https://www.target.com/s?searchTerm={q}" },
-    { name: "Walmart", url: "https://www.walmart.com/search?q={q}" },
+    { name: "Crate & Barrel", url: "https://www.crateandbarrel.com/search?query={q}" },
+    { name: "Williams Sonoma", url: "https://www.williams-sonoma.com/search/results.html?words={q}" },
     { name: "Wayfair", url: "https://www.wayfair.com/keyword.php?keyword={q}" },
     { name: "Etsy", url: "https://www.etsy.com/search?q={q}" },
     { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
   ],
   CA: [
-    { name: "Walmart.ca", url: "https://www.walmart.ca/search?q={q}" },
+    { name: "Crate & Barrel", url: "https://www.crateandbarrel.ca/search?query={q}" },
+    { name: "Williams Sonoma", url: "https://www.williams-sonoma.ca/search/results.html?words={q}" },
     { name: "Wayfair.ca", url: "https://www.wayfair.ca/keyword.php?keyword={q}" },
+    { name: "Canadian Tire", url: "https://www.canadiantire.ca/en/search-results.html?q={q}" },
     { name: "Etsy", url: "https://www.etsy.com/ca/search?q={q}" },
     { name: "Google Shopping", url: "https://www.google.com/search?tbm=shop&q={q}" },
   ],
