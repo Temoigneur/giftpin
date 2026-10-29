@@ -1,7 +1,7 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref } from "./layout";
 import type { DisplayItem } from "../../models/item.server";
-import { EVENT_TYPES } from "../../shared/settings";
+import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
@@ -95,6 +95,8 @@ export interface ManagePageData {
   soldOutHidden?: boolean;
   /** Registry perks (Pro). See app/shared/perks.ts. */
   perks?: string[];
+  /** The shop's switched-on occasions; an opt-in one (wish list) is only offered when listed here. */
+  enabledEventTypes?: string[];
   /** In-store barcode scanning on the registrant's phone (Pro). */
   scanner?: boolean;
   /** Barcode reader for phones without a built-in one; null = typing the number only. */
@@ -221,13 +223,16 @@ ${renderShipping(data)}
 
   <label for="f-event">Occasion</label>
   <select id="f-event" name="eventType">
-    ${EVENT_TYPES.map(
-      (t) => `<option value="${escapeAttr(t.value)}"${t.value === data.eventType ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
+    ${EVENT_TYPES.filter((t) => !OPT_IN_EVENT_TYPES.includes(t.value) || t.value === data.eventType || data.enabledEventTypes?.includes(t.value)).map(
+      (t) => `<option value="${escapeAttr(t.value)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${t.value === data.eventType ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
     ).join("")}
   </select>
 
+  <div id="f-date-field"${isDatelessOccasion(data.eventType) ? " hidden" : ""}>
   <label for="f-date">Date</label>
   <input id="f-date" type="date" name="eventDate" value="${data.eventDate ? data.eventDate.toISOString().slice(0, 10) : ""}">
+  </div>
+  <script>(function(){var s=document.getElementById('f-event'),d=document.getElementById('f-date-field');s.addEventListener('change',function(){d.hidden='nodate' in s.options[s.selectedIndex].dataset;});})();</script>
 
   <label for="f-msg">A note for your guests</label>
   <textarea id="f-msg" name="message" maxlength="2000" placeholder="Thank you for celebrating with us...">${escapeHtml(data.message)}</textarea>

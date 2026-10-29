@@ -1,4 +1,4 @@
-import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL } from "./config";
+import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL, holidayPromoOn } from "./config";
 
 /**
  * Shared shell for the public marketing site (giftpin.app: `/`, `/features`,
@@ -123,7 +123,7 @@ ${opts.body}
         <p>The gift registry for Shopify stores that isn't limited to your catalog, and still puts your products first.</p>
       </div>
       <div><h3>Product</h3><a href="/features">Features</a><a href="/pricing">Pricing</a><a href="/#demo">Demo</a><a href="/faq">FAQ</a></div>
-      <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/gift-registry-app">Gift registry app</a><a href="/wedding-registry">Universal wedding registry</a><a href="/baby-registry">Baby registry</a><a href="/home-goods-registry">Home goods stores</a><a href="/compare">Choosing a registry app</a><a href="/gift-cards">Gift cards</a></div>
+      <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/gift-registry-app">Gift registry app</a><a href="/wedding-registry">Universal wedding registry</a><a href="/baby-registry">Baby registry</a><a href="/home-goods-registry">Home goods stores</a><a href="/compare">Choosing a registry app</a><a href="/gift-cards">Gift cards</a>${holidayPromoOn() ? `<a href="/holiday-wish-lists">Holiday wish lists</a>` : ""}</div>
       <div><h3>Company</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy">Privacy policy</a></div>
     </div>
     <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay, Google Pay, Babylist and Zola are trademarks of their owners. Giftpin isn't affiliated with Babylist or Zola.</p>

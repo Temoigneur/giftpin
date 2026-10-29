@@ -10,6 +10,7 @@ import {
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
+import { isDatelessOccasion } from "../shared/settings";
 import {
   findBySlug,
   findVersionBySlug,
@@ -468,6 +469,7 @@ async function managePage(
       items: applyStock(registry.items.map((item) => toDisplayItem(item)), await registryStock(ctx.shop, registry)),
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings),
+      enabledEventTypes: settings.eventTypes,
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
       currency: shop.currency,
@@ -757,7 +759,7 @@ async function createRegistryAction(
     shopId: shop.id,
     customerId: ctx.loggedInCustomerId,
     eventType: values.eventType || "other",
-    eventDate: values.eventDate ? new Date(`${values.eventDate}T00:00:00Z`) : null,
+    eventDate: values.eventDate && !isDatelessOccasion(values.eventType) ? new Date(`${values.eventDate}T00:00:00Z`) : null,
     title: values.title.trim(),
     message: values.message.trim() || null,
     registrantName: values.registrantName.trim(),
@@ -769,7 +771,7 @@ async function createRegistryAction(
     t: mintManageToken(registry.id),
   });
 
-  await sendEmail("registry-link", email, { registryTitle: registry.title, url: manageUrl });
+  await sendEmail("registry-link", email, { registryTitle: registry.title, eventType: registry.eventType, url: manageUrl });
 
   // Straight into the registry rather than a "check your email" dead end —
   // the email is the durable copy, not the gate.
@@ -790,6 +792,7 @@ async function resendAction(
     for (const registry of registries.slice(0, 5)) {
       await sendEmail("registry-link", email, {
         registryTitle: registry.title,
+        eventType: registry.eventType,
         url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: mintManageToken(registry.id) }),
       });
     }
@@ -1552,11 +1555,12 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
   const form = await request.formData();
   const privacy = String(form.get("privacy") ?? "unlisted");
   const eventDate = String(form.get("eventDate") ?? "");
+  const eventType = String(form.get("eventType") ?? registry.eventType);
 
   await updateRegistry(registry.id, {
     title: String(form.get("title") ?? registry.title).slice(0, 200),
-    eventType: String(form.get("eventType") ?? registry.eventType),
-    eventDate: eventDate ? new Date(`${eventDate}T00:00:00Z`) : null,
+    eventType,
+    eventDate: eventDate && !isDatelessOccasion(eventType) ? new Date(`${eventDate}T00:00:00Z`) : null,
     message: String(form.get("message") ?? "").slice(0, 2000) || null,
     country: normalizeCountry(form.get("country")),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",
