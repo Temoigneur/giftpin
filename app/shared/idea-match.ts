@@ -9,7 +9,8 @@
  * (it's the only product search a storefront page can call), then keeps only
  * the products whose title, type or tags contain every key word of the idea
  * as a whole word (plural/singular forms count, "stock pot" = "stockpot"),
- * ranks them, and says plainly when the store has nothing that fits.
+ * ranks them, and says plainly when the store has nothing that fits. Other
+ * names an item is commonly sold under (idea-aliases.ts) count too.
  *
  * Shipped as a JS source string because it runs in the manage page's inline
  * script; the tests evaluate this exact string, so there's one copy only.
@@ -39,31 +40,46 @@ export const IDEA_MATCH_JS = String.raw`function gpIdeaMatch(term,products){
     }
     return false;
   }
-  var all=words(term),keys=[];
-  for(var i=0;i<all.length;i++)if(!GENERIC[all[i]]&&keys.indexOf(all[i])<0)keys.push(all[i]);
-  if(!keys.length)keys=all;
-  var joined=keys.length>1?stem(keys.join('')):null;
+  function prep(name){
+    var all=words(name),keys=[];
+    for(var i=0;i<all.length;i++)if(!GENERIC[all[i]]&&keys.indexOf(all[i])<0)keys.push(all[i]);
+    if(!keys.length)keys=all;
+    return {all:all,keys:keys,joined:keys.length>1?stem(keys.join('')):null};
+  }
+  function score(n,t,other){
+    var keys=n.keys,inTitle=0,inOther=0;
+    if(!keys.length)return -1;
+    for(var j=0;j<keys.length;j++){
+      if(has(t,keys[j]))inTitle++;
+      else if(has(other,keys[j]))inOther++;
+    }
+    var full=inTitle+inOther===keys.length;
+    if(!full&&n.joined){
+      if(has(t,n.joined))inTitle=keys.length,full=true;
+      else if(has(other,n.joined))inOther=keys.length,full=true;
+    }
+    if(!full)return -1;
+    var sc=inTitle===keys.length?100:inTitle>0?70:50;
+    if(n.all.length>1&&(' '+t.join(' ')+' ').indexOf(' '+n.all.join(' ')+' ')>=0)sc+=10;
+    return sc-Math.min(20,Math.max(0,t.length-keys.length));
+  }
+  // term is the idea's own name, or [name, ...other names it's sold under];
+  // the idea's own name wins a tie.
+  var names=(Array.isArray(term)?term:[term]).map(prep);
   var out=[];
   (products||[]).forEach(function(p,idx){
     if(!p||!p.title)return;
     var t=words(p.title);
     var tags=Array.isArray(p.tags)?p.tags.join(' '):p.tags;
     var other=words((p.type||p.product_type||'')+' '+(tags||''));
-    var inTitle=0,inOther=0;
-    for(var j=0;j<keys.length;j++){
-      if(has(t,keys[j]))inTitle++;
-      else if(has(other,keys[j]))inOther++;
+    var best=-1;
+    for(var k=0;k<names.length;k++){
+      var sc=score(names[k],t,other);
+      if(sc>=0&&k===0)sc+=5;
+      if(sc>best)best=sc;
     }
-    var full=inTitle+inOther===keys.length;
-    if(!full&&joined){
-      if(has(t,joined))inTitle=keys.length,full=true;
-      else if(has(other,joined))inOther=keys.length,full=true;
-    }
-    if(!full)return;
-    var score=inTitle===keys.length?100:inTitle>0?70:50;
-    if(all.length>1&&(' '+t.join(' ')+' ').indexOf(' '+all.join(' ')+' ')>=0)score+=10;
-    score-=Math.min(20,Math.max(0,t.length-keys.length));
-    out.push({p:p,s:score,i:idx});
+    if(best<0)return;
+    out.push({p:p,s:best,i:idx});
   });
   out.sort(function(a,b){return b.s-a.s||a.i-b.i;});
   return out.map(function(x){return x.p;});

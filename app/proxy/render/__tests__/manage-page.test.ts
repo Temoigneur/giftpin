@@ -246,7 +246,9 @@ describe("connect-the-extension box and chip fallback", () => {
   it("filters the store's loose search results with the strict idea matcher (29 Oct 2026)", () => {
     const html = page({ eventType: "wedding" });
     expect(html).toContain("function gpIdeaMatch(term,products)");
-    expect(html).toContain("gpIdeaMatch(term,list)");
+    expect(html).toContain("gpIdeaMatch(names,list)");
+    // Other names an item is sold under ride along on the chip.
+    expect(html).toContain('data-term="Skillet" data-aliases="frying pan|fry pan"');
     expect(html).toContain("resources[limit]=10");
     expect(html).toContain("No match for");
     // A result no longer sends the registrant to the store's own (loose) search page.

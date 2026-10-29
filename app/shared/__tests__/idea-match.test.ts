@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { IDEA_MATCH_JS } from "../idea-match";
+import { IDEA_ALIASES, ideaAliases } from "../idea-aliases";
 
 type Product = { title: string; type?: string; tags?: string[] | string; url?: string };
 
 // Evaluate the exact string the manage page ships, so there's no second copy.
 const gpIdeaMatch = new Function(`${IDEA_MATCH_JS}; return gpIdeaMatch;`)() as (
-  term: string,
+  term: string | string[],
   products: Product[],
 ) => Product[];
 
-const titles = (term: string, products: Product[]) => gpIdeaMatch(term, products).map((p) => p.title);
+const titles = (term: string | string[], products: Product[]) => gpIdeaMatch(term, products).map((p) => p.title);
 
 describe("gpIdeaMatch (ideas guide store search, 29 Oct 2026)", () => {
   // What Shopify's predictive search really hands back for "Stockpot" in a
@@ -83,5 +84,32 @@ describe("gpIdeaMatch (ideas guide store search, 29 Oct 2026)", () => {
   it("copes with junk input", () => {
     expect(gpIdeaMatch("Stockpot", null as unknown as Product[])).toEqual([]);
     expect(titles("Stockpot", [{ title: "" }, null as unknown as Product])).toEqual([]);
+  });
+});
+
+describe("other names an idea is sold under (29 Oct 2026)", () => {
+  it("finds a frying pan when the idea is Skillet", () => {
+    const names = ["Skillet", ...ideaAliases("Skillet")];
+    expect(titles(names, [{ title: "Nonstick Frying Pan" }, { title: "Pan Pipes" }])).toEqual(["Nonstick Frying Pan"]);
+  });
+
+  it("ranks the idea's own name above an alias match", () => {
+    const names = ["Sofa", ...ideaAliases("sofa")];
+    expect(titles(names, [{ title: "Velvet Couch" }, { title: "Velvet Sofa" }])).toEqual(["Velvet Sofa", "Velvet Couch"]);
+  });
+
+  it("still finds nothing when neither the name nor an alias fits", () => {
+    const names = ["Stockpot", ...ideaAliases("Stockpot")];
+    expect(titles(names, [{ title: "Storage Basket" }, { title: "Soup Ladle" }, { title: "Plant Pot" }])).toEqual([]);
+  });
+
+  it("has no alias that boils down to a single generic word", () => {
+    // "pot set" would become just "pot" (set is filler) and match plant pots.
+    const tooLoose = new Set(["pot", "pan", "set", "bag", "board", "cup", "glass", "light", "chair", "table"]);
+    for (const [key, list] of Object.entries(IDEA_ALIASES)) {
+      expect(key).toBe(key.toLowerCase());
+      expect(list.length).toBeLessThanOrEqual(3);
+      for (const alias of list) expect(tooLoose.has(alias.toLowerCase())).toBe(false);
+    }
   });
 });

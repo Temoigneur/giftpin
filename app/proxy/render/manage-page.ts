@@ -5,6 +5,7 @@ import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
+import { ideaAliases } from "../../shared/idea-aliases";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
@@ -373,7 +374,9 @@ function renderCategoryItem(item: { name: string; searchTerm?: string }, browsab
   if (browsable) {
     const term = item.searchTerm ?? item.name;
     const href = `/search?q=${encodeURIComponent(term)}&type=product`;
-    return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}">${escapeHtml(item.name)}</a>`;
+    const aliases = ideaAliases(term);
+    const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
+    return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(item.name)}</a>`;
   }
   return `<span class="cat-chip cat-chip--add">${escapeHtml(item.name)}</span>`;
 }
@@ -853,15 +856,24 @@ function manageScript(): string {
       reveal();
       // Shopify's predictive search is loose on purpose (prefix and typo
       // matching), so a store with no stockpot still answers "Stockpot" with
-      // anything starting "sto". Ask for its top 10 and keep only real
-      // matches (gpIdeaMatch, app/shared/idea-match.ts), best first.
-      fetch('/search/suggest.json?q='+encodeURIComponent(term)+'&resources[type]=product&resources[limit]=10&resources[options][unavailable_products]=last',{headers:{Accept:'application/json'}})
-        .then(function(r){return r.ok?r.json():null})
-        .then(function(data){
-          var list=data&&data.resources&&data.resources.results&&data.resources.results.products;
+      // anything starting "sto". Ask for its top 10 for the idea and for up to
+      // two other names it's sold under (app/shared/idea-aliases.ts), then
+      // keep only real matches (gpIdeaMatch, app/shared/idea-match.ts).
+      var names=[term].concat((chip.dataset.aliases||'').split('|').filter(Boolean));
+      Promise.all(names.slice(0,3).map(function(q){
+        return fetch('/search/suggest.json?q='+encodeURIComponent(q)+'&resources[type]=product&resources[limit]=10&resources[options][unavailable_products]=last',{headers:{Accept:'application/json'}})
+          .then(function(r){return r.ok?r.json():null})
+          .then(function(data){var l=data&&data.resources&&data.resources.results&&data.resources.results.products;return Array.isArray(l)?l:null;},function(){return null;});
+      }))
+        .then(function(lists){
+          var list=null,seen={};
+          lists.forEach(function(l){
+            if(!l)return;list=list||[];
+            l.forEach(function(prod){var k=prod&&(prod.id||prod.url);if(k&&!seen[k]){seen[k]=1;list.push(prod);}});
+          });
           // Couldn't tell (search off, theme quirk): go to the store's own search.
-          if(!Array.isArray(list)){location.href=href;return;}
-          var hits=gpIdeaMatch(term,list).slice(0,6);
+          if(!list){location.href=href;return;}
+          var hits=gpIdeaMatch(names,list).slice(0,6);
           panel.textContent='';
           if(hits.length){
             var fp=document.createElement('p');fp.className='item-meta';
