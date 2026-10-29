@@ -315,7 +315,7 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     ["housewarming", "housewarming-v1"],
     ["anniversary", "anniversary-v1"],
     ["retirement", "retirement-v1"],
-    ["holiday", "holiday-v1"],
+    ["holiday", "holiday-v2"],
     ["new-pet", "new-pet-v1"],
     ["fundraiser", "fundraiser-v1"],
     ["corporate", "corporate-v1"],
