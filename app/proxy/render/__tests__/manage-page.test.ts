@@ -257,7 +257,7 @@ describe("connect-the-extension box and chip fallback", () => {
 
   it("ships Canadian retailers when the registry's country is Canada", () => {
     const html = page({ country: "CA", currency: "CAD" });
-    expect(html).toContain("walmart.ca");
+    expect(html).toContain("canadiantire.ca");
     expect(html).not.toContain("target.com");
   });
 
