@@ -509,6 +509,10 @@ describe("manage page item tiles (29 Oct 2026)", () => {
     expect(html).not.toContain('class="mi-remove js-remove"');
   });
 
+  it("gives the hero picture its own edge so it never merges into the page background", () => {
+    expect(page()).toContain(".manage .hero-img,.manage .hero-art{");
+  });
+
   it("ships its own styles, and skips the background wash when a Pro store picked its own background", () => {
     expect(page()).toContain("body.manage{background:");
     const branded = page({ branding: { backgroundColor: "#fff8ef" } as ManagePageData["branding"] });
