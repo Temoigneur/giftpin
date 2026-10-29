@@ -451,7 +451,8 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
 }
 
 /**
- * The manage page's own look (29 Oct 2026, Ben: "bland and unappealing").
+ * The manage page's own look (29 Oct 2026, Ben: "bland and unappealing";
+ * the warm grey page background became a soft ice-blue white the same day).
  * Kept here rather than in layout.ts so the guest page, which has a tight
  * 50KB budget, doesn't carry a byte of it. Everything is mixed from the
  * page's own --accent/--card/--line, so a store's accent colour and Pro page
@@ -459,11 +460,13 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
  * store has picked its own background.
  */
 function manageStyles(branding: PageBranding | null | undefined): string {
-  const wash = branding?.backgroundColor
+  const wash = branding?.backgroundColor || branding?.textColor
     ? ""
-    : `body.manage{background:linear-gradient(175deg,var(--wash) 0,var(--bg) 40%,var(--bg) 70%,var(--wash) 100%) var(--bg)}`;
+    : `:root{--bg:#f3f6fb}
+@media (prefers-color-scheme:dark){:root{--bg:#10141c;--card:#1a1f29;--line:#2c3443}}
+body.manage{background:radial-gradient(1200px 600px at 85% -10%,color-mix(in srgb,#22d3ee 9%,transparent),transparent 70%),linear-gradient(175deg,var(--wash) 0,var(--bg) 40%,var(--bg) 70%,var(--wash) 100%) var(--bg)}`;
   return `<style>${wash}
-.manage{--hi:var(--accent);--wash:color-mix(in srgb,#dce8f8 70%,var(--bg));--cool:color-mix(in srgb,#e8f0fb 65%,var(--card));--shadow:0 1px 2px rgb(16 24 40/.04),0 6px 20px -8px rgb(16 24 40/.10);--shadow-up:0 2px 4px rgb(16 24 40/.05),0 14px 32px -12px rgb(16 24 40/.18);--soft:color-mix(in srgb,var(--accent) 5%,var(--cool))}
+.manage{--hi:var(--accent);--wash:color-mix(in srgb,#d9e5f7 75%,var(--bg));--cool:color-mix(in srgb,#e8f0fb 65%,var(--card));--shadow:0 1px 2px rgb(16 24 40/.04),0 6px 20px -8px rgb(16 24 40/.10);--shadow-up:0 2px 4px rgb(16 24 40/.05),0 14px 32px -12px rgb(16 24 40/.18);--soft:color-mix(in srgb,var(--accent) 5%,var(--cool))}
 @media (prefers-color-scheme:dark){.manage{--hi:color-mix(in srgb,var(--accent) 45%,var(--ink));--wash:color-mix(in srgb,#1c2940 80%,var(--bg));--cool:color-mix(in srgb,#22324d 45%,var(--card));--shadow:0 1px 2px rgb(0 0 0/.3),0 8px 24px -10px rgb(0 0 0/.5);--shadow-up:0 2px 4px rgb(0 0 0/.35),0 16px 36px -12px rgb(0 0 0/.6)}}
 .manage .note,.manage .item{border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
 .manage .items{gap:16px}
