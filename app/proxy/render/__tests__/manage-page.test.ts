@@ -498,9 +498,9 @@ describe("manage page item tiles (29 Oct 2026)", () => {
   });
 
   it("ships its own styles, and skips the background wash when a Pro store picked its own background", () => {
-    expect(page()).toContain("body.manage{background:linear-gradient");
+    expect(page()).toContain("body.manage{background:");
     const branded = page({ branding: { backgroundColor: "#fff8ef" } as ManagePageData["branding"] });
-    expect(branded).not.toContain("body.manage{background:linear-gradient");
+    expect(branded).not.toContain("body.manage{background:");
     expect(branded).toContain(".mi-bar");
   });
 });
