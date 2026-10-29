@@ -3,7 +3,7 @@ import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchH
 import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
-import { ideaGuideFor } from "../../shared/registry-ideas";
+import { ideaGuideFor, type GiftIdeaItem } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
 import { ideaAliases } from "../../shared/idea-aliases";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
@@ -347,10 +347,14 @@ function renderShipping(data: ManagePageData): string {
  * 23 Sep 2026; every other occasion 24 Sep 2026, Ben's requests). Group →
  * subgroup → specific item, three levels deep, organized however suits the
  * occasion (wedding by room, birthday by age, baby by need; see
- * app/shared/registry-ideas.ts). Each item in a browsable group is its own
- * link to a search of this merchant's store; items in non-catalog groups
- * (experiences, funds) are plain suggestions pointing at "From anywhere else"
- * instead. Nested <details> so it needs no JS and stays collapsed by default.
+ * app/shared/registry-ideas.ts). Each store idea is its own link to a search
+ * of this merchant's store. A fund idea opens the cash fund form with its name
+ * filled in, and an experience idea adds itself to the list by name (with an
+ * optional booking link). Until 29 Oct 2026 those two were plain labels that
+ * did nothing when tapped (Ben: "what's the point"), so now each one is only
+ * shown when this store can actually do it: funds need Pro and a gift card
+ * product, experiences need "items from other stores" on. Nested <details> so
+ * it needs no JS to open and stays collapsed by default.
  *
  * The summary is styled as a tinted call-out card with an icon and a pill
  * button, so it stands out as a key feature (Ben, 24 Sep 2026) without
@@ -358,13 +362,22 @@ function renderShipping(data: ManagePageData): string {
  */
 function renderIdeaGuide(data: ManagePageData): string {
   const guide = ideaGuideFor(data.eventType);
+  const shown = (item: GiftIdeaItem) =>
+    item.kind === "fund" ? !!data.contributions : item.kind === "experience" ? data.externalItemsAllowed : true;
+  const visible = guide.groups
+    .map((cat) => ({
+      ...cat,
+      subcategories: cat.subcategories
+        .map((sub) => ({ ...sub, items: sub.items.filter(shown) }))
+        .filter((sub) => sub.items.length > 0),
+    }))
+    .filter((cat) => cat.subcategories.length > 0);
+  const kinds = new Set(visible.flatMap((cat) => cat.subcategories.flatMap((sub) => sub.items.map((i) => i.kind))));
 
-  const groups = guide.groups.map((cat) => {
+  const groups = visible.map((cat) => {
     const subcats = cat.subcategories
       .map((sub) => {
-        const items = sub.items
-          .map((item) => renderCategoryItem(item, cat.browsable))
-          .join("");
+        const items = sub.items.map(renderCategoryItem).join("");
         return `<p class="cat-sub">${escapeHtml(sub.label)}</p><div class="cat-grid">${items}</div>`;
       })
       .join("\n");
@@ -375,27 +388,32 @@ function renderIdeaGuide(data: ManagePageData): string {
 </details>`;
   }).join("\n");
 
+  const how = [`Tap an item to search ${escapeHtml(data.shopName)}'s store.`];
+  if (kinds.has("experience")) how.push("Tap an experience to add it to your list, with a link to book it if you have one.");
+  if (kinds.has("fund")) how.push("Tap a fund to set one up below.");
+
   return `<details class="note ideas">
   <summary>
     <span class="ideas-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg></span>
     <span class="ideas-text"><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
     <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">Browse ideas</span><span class="ideas-cta-close">Hide ideas</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
   </summary>
-  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} Tap an item to search ${escapeHtml(data.shopName)}'s store &mdash; for things they don't carry, like experiences or a cash fund, use &ldquo;From anywhere else&rdquo; below.</p>
+  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} ${how.join(" ")}</p>
   ${groups}
   <div class="cat-fallback" id="cat-fallback" hidden role="status"></div>
 </details>`;
 }
 
-function renderCategoryItem(item: { name: string; searchTerm?: string }, browsable: boolean): string {
-  if (browsable) {
-    const term = item.searchTerm ?? item.name;
-    const href = `/search?q=${encodeURIComponent(term)}&type=product`;
-    const aliases = ideaAliases(term);
-    const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
-    return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(item.name)}</a>`;
+function renderCategoryItem(item: GiftIdeaItem): string {
+  if (item.kind) {
+    const cls = item.kind === "fund" ? "js-idea-fund" : "js-idea-exp";
+    return `<button class="cat-chip ${cls}" type="button" data-title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</button>`;
   }
-  return `<span class="cat-chip cat-chip--add">${escapeHtml(item.name)}</span>`;
+  const term = item.searchTerm ?? item.name;
+  const href = `/search?q=${encodeURIComponent(term)}&type=product`;
+  const aliases = ideaAliases(term);
+  const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
+  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(item.name)}</a>`;
 }
 
 function renderManageItem(item: DisplayItem, data: ManagePageData): string {
@@ -474,6 +492,11 @@ body.manage{background:radial-gradient(1200px 600px at 85% -10%,color-mix(in srg
 @media (prefers-color-scheme:dark){.manage{--hi:color-mix(in srgb,var(--accent) 45%,var(--ink));--wash:color-mix(in srgb,#1c2940 80%,var(--bg));--cool:color-mix(in srgb,#22324d 45%,var(--card));--shadow:0 1px 2px rgb(0 0 0/.3),0 8px 24px -10px rgb(0 0 0/.5);--shadow-up:0 2px 4px rgb(0 0 0/.35),0 16px 36px -12px rgb(0 0 0/.6)}}
 .manage .note,.manage .item{border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
 .manage .items{gap:16px}
+button.cat-chip{font:inherit;font-size:13px;cursor:pointer}
+button.cat-chip::before{content:"+";margin-right:5px;color:var(--accent);font-weight:600}
+button.cat-chip:hover,button.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
+.idea-add{display:grid;gap:8px;margin-top:10px}
+.js-fund input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 .manage .hero-img,.manage .hero-art{border-radius:18px;box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);background:var(--card)}
 .mi{grid-template-columns:112px 1fr;column-gap:18px;row-gap:12px;align-content:start;padding:18px;transition:box-shadow .2s,border-color .2s,transform .2s}
 @media (hover:hover){.mi:hover{box-shadow:var(--shadow-up);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}}
@@ -1059,6 +1082,14 @@ function manageScript(): string {
         .then(function(res){status(item,res&&res.ok?'Saved':((res&&res.error)||'Could not save'),!(res&&res.ok));});
       return;
     }
+    var idea=e.target.closest('.js-idea-add');
+    if(idea){
+      e.preventDefault();var ib=idea.querySelector('button[type=submit]');ib.disabled=true;status(idea,'Adding...');
+      post('/add-manual',{title:idea.querySelector('[name=title]').value,url:idea.querySelector('[name=url]').value.trim(),price:idea.querySelector('[name=price]').value.trim(),note:idea.querySelector('[name=note]').value})
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(idea,(res&&res.error)||'Could not add that',false);ib.disabled=false;}})
+        .catch(function(){status(idea,'Could not add that',false);ib.disabled=false;});
+      return;
+    }
     var fund=e.target.closest('.js-fund');
     if(fund){
       e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,'Adding...');
@@ -1086,7 +1117,53 @@ function manageScript(): string {
       .then(function(res){status(to,res&&res.ok?'Saved':'Could not save',!(res&&res.ok));});
   });
 
+  // Experience ideas (a cooking class, a spa day): a little form right under
+  // the chip that adds it to the list by name, with an optional booking link.
+  function ideaField(form,name,label,type,value,hint){
+    var id='idea-'+name,l=document.createElement('label');l.htmlFor=id;l.textContent=label;
+    var i=document.createElement('input');i.id=id;i.name=name;i.type=type;i.value=value||'';
+    i.maxLength=name==='url'?2000:name==='title'?300:name==='price'?20:500;
+    if(hint)i.placeholder=hint;if(name==='price')i.inputMode='decimal';
+    form.appendChild(l);form.appendChild(i);return i;
+  }
+  function openExperience(chip){
+    var panel=document.getElementById('cat-fallback'),grid=chip.closest('.cat-grid');
+    if(grid&&grid.parentNode)grid.parentNode.insertBefore(panel,grid.nextSibling);
+    panel.hidden=false;panel.textContent='';
+    var p=document.createElement('p');p.className='item-meta';
+    p.textContent='Add \u201c'+chip.dataset.title+'\u201d to your list. Guests book it themselves and tap \u201cI bought this\u201d so nobody doubles up.';
+    panel.appendChild(p);
+    var f=document.createElement('form');f.className='idea-add js-idea-add';f.noValidate=true;
+    ideaField(f,'title','Name','text',chip.dataset.title);
+    ideaField(f,'url','Link to book it (optional)','url','','e.g. a gift card page on the venue\u2019s site');
+    ideaField(f,'price','Price (optional)','text','','e.g. 120');
+    ideaField(f,'note','Note for guests (optional)','text','','e.g. any weekend in June');
+    var row=document.createElement('div');row.className='row';
+    var add=document.createElement('button');add.className='btn sm';add.type='submit';add.textContent='Add to registry';
+    var cancel=document.createElement('button');cancel.className='btn sm ghost js-idea-cancel';cancel.type='button';cancel.textContent='Cancel';
+    var st=document.createElement('span');st.className='js-status item-meta';st.setAttribute('role','status');
+    row.appendChild(add);row.appendChild(cancel);row.appendChild(st);f.appendChild(row);
+    panel.appendChild(f);
+    try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}
+    f.querySelector('[name=url]').focus({preventScroll:true});
+  }
+
   document.addEventListener('click',function(e){
+    var ideaExp=e.target.closest('.js-idea-exp');
+    if(ideaExp){openExperience(ideaExp);return;}
+    if(e.target.closest('.js-idea-cancel')){var cp=document.getElementById('cat-fallback');cp.hidden=true;cp.textContent='';return;}
+    // Fund ideas fill in the cash fund form further down; the registrant
+    // still picks the goal, since only they know it.
+    var ideaFund=e.target.closest('.js-idea-fund');
+    if(ideaFund){
+      var ff=document.querySelector('.js-fund');
+      if(!ff)return;
+      ff.querySelector('[name=title]').value=ideaFund.dataset.title;
+      try{ff.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){}
+      ff.querySelector('[name=goal]').focus({preventScroll:true});
+      status(ff,'Set a goal for \u201c'+ideaFund.dataset.title+'\u201d, then tap Add fund.');
+      return;
+    }
     var chip=e.target.closest('.js-cat');
     if(chip){
       if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;

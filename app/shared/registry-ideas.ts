@@ -1,4 +1,6 @@
-import { WEDDING_GIFT_CATEGORIES } from "./wedding-categories";
+import { WEDDING_GIFT_CATEGORIES, type IdeaKind } from "./wedding-categories";
+
+export type { IdeaKind };
 
 /**
  * "Not sure what to add?" ideas guides, one per occasion (24 Sep 2026, Ben's
@@ -20,6 +22,8 @@ export interface GiftIdeaItem {
   name: string;
   /** Only needed when the plain item name would search badly. */
   searchTerm?: string;
+  /** Left out = search the merchant's store. See IdeaKind in wedding-categories.ts. */
+  kind?: IdeaKind;
 }
 
 export interface GiftIdeaSubgroup {
@@ -32,12 +36,6 @@ export interface GiftIdeaGroup {
   id: string;
   label: string;
   subcategories: GiftIdeaSubgroup[];
-  /**
-   * false for groups most merchants don't stock as SKUs (experiences, funds,
-   * donations) — their items render as plain suggestions pointing at "add
-   * with a link" instead of a store search link.
-   */
-  browsable: boolean;
 }
 
 export interface IdeaGuide {
@@ -84,41 +82,38 @@ export function occasionTemplate(eventType: string): OccasionTemplate {
 /** An item written as "Name" or "Name|better search term". */
 type ItemSpec = string;
 
-function items(specs: ItemSpec[]): GiftIdeaItem[] {
+function items(specs: ItemSpec[], kind?: IdeaKind): GiftIdeaItem[] {
   return specs.map((spec) => {
     const [name, searchTerm] = spec.split("|");
-    return searchTerm ? { name, searchTerm } : { name };
+    return { name, ...(searchTerm ? { searchTerm } : {}), ...(kind ? { kind } : {}) };
   });
 }
 
-function group(
-  id: string,
-  label: string,
-  subs: [string, ItemSpec[]][],
-  browsable = true,
-): GiftIdeaGroup {
+/**
+ * A subgroup: its label, its items, and (for things a store doesn't stock)
+ * what tapping one does instead of a store search. Ideas that fit none of
+ * these, like a charity donation or a savings bond, aren't listed at all:
+ * every chip has to lead somewhere (Ben, 29 Oct 2026).
+ */
+type SubSpec = [string, ItemSpec[]] | [string, ItemSpec[], IdeaKind];
+
+function group(id: string, label: string, subs: SubSpec[]): GiftIdeaGroup {
   return {
     id,
     label,
-    browsable,
-    subcategories: subs.map(([subLabel, specs]) => ({
+    subcategories: subs.map(([subLabel, specs, kind]) => ({
       id: subLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
       label: subLabel,
-      items: items(specs),
+      items: items(specs, kind),
     })),
   };
 }
 
 const EXPERIENCES = (extra: ItemSpec[] = []) =>
-  group(
-    "experiences",
-    "Experiences & cash funds",
-    [
-      ["Experiences", ["Concert tickets", "Cooking class", "Spa day", "Museum membership", ...extra]],
-      ["Funds", ["Cash fund", "Charity donation"]],
-    ],
-    false,
-  );
+  group("experiences", "Experiences & cash funds", [
+    ["Experiences", ["Concert tickets", "Cooking class", "Spa day", "Museum membership", ...extra], "experience"],
+    ["Funds", ["Cash fund"], "fund"],
+  ]);
 
 const WEDDING_GUIDE: IdeaGuide = {
   title: "Wedding registry ideas, room by room",
@@ -149,9 +144,9 @@ const ENGAGEMENT_GUIDE: IdeaGuide = {
       ["Getting away", ["Weekender bag", "Travel accessories|travel kit", "Passport holders|passport holder"]],
     ]),
     group("funds", "Experiences & funds", [
-      ["Experiences", ["Date night", "Couples' cooking class", "Wine tasting", "Weekend getaway"]],
-      ["Funds", ["Wedding fund", "Honeymoon fund", "House down-payment fund"]],
-    ], false),
+      ["Experiences", ["Date night", "Couples' cooking class", "Wine tasting", "Weekend getaway"], "experience"],
+      ["Funds", ["Wedding fund", "Honeymoon fund", "House down-payment fund"], "fund"],
+    ]),
   ],
 };
 
@@ -192,9 +187,9 @@ const BABY_GUIDE: IdeaGuide = {
       ["1 to 2 years", ["Shape sorter", "Ride-on toy", "Blocks", "Musical toys"]],
     ]),
     group("funds", "Funds & help", [
-      ["Funds", ["Diaper fund", "College savings fund", "Parental leave fund"]],
-      ["Help", ["Meal delivery", "Night nurse", "House cleaning", "Newborn photo shoot"]],
-    ], false),
+      ["Funds", ["Diaper fund", "College savings fund", "Parental leave fund"], "fund"],
+      ["Help", ["Meal delivery", "Night nurse", "House cleaning", "Newborn photo shoot"], "experience"],
+    ]),
   ],
 };
 
@@ -215,8 +210,8 @@ const CHRISTENING_GUIDE: IdeaGuide = {
       ["Nursery", ["Nightlight", "Wall cross", "Personalized name sign", "Soft toy"]],
     ]),
     group("funds", "Funds", [
-      ["Funds", ["Education savings fund", "Savings bond", "Charity donation"]],
-    ], false),
+      ["Funds", ["Education savings fund"], "fund"],
+    ]),
   ],
 };
 
@@ -286,9 +281,9 @@ const COMING_OF_AGE_GUIDE: IdeaGuide = {
       ["Room", ["Vanity mirror", "Desk", "Bedding set", "LED lights"]],
     ]),
     group("funds", "Funds & experiences", [
-      ["Funds", ["College fund", "Savings bond", "Charity donation (tzedakah)|tzedakah"]],
-      ["Experiences", ["Concert tickets", "Driving lessons", "Summer camp", "Travel fund"]],
-    ], false),
+      ["Funds", ["College fund", "Travel fund"], "fund"],
+      ["Experiences", ["Concert tickets", "Driving lessons", "Summer camp"], "experience"],
+    ]),
   ],
 };
 
@@ -315,8 +310,8 @@ const GRADUATION_GUIDE: IdeaGuide = {
       ["Getting away", ["Luggage", "Travel backpack", "Passport holder", "Packing cubes"]],
     ]),
     group("funds", "Funds", [
-      ["Funds", ["Gap year fund", "Student loan fund", "Travel fund", "First car fund"]],
-    ], false),
+      ["Funds", ["Gap year fund", "Student loan fund", "Travel fund", "First car fund"], "fund"],
+    ]),
   ],
 };
 
@@ -345,8 +340,8 @@ const COLLEGE_GUIDE: IdeaGuide = {
       ["Eating", ["Microwave-safe dishes", "Reusable water bottle", "Snack containers", "Mug set"]],
     ]),
     group("funds", "Funds", [
-      ["Funds", ["Textbook fund", "Tuition fund", "Travel-home fund", "Meal plan fund"]],
-    ], false),
+      ["Funds", ["Textbook fund", "Tuition fund", "Travel-home fund", "Meal plan fund"], "fund"],
+    ]),
   ],
 };
 
@@ -406,8 +401,9 @@ const ANNIVERSARY_GUIDE: IdeaGuide = {
       ["Keepsakes", ["Engraved rings", "Photo album", "Vow book", "Champagne flutes"]],
     ]),
     group("experiences", "Experiences & funds", [
-      ["Together", ["Anniversary trip", "Couples' massage", "Dinner out", "Second honeymoon fund"]],
-    ], false),
+      ["Together", ["Anniversary trip", "Couples' massage", "Dinner out"], "experience"],
+      ["Funds", ["Second honeymoon fund"], "fund"],
+    ]),
   ],
 };
 
@@ -485,9 +481,10 @@ const NEW_PET_GUIDE: IdeaGuide = {
       ["Birds", ["Bird cage", "Perches", "Bird toys"]],
       ["Fish", ["Aquarium", "Aquarium filter", "Aquarium heater", "Water conditioner"]],
     ]),
-    group("funds", "Funds", [
-      ["Funds", ["Vet bills fund", "Pet insurance fund", "Training classes", "Adoption fee"]],
-    ], false),
+    group("funds", "Funds & training", [
+      ["Funds", ["Vet bills fund", "Pet insurance fund", "Adoption fee fund"], "fund"],
+      ["Training", ["Training classes"], "experience"],
+    ]),
   ],
 };
 
@@ -509,10 +506,12 @@ const FUNDRAISER_GUIDE: IdeaGuide = {
     group("community", "Community & health", [
       ["Care packages", ["Hygiene kits", "First aid kits", "Care package items", "Reusable water bottles"]],
     ]),
-    group("donations", "Donations", [
-      ["Money", ["Cash donation", "Monthly donation", "Matching gift", "Sponsor a child or animal"]],
-      ["Time", ["Volunteer hours", "Event tickets"]],
-    ], false),
+    // Cash, monthly and matching donations, sponsorships and volunteer hours
+    // were listed here until 29 Oct 2026. A fund is paid in this store's gift
+    // cards, so the honest money idea is a fund to buy more of what's needed.
+    group("funds", "Funds", [
+      ["Money", ["Supplies fund"], "fund"],
+    ]),
   ],
 };
 
@@ -533,9 +532,10 @@ const CORPORATE_GUIDE: IdeaGuide = {
     group("milestones", "Milestones", [
       ["Occasions", ["Work anniversary award|engraved award", "Retirement gift", "Welcome kit|new hire kit", "Farewell card"]],
     ]),
-    group("experiences", "Experiences", [
-      ["Together", ["Team lunch", "Team building activity", "Charity donation in their name", "Gift card"]],
-    ], false),
+    group("experiences", "Experiences & gift cards", [
+      ["Together", ["Team lunch", "Team building activity"], "experience"],
+      ["Gift cards", ["Gift card"]],
+    ]),
   ],
 };
 

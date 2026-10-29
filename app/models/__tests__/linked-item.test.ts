@@ -20,7 +20,7 @@ vi.mock("../../db.server", () => ({
 vi.mock("../../lib/queue.server", () => ({ enqueue, registerHandler: vi.fn() }));
 vi.mock("../../lib/cache.server", () => ({ cache: () => ({ del: async () => {} }), registryCacheKey: (id: string, v: number) => `${id}:${v}` }));
 
-const { addLinkedItem } = await import("../item.server");
+const { addLinkedItem, addNamedItem } = await import("../item.server");
 
 const registry = (over: Record<string, unknown> = {}) => ({
   id: "reg_1",
@@ -87,5 +87,37 @@ describe("addLinkedItem", () => {
 
   it("needs a name", async () => {
     await expect(addLinkedItem({ registryId: "reg_1", url: "https://x.example/p", title: "  " })).rejects.toThrow(/name/);
+  });
+});
+
+/** addNamedItem — an experience idea from the manage page's ideas guide (29 Oct 2026). */
+describe("addNamedItem", () => {
+  it("adds an experience by name, with no link needed", async () => {
+    await addNamedItem({ registryId: "reg_1", title: "Hot air balloon ride", price: "250", currency: "CAD" });
+    expect(itemCreate.mock.calls[0][0].data).toMatchObject({
+      sourceType: "manual",
+      snapshotTitle: "Hot air balloon ride",
+      externalUrl: null,
+      snapshotPrice: "250",
+    });
+  });
+
+  it("keeps a booking link when there is one", async () => {
+    await addNamedItem({ registryId: "reg_1", title: "Cooking class", url: "https://cookschool.example/gift?utm_source=x" });
+    expect(itemCreate.mock.calls[0][0].data.externalUrl).toBe("https://cookschool.example/gift");
+  });
+
+  it("respects a store that only allows its own products", async () => {
+    registryFind.mockResolvedValue(registry({ shop: { domain: "maple.myshopify.com", currency: "CAD", settings: { externalItems: "off" } } }));
+    await expect(addNamedItem({ registryId: "reg_1", title: "Spa day" })).rejects.toThrow(/own collection/);
+    expect(itemCreate).not.toHaveBeenCalled();
+  });
+
+  it("respects the store's cap on outside items", async () => {
+    registryFind.mockResolvedValue(registry({
+      shop: { domain: "maple.myshopify.com", currency: "CAD", settings: { externalItems: "capped", externalItemsCapPercent: 50 } },
+      items: [{ sourceType: "manual", externalUrl: null }],
+    }));
+    await expect(addNamedItem({ registryId: "reg_1", title: "Spa day" })).rejects.toThrow(/mostly items from elsewhere/);
   });
 });
