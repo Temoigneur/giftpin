@@ -513,6 +513,10 @@ describe("manage page item tiles (29 Oct 2026)", () => {
     expect(page()).toContain(".manage .hero-img,.manage .hero-art{");
   });
 
+  it("keeps the ideas box a plain card, not an accent-tinted grey", () => {
+    expect(page()).toContain(".manage details.ideas{background:var(--card)");
+  });
+
   it("ships its own styles, and skips the background wash when a Pro store picked its own background", () => {
     expect(page()).toContain("body.manage{background:");
     const branded = page({ branding: { backgroundColor: "#fff8ef" } as ManagePageData["branding"] });
