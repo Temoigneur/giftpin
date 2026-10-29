@@ -413,6 +413,7 @@ async function sendMostGone(registry: AutomationRegistry): Promise<boolean> {
   if (email) {
     await sendEmail("most-gone", email, {
       registryTitle: registry.title,
+      eventType: registry.eventType,
       fulfilled,
       total,
       url: manageUrl(registry),

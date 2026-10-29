@@ -188,6 +188,12 @@ export default function Settings() {
                 name="eventTypes"
                 value={type.value}
                 label={type.label}
+                {...(type.value === "wishlist"
+                  ? {
+                      details:
+                        "A shareable list with no event date, such as a holiday wish list. Family marks what they bought, so nobody doubles up. Off until you switch it on.",
+                    }
+                  : {})}
                 {...(settings.eventTypes.includes(type.value) ? { checked: true } : {})}
               />
             ))}

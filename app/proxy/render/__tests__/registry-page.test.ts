@@ -544,3 +544,14 @@ describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
     expect(page([item()], { shipToRegistrant: true })).toContain("shipToRegistrant:shipEl?shipEl.checked:false");
   });
 });
+
+describe("wish list wording", () => {
+  it("calls a Wish list a wish list, and every other occasion a registry", () => {
+    const wish = page([], { eventType: "wishlist", eventLabel: "Wish list", eventDate: null });
+    expect(wish).toContain("This wish list doesn't have any items yet.");
+    expect(wish).toContain("Your wish list? Sign in");
+    expect(wish).not.toContain("Wish list registry at");
+    const other = page([]);
+    expect(other).toContain("This registry doesn't have any items yet.");
+  });
+});

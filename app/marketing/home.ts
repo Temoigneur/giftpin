@@ -1,11 +1,11 @@
 import { EVENT_TYPES } from "../shared/settings";
-import { APP_STORE_URL, SITE_URL } from "./config";
+import { APP_STORE_URL, SITE_URL, holidayPromoOn } from "./config";
 import { FAQ_GROUPS, faqList } from "./faq-copy";
 import { cta, demoVideo, esc, finalCta, icon, sitePage } from "./layout";
 import { FOUNDING_OFFER, PRICE, PRO_FEATURES, PRO_NAME, TRIAL } from "./plans-copy";
 
 /** giftpin.app home page. */
-export function homeHtml(): string {
+export function homeHtml(now: Date = new Date()): string {
   const c = cta();
   const occasions = EVENT_TYPES.filter((t) => t.value !== "other");
   const faqPicks = [
@@ -16,6 +16,7 @@ export function homeHtml(): string {
   ];
 
   const body = `
+${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon("gift")} New for the holidays: shareable wish lists, so family doesn't buy duplicates. <span>See how ${icon("arrow")}</span></a></p>` : ""}
 <section class="hero home-hero">
   <div class="wrap hh">
     <div class="hh-copy">
@@ -309,6 +310,10 @@ ${finalCta()}
 }
 
 const CSS = `
+.season{margin:0; text-align:center; font-size:14.5px; font-weight:600; background:var(--band-chip); border-bottom:1px solid var(--band-line)}
+.season a{display:inline-flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; padding:10px 16px; color:var(--band-ink); text-decoration:none}
+.season span{display:inline-flex; align-items:center; gap:4px; text-decoration:underline}
+.season .i{width:16px; height:16px; flex:none}
 .home-hero{padding-top:clamp(40px,7vw,88px)}
 .hh{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(32px,5vw,72px); align-items:center}
 .hh h1{margin:4px 0 22px}

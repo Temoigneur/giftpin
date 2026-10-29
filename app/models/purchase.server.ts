@@ -308,7 +308,7 @@ export async function voidPurchases(
 // ---------------------------------------------------------------------------
 
 async function notifyRegistrant(
-  registry: { id: string; title: string; registrants: { emailEnc: string }[] },
+  registry: { id: string; title: string; eventType: string; registrants: { emailEnc: string }[] },
   shopDomain: string,
   gift: {
     itemTitle: string;
@@ -339,6 +339,7 @@ async function notifyRegistrant(
       : "The buyer chose not to share their name.";
 
   await sendEmail("gift-purchased", email, {
+    eventType: registry.eventType,
     itemTitle: gift.itemTitle,
     qty: gift.qty,
     desiredQty: gift.desiredQty,
@@ -350,7 +351,7 @@ async function notifyRegistrant(
 }
 
 async function notifyRegistrantOfContribution(
-  registry: { id: string; title: string; registrants: { emailEnc: string }[] },
+  registry: { id: string; title: string; eventType: string; registrants: { emailEnc: string }[] },
   shopDomain: string,
   gift: {
     itemTitle: string;
@@ -382,6 +383,7 @@ async function notifyRegistrantOfContribution(
       : "They chose not to share their name.";
 
   await sendEmail("gift-contribution", email, {
+    eventType: registry.eventType,
     itemTitle: gift.itemTitle,
     amount: gift.amount,
     currency: gift.currency,

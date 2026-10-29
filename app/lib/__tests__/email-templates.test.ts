@@ -69,3 +69,24 @@ describe("Pro automation emails", () => {
     expect(mail.text).toContain("until 2026-11-23");
   });
 });
+
+describe("wish list wording", () => {
+  const url = "https://demo.myshopify.com/apps/registry/manage?t=tok";
+
+  it("says wish list instead of registry for the Wish list occasion", () => {
+    const link = templates["registry-link"]({ to: "a@example.com", registryTitle: "Sam's Wish List", eventType: "wishlist", url });
+    expect(link.subject).toBe("Your wish list: Sam's Wish List");
+    expect(link.text).toContain("Open your wish list:");
+    expect(link.text).not.toContain("your registry");
+    const bought = templates["gift-purchased"]({ to: "a@example.com", itemTitle: "Mug", qty: 1, desiredQty: 1, buyerLine: "From Ana.", eventType: "wishlist", url });
+    expect(bought.html).toContain("See your wish list");
+    const gone = templates["most-gone"]({ to: "a@example.com", registryTitle: "Sam's Wish List", fulfilled: 8, total: 10, eventType: "wishlist", url });
+    expect(gone.html).toContain("Most of your wish list is gone");
+  });
+
+  it("keeps the registry wording for every other occasion", () => {
+    const link = templates["registry-link"]({ to: "a@example.com", registryTitle: "Sam & Alex", eventType: "wedding", url });
+    expect(link.subject).toBe("Your Sam & Alex registry");
+    expect(templates["registry-link"]({ to: "a@example.com", registryTitle: "X", url }).html).toContain("Open my registry");
+  });
+});
