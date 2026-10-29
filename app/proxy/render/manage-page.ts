@@ -280,6 +280,8 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
       indexable: false,
       shopName: data.shopName,
       branding: data.branding,
+      bodyClass: "manage",
+      head: manageStyles(data.branding),
     },
     body,
   );
@@ -394,6 +396,7 @@ function renderCategoryItem(item: { name: string; searchTerm?: string }, browsab
 
 function renderManageItem(item: DisplayItem, data: ManagePageData): string {
   const price = formatMoney(item.price, item.currency ?? data.currency);
+  const id = escapeAttr(item.id);
 
   const image = item.imageUrl
     ? `<img class="item-img" src="${escapeAttr(item.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
@@ -403,42 +406,109 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
     ? `<span class="src${item.sourceType === "shopify_ext" ? " live" : ""}">${escapeHtml(item.externalDomain ?? "elsewhere")}</span>`
     : `<span class="src live">${escapeHtml(data.shopName)}</span>`;
 
-  return `<li class="item${item.fulfilled ? " done" : ""}">
-  ${image}
-  <div>
-    <p class="item-title">${escapeHtml(item.title)}${source}</p>
-    <p class="item-meta">${
-      item.isFund
-        ? fundLine(item, data)
-        : [price, `${item.purchasedQty} of ${item.desiredQty} bought`, item.fund ? fundLine(item, data) : ""].filter(Boolean).join(" &middot; ")
-    }</p>
+  // The bar only ever reports what was really bought (or raised): it never
+  // runs ahead of the count beside it.
+  const done = item.isFund
+    ? item.fund && item.fund.goal > 0 ? item.fund.funded / item.fund.goal : 0
+    : item.desiredQty > 0 ? item.purchasedQty / item.desiredQty : 0;
+  const pct = Math.round(Math.min(1, Math.max(0, done)) * 100);
+  const count = item.isFund ? fundLine(item, data) : `${item.purchasedQty} of ${item.desiredQty} bought`;
+
+  return `<li class="item mi${item.fulfilled ? " done" : ""}">
+  <div class="mi-media">${image}${item.fulfilled ? `<span class="mi-badge">${item.isFund ? "Fully funded" : "All bought"}</span>` : ""}</div>
+  <div class="mi-body">
+    <p class="item-title">${escapeHtml(item.title)}</p>
+    <p class="mi-src">${source}</p>
+    <p class="mi-price">${price && !item.isFund ? `<span class="price">${price}</span>` : ""}<span class="mi-count">${count}</span></p>
+    <div class="mi-bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    ${!item.isFund && item.fund ? `<p class="item-meta">Group gift: ${fundLine(item, data)}</p>` : ""}
     ${
       isSoldOutStoreItem(item) && !item.fulfilled
         ? `<p class="item-meta"><strong>Sold out right now.</strong> ${data.soldOutHidden ? "Guests won't see it until it's back in stock." : "Guests can't add it to their cart until it's back in stock."}</p>`
         : ""
     }
     ${renderStoreMatch(item, data)}
-    ${renderGroupGift(item, data)}
-    <form class="row js-item" data-item="${escapeAttr(item.id)}">
-      <label class="sr" for="note-${escapeAttr(item.id)}">Note for guests</label>
-      <input class="item-note-input" id="note-${escapeAttr(item.id)}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
-      <label class="sr" for="dq-${escapeAttr(item.id)}">How many you'd like</label>
+  </div>
+  ${renderGroupGift(item, data)}
+  <form class="row mi-edit js-item" data-item="${id}">
+      <label class="sr" for="note-${id}">Note for guests</label>
+      <input class="item-note-input" id="note-${id}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
       ${
         item.isFund
           ? `<input type="hidden" name="desiredQty" value="1">`
-          : `<input class="qty" id="dq-${escapeAttr(item.id)}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric">`
+          : `<span class="mi-qty"><label for="dq-${id}">Qty</label><input class="qty" id="dq-${id}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric"></span>`
       }
-      <label class="sr" for="cat-${escapeAttr(item.id)}">Category</label>
-      <select class="cat-select" id="cat-${escapeAttr(item.id)}" name="category">
+      <label class="sr" for="cat-${id}">Category</label>
+      <select class="cat-select" id="cat-${id}" name="category">
         <option value=""${item.category ? "" : " selected"}>No category</option>
         ${GIFT_CATEGORIES.map((c) => `<option value="${escapeAttr(c.value)}"${c.value === item.category ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
       </select>
       <button class="btn sm ghost" type="submit">Update</button>
-      ${item.purchasedQty === 0 ? `<button class="btn sm ghost js-remove" type="button" data-item="${escapeAttr(item.id)}">Remove</button>` : ""}
+      ${item.purchasedQty === 0 ? `<button class="mi-remove js-remove" type="button" data-item="${id}">Remove</button>` : ""}
       <span class="js-status item-meta" role="status"></span>
-    </form>
-  </div>
+  </form>
 </li>`;
+}
+
+/**
+ * The manage page's own look (29 Oct 2026, Ben: "bland and unappealing").
+ * Kept here rather than in layout.ts so the guest page, which has a tight
+ * 50KB budget, doesn't carry a byte of it. Everything is mixed from the
+ * page's own --accent/--card/--line, so a store's accent colour and Pro page
+ * colours still lead; the cool wash behind the page is skipped when a Pro
+ * store has picked its own background.
+ */
+function manageStyles(branding: PageBranding | null | undefined): string {
+  const wash = branding?.backgroundColor
+    ? ""
+    : `body.manage{background:linear-gradient(175deg,var(--wash) 0,var(--bg) 40%,var(--bg) 70%,var(--wash) 100%) var(--bg)}`;
+  return `<style>${wash}
+.manage{--hi:var(--accent);--wash:color-mix(in srgb,#dce8f8 70%,var(--bg));--cool:color-mix(in srgb,#e8f0fb 65%,var(--card));--shadow:0 1px 2px rgb(16 24 40/.04),0 6px 20px -8px rgb(16 24 40/.10);--shadow-up:0 2px 4px rgb(16 24 40/.05),0 14px 32px -12px rgb(16 24 40/.18);--soft:color-mix(in srgb,var(--accent) 5%,var(--cool))}
+@media (prefers-color-scheme:dark){.manage{--hi:color-mix(in srgb,var(--accent) 45%,var(--ink));--wash:color-mix(in srgb,#1c2940 80%,var(--bg));--cool:color-mix(in srgb,#22324d 45%,var(--card));--shadow:0 1px 2px rgb(0 0 0/.3),0 8px 24px -10px rgb(0 0 0/.5);--shadow-up:0 2px 4px rgb(0 0 0/.35),0 16px 36px -12px rgb(0 0 0/.6)}}
+.manage .note,.manage .item{border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
+.manage .items{gap:16px}
+.mi{grid-template-columns:112px 1fr;column-gap:18px;row-gap:12px;align-content:start;padding:18px;transition:box-shadow .2s,border-color .2s,transform .2s}
+@media (hover:hover){.mi:hover{box-shadow:var(--shadow-up);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}}
+.mi:focus-within{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.mi-media{position:relative}
+.mi .item-img{width:112px;height:112px;border-radius:14px;padding:6px;background:var(--soft)}
+.mi-badge{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--card);font-size:11px;font-weight:600;letter-spacing:.02em;border-radius:99px;padding:3px 9px}
+.mi-body{min-width:0}
+.mi .item-title{font-size:17px;letter-spacing:-.005em;margin:0 0 6px}
+.mi-src{margin:0 0 10px;line-height:1}
+.mi .src{margin:0;border:0;background:var(--soft);color:var(--muted);font-weight:500;padding:4px 10px 4px 8px}
+.mi .src::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line)}
+.mi .src.live{color:var(--ink)}.mi .src.live::before{background:var(--hi)}
+.mi-price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 6px}
+.mi-price .price{font-size:18px;letter-spacing:-.01em}
+.mi-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;margin-left:auto}
+.mi-bar{height:4px;border-radius:99px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden;margin:0}
+.mi-bar>i{display:block;height:100%;border-radius:99px;background:var(--hi)}
+.mi>form{grid-column:2;margin:0!important}
+.mi .js-group{padding:8px 8px 8px 12px;border-radius:12px;background:var(--soft)}
+.mi-gg{flex:1 1 100%;margin:0 0 -2px;font-size:13px;font-weight:500;color:var(--muted)}
+.mi .js-group .qty{background:var(--card)}
+.mi-edit{gap:8px;padding-top:12px!important;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.mi-edit input,.mi-edit select{border-radius:10px}
+.mi-edit input:focus-visible,.mi-edit select:focus-visible,.mi .js-group input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.mi-edit .cat-select{flex:1 1 150px;padding:9px 10px}
+.mi-qty{display:inline-flex;align-items:center;gap:6px}
+.mi-qty label{margin:0;font-size:13px;font-weight:500;color:var(--muted)}
+.mi-qty .qty{width:58px}
+.mi-remove{background:none;border:0;padding:8px 4px;margin-left:auto;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--muted) 45%,transparent)}
+.mi-remove:hover{color:#b42318}
+.mi-remove:focus-visible,.manage .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.manage .btn.ghost{background:var(--card)}
+@media (hover:hover){.manage .btn.ghost:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}}
+.mi.done>:not(.undo){opacity:1}
+.mi.done{background:color-mix(in srgb,var(--card) 70%,var(--bg));box-shadow:none}
+.mi.done .item-img{filter:grayscale(.7);opacity:.6}
+.mi.done .item-title{color:var(--muted)}
+.mi.done .mi-bar>i{background:var(--muted)}
+.mi.done>form:not(.undo){opacity:.6}
+@media (max-width:420px){.mi{grid-template-columns:80px 1fr;column-gap:14px;padding:14px}.mi>form{grid-column:1/-1}.mi .item-img{width:80px;height:80px;padding:4px}.mi .item-title{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.mi{transition:none}}
+</style>`;
 }
 
 /**
@@ -673,7 +743,7 @@ function renderGroupGift(item: DisplayItem, data: ManagePageData): string {
   const id = escapeAttr(item.id);
   const goal = item.fund ? String(item.fund.goal) : item.price ? String(Math.ceil(item.price * item.desiredQty)) : "";
   return `<form class="row js-group" data-item="${id}" style="margin-top:8px">
-  <label class="sr" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
+  <label class="mi-gg" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
   <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="Goal">
   <button class="btn sm ghost" type="submit">${item.isFund ? "Update goal" : item.fund ? "Update group gift" : "Let guests chip in"}</button>
   ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">Stop chip-ins</button>` : ""}
