@@ -1,8 +1,8 @@
 import { EVENT_TYPES } from "../shared/settings";
-import { SITE_URL } from "./config";
+import { APP_STORE_URL, SITE_URL } from "./config";
 import { FAQ_GROUPS, faqList } from "./faq-copy";
 import { cta, demoVideo, esc, finalCta, icon, sitePage } from "./layout";
-import { PRICE, PRO_FEATURES, PRO_NAME, TRIAL } from "./plans-copy";
+import { FOUNDING_OFFER, PRICE, PRO_FEATURES, PRO_NAME, TRIAL } from "./plans-copy";
 
 /** giftpin.app home page. */
 export function homeHtml(): string {
@@ -30,7 +30,9 @@ export function homeHtml(): string {
         <li>${icon("check")} Free plan with unlimited registries</li>
         <li>${icon("check")} ${PRO_NAME} ${TRIAL}</li>
         <li>${icon("check")} Billed through Shopify</li>
+        <li>${icon("check")} Made in Canada</li>
       </ul>
+      ${FOUNDING_OFFER ? `<p class="founding">${icon("star")} ${esc(FOUNDING_OFFER)}</p>` : ""}
     </div>
 
     <div class="hh-art" aria-label="Example registry" role="img">
@@ -101,7 +103,36 @@ export function homeHtml(): string {
   </div>
 </section>
 
-<section class="sec tint" id="how">
+<section class="sec tint" id="any-registry">
+  <div class="wrap spot">
+    <div class="rise">
+      <p class="eyebrow">${icon("link")} Already registered somewhere else?</p>
+      <h2>Your Add to registry button works with <span class="grad-text">the registry they already have.</span></h2>
+      <p class="lede" style="margin:18px 0 32px">Plenty of shoppers arrive with a registry on Babylist or a wedding site. Instead of losing them, your product page asks <em>Which registry?</em> and sends the gift wherever their list lives.</p>
+      <ol class="pts">
+        <li><span class="n">1</span><div><h3>Your store's registry</h3><p>The usual one tap onto a Giftpin registry, credited to you when guests buy.</p></div></li>
+        <li><span class="n">2</span><div><h3>Their Babylist registry</h3><p>Added through Babylist's own add-to-Babylist script, with the size or colour they picked. It only loads when a shopper chooses it.</p></div></li>
+        <li><span class="n">3</span><div><h3>Any registry that takes a link</h3><p>Giftpin copies the product link, with the variant they chose, and tells them where to paste it, or to use that site's own button, like Add to Zola.</p></div></li>
+      </ol>
+    </div>
+    <div class="rise">
+      <div class="match-card picker-card">
+        <p class="mc-lab">Your product page</p>
+        <div class="it flat">
+          <span class="th t1">${icon("gift")}</span>
+          <div><strong>Organic cotton swaddle set</strong><span class="src mine">${icon("store")} Your store</span></div>
+        </div>
+        <div class="match">
+          <p class="mc-lab accent">${icon("gift")} Which registry?</p>
+          <div class="choices"><span class="solid">My store registry</span><span>My Babylist registry</span><span>Another registry (copy link)</span></div>
+        </div>
+      </div>
+      <p class="fine-print">Illustration. Both extra choices are off until you tick them in the button's settings, on Free and ${PRO_NAME}. Giftpin isn't affiliated with Babylist or Zola, and it doesn't track purchases made from registries on other sites.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="how">
   <div class="wrap">
     <div class="sec-head center rise">
       <p class="eyebrow">How it works</p>
@@ -116,7 +147,7 @@ export function homeHtml(): string {
   </div>
 </section>
 
-<section class="sec" id="demo">
+<section class="sec tint" id="demo">
   <div class="wrap">
     <div class="sec-head center rise">
       <p class="eyebrow">${icon("play")} Demo</p>
@@ -127,7 +158,7 @@ export function homeHtml(): string {
   </div>
 </section>
 
-<section class="sec tint" id="features">
+<section class="sec" id="features">
   <div class="wrap">
     <div class="sec-head rise">
       <p class="eyebrow">Features</p>
@@ -219,7 +250,25 @@ export function homeHtml(): string {
   </div>
 </section>
 
-<section class="sec">
+<section class="sec" id="trust">
+  <div class="wrap">
+    <div class="sec-head center rise">
+      <p class="eyebrow">${icon("heart")} New on the Shopify App Store</p>
+      <h2>Don't take our word for it. <span class="grad-text">Check for yourself.</span></h2>
+      <p class="lede">Giftpin is new, so there aren't many reviews yet. Here's what you can see before you install, and how easy it is to walk away.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card rise"><span class="chip-ico">${icon("shield")}</span><h3>Reviewed by Shopify</h3><p>Giftpin passed Shopify's app review before it was listed on the <a href="${esc(APP_STORE_URL)}">Shopify App Store</a>, and runs on Shopify's own billing.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("play")}</span><h3>Watch the whole thing first</h3><p>The <a href="#demo">demo video</a> shows a real registry from the first item to the thank-you list. No sign-up needed to watch.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("bolt")}</span><h3>Free to try, easy to leave</h3><p>The Free plan has no time limit. ${PRO_NAME} starts with a ${TRIAL}, and you cancel from Shopify like any other app.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("heart")}</span><h3>Made in Canada by its founders</h3><p>Giftpin is built by two co-founders, not a faceless agency. When you write in, the people who built it answer.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("mail")}</span><h3>Help setting it up</h3><p>Follow the <a href="/setup">setup guide</a>, or email <a href="mailto:support@giftpin.app">support@giftpin.app</a> and we'll help you get the button on your product pages.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("lock")}</span><h3>Privacy you can read</h3><p>See exactly what Giftpin stores about registrants and guests, and why, in the <a href="/privacy">privacy policy</a>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec tint">
   <div class="wrap faq-teaser">
     <div class="rise">
       <p class="eyebrow">FAQ</p>
@@ -331,6 +380,10 @@ const CSS = `
 .big-n{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:64px; line-height:1; background:var(--grad-text); -webkit-background-clip:text; background-clip:text; color:transparent; display:block}
 
 .demo-frame{max-width:980px; margin:0 auto}
+
+.choices{display:grid; gap:8px; margin-top:8px}
+.choices span{font-size:14px; font-weight:700; padding:10px 14px; border-radius:10px; border:1.5px solid #15142e; color:#15142e; text-align:center}
+.choices .solid{background:#15142e; color:#fff}
 
 .bento{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px}
 .bento .wide{grid-column:span 2; position:relative; overflow:hidden}

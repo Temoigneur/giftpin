@@ -1,6 +1,6 @@
 import { BILLING_FAQ, faqJsonLd, faqList } from "./faq-copy";
 import { cta, esc, finalCta, icon, sitePage } from "./layout";
-import { FREE_FEATURES, PRICE, PRO_FEATURES, PRO_NAME, TRIAL, TRIAL_DAYS } from "./plans-copy";
+import { FOUNDING_OFFER, FREE_FEATURES, PRICE, PRO_FEATURES, PRO_NAME, TRIAL, TRIAL_DAYS } from "./plans-copy";
 
 /**
  * giftpin.app/pricing: the URL for the Shopify listing's "more pricing
@@ -17,6 +17,7 @@ export function pricingHtml(): string {
     <p class="eyebrow">${icon("sparkle")} Pricing</p>
     <h1>Free to start.<br><span class="grad-text">Pro when you're ready.</span></h1>
     <p class="lede">Every store gets unlimited gift registries at no cost. ${PRO_NAME} adds analytics, sales reports, your own branding, automatic emails and priority support.</p>
+    ${FOUNDING_OFFER ? `<p class="founding">${icon("star")} ${esc(FOUNDING_OFFER)}</p>` : ""}
   </div>
 </section>
 
