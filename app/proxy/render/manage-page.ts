@@ -474,6 +474,7 @@ body.manage{background:radial-gradient(1200px 600px at 85% -10%,color-mix(in srg
 @media (prefers-color-scheme:dark){.manage{--hi:color-mix(in srgb,var(--accent) 45%,var(--ink));--wash:color-mix(in srgb,#1c2940 80%,var(--bg));--cool:color-mix(in srgb,#22324d 45%,var(--card));--shadow:0 1px 2px rgb(0 0 0/.3),0 8px 24px -10px rgb(0 0 0/.5);--shadow-up:0 2px 4px rgb(0 0 0/.35),0 16px 36px -12px rgb(0 0 0/.6)}}
 .manage .note,.manage .item{border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
 .manage .items{gap:16px}
+.manage .hero-img,.manage .hero-art{border-radius:18px;box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);background:var(--card)}
 .mi{grid-template-columns:112px 1fr;column-gap:18px;row-gap:12px;align-content:start;padding:18px;transition:box-shadow .2s,border-color .2s,transform .2s}
 @media (hover:hover){.mi:hover{box-shadow:var(--shadow-up);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}}
 .mi:focus-within{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
