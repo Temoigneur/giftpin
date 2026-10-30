@@ -34,6 +34,7 @@ import {
   addInternalItem,
   addExternalItem,
   addManualItem,
+  addNamedItem,
   addFundItem,
   setItemFundGoal,
   parseFundGoal,
@@ -695,7 +696,7 @@ async function handlePost(
     case "add-link":
       return addLinkAction(request, ctx, shop);
     case "add-manual":
-      return addManualAction(request, ctx);
+      return addManualAction(request, ctx, shop);
     case "add-from-store":
       return addFromStoreAction(request, ctx, shop);
     case "scan-lookup":
@@ -1436,7 +1437,13 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
  * end up with the item on their list, or they go and build the list somewhere
  * that doesn't fail them.
  */
-async function addManualAction(request: Request, ctx: ProxyContext): Promise<Response> {
+/**
+ * An item added by name, with an optional link and price. The manage page's
+ * ideas guide uses it for experiences (a cooking class, a spa day), which no
+ * store search can find (29 Oct 2026). Those are bought somewhere else, so
+ * the store's "items from other stores" setting applies (addNamedItem).
+ */
+async function addManualAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
   if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
 
@@ -1444,13 +1451,20 @@ async function addManualAction(request: Request, ctx: ProxyContext): Promise<Res
   const title = String(body.title ?? "").trim();
   if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
 
+  // Optional here, but a typed "$120" must not reach the database as text.
+  const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
+  const price = rawPrice ? normalizePrice(rawPrice) : null;
+  if (rawPrice && price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+
   try {
-    await addManualItem({
+    await addNamedItem({
       registryId: registry.id,
       title,
-      url: typeof body.url === "string" && body.url ? body.url : null,
-      price: typeof body.price === "string" ? body.price : null,
-      currency: typeof body.currency === "string" ? body.currency : null,
+      url: typeof body.url === "string" && body.url.trim() ? body.url.trim() : null,
+      price,
+      currency: price
+        ? normalizeCurrency(typeof body.currency === "string" ? body.currency : null) ?? shop.currency
+        : null,
       desiredQty: clampInt(body.desiredQty, 1, 99),
       note: cleanNote(body.note),
     });
