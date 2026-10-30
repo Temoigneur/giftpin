@@ -1,7 +1,7 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref } from "./layout";
 import type { DisplayItem } from "../../models/item.server";
-import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion } from "../../shared/settings";
+import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion, eventTypeLabel } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
 import { ideaGuideFor, type GiftIdeaItem } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
@@ -107,6 +107,10 @@ export interface ManagePageData {
    * the whole section, so older callers and tests render as before.
    */
   partner?: { name: string } | null;
+  /** First-run setup dialog step (?setup=1|2 after create); see renderSetup. */
+  setupStep?: 1 | 2;
+  /** Open "Edit registry & preferences", e.g. after one of its forms was saved. */
+  prefsOpen?: boolean;
 }
 
 export function renderManagePage(data: ManagePageData): string {
@@ -115,7 +119,7 @@ ${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${ev
 <p class="sub">Your registry</p>
 <h1>${escapeHtml(data.title)}</h1>
 
-${data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
+${data.flash && !data.setupStep ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
 
 ${renderPerks(data.shopName, data.perks)}
 
@@ -222,10 +226,65 @@ ${
 ${renderGifts(data)}
 </div>
 
-${renderShipping(data)}
+${renderPreferences(data)}
 
-<h2>Registry settings</h2>
-<form method="post" action="${escapeAttr(data.actionUrl)}/settings?t=${encodeURIComponent(data.token)}" class="note">
+${renderSetup(data)}
+${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
+<script id="registro-config" type="application/json">${jsonForScript({
+    actionUrl: data.actionUrl,
+    registryId: data.registryId,
+    registryTitle: data.title,
+    token: data.token,
+    shopName: data.shopName,
+    retailers: retailerSearchLinks(data.country),
+    extension: Boolean(data.chromeExtensionUrl),
+    affiliateBase: affiliateEnabled(data.affiliateLinkWrapperBase) ? data.affiliateLinkWrapperBase : null,
+    version: data.version ?? null,
+    versionUrl: data.versionUrl ?? null,
+  })}</script>
+<script>${manageScript()}</script>
+`;
+
+  return layout(
+    {
+      title: `Manage ${data.title}`,
+      accentColor: data.accentColor,
+      indexable: false,
+      shopName: data.shopName,
+      branding: data.branding,
+      bodyClass: "manage",
+      head: manageStyles(data.branding),
+    },
+    body,
+  );
+}
+
+/**
+ * "Edit registry & preferences" (Ben, 30 Oct 2026). Name, occasion, privacy,
+ * the ship-to address, the partner and Delete used to sit as one long form
+ * under the list, which read as a wall of questions. Now they're one line of
+ * what's set plus a closed panel; the first-time questions are asked in the
+ * setup dialog instead (renderSetup). Same forms and endpoints as before.
+ * Opens itself after a save so the flash message is in view.
+ */
+function renderPreferences(data: ManagePageData): string {
+  const shipOn = data.shipping?.enabled ?? false;
+  const visibility =
+    data.privacy === "public_" ? "Listed publicly" : data.privacy === "password" ? "Link and password" : "Anyone with the link";
+  const facts = [
+    eventTypeLabel(data.eventType),
+    data.eventDate && !isDatelessOccasion(data.eventType)
+      ? new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(data.eventDate)
+      : null,
+    visibility,
+    shipOn ? "Gifts ship to you" : null,
+    data.partner ? `With ${data.partner.name}` : null,
+  ].filter(Boolean) as string[];
+  return `<details class="note prefs" id="prefs"${data.prefsOpen ? " open" : ""}>
+  <summary><span class="prefs-head"><strong>Registry &amp; preferences</strong><span class="prefs-facts">${facts.map(escapeHtml).join(" &middot; ")}</span></span><span class="prefs-cta"><span class="prefs-cta-open">Edit registry &amp; preferences</span><span class="prefs-cta-close">Close</span></span></summary>
+  <div class="prefs-body">
+  <h2>Registry settings</h2>
+  <form method="post" action="${escapeAttr(data.actionUrl)}/settings?t=${encodeURIComponent(data.token)}" class="prefs-form">
   <label for="f-title">Registry name</label>
   <input id="f-title" type="text" name="title" value="${escapeAttr(data.title)}" maxlength="200" required>
 
@@ -263,45 +322,66 @@ ${renderShipping(data)}
     <button class="btn" type="submit">Save changes</button>
   </div>
 </form>
-
-${renderPartner(data)}
-
-<div class="note">
-  <p style="margin:0 0 8px"><strong>Delete this registry</strong></p>
+  ${renderShipping(data)}
+  ${renderPartner(data)}
+  <h2>Delete this registry</h2>
   <p class="hint" style="margin:0 0 10px">Removes the registry, every item, and everything we know about who bought what. This can't be undone.</p>
   <form method="post" action="${escapeAttr(data.actionUrl)}/delete?t=${encodeURIComponent(data.token)}" class="js-confirm-delete">
     <button class="btn sm ghost" type="submit">Delete registry</button>
   </form>
-</div>
+  </div>
+</details>`;
+}
 
-${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
-<script id="registro-config" type="application/json">${jsonForScript({
-    actionUrl: data.actionUrl,
-    registryId: data.registryId,
-    registryTitle: data.title,
-    token: data.token,
-    shopName: data.shopName,
-    retailers: retailerSearchLinks(data.country),
-    extension: Boolean(data.chromeExtensionUrl),
-    affiliateBase: affiliateEnabled(data.affiliateLinkWrapperBase) ? data.affiliateLinkWrapperBase : null,
-    version: data.version ?? null,
-    versionUrl: data.versionUrl ?? null,
-  })}</script>
-<script>${manageScript()}</script>
-`;
+/** The manage link with the setup dialog opened at `step`. */
+function setupHref(data: ManagePageData, step: 1 | 2): string {
+  return `${data.manageUrl}${data.manageUrl.includes("?") ? "&" : "?"}setup=${step}`;
+}
 
-  return layout(
-    {
-      title: `Manage ${data.title}`,
-      accentColor: data.accentColor,
-      indexable: false,
-      shopName: data.shopName,
-      branding: data.branding,
-      bodyClass: "manage",
-      head: manageStyles(data.branding),
+/**
+ * First-run setup (Ben, 30 Oct 2026): right after "Create my registry", ask
+ * the two questions the create form leaves out, one per screen, in a dialog
+ * over the new registry. Both can be skipped and both live on in "Edit
+ * registry & preferences". Asking for a home address before anyone has seen
+ * their registry is where people quit, so it's never required: privacy stays
+ * "Anyone with the link" and ship-to-registrant stays off unless they say so
+ * (and each guest still chooses at checkout; see renderShipping).
+ *
+ * Each step is a plain form post: the server sends step 1 on to step 2
+ * (setup=1 → setup=2) and step 2 back to the page. The dialog is rendered
+ * open so it shows without JavaScript; the script makes it modal.
+ */
+function renderSetup(data: ManagePageData): string {
+  let step = data.setupStep;
+  if (step === 2 && data.partner === undefined) step = undefined;
+  if (!step) return "";
+  const total = data.partner === undefined ? 1 : 2;
+  const screens = {
+    1: {
+      title: "Where should gifts go?",
+      sub: `Gifts bought from ${escapeHtml(data.shopName)} can be shipped straight to you, so guests don't need your address.`,
+      body: renderShipping(data, true),
     },
-    body,
-  );
+    2: {
+      title: "Planning this with someone?",
+      sub: "Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.",
+      body: renderPartner(data, true),
+    },
+  } as const;
+  const screen = screens[step];
+  return `<dialog id="setup" class="setup" open aria-labelledby="setup-title">
+  <form method="dialog" class="setup-close"><button type="submit" aria-label="Close">&times;</button></form>
+  ${total > 1 ? `<p class="setup-step">Step ${step} of ${total}</p>
+  <div class="setup-dots" aria-hidden="true">${[1, 2].map((n) => `<i${n <= step ? ' class="on"' : ""}></i>`).join("")}</div>` : ""}
+  <h2 id="setup-title" tabindex="-1" autofocus>${screen.title}</h2>
+  <p class="sub">${screen.sub}</p>
+  ${step === 2 && data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
+  ${screen.body}
+  <p class="hint">You can change this any time under Edit registry &amp; preferences.</p>
+</dialog>
+<script>(function(){var d=document.getElementById('setup');if(!d)return;
+try{var u=new URL(location.href);u.searchParams.delete('setup');history.replaceState(null,'',u.toString());}catch(_){}
+if(d.showModal){d.close();d.showModal();}})();</script>`;
 }
 
 /**
@@ -310,17 +390,18 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
  * refuses when the guest checked out in a different country or province/state
  * (tax would change), so the copy says "usually" and explains that case.
  */
-function renderShipping(data: ManagePageData): string {
+function renderShipping(data: ManagePageData, setup = false): string {
   const shipping = data.shipping ?? { enabled: false, address: null };
+  // The setup dialog has its own copy of this form; ids must stay unique.
+  const id = setup ? "setup-ship" : "ship";
   const a = shipping.address ?? {};
   const country = a.countryCode || a.countryCodeV2 || normalizeCountry(data.country);
   const flash = shipping.flash;
   const input = (name: string, label: string, autocomplete: string, optional = false, type = "text") => `
-    <label for="ship-${name}">${label}${optional ? ' <span class="hint">(optional)</span>' : ""}</label>
-    <input id="ship-${name}" type="${type}" name="${name}" autocomplete="${autocomplete}" maxlength="120" value="${escapeAttr(a[name] ?? "")}">`;
+    <label for="${id}-${name}">${label}${optional ? ' <span class="hint">(optional)</span>' : ""}</label>
+    <input id="${id}-${name}" type="${type}" name="${name}" autocomplete="${autocomplete}" maxlength="120" value="${escapeAttr(a[name] ?? "")}">`;
 
-  return `<h2 id="ship">Send gifts to me</h2>
-<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}" class="note js-ship">
+  return `${setup ? "" : `<h2 id="ship">Send gifts to me</h2>\n`}<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=1" : ""}" class="${setup ? "" : "note "}js-ship">
   ${flash ? `<div class="${flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(flash.message)}</div>` : ""}
   <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Ship gifts bought from ${escapeHtml(data.shopName)} straight to me</label>
   <p class="hint">Guests never see your address, and each guest can choose to have their gift sent to themselves instead. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
@@ -333,15 +414,15 @@ function renderShipping(data: ManagePageData): string {
     ${input("address1", "Street address", "address-line1")}
     ${input("address2", "Apartment, suite, etc.", "address-line2", true)}
     ${input("city", "City", "address-level2")}
-    <label for="ship-country">Country</label>
-    <select id="ship-country" name="countryCode" class="js-ship-country" autocomplete="country">
+    <label for="${id}-country">Country</label>
+    <select id="${id}-country" name="countryCode" class="js-ship-country" autocomplete="country">
       ${SHIPPING_COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${c.code === country ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
     </select>
     ${Object.entries(PROVINCES)
       .map(
         ([code, p]) => `<div class="js-ship-region" data-country="${code}"${code === country ? "" : " hidden"}>
-    <label for="ship-region-${code}">${p.label}</label>
-    <select id="ship-region-${code}" name="provinceCode" autocomplete="address-level1"${code === country ? "" : " disabled"}>
+    <label for="${id}-region-${code}">${p.label}</label>
+    <select id="${id}-region-${code}" name="provinceCode" autocomplete="address-level1"${code === country ? "" : " disabled"}>
       <option value="">Choose&hellip;</option>
       ${p.regions.map((r) => `<option value="${escapeAttr(r.code)}"${code === country && r.code === a.provinceCode ? " selected" : ""}>${escapeHtml(r.label)}</option>`).join("")}
     </select>
@@ -352,7 +433,12 @@ function renderShipping(data: ManagePageData): string {
     ${input("phone", "Phone, for the courier", "tel", true, "tel")}
   </fieldset>
   <div class="row" style="margin-top:18px">
-    <button class="btn" type="submit">Save</button>
+    ${
+      setup
+        ? `<button class="btn" type="submit">Save and continue</button>
+    <a class="btn ghost" href="${escapeAttr(setupHref(data, 2))}">Skip for now</a>`
+        : `<button class="btn" type="submit">Save</button>`
+    }
   </div>
 </form>`;
 }
@@ -556,6 +642,32 @@ button.cat-chip:hover,button.cat-chip:focus-visible{border-color:var(--accent);c
 .mi.done>form:not(.undo){opacity:.6}
 @media (max-width:420px){.mi{grid-template-columns:80px 1fr;column-gap:14px;padding:14px}.mi>form{grid-column:1/-1}.mi .item-img{width:80px;height:80px;padding:4px}.mi .item-title{font-size:16px}}
 @media (prefers-reduced-motion:reduce){.mi{transition:none}}
+details.prefs{padding:0;margin-top:32px}
+details.note.prefs>summary{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;padding:16px 18px}
+details.note.prefs>summary::before,details.note.prefs[open]>summary::before{content:none}
+.prefs-head{display:grid;gap:3px;min-width:0}
+.prefs-facts{font-size:13px;color:var(--muted)}
+.prefs-cta{font-size:14px;font-weight:600;color:var(--hi);text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--hi) 40%,transparent)}
+details.prefs[open] .prefs-cta-open,details.prefs:not([open]) .prefs-cta-close{display:none}
+.setup h2:focus{outline:none}
+details.prefs>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:18px}
+.prefs-body{padding:0 18px 18px;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.prefs-body h2{font-size:17px;margin:22px 0 4px}
+.manage .prefs-body .note{border:0;box-shadow:none;padding:0;margin:0;background:none}
+.setup{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;border:0;border-radius:20px;background:var(--card);color:var(--ink);padding:22px 22px 18px;box-shadow:0 24px 64px -16px rgb(16 24 40/.45);z-index:20}
+.setup::backdrop{background:rgb(16 22 40/.5)}
+.setup h2{margin:6px 0 6px;font-size:22px;letter-spacing:-.01em}
+.setup>.sub{margin:0 0 14px}
+.setup-close{position:absolute;top:8px;right:8px;margin:0}
+.setup-close button{width:40px;height:40px;border:0;border-radius:50%;background:none;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+.setup-close button:hover{background:var(--soft)}
+.setup-step{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.setup-dots{display:flex;gap:6px;margin:8px 0 4px}
+.setup-dots i{width:28px;height:4px;border-radius:99px;background:var(--line)}
+.setup-dots i.on{background:var(--hi)}
+.setup .row{display:flex;flex-wrap:wrap;gap:10px}
+.setup>.hint{margin-top:14px}
+@media (max-width:520px){.setup{width:100vw;max-width:100vw;max-height:92dvh;margin:auto 0 0;border-radius:20px 20px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}.setup .row .btn{flex:1 1 auto}}
 </style>`;
 }
 
@@ -833,26 +945,33 @@ function renderGifts(data: ManagePageData): string {
  * Partner (co-registrant). One per registry. They get their own private link
  * by email and can do everything here; removing them turns that link off.
  */
-function renderPartner(data: ManagePageData): string {
+function renderPartner(data: ManagePageData, setup = false): string {
   if (data.partner === undefined) return "";
-  const action = (path: string) => `${escapeAttr(data.actionUrl)}/${path}?t=${encodeURIComponent(data.token)}`;
+  const action = (path: string) => `${escapeAttr(data.actionUrl)}/${path}?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=2" : ""}`;
+  const id = setup ? "setup-p" : "p";
   const inner = data.partner
     ? `<p style="margin:0 0 10px"><strong>${escapeHtml(data.partner.name)}</strong> can also manage this registry.</p>
   <form method="post" action="${action("partner-remove")}" class="js-confirm-partner">
     <button class="btn sm ghost" type="submit">Remove partner</button>
   </form>
   <p class="hint">Removing them turns off their link straight away. Gifts and settings stay as they are.</p>`
-    : `<p style="margin:0 0 10px">Planning this with someone? Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.</p>
+    : `${setup ? "" : `<p style="margin:0 0 10px">Planning this with someone? Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.</p>`}
   <form method="post" action="${action("partner")}">
-    <label for="p-name">Their name</label>
-    <input id="p-name" type="text" name="name" maxlength="120" required autocomplete="off">
-    <label for="p-email">Their email</label>
-    <input id="p-email" type="email" name="email" maxlength="254" required autocomplete="off">
+    <label for="${id}-name">Their name</label>
+    <input id="${id}-name" type="text" name="name" maxlength="120" required autocomplete="off">
+    <label for="${id}-email">Their email</label>
+    <input id="${id}-email" type="email" name="email" maxlength="254" required autocomplete="off">
     <div class="row" style="margin-top:12px">
-      <button class="btn sm" type="submit">Add partner</button>
+      ${
+        setup
+          ? `<button class="btn" type="submit">Add partner</button>
+      <button class="btn ghost" type="submit" formmethod="dialog" formnovalidate>Not now</button>`
+          : `<button class="btn sm" type="submit">Add partner</button>`
+      }
     </div>
   </form>
   <p class="hint">Their name appears next to yours on the registry page. Their email is never shown to guests.</p>`;
+  if (setup) return inner;
   return `<h2 id="partner">Your partner</h2>
 <div class="note">
   ${inner}
@@ -947,8 +1066,7 @@ function manageScript(): string {
   // Ship-to-registrant: show the address only when it's switched on, and the
   // state/province list that matches the chosen country (the others are
   // disabled so only one provinceCode is posted).
-  var ship=document.querySelector('.js-ship');
-  if(ship){
+  document.querySelectorAll('.js-ship').forEach(function(ship){
     var toggle=ship.querySelector('.js-ship-toggle'),fields=ship.querySelector('.js-ship-fields'),countrySel=ship.querySelector('.js-ship-country');
     toggle.addEventListener('change',function(){fields.hidden=!toggle.checked;});
     countrySel.addEventListener('change',function(){
@@ -957,7 +1075,11 @@ function manageScript(): string {
         r.hidden=!on;r.querySelector('select').disabled=!on;
       });
     });
-  }
+  });
+  // A link to #ship or #partner (a save, an email) opens the panel they're in.
+  var prefs=document.getElementById('prefs');
+  function openPrefs(){var h=location.hash.slice(1);if(prefs&&h&&prefs.querySelector('#'+CSS.escape(h)))prefs.open=true;}
+  openPrefs();window.addEventListener('hashchange',function(){openPrefs();var t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView();});
 
   var dlg=document.getElementById('match-dialog');
   function mdMessage(msg){

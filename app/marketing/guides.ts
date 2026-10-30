@@ -717,7 +717,7 @@ const REG_SHARE: Step[] = [
   {
     title: "Choose who can see it",
     items: [
-      "Under <b>Registry settings</b>, use <b>Who can see this</b>: <b>Anyone with the link (recommended)</b>, <b>Anyone with the link and a password</b>, or <b>Listed publicly, so guests can search for it</b> on the store's <b>Find a gift registry</b> page.",
+      "At the bottom of your registry, click <b>Edit registry &amp; preferences</b>. Under <b>Registry settings</b>, use <b>Who can see this</b>: <b>Anyone with the link (recommended)</b>, <b>Anyone with the link and a password</b>, or <b>Listed publicly, so guests can search for it</b> on the store's <b>Find a gift registry</b> page.",
       "Click <b>Save changes</b>. The same section lets you change the name, occasion, date and note.",
     ],
     img: { src: "/guides/r9-privacy.png", alt: "The Who can see this menu with its three choices" },
@@ -725,7 +725,8 @@ const REG_SHARE: Step[] = [
   {
     title: "Have gifts shipped to you",
     items: [
-      "Under <b>Send gifts to me</b>, tick the box and enter your shipping address, then click <b>Save</b>. Gifts bought from this store are then sent straight to you.",
+      "Right after you create your registry, we ask <b>Where should gifts go?</b> Tick the box and enter your shipping address, or skip it for now.",
+      "To change it later, click <b>Edit registry &amp; preferences</b>, then under <b>Send gifts to me</b> tick the box, enter your address and click <b>Save</b>. Gifts bought from this store are then sent straight to you.",
       "Guests never see your address, and each guest can still choose to have their gift sent to themselves.",
     ],
     img: { src: "/guides/r8-ship.png", alt: "The Send gifts to me section with the box ticked and a shipping address filled in" },
@@ -747,7 +748,7 @@ const REG_FAQ = [
   },
   {
     q: "Can I delete my registry?",
-    a: "Yes. Under Registry settings, click Delete registry. This removes every item and the record of who bought what, and it can't be undone.",
+    a: "Yes. Click Edit registry & preferences at the bottom of your registry, then Delete registry. This removes every item and the record of who bought what, and it can't be undone.",
   },
 ];
 

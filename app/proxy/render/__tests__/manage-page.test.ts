@@ -632,3 +632,56 @@ describe("every idea leads somewhere (29 Oct 2026)", () => {
     }
   });
 });
+
+describe("Edit registry & preferences (30 Oct 2026)", () => {
+  it("folds settings, shipping, partner and delete into one closed panel after the list", () => {
+    const html = page({ partner: null, privacy: "password", shipping: { enabled: true, address: null } });
+    const prefs = html.indexOf('<details class="note prefs" id="prefs">');
+    expect(prefs).toBeGreaterThan(html.indexOf('id="registro-list"'));
+    expect(html).toContain("Edit registry &amp; preferences");
+    // Every form is still inside it, with the same endpoints.
+    for (const marker of ["/settings?t=tok_abc", "/shipping?t=tok_abc", "/partner?t=tok_abc", "/delete?t=tok_abc", 'id="ship"', 'id="partner"']) {
+      expect(html.indexOf(marker)).toBeGreaterThan(prefs);
+    }
+    // The one-line summary says what's set without opening it.
+    expect(html).toContain("Link and password");
+    expect(html).toContain("Gifts ship to you");
+  });
+
+  it("opens itself when asked (after a save)", () => {
+    expect(page({ prefsOpen: true })).toContain('<details class="note prefs" id="prefs" open>');
+  });
+});
+
+describe("first-run setup dialog", () => {
+  it("is absent unless the page was opened from Create", () => {
+    expect(page({ partner: null })).not.toContain('id="setup"');
+  });
+
+  it("step 1 asks where gifts go, can be skipped, and moves on to step 2", () => {
+    const html = page({ partner: null, setupStep: 1 });
+    expect(html).toContain('<dialog id="setup" class="setup" open');
+    expect(html).toContain("Where should gifts go?");
+    expect(html).toContain("Step 1 of 2");
+    expect(html).toContain('action="/apps/registry/shipping?t=tok_abc&amp;setup=1"');
+    expect(html).toContain('href="https://maple-clay.com/apps/registry/manage?t=tok_abc&amp;setup=2">Skip for now');
+    // Off unless they tick it, and ids don't clash with the panel's copy.
+    expect(html).not.toMatch(/name="enabled" class="js-ship-toggle" checked/);
+    expect(html).toContain('id="setup-ship-firstName"');
+    expect(html.match(/id="ship-firstName"/g)).toHaveLength(1);
+  });
+
+  it("step 2 offers to add a partner, or close with Not now", () => {
+    const html = page({ partner: null, setupStep: 2, flash: { kind: "err", message: "Check their email" } });
+    expect(html).toContain("Planning this with someone?");
+    expect(html).toContain('action="/apps/registry/partner?t=tok_abc&amp;setup=2"');
+    expect(html).toContain('formmethod="dialog" formnovalidate>Not now');
+    // The error shows in the dialog, not hidden behind it.
+    expect(html.indexOf("Check their email")).toBeGreaterThan(html.indexOf('id="setup"'));
+  });
+
+  it("is one step when partners aren't offered", () => {
+    expect(page({ setupStep: 2 })).not.toContain('id="setup"');
+    expect(page({ setupStep: 1 })).not.toContain("Step 1 of");
+  });
+});
