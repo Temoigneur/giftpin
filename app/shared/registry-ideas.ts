@@ -223,21 +223,21 @@ const CHRISTENING_GUIDE: IdeaGuide = {
  * anything a store sells under another name has an entry in idea-aliases.ts.
  */
 const KIDS_GROUPS: GiftIdeaGroup[] = [
-  group("kids-little", "Little kids (1 to 3)", [
+  group("kids-little", "Little kids (ages 1 to 3)", [
     ["Toys", ["Stacking toys", "Shape sorter", "Push walker", "Pull-along toy", "Musical toys", "Wooden blocks"]],
     ["Pretend play", ["Play kitchen", "Play food", "Baby doll", "Toy cars", "Tool bench"]],
     ["Cuddly", ["Plush toys", "Teddy bear", "Stuffed animals"]],
     ["Active play", ["Ride-on toy", "Balance bike", "Tricycle", "Ball pit", "Indoor climber"]],
     ["Books & bath", ["Board books", "Touch-and-feel books", "Bath toys"]],
   ]),
-  group("kids-young", "Kids (4 to 7)", [
+  group("kids-young", "Kids (ages 4 to 7)", [
     ["Building", ["LEGO sets", "Magnetic tiles", "Marble run", "Train set", "Building blocks"]],
     ["Arts & crafts", ["Art easel", "Craft kits", "Play-Doh set", "Crayons", "Markers", "Coloring books", "Sticker books"]],
     ["Dress-up & pretend", ["Dress-up costumes", "Dollhouse", "Dolls", "Action figures", "Play tent", "Puppets"]],
     ["Outdoor", ["Bike", "Scooter", "Trampoline", "Swing set", "Sandbox toys", "Water toys", "Sidewalk chalk", "Bubble machine", "Sled"]],
     ["Games & books", ["Board games", "Jigsaw puzzles", "Picture books", "Early reader books"]],
   ]),
-  group("kids-older", "Kids (8 to 12)", [
+  group("kids-older", "Kids (ages 8 to 12)", [
     ["STEM", ["Science kit", "Robotics kit", "Coding toy", "Telescope", "Microscope", "Rock tumbler"]],
     ["Building", ["LEGO sets", "Model kits", "3D puzzles"]],
     ["Creative", ["Art supplies", "Sketchbook", "Jewelry making kit", "Friendship bracelet kit", "Slime kit", "Sewing kit"]],
