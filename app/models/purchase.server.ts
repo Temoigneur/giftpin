@@ -10,6 +10,7 @@ import {
   manageTokenFor,
   ownerOf,
 } from "./registry.server";
+import { queueFlowTrigger } from "./flow.server";
 import { settingsFor } from "./shop.server";
 import { sendEmail } from "../lib/email.server";
 import { absoluteProxyUrl } from "../lib/proxy.server";
@@ -188,6 +189,15 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       amount: isContribution ? contributionAmount : line.amount,
       source: "online",
       isContribution,
+    });
+
+    await queueFlowTrigger(registry.id, "giftPurchased", {
+      purchase: {
+        orderId,
+        itemTitle: item.snapshotTitle ?? "",
+        quantity: line.quantity,
+        isContribution,
+      },
     });
 
     // Once per order and registry. The Purchase unique index above already
