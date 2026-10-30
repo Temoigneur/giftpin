@@ -458,7 +458,10 @@ async function managePage(
   );
 
   const flash = flashFrom(ctx);
-  const shippingFlash = ctx.query.get("flash")?.startsWith("ship-") ? flash : null;
+  const flashKey = ctx.query.get("flash") ?? "";
+  const shippingFlash = flashKey.startsWith("ship-") ? flash : null;
+  const setupParam = ctx.query.get("setup");
+  const setupStep = setupParam === "1" ? 1 : setupParam === "2" ? 2 : undefined;
 
   return page(
     renderManagePage({
@@ -500,6 +503,9 @@ async function managePage(
         ? { toRegistrant: registry.contributionsToRegistrant }
         : null,
       partner: partnerFor(registry),
+      setupStep,
+      // A save from "Edit registry & preferences" lands back with it open.
+      prefsOpen: !setupStep && (flashKey === "saved" || flashKey.startsWith("ship-") || flashKey.startsWith("partner-")),
     }),
   );
 }
@@ -791,8 +797,9 @@ async function createRegistryAction(
   await sendEmail("registry-link", email, { registryTitle: registry.title, eventType: registry.eventType, url: manageUrl });
 
   // Straight into the registry rather than a "check your email" dead end —
-  // the email is the durable copy, not the gate.
-  return redirect(manageUrl);
+  // the email is the durable copy, not the gate. setup=1 opens the first-run
+  // questions (renderSetup in render/manage-page.ts) over it, once.
+  return redirect(`${manageUrl}&setup=1`);
 }
 
 async function resendAction(
@@ -1619,21 +1626,30 @@ async function shippingAction(request: Request, ctx: ProxyContext): Promise<Resp
   if (!registry) return new Response("Unauthorized", { status: 403 });
 
   const form = await request.formData();
+  // From the setup dialog: an error stays on that step, anything else moves
+  // on to step 2 (the partner question).
+  const setup = ctx.query.get("setup") === "1";
   const back = (flash: string) =>
     redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash }) + "#ship");
+  const next = () => redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", setup: "2" }));
 
   if (form.get("enabled") !== "on") {
+    if (setup) return next();
     await setShippingAddress(registry.id, null);
     await logEvent(registry.id, "shipping_address_updated", { enabled: false });
     return back("ship-off");
   }
 
   const parsed = parseShippingAddressForm(form);
-  if ("error" in parsed) return back(`ship-${parsed.error}`);
+  if ("error" in parsed) {
+    return setup
+      ? redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: `ship-${parsed.error}`, setup: "1" }))
+      : back(`ship-${parsed.error}`);
+  }
 
   await setShippingAddress(registry.id, parsed.address);
   await logEvent(registry.id, "shipping_address_updated", { enabled: true, country: parsed.address.countryCode });
-  return back("ship-saved");
+  return setup ? next() : back("ship-saved");
 }
 
 /**
@@ -1650,11 +1666,16 @@ async function partnerAction(request: Request, ctx: ProxyContext, brand: Brand):
   const email = String(form.get("email") ?? "").trim();
   const back = (flash: string) =>
     redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash }) + "#partner");
+  // From the setup dialog's last step: a mistake keeps the dialog open.
+  const retry = (flash: string) =>
+    ctx.query.get("setup") === "2"
+      ? redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash, setup: "2" }))
+      : back(flash);
 
-  if (!name || !isEmail(email)) return back("partner-invalid");
+  if (!name || !isEmail(email)) return retry("partner-invalid");
 
   const result = await addPartner(registry.id, { name, email });
-  if (!result.ok) return back(`partner-${result.error === "has_partner" ? "exists" : "self"}`);
+  if (!result.ok) return retry(`partner-${result.error === "has_partner" ? "exists" : "self"}`);
 
   await logEvent(registry.id, "partner_added", {});
   const owner = ownerOf(registry.registrants);
