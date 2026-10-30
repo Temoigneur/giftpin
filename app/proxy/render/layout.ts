@@ -121,7 +121,7 @@ function brandStyles(branding: PageBranding): string {
   if (branding.backgroundColor || branding.textColor) {
     const bg = safeColor(branding.backgroundColor ?? "", "#fbfbfa");
     const ink = safeColor(branding.textColor ?? "", "#1a1a1a");
-    const vars = `--bg:${bg};--ink:${ink};--card:color-mix(in srgb,${bg} 93%,${ink});--muted:color-mix(in srgb,${ink} 65%,${bg});--line:color-mix(in srgb,${ink} 15%,${bg})`;
+    const vars = `--bg:${bg};--ink:${ink};--card:color-mix(in srgb,${bg} 93%,${ink});--muted:color-mix(in srgb,${ink} 65%,${bg});--line:color-mix(in srgb,${ink} 18%,${bg});--sh:0 1px 2px rgb(0 0 0/.06),0 6px 16px -6px rgb(0 0 0/.16)`;
     css += `\n:root{${vars}}\n@media (prefers-color-scheme:dark){:root{${vars}}}`;
   }
   const font = brandFont(branding.font);
@@ -130,10 +130,28 @@ function brandStyles(branding: PageBranding): string {
   return css;
 }
 
+/**
+ * Every byte here ships on every guest page (50KB budget), so the notes on
+ * it live in this comment, not in the CSS:
+ *
+ * - Cards (.item, .note) carry a firm cool-grey border and a soft --sh shadow
+ *   on a faintly ice-tinted page, so they lift off the background instead of
+ *   blending into it (30 Oct 2026, Ben: "it all comes close to blending
+ *   together"). In dark mode the card is a clear step lighter than the page,
+ *   since a shadow barely shows on near-black.
+ * - .item.done fades the contents, not the card, so the guest's own Undo link
+ *   stays fully visible on an item they just marked as bought.
+ * - External items (.src) are visually secondary on purpose. The merchant's
+ *   own catalog is the anchor of the registry; everything else is
+ *   completeness.
+ * - Desktop: the single 680px column is sized for phones, where most guests
+ *   open the link. From 960px up the page widens and item lists go two
+ *   across; below the breakpoint it renders exactly as on a phone.
+ */
 function baseStyles(accent: string): string {
   return `
-:root{--accent:${accent};--bg:#fbfbfa;--card:#fff;--ink:#1a1a1a;--muted:#6b6b6b;--line:#e6e4e1;--radius:14px}
-@media (prefers-color-scheme:dark){:root{--bg:#151515;--card:#1f1f1f;--ink:#f2f2f0;--muted:#a3a3a0;--line:#333}}
+:root{--accent:${accent};--bg:#eef2f7;--card:#fff;--ink:#1a1a1a;--muted:#6b6b6b;--line:#d3dae4;--radius:14px;--sh:0 1px 3px rgb(16 24 40/.08),0 8px 22px -8px rgb(16 24 40/.22)}
+@media (prefers-color-scheme:dark){:root{--bg:#111318;--card:#1e2128;--ink:#f2f2f0;--muted:#a3a3a0;--line:#383d48;--sh:0 1px 2px #0007,0 8px 20px -8px #000c}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -148,15 +166,12 @@ a{color:inherit}
 .hero-art{width:100%;aspect-ratio:16/7;border-radius:var(--radius);margin-bottom:16px;overflow:hidden;background:var(--card)}
 .hero-art svg{width:100%;height:100%;display:block}
 .hero-painting{object-position:50% 50%}
-.note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px;box-shadow:var(--sh)}
 .progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
 .progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
 
-/* --- items ------------------------------------------------------------- */
 .items{list-style:none;padding:0;margin:0;display:grid;gap:12px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
-/* Fade the contents, not the card, so the guest's own Undo link can stay
-   fully visible on an item they just marked as bought. */
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--sh);padding:14px;display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}
 .item.done>:not(.undo){opacity:.5}
 .item.held{border-style:dashed}
 .item-img{width:84px;height:84px;object-fit:contain;border-radius:10px;background:var(--bg)}
@@ -166,15 +181,12 @@ a{color:inherit}
 .item-note{font-size:14px;color:var(--muted);font-style:italic;margin:0 0 10px}
 .price{font-variant-numeric:tabular-nums;font-weight:600}
 
-/* External items are visually secondary on purpose. The merchant's own
-   catalog is the anchor of the registry; everything else is completeness. */
 .src{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 .src.live{color:var(--accent);border-color:var(--accent)}
 
-/* --- controls ---------------------------------------------------------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px;font-family:inherit}
 .btn:disabled{opacity:.45;cursor:default}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
 .linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
 .undo{margin:-8px 0 0;grid-column:2}.undo .linkish{display:inline;margin:0;padding:0 2px;color:var(--ink);font-weight:600}
 .incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
@@ -198,7 +210,6 @@ label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .powered-by a{color:inherit}
 .share{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
 
-/* --- ideas guide, Not sure what to add (every occasion) ---------------- */
 details.note{padding:14px 16px}
 details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
@@ -254,12 +265,6 @@ a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(-
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width:420px){.item{grid-template-columns:64px 1fr;gap:12px}.item-img{width:64px;height:64px}h1{font-size:22px}}
-
-/* --- desktop ------------------------------------------------------------
-   The single 680px column is sized for phones, where most guests open the
-   link. On a wide screen it left two-thirds of the window empty, so from
-   960px up the page widens and item lists go two across. Phones and tablets
-   below the breakpoint render exactly as before. */
 @media (min-width:960px){
 .wrap{max-width:1120px;padding:32px 32px 56px}
 h1{font-size:30px}
