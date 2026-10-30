@@ -216,6 +216,44 @@ const CHRISTENING_GUIDE: IdeaGuide = {
   ],
 };
 
+/**
+ * Kids' ideas by age (30 Oct 2026, Ben's request: wish lists needed far more
+ * for younger children). Shared by the wish list and holiday guides so the
+ * two stay in step. Every name has to match products by whole words, so
+ * anything a store sells under another name has an entry in idea-aliases.ts.
+ */
+const KIDS_GROUPS: GiftIdeaGroup[] = [
+  group("kids-little", "Little kids (ages 1 to 3)", [
+    ["Toys", ["Stacking toys", "Shape sorter", "Push walker", "Pull-along toy", "Musical toys", "Wooden blocks"]],
+    ["Pretend play", ["Play kitchen", "Play food", "Baby doll", "Toy cars", "Tool bench"]],
+    ["Cuddly", ["Plush toys", "Teddy bear", "Stuffed animals"]],
+    ["Active play", ["Ride-on toy", "Balance bike", "Tricycle", "Ball pit", "Indoor climber"]],
+    ["Books & bath", ["Board books", "Touch-and-feel books", "Bath toys"]],
+  ]),
+  group("kids-young", "Kids (ages 4 to 7)", [
+    ["Building", ["LEGO sets", "Magnetic tiles", "Marble run", "Train set", "Building blocks"]],
+    ["Arts & crafts", ["Art easel", "Craft kits", "Play-Doh set", "Crayons", "Markers", "Coloring books", "Sticker books"]],
+    ["Dress-up & pretend", ["Dress-up costumes", "Dollhouse", "Dolls", "Action figures", "Play tent", "Puppets"]],
+    ["Outdoor", ["Bike", "Scooter", "Trampoline", "Swing set", "Sandbox toys", "Water toys", "Sidewalk chalk", "Bubble machine", "Sled"]],
+    ["Games & books", ["Board games", "Jigsaw puzzles", "Picture books", "Early reader books"]],
+  ]),
+  group("kids-older", "Kids (ages 8 to 12)", [
+    ["STEM", ["Science kit", "Robotics kit", "Coding toy", "Telescope", "Microscope", "Rock tumbler"]],
+    ["Building", ["LEGO sets", "Model kits", "3D puzzles"]],
+    ["Creative", ["Art supplies", "Sketchbook", "Jewelry making kit", "Friendship bracelet kit", "Slime kit", "Sewing kit"]],
+    ["Games", ["Board games", "Card games", "Video games", "Magic kit", "Foam blaster"]],
+    ["Active", ["Skateboard", "Roller skates", "Basketball", "Soccer ball", "Bike helmet"]],
+    ["Books", ["Chapter books", "Graphic novels", "Activity books"]],
+  ]),
+  group("kids-everyday", "Kids' room, school & clothes", [
+    ["Room", ["Nightlight", "Bean bag chair", "Kids' bedding|kids bedding", "Bookshelf", "Toy storage"]],
+    ["School", ["Backpack", "Lunch box", "Water bottle", "Pencil case", "Kids' headphones|kids headphones"]],
+    ["Clothes", ["Pajamas", "Slippers", "Rain boots", "Winter boots", "Hoodie"]],
+  ]),
+];
+
+const KIDS_EXPERIENCES = ["Zoo membership", "Swimming lessons", "Summer camp", "Theme park tickets", "Art class"];
+
 const BIRTHDAY_GUIDE: IdeaGuide = {
   title: "Birthday registry ideas, by age",
   intro: "Open an age group to see gifts that suit it.",
@@ -226,19 +264,21 @@ const BIRTHDAY_GUIDE: IdeaGuide = {
       ["Books", ["Board books", "Touch-and-feel books"]],
     ]),
     group("toddler", "Toddlers (2 to 3)", [
-      ["Pretend play", ["Play kitchen", "Tool bench", "Doctor kit|toy doctor kit", "Dollhouse"]],
+      ["Pretend play", ["Play kitchen", "Play food", "Tool bench", "Doctor kit|toy doctor kit", "Dollhouse"]],
+      ["Cuddly", ["Plush toys", "Teddy bear", "Baby doll"]],
       ["Active play", ["Balance bike", "Tricycle", "Indoor climber", "Tunnel|play tunnel"]],
       ["Learning", ["Wooden puzzles", "Duplo", "Magnetic tiles", "Picture books"]],
     ]),
     group("kids", "Kids (4 to 7)", [
       ["Building", ["LEGO sets", "Marble run", "Magnetic tiles", "Train set"]],
-      ["Creative", ["Art easel", "Craft kits", "Play-Doh set", "Dress-up costumes"]],
-      ["Outdoor", ["Bike", "Scooter", "Sandbox toys", "Swing set"]],
+      ["Creative", ["Art easel", "Craft kits", "Play-Doh set", "Dress-up costumes", "Dolls", "Action figures"]],
+      ["Outdoor", ["Bike", "Scooter", "Sandbox toys", "Swing set", "Trampoline"]],
       ["Games & books", ["First board games|kids board games", "Early reader books", "Kids' audio player"]],
     ]),
     group("tweens", "Kids (8 to 12)", [
       ["STEM", ["Robotics kit", "Science kit", "Telescope", "Microscope", "Coding toy"]],
-      ["Hobbies", ["Art supplies", "Musical instrument", "Sports equipment", "Chapter book series"]],
+      ["Hobbies", ["Art supplies", "Musical instrument", "Sports equipment", "Chapter book series", "Graphic novels"]],
+      ["Active", ["Skateboard", "Roller skates", "Foam blaster"]],
       ["Games", ["Board games", "Card games", "Video games", "Puzzles"]],
     ]),
     group("teens", "Teens (13 to 17)", [
@@ -437,10 +477,7 @@ const HOLIDAY_GUIDE: IdeaGuide = {
   title: "Holiday wish list ideas, by who it's for",
   intro: "Open a section to see gift ideas for everyone on the list.",
   groups: [
-    group("kids", "For kids", [
-      ["Toys", ["LEGO sets", "Board games", "Art kits", "Plush toys", "Remote control car"]],
-      ["Outdoor", ["Sled", "Bike", "Scooter", "Snow gear"]],
-    ]),
+    ...KIDS_GROUPS,
     group("teens", "For teens", [
       ["Tech", ["Headphones", "Gaming gift card|gaming", "Instant camera", "Bluetooth speaker"]],
       ["Style", ["Hoodie", "Sneakers", "Jewelry", "Skincare set"]],
@@ -457,7 +494,7 @@ const HOLIDAY_GUIDE: IdeaGuide = {
     group("stockings", "Stocking stuffers", [
       ["Small gifts", ["Socks", "Lip balm", "Card games", "Hand warmers", "Mini puzzles", "Chocolate"]],
     ]),
-    EXPERIENCES(["Ski day", "Holiday show tickets"]),
+    EXPERIENCES(["Ski day", "Holiday show tickets", ...KIDS_EXPERIENCES]),
   ],
 };
 
@@ -563,6 +600,24 @@ const GENERAL_GUIDE: IdeaGuide = {
   ],
 };
 
+/**
+ * Wish lists are often a child's (Christmas, birthdays without a party), so
+ * the kids' ideas by age come first, then the general categories.
+ */
+const WISHLIST_GUIDE: IdeaGuide = {
+  title: "Wish list ideas, for kids and grown-ups",
+  intro: "Kids' ideas are grouped by age. Open a section to see them.",
+  groups: [
+    ...KIDS_GROUPS,
+    group("teens", "Teens", [
+      ["Tech", ["Headphones", "Instant camera", "Bluetooth speaker", "Phone accessories"]],
+      ["Style & room", ["Hoodie", "Sneakers", "Jewelry", "LED lights", "Desk lamp"]],
+    ]),
+    ...GENERAL_GUIDE.groups.filter((g) => g.id !== "experiences"),
+    EXPERIENCES(KIDS_EXPERIENCES),
+  ],
+};
+
 const GUIDES: Record<string, IdeaGuide> = {
   wedding: WEDDING_GUIDE,
   engagement: ENGAGEMENT_GUIDE,
@@ -580,6 +635,7 @@ const GUIDES: Record<string, IdeaGuide> = {
   "new-pet": NEW_PET_GUIDE,
   fundraiser: FUNDRAISER_GUIDE,
   corporate: CORPORATE_GUIDE,
+  wishlist: WISHLIST_GUIDE,
   other: GENERAL_GUIDE,
 };
 

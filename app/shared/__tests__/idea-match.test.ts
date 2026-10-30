@@ -113,3 +113,22 @@ describe("other names an idea is sold under (29 Oct 2026)", () => {
     }
   });
 });
+
+describe("kids' ideas (30 Oct 2026)", () => {
+  it("finds the products stores sell kids' ideas under", () => {
+    const store: Product[] = [
+      { title: "Princess Costume, Ages 4-6" },
+      { title: "Classic Plush Teddy" },
+      { title: "Kids Bicycle 16 inch" },
+      { title: "Nerf Elite Blaster" },
+      { title: "Magnetic Tiles 60 Piece Set" },
+      { title: "Storybook Throw Pillow" },
+    ];
+    const find = (term: string) => titles([term, ...ideaAliases(term)], store);
+    expect(find("dress-up costumes")).toEqual(["Princess Costume, Ages 4-6"]);
+    expect(find("teddy bear")).toEqual(["Classic Plush Teddy"]);
+    expect(find("bike")).toEqual(["Kids Bicycle 16 inch"]);
+    expect(find("foam blaster")).toEqual(["Nerf Elite Blaster"]);
+    expect(find("picture books")).toEqual([]);
+  });
+});
