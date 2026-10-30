@@ -114,6 +114,11 @@ reading Shopify's docs.
   storefront Permissions-Policy could block it; typing the number still
   works), and the importer against a real Gift Reggie export (column names
   are guessed loosely, see `app/shared/registry-import.ts`).
+- **Shopify Flow triggers (Pro, built 30 Oct 2026, not live-tested):** three
+  `flow_trigger` extensions plus `app/models/flow.server.ts`; see
+  `docs/shopify-flow.md` for what is unverified. Klaviyo is reached through
+  Klaviyo's own Flow "Track an event" action, not a Giftpin integration. A new
+  Flow field must be added to both the TOML and the payload, or Flow rejects it.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

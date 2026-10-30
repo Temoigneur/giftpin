@@ -6,6 +6,7 @@ import { sendEmail } from "../lib/email.server";
 import { normalizeCountry } from "../shared/retailers";
 import { EVENT_TYPES } from "../shared/settings";
 import { createRegistry, logEvent, mintManageToken, registryWithItems } from "./registry.server";
+import { queueFlowTrigger } from "./flow.server";
 import { toDisplayItem, type DisplayItem } from "./item.server";
 
 /**
@@ -237,6 +238,7 @@ export async function createRegistryInStore(
   });
 
   await logEvent(registry.id, "created_in_store", { via });
+  await queueFlowTrigger(registry.id, "registryCreated");
 
   await sendEmail("registry-link", email, {
     registryTitle: registry.title,

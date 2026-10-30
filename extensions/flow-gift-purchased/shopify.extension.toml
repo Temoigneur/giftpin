@@ -1,0 +1,68 @@
+# Shopify Flow trigger (Giftpin Pro). Sent by app/models/flow.server.ts with
+# flowTriggerReceive; every field below must be in that payload, keyed exactly
+# the same. The handle can never change once deployed.
+#
+# Ships with `shopify app deploy`, not with the Railway deploy of the web app.
+
+[[extensions]]
+name = "Registry gift bought"
+type = "flow_trigger"
+handle = "giftpin-gift-purchased"
+description = "An order bought an item from a Giftpin registry, or chipped in to a group gift or fund."
+
+[settings]
+
+[[settings.fields]]
+type = "order_reference"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registry ID"
+description = "Giftpin's id for the registry"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registry title"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Occasion"
+description = "Wedding, Baby, Birthday and so on"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Event date"
+description = "YYYY-MM-DD, or empty if the registry has no date"
+
+[[settings.fields]]
+type = "url"
+key = "Registry URL"
+description = "The public registry page guests shop from"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registrant name"
+
+[[settings.fields]]
+type = "email"
+key = "Registrant email"
+description = "For messages about their registry. Only market to them if they opted in."
+
+[[settings.fields]]
+type = "number_decimal"
+key = "Items remaining"
+description = "Items on the list not yet bought or fully funded"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Item title"
+
+[[settings.fields]]
+type = "number_decimal"
+key = "Quantity"
+description = "Units bought; for a chip-in, the number of gift cards"
+
+[[settings.fields]]
+type = "boolean"
+key = "Is contribution"
+description = "True when this was a chip-in toward a group gift or fund"

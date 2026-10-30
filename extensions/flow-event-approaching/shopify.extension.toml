@@ -1,0 +1,55 @@
+# Shopify Flow trigger (Giftpin Pro). Sent by app/models/flow.server.ts with
+# flowTriggerReceive; every field below must be in that payload, keyed exactly
+# the same. The handle can never change once deployed.
+#
+# Ships with `shopify app deploy`, not with the Railway deploy of the web app.
+
+[[extensions]]
+name = "Registry event coming up"
+type = "flow_trigger"
+handle = "giftpin-event-approaching"
+description = "A registry's event date is 30 days away or less. Sent once per registry."
+
+[settings]
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registry ID"
+description = "Giftpin's id for the registry"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registry title"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Occasion"
+description = "Wedding, Baby, Birthday and so on"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Event date"
+description = "YYYY-MM-DD, or empty if the registry has no date"
+
+[[settings.fields]]
+type = "url"
+key = "Registry URL"
+description = "The public registry page guests shop from"
+
+[[settings.fields]]
+type = "single_line_text_field"
+key = "Registrant name"
+
+[[settings.fields]]
+type = "email"
+key = "Registrant email"
+description = "For messages about their registry. Only market to them if they opted in."
+
+[[settings.fields]]
+type = "number_decimal"
+key = "Items remaining"
+description = "Items on the list not yet bought or fully funded"
+
+[[settings.fields]]
+type = "number_decimal"
+key = "Days until event"

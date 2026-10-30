@@ -23,7 +23,9 @@ export type JobName =
   | "reap-claims"
   | "purge-expired-data"
   | "registry-automations"
-  | "charge-gift-card-fees";
+  | "charge-gift-card-fees"
+  | "flow-trigger"
+  | "flow-event-reminders";
 
 export interface JobPayloads {
   "attribute-order": { shop: string; orderPayload: unknown };
@@ -36,6 +38,8 @@ export interface JobPayloads {
   "purge-expired-data": Record<string, never>;
   "registry-automations": { shop?: string };
   "charge-gift-card-fees": { shop?: string };
+  "flow-trigger": { shop: string; handle: string; payload: Record<string, unknown> };
+  "flow-event-reminders": Record<string, never>;
 }
 
 type Handler<N extends JobName> = (payload: JobPayloads[N]) => Promise<void>;
@@ -132,6 +136,7 @@ function ensureHandlersLoaded(): Promise<void> {
       import("../models/retention.server"),
       import("../models/automations.server"),
       import("../models/gift-card-fee.server"),
+      import("../models/flow.server"),
     ]).then(() => undefined);
   }
   return handlersLoaded;
@@ -212,5 +217,13 @@ export async function scheduleRecurring(): Promise<void> {
     "charge-gift-card-fees",
     {},
     { repeat: { pattern: "30 16 * * *" }, jobId: "cron:charge-gift-card-fees", ...DEFAULT_JOB_OPTIONS },
+  );
+
+  // Shopify Flow's "Event coming up" trigger — see app/models/flow.server.ts.
+  // Same hour as the automations, so a merchant's own reminder lands alongside.
+  await queue.add(
+    "flow-event-reminders",
+    {},
+    { repeat: { pattern: "10 15 * * *" }, jobId: "cron:flow-event-reminders", ...DEFAULT_JOB_OPTIONS },
   );
 }

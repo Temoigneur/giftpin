@@ -16,6 +16,7 @@ vi.mock("../../db.server", () => ({
 }));
 
 vi.mock("../../lib/email.server", () => ({ sendEmail: vi.fn() }));
+vi.mock("../flow.server", () => ({ queueFlowTrigger: vi.fn() }));
 
 import db from "../../db.server";
 import { sendEmail } from "../../lib/email.server";

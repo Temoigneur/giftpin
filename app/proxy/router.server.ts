@@ -93,6 +93,7 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
 import { applyStock, hiddenFromGuests, type StockMap } from "../lib/stock";
 import { fetchVariantStock, findVariantsByCode, getVariant } from "../lib/catalog.server";
 import { registrantPerks } from "../shared/perks";
+import { queueFlowTrigger } from "../models/flow.server";
 
 /**
  * Guest-surface router.
@@ -789,6 +790,7 @@ async function createRegistryAction(
   });
 
   await sendEmail("registry-link", email, { registryTitle: registry.title, eventType: registry.eventType, url: manageUrl });
+  await queueFlowTrigger(registry.id, "registryCreated");
 
   // Straight into the registry rather than a "check your email" dead end —
   // the email is the durable copy, not the gate.
