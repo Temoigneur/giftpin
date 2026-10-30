@@ -51,3 +51,16 @@ describe("find a registry", () => {
     expect(hasLookalikes([{ title: "One", names: "Sam & Alex" }, { title: "Two", names: "Sam & Jo" }])).toBe(false);
   });
 });
+
+describe("wish list occasion", () => {
+  const base = { shopName: "S", accentColor: "#000", actionUrl: "/apps/registry" };
+
+  it("is left out unless the shop switched it on, and hides the date field when picked", () => {
+    expect(renderCreatePage({ ...base, enabledEventTypes: [] })).not.toContain('value="wishlist"');
+    const html = renderCreatePage({ ...base, enabledEventTypes: ["wishlist", "birthday"] });
+    expect(html).toContain('value="wishlist"');
+    expect(html).toMatch(/value="wishlist"[^>]*data-nodate/);
+    expect(html).toContain('<div id="c-date-field">');
+    expect(renderCreatePage({ ...base, enabledEventTypes: ["wishlist"] })).toContain('<div id="c-date-field" hidden>');
+  });
+});

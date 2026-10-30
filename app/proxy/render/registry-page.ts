@@ -10,6 +10,7 @@ import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../sha
 import { UNDO_STORAGE_KEY, UNDO_WINDOW_SECONDS } from "../../shared/undo";
 import type { ContributionVariant } from "../../shared/contributions";
 import { isSoldOutStoreItem } from "../../lib/stock";
+import { listNoun } from "../../shared/settings";
 
 /**
  * The registry page — the thing 80 people open from a text message.
@@ -114,6 +115,10 @@ export function renderRegistryPage(data: RegistryPageData): string {
     ? Math.round((progress.fulfilledItems / progress.totalItems) * 100)
     : 0;
 
+  // "wish list" for the date-less Wish list occasion, otherwise "registry".
+  const noun = listNoun(data.eventType);
+  const ogDescription = noun === "registry" ? `${data.eventLabel} registry at ${data.shopName}` : `${data.eventLabel} at ${data.shopName}`;
+
   const dateLine = data.eventDate
     ? new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UTC" }).format(data.eventDate)
     : null;
@@ -121,7 +126,7 @@ export function renderRegistryPage(data: RegistryPageData): string {
   const head = `
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeAttr(data.title)}">
-<meta property="og:description" content="${escapeAttr(`${data.eventLabel} registry at ${data.shopName}`)}">
+<meta property="og:description" content="${escapeAttr(ogDescription)}">
 ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.coverImageUrl)}">` : ""}`;
 
   const body = `
@@ -147,7 +152,7 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
 ${renderShare(data)}
 
 <div id="registro-refresh" class="update-banner" hidden role="status">
-  <span>This registry has been updated.</span>
+  <span>This ${noun} has been updated.</span>
   <button type="button" class="btn sm" id="registro-refresh-btn">Refresh</button>
   <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
 </div>
@@ -155,7 +160,7 @@ ${renderShare(data)}
 ${renderShipChoice(data)}
 <div id="registro-items">${
   data.items.length === 0
-    ? `<div class="empty"><p>This registry doesn't have any items yet.</p><p>Check back soon.</p></div>`
+    ? `<div class="empty"><p>This ${noun} doesn't have any items yet.</p><p>Check back soon.</p></div>`
     : renderItemGroups(data)
 }</div>
 
@@ -165,7 +170,7 @@ ${data.offerReminder ? renderReminderSignup() : ""}
 
 ${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? Buy a ${escapeHtml(data.shopName)} gift card</a></p>` : ""}
 
-<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your registry? Sign in or get your private edit link</a></p>
+<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your ${noun}? Sign in or get your private edit link</a></p>
 
 <!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
@@ -180,7 +185,7 @@ ${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftC
   return layout(
     {
       title: `${data.title} — ${data.shopName}`,
-      description: `${data.eventLabel} registry at ${data.shopName}`,
+      description: ogDescription,
       accentColor: data.accentColor,
       indexable: data.indexable,
       shopName: data.shopName,
@@ -386,7 +391,7 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
  */
 function renderShare(data: RegistryPageData): string {
   const encoded = encodeURIComponent(data.shareUrl);
-  const text = encodeURIComponent(`${data.title} — gift registry`);
+  const text = encodeURIComponent(`${data.title} — ${listNoun(data.eventType) === "wish list" ? "wish list" : "gift registry"}`);
   return `<div class="share">
   <button class="btn sm ghost js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share</button>
   <a class="btn sm ghost" href="https://wa.me/?text=${text}%20${encoded}" target="_blank" rel="noopener">WhatsApp</a>

@@ -315,7 +315,7 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     ["housewarming", "housewarming-v1"],
     ["anniversary", "anniversary-v1"],
     ["retirement", "retirement-v1"],
-    ["holiday", "holiday-v1"],
+    ["holiday", "holiday-v2"],
     ["new-pet", "new-pet-v1"],
     ["fundraiser", "fundraiser-v1"],
     ["corporate", "corporate-v1"],
@@ -542,5 +542,16 @@ describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
 
   it("sends the guest's choice with add to cart", () => {
     expect(page([item()], { shipToRegistrant: true })).toContain("shipToRegistrant:shipEl?shipEl.checked:false");
+  });
+});
+
+describe("wish list wording", () => {
+  it("calls a Wish list a wish list, and every other occasion a registry", () => {
+    const wish = page([], { eventType: "wishlist", eventLabel: "Wish list", eventDate: null });
+    expect(wish).toContain("This wish list doesn't have any items yet.");
+    expect(wish).toContain("Your wish list? Sign in");
+    expect(wish).not.toContain("Wish list registry at");
+    const other = page([]);
+    expect(other).toContain("This registry doesn't have any items yet.");
   });
 });

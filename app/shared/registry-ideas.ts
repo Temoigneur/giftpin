@@ -71,6 +71,7 @@ const TEMPLATES: Record<string, OccasionTemplate> = {
   "new-pet": { title: "Welcome Home, Biscuit", note: "Our new family member has arrived! Here's what Biscuit still needs." },
   fundraiser: { title: "Winter Coat Drive", note: "Thank you for supporting our cause. Every item on this list goes straight to people who need it." },
   corporate: { title: "Team Holiday Gifts 2026", note: "Our gift list for the team this year." },
+  wishlist: { title: "Sam's Wish List", note: "Here's what I'd love. Anything you buy from this page gets marked as taken, so nobody doubles up." },
   other: { title: "Sam's Wish List", note: "Thanks for thinking of me! Here are a few things I'd love." },
 };
 

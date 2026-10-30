@@ -21,3 +21,18 @@ export const APP_STORE_URL = "https://apps.shopify.com/giftpin-gift-registry";
 export const SHOW_FOUNDING_OFFER = true;
 
 export const SITE_URL = "https://giftpin.app";
+
+/**
+ * The seasonal "Holiday wish lists" promo (giftpin.app/holiday-wish-lists,
+ * built 29 Oct 2026): the home page banner, the footer link and the sitemap
+ * entry all switch off on their own at this moment, the day after Boxing Day
+ * (Toronto time), with no deploy needed. The page itself keeps working for
+ * anyone holding the link. To run it again next year, move this date; to
+ * retire it for good, delete app/routes/holiday-wish-lists.tsx and
+ * holidayWishListsHtml() in guides.ts.
+ */
+export const HOLIDAY_PROMO_ENDS_AT = new Date("2026-12-27T00:00:00-05:00");
+
+export function holidayPromoOn(now: Date = new Date()): boolean {
+  return now < HOLIDAY_PROMO_ENDS_AT;
+}

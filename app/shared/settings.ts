@@ -102,8 +102,33 @@ export const EVENT_TYPES: { value: string; label: string }[] = [
   { value: "new-pet", label: "New pet" },
   { value: "fundraiser", label: "Charity or fundraiser" },
   { value: "corporate", label: "Corporate gifting" },
+  { value: "wishlist", label: "Wish list" },
   { value: "other", label: "Something else" },
 ];
+
+/**
+ * Occasions a merchant has to switch on in Settings: new shops start without
+ * them, and mergeSettings() never switches them on for existing shops.
+ * "wishlist" is a shareable list with no event date (built 29 Oct 2026), a
+ * seasonal angle rather than a registry, so it's each store's call.
+ */
+export const OPT_IN_EVENT_TYPES = ["wishlist"];
+
+/**
+ * Occasions with no event date: the create and manage forms hide the date
+ * field and the server stores none, so date-based emails (guest reminders,
+ * thank-you, completion discount) never fire for them.
+ */
+const DATELESS_EVENT_TYPES = ["wishlist"];
+
+export function isDatelessOccasion(eventType: string): boolean {
+  return DATELESS_EVENT_TYPES.includes(eventType);
+}
+
+/** What guests and emails call the list: "wish list" for a wish list, otherwise "registry". */
+export function listNoun(eventType: string | null | undefined): "wish list" | "registry" {
+  return eventType === "wishlist" ? "wish list" : "registry";
+}
 
 /**
  * The event types that existed before 24 Sep 2026. A shop whose saved
@@ -122,7 +147,7 @@ const LEGACY_EVENT_TYPES = [
 ];
 
 export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
-  eventTypes: EVENT_TYPES.map((t) => t.value),
+  eventTypes: EVENT_TYPES.map((t) => t.value).filter((v) => !OPT_IN_EVENT_TYPES.includes(v)),
   eventTypesKnown: EVENT_TYPES.map((t) => t.value),
   externalItems: "on",
   externalItemsCapPercent: 60,
@@ -155,13 +180,14 @@ export const COMPLETION_DISCOUNT_DAYS_RANGE = { min: 7, max: 365 } as const;
  * to EVENT_TYPES since the merchant last saved. `eventTypes` is an explicit
  * allow-list, so without this a new occasion would stay hidden from every
  * existing shop until the merchant happened to find and tick it. An occasion
- * the merchant has seen and unticked stays off.
+ * the merchant has seen and unticked stays off, and an OPT_IN_EVENT_TYPES
+ * occasion is never switched on here.
  */
 export function mergeSettings(stored: Partial<ShopSettings>): ShopSettings {
   const merged = { ...SHOP_SETTINGS_DEFAULTS, ...stored };
   if (!stored.eventTypes) return merged;
   const known = new Set(stored.eventTypesKnown ?? LEGACY_EVENT_TYPES);
-  const added = EVENT_TYPES.map((t) => t.value).filter((v) => !known.has(v));
+  const added = EVENT_TYPES.map((t) => t.value).filter((v) => !known.has(v) && !OPT_IN_EVENT_TYPES.includes(v));
   return {
     ...merged,
     eventTypes: [...stored.eventTypes, ...added.filter((v) => !stored.eventTypes!.includes(v))],
