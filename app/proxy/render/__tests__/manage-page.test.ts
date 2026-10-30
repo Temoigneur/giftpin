@@ -685,3 +685,21 @@ describe("first-run setup dialog", () => {
     expect(page({ setupStep: 1 })).not.toContain("Step 1 of");
   });
 });
+
+describe("kids' ideas on wish lists (30 Oct 2026)", () => {
+  it("gives wish lists their own guide with kids' ideas by age first", () => {
+    const html = page({ eventType: "wishlist" });
+    expect(html).toContain("Wish list ideas, for kids and grown-ups");
+    const little = html.indexOf(">Little kids (1 to 3)<");
+    expect(little).toBeGreaterThan(0);
+    expect(html.indexOf(">Kids (4 to 7)<")).toBeGreaterThan(little);
+    expect(html.indexOf(">Kids (8 to 12)<")).toBeGreaterThan(little);
+    expect(html.indexOf(">Home<")).toBeGreaterThan(html.indexOf(">Kids (8 to 12)<"));
+    expect(html).toContain('href="/search?q=Plush%20toys&amp;type=product"');
+    expect(html).toContain('data-aliases="costume|dress up"');
+  });
+
+  it("shares the kids' ideas with the holiday guide", () => {
+    expect(page({ eventType: "holiday" })).toContain(">Kids (4 to 7)<");
+  });
+});
