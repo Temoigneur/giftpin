@@ -1,9 +1,11 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref } from "./layout";
 import type { DisplayItem } from "../../models/item.server";
-import { EVENT_TYPES } from "../../shared/settings";
+import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion } from "../../shared/settings";
 import { GIFT_CATEGORIES } from "../../shared/gift-categories";
-import { ideaGuideFor } from "../../shared/registry-ideas";
+import { ideaGuideFor, type GiftIdeaItem } from "../../shared/registry-ideas";
+import { IDEA_MATCH_JS } from "../../shared/idea-match";
+import { ideaAliases } from "../../shared/idea-aliases";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
@@ -94,6 +96,8 @@ export interface ManagePageData {
   soldOutHidden?: boolean;
   /** Registry perks (Pro). See app/shared/perks.ts. */
   perks?: string[];
+  /** The shop's switched-on occasions; an opt-in one (wish list) is only offered when listed here. */
+  enabledEventTypes?: string[];
   /** In-store barcode scanning on the registrant's phone (Pro). */
   scanner?: boolean;
   /** Barcode reader for phones without a built-in one; null = typing the number only. */
@@ -227,13 +231,16 @@ ${renderShipping(data)}
 
   <label for="f-event">Occasion</label>
   <select id="f-event" name="eventType">
-    ${EVENT_TYPES.map(
-      (t) => `<option value="${escapeAttr(t.value)}"${t.value === data.eventType ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
+    ${EVENT_TYPES.filter((t) => !OPT_IN_EVENT_TYPES.includes(t.value) || t.value === data.eventType || data.enabledEventTypes?.includes(t.value)).map(
+      (t) => `<option value="${escapeAttr(t.value)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${t.value === data.eventType ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
     ).join("")}
   </select>
 
+  <div id="f-date-field"${isDatelessOccasion(data.eventType) ? " hidden" : ""}>
   <label for="f-date">Date</label>
   <input id="f-date" type="date" name="eventDate" value="${data.eventDate ? data.eventDate.toISOString().slice(0, 10) : ""}">
+  </div>
+  <script>(function(){var s=document.getElementById('f-event'),d=document.getElementById('f-date-field');s.addEventListener('change',function(){d.hidden='nodate' in s.options[s.selectedIndex].dataset;});})();</script>
 
   <label for="f-msg">A note for your guests</label>
   <textarea id="f-msg" name="message" maxlength="2000" placeholder="Thank you for celebrating with us...">${escapeHtml(data.message)}</textarea>
@@ -290,6 +297,8 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
       indexable: false,
       shopName: data.shopName,
       branding: data.branding,
+      bodyClass: "manage",
+      head: manageStyles(data.branding),
     },
     body,
   );
@@ -353,10 +362,14 @@ function renderShipping(data: ManagePageData): string {
  * 23 Sep 2026; every other occasion 24 Sep 2026, Ben's requests). Group →
  * subgroup → specific item, three levels deep, organized however suits the
  * occasion (wedding by room, birthday by age, baby by need; see
- * app/shared/registry-ideas.ts). Each item in a browsable group is its own
- * link to a search of this merchant's store; items in non-catalog groups
- * (experiences, funds) are plain suggestions pointing at "From anywhere else"
- * instead. Nested <details> so it needs no JS and stays collapsed by default.
+ * app/shared/registry-ideas.ts). Each store idea is its own link to a search
+ * of this merchant's store. A fund idea opens the cash fund form with its name
+ * filled in, and an experience idea adds itself to the list by name (with an
+ * optional booking link). Until 29 Oct 2026 those two were plain labels that
+ * did nothing when tapped (Ben: "what's the point"), so now each one is only
+ * shown when this store can actually do it: funds need Pro and a gift card
+ * product, experiences need "items from other stores" on. Nested <details> so
+ * it needs no JS to open and stays collapsed by default.
  *
  * The summary is styled as a tinted call-out card with an icon and a pill
  * button, so it stands out as a key feature (Ben, 24 Sep 2026) without
@@ -364,13 +377,22 @@ function renderShipping(data: ManagePageData): string {
  */
 function renderIdeaGuide(data: ManagePageData): string {
   const guide = ideaGuideFor(data.eventType);
+  const shown = (item: GiftIdeaItem) =>
+    item.kind === "fund" ? !!data.contributions : item.kind === "experience" ? data.externalItemsAllowed : true;
+  const visible = guide.groups
+    .map((cat) => ({
+      ...cat,
+      subcategories: cat.subcategories
+        .map((sub) => ({ ...sub, items: sub.items.filter(shown) }))
+        .filter((sub) => sub.items.length > 0),
+    }))
+    .filter((cat) => cat.subcategories.length > 0);
+  const kinds = new Set(visible.flatMap((cat) => cat.subcategories.flatMap((sub) => sub.items.map((i) => i.kind))));
 
-  const groups = guide.groups.map((cat) => {
+  const groups = visible.map((cat) => {
     const subcats = cat.subcategories
       .map((sub) => {
-        const items = sub.items
-          .map((item) => renderCategoryItem(item, cat.browsable))
-          .join("");
+        const items = sub.items.map(renderCategoryItem).join("");
         return `<p class="cat-sub">${escapeHtml(sub.label)}</p><div class="cat-grid">${items}</div>`;
       })
       .join("\n");
@@ -381,29 +403,37 @@ function renderIdeaGuide(data: ManagePageData): string {
 </details>`;
   }).join("\n");
 
+  const how = [`Tap an item to search ${escapeHtml(data.shopName)}'s store.`];
+  if (kinds.has("experience")) how.push("Tap an experience to add it to your list, with a link to book it if you have one.");
+  if (kinds.has("fund")) how.push("Tap a fund to set one up below.");
+
   return `<details class="note ideas">
   <summary>
     <span class="ideas-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg></span>
     <span class="ideas-text"><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
     <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">Browse ideas</span><span class="ideas-cta-close">Hide ideas</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
   </summary>
-  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} Tap an item to search ${escapeHtml(data.shopName)}'s store &mdash; for things they don't carry, like experiences or a cash fund, use &ldquo;From anywhere else&rdquo; below.</p>
+  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} ${how.join(" ")}</p>
   ${groups}
   <div class="cat-fallback" id="cat-fallback" hidden role="status"></div>
 </details>`;
 }
 
-function renderCategoryItem(item: { name: string; searchTerm?: string }, browsable: boolean): string {
-  if (browsable) {
-    const term = item.searchTerm ?? item.name;
-    const href = `/search?q=${encodeURIComponent(term)}&type=product`;
-    return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}">${escapeHtml(item.name)}</a>`;
+function renderCategoryItem(item: GiftIdeaItem): string {
+  if (item.kind) {
+    const cls = item.kind === "fund" ? "js-idea-fund" : "js-idea-exp";
+    return `<button class="cat-chip ${cls}" type="button" data-title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</button>`;
   }
-  return `<span class="cat-chip cat-chip--add">${escapeHtml(item.name)}</span>`;
+  const term = item.searchTerm ?? item.name;
+  const href = `/search?q=${encodeURIComponent(term)}&type=product`;
+  const aliases = ideaAliases(term);
+  const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
+  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(item.name)}</a>`;
 }
 
 function renderManageItem(item: DisplayItem, data: ManagePageData): string {
   const price = formatMoney(item.price, item.currency ?? data.currency);
+  const id = escapeAttr(item.id);
 
   const image = item.imageUrl
     ? `<img class="item-img" src="${escapeAttr(item.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
@@ -413,42 +443,120 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
     ? `<span class="src${item.sourceType === "shopify_ext" ? " live" : ""}">${escapeHtml(item.externalDomain ?? "elsewhere")}</span>`
     : `<span class="src live">${escapeHtml(data.shopName)}</span>`;
 
-  return `<li class="item${item.fulfilled ? " done" : ""}">
-  ${image}
-  <div>
-    <p class="item-title">${escapeHtml(item.title)}${source}</p>
-    <p class="item-meta">${
-      item.isFund
-        ? fundLine(item, data)
-        : [price, `${item.purchasedQty} of ${item.desiredQty} bought`, item.fund ? fundLine(item, data) : ""].filter(Boolean).join(" &middot; ")
-    }</p>
+  // The bar only ever reports what was really bought (or raised): it never
+  // runs ahead of the count beside it.
+  const done = item.isFund
+    ? item.fund && item.fund.goal > 0 ? item.fund.funded / item.fund.goal : 0
+    : item.desiredQty > 0 ? item.purchasedQty / item.desiredQty : 0;
+  const pct = Math.round(Math.min(1, Math.max(0, done)) * 100);
+  const count = item.isFund ? fundLine(item, data) : `${item.purchasedQty} of ${item.desiredQty} bought`;
+
+  return `<li class="item mi${item.fulfilled ? " done" : ""}">
+  <div class="mi-media">${image}${item.fulfilled ? `<span class="mi-badge">${item.isFund ? "Fully funded" : "All bought"}</span>` : ""}</div>
+  <div class="mi-body">
+    <p class="item-title">${escapeHtml(item.title)}</p>
+    <p class="mi-src">${source}</p>
+    <p class="mi-price">${price && !item.isFund ? `<span class="price">${price}</span>` : ""}<span class="mi-count">${count}</span></p>
+    <div class="mi-bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    ${!item.isFund && item.fund ? `<p class="item-meta">Group gift: ${fundLine(item, data)}</p>` : ""}
     ${
       isSoldOutStoreItem(item) && !item.fulfilled
         ? `<p class="item-meta"><strong>Sold out right now.</strong> ${data.soldOutHidden ? "Guests won't see it until it's back in stock." : "Guests can't add it to their cart until it's back in stock."}</p>`
         : ""
     }
     ${renderStoreMatch(item, data)}
-    ${renderGroupGift(item, data)}
-    <form class="row js-item" data-item="${escapeAttr(item.id)}">
-      <label class="sr" for="note-${escapeAttr(item.id)}">Note for guests</label>
-      <input class="item-note-input" id="note-${escapeAttr(item.id)}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
-      <label class="sr" for="dq-${escapeAttr(item.id)}">How many you'd like</label>
+  </div>
+  ${renderGroupGift(item, data)}
+  <form class="row mi-edit js-item" data-item="${id}">
+      <label class="sr" for="note-${id}">Note for guests</label>
+      <input class="item-note-input" id="note-${id}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
       ${
         item.isFund
           ? `<input type="hidden" name="desiredQty" value="1">`
-          : `<input class="qty" id="dq-${escapeAttr(item.id)}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric">`
+          : `<span class="mi-qty"><label for="dq-${id}">Qty</label><input class="qty" id="dq-${id}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric"></span>`
       }
-      <label class="sr" for="cat-${escapeAttr(item.id)}">Category</label>
-      <select class="cat-select" id="cat-${escapeAttr(item.id)}" name="category">
+      <label class="sr" for="cat-${id}">Category</label>
+      <select class="cat-select" id="cat-${id}" name="category">
         <option value=""${item.category ? "" : " selected"}>No category</option>
         ${GIFT_CATEGORIES.map((c) => `<option value="${escapeAttr(c.value)}"${c.value === item.category ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
       </select>
       <button class="btn sm ghost" type="submit">Update</button>
-      ${item.purchasedQty === 0 ? `<button class="btn sm ghost js-remove" type="button" data-item="${escapeAttr(item.id)}">Remove</button>` : ""}
+      ${item.purchasedQty === 0 ? `<button class="mi-remove js-remove" type="button" data-item="${id}">Remove</button>` : ""}
       <span class="js-status item-meta" role="status"></span>
-    </form>
-  </div>
+  </form>
 </li>`;
+}
+
+/**
+ * The manage page's own look (29 Oct 2026, Ben: "bland and unappealing";
+ * the warm grey page background became a soft ice-blue white the same day).
+ * Kept here rather than in layout.ts so the guest page, which has a tight
+ * 50KB budget, doesn't carry a byte of it. Everything is mixed from the
+ * page's own --accent/--card/--line, so a store's accent colour and Pro page
+ * colours still lead; the cool wash behind the page is skipped when a Pro
+ * store has picked its own background.
+ */
+function manageStyles(branding: PageBranding | null | undefined): string {
+  const wash = branding?.backgroundColor || branding?.textColor
+    ? ""
+    : `:root{--bg:#f3f6fb}
+@media (prefers-color-scheme:dark){:root{--bg:#10141c;--card:#1a1f29;--line:#2c3443}}
+body.manage{background:radial-gradient(1200px 600px at 85% -10%,color-mix(in srgb,#22d3ee 9%,transparent),transparent 70%),linear-gradient(175deg,var(--wash) 0,var(--bg) 40%,var(--bg) 70%,var(--wash) 100%) var(--bg)}`;
+  return `<style>${wash}
+.manage{--hi:var(--accent);--wash:color-mix(in srgb,#d9e5f7 75%,var(--bg));--cool:color-mix(in srgb,#e8f0fb 65%,var(--card));--shadow:0 1px 2px rgb(16 24 40/.04),0 6px 20px -8px rgb(16 24 40/.10);--shadow-up:0 2px 4px rgb(16 24 40/.05),0 14px 32px -12px rgb(16 24 40/.18);--soft:color-mix(in srgb,var(--accent) 5%,var(--cool))}
+@media (prefers-color-scheme:dark){.manage{--hi:color-mix(in srgb,var(--accent) 45%,var(--ink));--wash:color-mix(in srgb,#1c2940 80%,var(--bg));--cool:color-mix(in srgb,#22324d 45%,var(--card));--shadow:0 1px 2px rgb(0 0 0/.3),0 8px 24px -10px rgb(0 0 0/.5);--shadow-up:0 2px 4px rgb(0 0 0/.35),0 16px 36px -12px rgb(0 0 0/.6)}}
+.manage .note,.manage .item{border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
+.manage .items{gap:16px}
+button.cat-chip{font:inherit;font-size:13px;cursor:pointer}
+button.cat-chip::before{content:"+";margin-right:5px;color:var(--accent);font-weight:600}
+button.cat-chip:hover,button.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
+.idea-add{display:grid;gap:8px;margin-top:10px}
+.js-fund input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+.manage details.ideas{background:var(--card);border-color:color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;box-shadow:var(--shadow)}
+.manage .ideas-icon{background:var(--soft);color:var(--hi)}
+.manage .hero-img,.manage .hero-art{border-radius:18px;box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);background:var(--card)}
+.mi{grid-template-columns:112px 1fr;column-gap:18px;row-gap:12px;align-content:start;padding:18px;transition:box-shadow .2s,border-color .2s,transform .2s}
+@media (hover:hover){.mi:hover{box-shadow:var(--shadow-up);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}}
+.mi:focus-within{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.mi-media{position:relative}
+.mi .item-img{width:112px;height:112px;border-radius:14px;padding:6px;background:var(--soft)}
+.mi-badge{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--card);font-size:11px;font-weight:600;letter-spacing:.02em;border-radius:99px;padding:3px 9px}
+.mi-body{min-width:0}
+.mi .item-title{font-size:17px;letter-spacing:-.005em;margin:0 0 6px}
+.mi-src{margin:0 0 10px;line-height:1}
+.mi .src{margin:0;border:0;background:var(--soft);color:var(--muted);font-weight:500;padding:4px 10px 4px 8px}
+.mi .src::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line)}
+.mi .src.live{color:var(--ink)}.mi .src.live::before{background:var(--hi)}
+.mi-price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 6px}
+.mi-price .price{font-size:18px;letter-spacing:-.01em}
+.mi-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;margin-left:auto}
+.mi-bar{height:4px;border-radius:99px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden;margin:0}
+.mi-bar>i{display:block;height:100%;border-radius:99px;background:var(--hi)}
+.mi>form{grid-column:2;margin:0!important}
+.mi .js-group{padding:8px 8px 8px 12px;border-radius:12px;background:var(--soft)}
+.mi-gg{flex:1 1 100%;margin:0 0 -2px;font-size:13px;font-weight:500;color:var(--muted)}
+.mi .js-group .qty{background:var(--card)}
+.mi-edit{gap:8px;padding-top:12px!important;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.mi-edit input,.mi-edit select{border-radius:10px}
+.mi-edit input:focus-visible,.mi-edit select:focus-visible,.mi .js-group input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.mi-edit .cat-select{flex:1 1 150px;padding:9px 10px}
+.mi-qty{display:inline-flex;align-items:center;gap:6px}
+.mi-qty label{margin:0;font-size:13px;font-weight:500;color:var(--muted)}
+.mi-qty .qty{width:58px}
+.mi-remove{background:none;border:0;padding:8px 4px;margin-left:auto;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--muted) 45%,transparent)}
+.mi-remove:hover{color:#b42318}
+.mi-remove:focus-visible,.manage .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.manage .btn.ghost{background:var(--card)}
+@media (hover:hover){.manage .btn.ghost:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}}
+.mi.done>:not(.undo){opacity:1}
+.mi.done{background:color-mix(in srgb,var(--card) 70%,var(--bg));box-shadow:none}
+.mi.done .item-img{filter:grayscale(.7);opacity:.6}
+.mi.done .item-title{color:var(--muted)}
+.mi.done .mi-bar>i{background:var(--muted)}
+.mi.done>form:not(.undo){opacity:.6}
+@media (max-width:420px){.mi{grid-template-columns:80px 1fr;column-gap:14px;padding:14px}.mi>form{grid-column:1/-1}.mi .item-img{width:80px;height:80px;padding:4px}.mi .item-title{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.mi{transition:none}}
+</style>`;
 }
 
 /**
@@ -683,7 +791,7 @@ function renderGroupGift(item: DisplayItem, data: ManagePageData): string {
   const id = escapeAttr(item.id);
   const goal = item.fund ? String(item.fund.goal) : item.price ? String(Math.ceil(item.price * item.desiredQty)) : "";
   return `<form class="row js-group" data-item="${id}" style="margin-top:8px">
-  <label class="sr" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
+  <label class="mi-gg" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
   <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="Goal">
   <button class="btn sm ghost" type="submit">${item.isFund ? "Update goal" : item.fund ? "Update group gift" : "Let guests chip in"}</button>
   ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">Stop chip-ins</button>` : ""}
@@ -809,6 +917,7 @@ function renderShareMenu(title: string, url: string): string {
 function manageScript(): string {
   return `
 (function(){
+  ${IDEA_MATCH_JS}
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
 
   // Hand this registry's token to the storefront.
@@ -1036,6 +1145,14 @@ function manageScript(): string {
         .then(function(res){status(item,res&&res.ok?'Saved':((res&&res.error)||'Could not save'),!(res&&res.ok));});
       return;
     }
+    var idea=e.target.closest('.js-idea-add');
+    if(idea){
+      e.preventDefault();var ib=idea.querySelector('button[type=submit]');ib.disabled=true;status(idea,'Adding...');
+      post('/add-manual',{title:idea.querySelector('[name=title]').value,url:idea.querySelector('[name=url]').value.trim(),price:idea.querySelector('[name=price]').value.trim(),note:idea.querySelector('[name=note]').value})
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(idea,(res&&res.error)||'Could not add that',false);ib.disabled=false;}})
+        .catch(function(){status(idea,'Could not add that',false);ib.disabled=false;});
+      return;
+    }
     var fund=e.target.closest('.js-fund');
     if(fund){
       e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,'Adding...');
@@ -1065,7 +1182,53 @@ function manageScript(): string {
       .then(function(res){status(to,res&&res.ok?'Saved':'Could not save',!(res&&res.ok));});
   });
 
+  // Experience ideas (a cooking class, a spa day): a little form right under
+  // the chip that adds it to the list by name, with an optional booking link.
+  function ideaField(form,name,label,type,value,hint){
+    var id='idea-'+name,l=document.createElement('label');l.htmlFor=id;l.textContent=label;
+    var i=document.createElement('input');i.id=id;i.name=name;i.type=type;i.value=value||'';
+    i.maxLength=name==='url'?2000:name==='title'?300:name==='price'?20:500;
+    if(hint)i.placeholder=hint;if(name==='price')i.inputMode='decimal';
+    form.appendChild(l);form.appendChild(i);return i;
+  }
+  function openExperience(chip){
+    var panel=document.getElementById('cat-fallback'),grid=chip.closest('.cat-grid');
+    if(grid&&grid.parentNode)grid.parentNode.insertBefore(panel,grid.nextSibling);
+    panel.hidden=false;panel.textContent='';
+    var p=document.createElement('p');p.className='item-meta';
+    p.textContent='Add \u201c'+chip.dataset.title+'\u201d to your list. Guests book it themselves and tap \u201cI bought this\u201d so nobody doubles up.';
+    panel.appendChild(p);
+    var f=document.createElement('form');f.className='idea-add js-idea-add';f.noValidate=true;
+    ideaField(f,'title','Name','text',chip.dataset.title);
+    ideaField(f,'url','Link to book it (optional)','url','','e.g. a gift card page on the venue\u2019s site');
+    ideaField(f,'price','Price (optional)','text','','e.g. 120');
+    ideaField(f,'note','Note for guests (optional)','text','','e.g. any weekend in June');
+    var row=document.createElement('div');row.className='row';
+    var add=document.createElement('button');add.className='btn sm';add.type='submit';add.textContent='Add to registry';
+    var cancel=document.createElement('button');cancel.className='btn sm ghost js-idea-cancel';cancel.type='button';cancel.textContent='Cancel';
+    var st=document.createElement('span');st.className='js-status item-meta';st.setAttribute('role','status');
+    row.appendChild(add);row.appendChild(cancel);row.appendChild(st);f.appendChild(row);
+    panel.appendChild(f);
+    try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}
+    f.querySelector('[name=url]').focus({preventScroll:true});
+  }
+
   document.addEventListener('click',function(e){
+    var ideaExp=e.target.closest('.js-idea-exp');
+    if(ideaExp){openExperience(ideaExp);return;}
+    if(e.target.closest('.js-idea-cancel')){var cp=document.getElementById('cat-fallback');cp.hidden=true;cp.textContent='';return;}
+    // Fund ideas fill in the cash fund form further down; the registrant
+    // still picks the goal, since only they know it.
+    var ideaFund=e.target.closest('.js-idea-fund');
+    if(ideaFund){
+      var ff=document.querySelector('.js-fund');
+      if(!ff)return;
+      ff.querySelector('[name=title]').value=ideaFund.dataset.title;
+      try{ff.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){}
+      ff.querySelector('[name=goal]').focus({preventScroll:true});
+      status(ff,'Set a goal for \u201c'+ideaFund.dataset.title+'\u201d, then tap Add fund.');
+      return;
+    }
     var chip=e.target.closest('.js-cat');
     if(chip){
       if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
@@ -1079,15 +1242,44 @@ function manageScript(): string {
       panel.hidden=false;panel.textContent='Checking '+cfg.shopName+'...';
       var reveal=function(){try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}};
       reveal();
-      fetch('/search/suggest.json?q='+encodeURIComponent(term)+'&resources[type]=product&resources[limit]=1',{headers:{Accept:'application/json'}})
-        .then(function(r){return r.ok?r.json():null})
-        .then(function(data){
-          var list=data&&data.resources&&data.resources.results&&data.resources.results.products;
-          // Found one, or couldn't tell: go to the store's own search.
-          if(!Array.isArray(list)||list.length>0){location.href=href;return;}
+      // Shopify's predictive search is loose on purpose (prefix and typo
+      // matching), so a store with no stockpot still answers "Stockpot" with
+      // anything starting "sto". Ask for its top 10 for the idea and for up to
+      // two other names it's sold under (app/shared/idea-aliases.ts), then
+      // keep only real matches (gpIdeaMatch, app/shared/idea-match.ts).
+      var names=[term].concat((chip.dataset.aliases||'').split('|').filter(Boolean));
+      Promise.all(names.slice(0,3).map(function(q){
+        return fetch('/search/suggest.json?q='+encodeURIComponent(q)+'&resources[type]=product&resources[limit]=10&resources[options][unavailable_products]=last',{headers:{Accept:'application/json'}})
+          .then(function(r){return r.ok?r.json():null})
+          .then(function(data){var l=data&&data.resources&&data.resources.results&&data.resources.results.products;return Array.isArray(l)?l:null;},function(){return null;});
+      }))
+        .then(function(lists){
+          var list=null,seen={};
+          lists.forEach(function(l){
+            if(!l)return;list=list||[];
+            l.forEach(function(prod){var k=prod&&(prod.id||prod.url);if(k&&!seen[k]){seen[k]=1;list.push(prod);}});
+          });
+          // Couldn't tell (search off, theme quirk): go to the store's own search.
+          if(!list){location.href=href;return;}
+          var hits=gpIdeaMatch(names,list).slice(0,6);
           panel.textContent='';
+          if(hits.length){
+            var fp=document.createElement('p');fp.className='item-meta';
+            fp.textContent=(hits.length===1?'Found at ':'Found '+hits.length+' at ')+cfg.shopName+':';
+            panel.appendChild(fp);
+            var fr=document.createElement('div');fr.className='cat-grid';
+            hits.forEach(function(prod){
+              var a=document.createElement('a');a.className='cat-chip';a.href=prod.url||href;a.textContent=prod.title;fr.appendChild(a);
+            });
+            panel.appendChild(fr);
+            var fh=document.createElement('p');fh.className='hint';
+            fh.textContent='Open one and use its \u201cAdd to registry\u201d button.';
+            panel.appendChild(fh);
+            reveal();
+            return;
+          }
           var p=document.createElement('p');p.className='item-meta';
-          p.textContent=cfg.shopName+' doesn\u2019t carry \u201c'+term+'\u201d yet. Look for it at:';
+          p.textContent='No match for \u201c'+term+'\u201d at '+cfg.shopName+'. Look for it at:';
           panel.appendChild(p);
           var row=document.createElement('div');row.className='cat-grid';
           (cfg.retailers||[]).forEach(function(r){

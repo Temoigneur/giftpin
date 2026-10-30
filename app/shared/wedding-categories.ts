@@ -25,7 +25,18 @@ export interface WeddingGiftItem {
   name: string;
   /** Only needed when the plain item name would search badly (rare). */
   searchTerm?: string;
+  /**
+   * What tapping it does. Left out, it searches the merchant's store. "fund"
+   * opens the registry's cash fund form with this name filled in (Pro, needs
+   * the store's gift card product); "experience" adds it to the list by name,
+   * with an optional booking link, for the guest to buy elsewhere. Neither is
+   * shown when the store has that feature off, so no idea is a dead end (Ben,
+   * 29 Oct 2026).
+   */
+  kind?: IdeaKind;
 }
+
+export type IdeaKind = "fund" | "experience";
 
 export interface WeddingGiftSubcategory {
   id: string;
@@ -37,19 +48,12 @@ export interface WeddingGiftCategory {
   id: string;
   label: string;
   subcategories: WeddingGiftSubcategory[];
-  /**
-   * false for the two categories (experiences, funds) that most merchants
-   * don't stock as SKUs — their items render as plain suggestions pointing
-   * at "add with a link" / a cash fund instead of a store search link.
-   */
-  browsable: boolean;
 }
 
 export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "kitchen",
     label: "Kitchen",
-    browsable: true,
     subcategories: [
       {
         id: "cookware",
@@ -96,7 +100,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "dining",
     label: "Tabletop & dining",
-    browsable: true,
     subcategories: [
       {
         id: "everyday-dinnerware",
@@ -138,7 +141,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "bedding",
     label: "Bedding",
-    browsable: true,
     subcategories: [
       {
         id: "sheets",
@@ -170,7 +172,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "bath",
     label: "Bath",
-    browsable: true,
     subcategories: [
       {
         id: "towels",
@@ -203,7 +204,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "home",
     label: "Home & décor",
-    browsable: true,
     subcategories: [
       {
         id: "furniture",
@@ -241,7 +241,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "outdoor",
     label: "Outdoor & patio",
-    browsable: true,
     subcategories: [
       {
         id: "outdoor-furniture",
@@ -275,7 +274,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "tech",
     label: "Tech & entertainment",
-    browsable: true,
     subcategories: [
       {
         id: "audio-video",
@@ -302,7 +300,6 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "travel",
     label: "Travel & luggage",
-    browsable: true,
     subcategories: [
       {
         id: "luggage",
@@ -332,46 +329,42 @@ export const WEDDING_GIFT_CATEGORIES: WeddingGiftCategory[] = [
   {
     id: "experiences",
     label: "Experiences",
-    browsable: false,
     subcategories: [
       {
         id: "classes",
         label: "Classes & tastings",
         items: [
-          { name: "Cooking class" },
-          { name: "Wine tasting" },
-          { name: "Dance lessons" },
+          { name: "Cooking class", kind: "experience" },
+          { name: "Wine tasting", kind: "experience" },
+          { name: "Dance lessons", kind: "experience" },
         ],
       },
       {
         id: "getaways",
         label: "Getaways",
         items: [
-          { name: "Weekend trip" },
-          { name: "Spa day" },
-          { name: "Hot air balloon ride" },
+          { name: "Weekend trip", kind: "experience" },
+          { name: "Spa day", kind: "experience" },
+          { name: "Hot air balloon ride", kind: "experience" },
         ],
       },
     ],
   },
+  // "Charitable donation in the couple's name" was here until 29 Oct 2026.
+  // Removed: a fund is paid in this store's gift cards, so Giftpin has no way
+  // to send money to a charity.
   {
     id: "funds",
     label: "Cash & honeymoon funds",
-    browsable: false,
     subcategories: [
       {
         id: "funds-main",
         label: "Funds",
         items: [
-          { name: "Honeymoon fund" },
-          { name: "Home down-payment fund" },
-          { name: "“New home” fund" },
+          { name: "Honeymoon fund", kind: "fund" },
+          { name: "Home down-payment fund", kind: "fund" },
+          { name: "“New home” fund", kind: "fund" },
         ],
-      },
-      {
-        id: "giving-back",
-        label: "Giving back",
-        items: [{ name: "Charitable donation in the couple's name" }],
       },
     ],
   },

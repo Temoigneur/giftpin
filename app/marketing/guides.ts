@@ -1,5 +1,5 @@
 import { esc, finalCta, icon, sitePage } from "./layout";
-import { PRICE, PRO_NAME, TRIAL } from "./plans-copy";
+import { FOUNDING_OFFER, PRICE, PRO_NAME, TRIAL } from "./plans-copy";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 
 /**
@@ -127,6 +127,7 @@ const ROWS: Row[] = [
   { label: "Your products when a gift comes from elsewhere", catalogOnly: "The couple leaves to register somewhere else", giftpin: "Your closest match suggested beside it" },
   { label: "Credit for Shop Pay, Apple Pay and Google Pay orders", catalogOnly: "Varies", giftpin: "Yes, every gift credited to the right item" },
   { label: "Duplicate-gift protection for gifts bought elsewhere", catalogOnly: "Not applicable", giftpin: "Held while a guest buys" },
+  { label: "Shoppers whose registry is on another site", catalogOnly: "Usually not served", giftpin: "Your button can add to Babylist, or copy the link for any registry that takes one" },
   { label: "Registry pages on your own domain", catalogOnly: "Varies", giftpin: "Yes" },
   { label: "Accounts for registrants and guests", catalogOnly: "Often required", giftpin: "Not needed" },
 ];
@@ -258,6 +259,10 @@ const BABY_FAQ = [
     a: "Yes. Parents save a shipping address once, and guests can send gifts from your store straight to them. Guests never see the address.",
   },
   {
+    q: "What about parents who already have a Babylist registry?",
+    a: "Your Add to registry button can offer it. Turn on Also offer Babylist in the button's settings and shoppers get a choice: your store's registry, or their own Babylist registry, added through Babylist's add-to-Babylist script. Giftpin isn't affiliated with Babylist and doesn't track purchases made from Babylist registries.",
+  },
+  {
     q: "Does Giftpin help parents decide what to add?",
     a: "Yes. A baby registry ideas guide lists what a new baby needs, from sleep and feeding to bath time, with your products one tap away.",
   },
@@ -286,6 +291,9 @@ ${section(
     { icon: "sparkle", title: "Your product, suggested first", detail: "When parents add something from another shop, Giftpin shows your closest match beside it, one tap to swap." },
     { icon: "shield", title: "No duplicate gifts", detail: "The registry shows Someone may be buying this while a guest checks out." },
     { icon: "list", title: "Thank-you list included", detail: "Parents get a who-gave-what list, downloadable as a spreadsheet." },
+    { icon: "link", title: "Already on Babylist? Still welcome", detail: "Your Add to registry button can ask Which registry? and add your product to the parents' Babylist registry, so they shop with you either way." },
+    { icon: "box", title: "No sold-out surprises", detail: "Products you've sold out of are marked on registries, or hidden until they're back in stock." },
+    { icon: "upload", title: "Switching registry apps?", detail: "Import registries from your old app's spreadsheet. Gifts already bought stay bought." },
   ]),
   true,
 )}
@@ -367,6 +375,86 @@ ${finalCta("Give couples a registry that starts in your store.")}
 }
 
 /* ------------------------------------------------------------------ */
+
+/**
+ * Seasonal page at giftpin.app/holiday-wish-lists (29 Oct 2026), for gift
+ * and home stores ahead of the holiday rush. The angle is a shareable list so
+ * family doesn't buy duplicates, built on the date-less Wish list occasion
+ * (off until the merchant ticks it in Settings → Occasions). It is not a
+ * save-for-later heart button, and the copy says so. The home banner and
+ * footer link switch off on their own: see holidayPromoOn() in config.ts.
+ */
+const HOLIDAY_FAQ = [
+  {
+    q: "Is this a save-for-later wishlist button?",
+    a: "No. Giftpin wish lists are made to be shared: a shopper builds a list, sends one link to family and friends, and gifts are marked as they're bought. If you want a heart button for saving products to buy yourself later, a dedicated wishlist app is a better fit.",
+  },
+  {
+    q: "How do I turn on wish lists?",
+    a: "In Giftpin, open Settings, tick Wish list under Occasions and save. It's off until you switch it on. Shoppers then pick Wish list when they start a list, and it has no event date to fill in.",
+  },
+  {
+    q: "Can a list include things from other stores?",
+    a: "Yes, if you allow items from other stores in Settings. Your own products stay at the top of the list, and Giftpin suggests your closest match beside anything added from elsewhere.",
+  },
+  {
+    q: "Do family members need an account?",
+    a: "No. They open the link, see what's already taken and buy from your store with your normal checkout, including Shop Pay.",
+  },
+  {
+    q: "What does it cost?",
+    a: `Wish lists are on the free plan, with unlimited lists, items and guests. ${PRO_NAME} is ${PRICE} a month with a ${TRIAL}. Neither plan takes a cut of your product sales.`,
+  },
+];
+
+export function holidayWishListsHtml(): string {
+  const body = `
+<section class="hero page-hero">
+  <div class="wrap">
+    <p class="eyebrow">${icon("gift")} Holiday wish lists</p>
+    <h1>Christmas lists that send<br><span class="grad-text">family to your store.</span></h1>
+    <p class="lede">Let shoppers make a holiday wish list on your store and share one link with the whole family. Every gift is marked as it's bought, so nobody doubles up, and the shopping happens at your checkout.</p>
+    ${FOUNDING_OFFER ? `<p class="founding">${icon("star")} ${esc(FOUNDING_OFFER)}</p>` : ""}
+  </div>
+</section>
+${section(
+  "Why it works for gift and home stores",
+  "Holiday lists get passed around to parents, grandparents, aunts and friends. Each one is a reason to visit your store.",
+  cards([
+    { icon: "link", title: "One link for the whole family", detail: "Shoppers share their list by text, WhatsApp or email. Family opens it on any phone, with nothing to sign up for." },
+    { icon: "shield", title: "No duplicate gifts", detail: "While someone checks out, the list shows Someone may be buying this. Once it's bought, it's marked as taken." },
+    { icon: "store", title: "Your products first", detail: "The list lives on your store's domain and your products sit at the top, buyable in one tap." },
+  ]),
+)}
+${section(
+  "Set up in minutes",
+  "No theme code. If you already use Giftpin for registries, it's one tick.",
+  cards([
+    { icon: "check", title: "Tick Wish list", detail: "In Giftpin, open Settings and tick Wish list under Occasions. It has no event date, so it suits Christmas, Hanukkah, Diwali or any time of year." },
+    { icon: "gift", title: "Add the button", detail: "The Add to registry button goes on your product pages as a theme block, so shoppers add your products as they browse." },
+    { icon: "globe", title: "Room for everything", detail: "Allow items from other stores and the list stays complete, with your closest match suggested beside each one." },
+  ]),
+  true,
+)}
+${section(
+  "Ready before your holiday code freeze",
+  "Many stores stop changing their theme ahead of Black Friday. Turning on wish lists is an app setting plus a theme block, so it's worth doing now, before the rush.",
+  "",
+)}
+${section("Questions merchants ask", "", faqList(HOLIDAY_FAQ))}
+${finalCta("Give shoppers a holiday list that starts in your store.")}
+`;
+  return sitePage({
+    path: "/holiday-wish-lists",
+    nav: "guides",
+    title: "Holiday wish lists for Shopify gift and home stores | Giftpin",
+    description:
+      "Let shoppers make a shareable Christmas or holiday wish list on your Shopify store. Family buys from one link, gifts are marked as bought so nobody doubles up, and the sales come to you.",
+    body,
+    css: CSS,
+    jsonLd: [faqLd(HOLIDAY_FAQ)],
+  });
+}
 
 /**
  * Merchant setup guide at giftpin.app/setup. Every label in bold here is the

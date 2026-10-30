@@ -54,7 +54,7 @@ describe("wedding registry category suggestions", () => {
     const html = page({ eventType: "wedding" });
     expect(html).toContain("Wedding registry ideas, room by room");
     expect(html).toContain(">Kitchen<");
-    expect(html).toContain("Cash &amp; honeymoon funds");
+    expect(page({ eventType: "wedding", contributions: { toRegistrant: false } })).toContain("Cash &amp; honeymoon funds");
   });
 
   it("breaks a room into subcategories of specific items", () => {
@@ -76,10 +76,11 @@ describe("wedding registry category suggestions", () => {
     expect(html).toContain(">Sheet set (queen)<");
   });
 
-  it("suggests non-catalog rooms as plain items, not fake search links", () => {
-    const html = page({ eventType: "wedding" });
+  it("never turns a fund or experience idea into a fake search link", () => {
+    const html = page({ eventType: "wedding", contributions: { toRegistrant: false } });
     expect(html).toContain(">Honeymoon fund<");
     expect(html).not.toContain('href="/search?q=Honeymoon');
+    expect(html).not.toContain('href="/search?q=Cooking%20class');
   });
 
   it("shows the wedding guide only on wedding-style registries", () => {
@@ -243,9 +244,21 @@ describe("connect-the-extension box and chip fallback", () => {
     expect(html).not.toContain("walmart.ca");
   });
 
+  it("filters the store's loose search results with the strict idea matcher (29 Oct 2026)", () => {
+    const html = page({ eventType: "wedding" });
+    expect(html).toContain("function gpIdeaMatch(term,products)");
+    expect(html).toContain("gpIdeaMatch(names,list)");
+    // Other names an item is sold under ride along on the chip.
+    expect(html).toContain('data-term="Skillet" data-aliases="frying pan|fry pan"');
+    expect(html).toContain("resources[limit]=10");
+    expect(html).toContain("No match for");
+    // A result no longer sends the registrant to the store's own (loose) search page.
+    expect(html).not.toContain("list.length>0){location.href=href");
+  });
+
   it("ships Canadian retailers when the registry's country is Canada", () => {
     const html = page({ country: "CA", currency: "CAD" });
-    expect(html).toContain("walmart.ca");
+    expect(html).toContain("canadiantire.ca");
     expect(html).not.toContain("target.com");
   });
 
@@ -511,5 +524,111 @@ describe("share QR code", () => {
     const path = (html: string) => html.match(/<path d="(M[^"]+)" fill="#000"\/>/)?.[1];
     expect(path(a)).toBeTruthy();
     expect(path(a)).not.toEqual(path(b));
+  });
+});
+
+describe("manage page item tiles (29 Oct 2026)", () => {
+  const item = (o: Partial<DisplayItem>): DisplayItem =>
+    ({
+      id: "i1", sourceType: "shopify_internal", title: "Linen Pillowcase Pair", imageUrl: null, price: 71.25, currency: "CAD",
+      desiredQty: 4, purchasedQty: 1, claimedQty: 0, remainingQty: 3, note: null, category: null, storeMatch: null,
+      variantGid: "gid://shopify/ProductVariant/1", externalUrl: null, externalDomain: null, isExternal: false, isStale: false,
+      availability: "in_stock", fulfilled: false, ...o,
+    }) as DisplayItem;
+
+  it("shows the price, the bought count and a bar that matches it", () => {
+    const html = page({ items: [item({})] });
+    expect(html).toContain("1 of 4 bought");
+    expect(html).toContain('<div class="mi-bar" aria-hidden="true"><i style="width:25%"></i></div>');
+  });
+
+  it("marks a fully bought item clearly, and never offers Remove on it", () => {
+    const html = page({ items: [item({ purchasedQty: 4, remainingQty: 0, fulfilled: true })] });
+    expect(html).toContain('class="item mi done"');
+    expect(html).toContain("All bought");
+    expect(html).not.toContain('class="mi-remove js-remove"');
+  });
+
+  it("gives the hero picture its own edge so it never merges into the page background", () => {
+    expect(page()).toContain(".manage .hero-img,.manage .hero-art{");
+  });
+
+  it("keeps the ideas box a plain card, not an accent-tinted grey", () => {
+    expect(page()).toContain(".manage details.ideas{background:var(--card)");
+  });
+
+  it("ships its own styles, and skips the background wash when a Pro store picked its own background", () => {
+    expect(page()).toContain("body.manage{background:");
+    const branded = page({ branding: { backgroundColor: "#fff8ef" } as ManagePageData["branding"] });
+    expect(branded).not.toContain("body.manage{background:");
+    expect(branded).toContain(".mi-bar");
+  });
+});
+
+/**
+ * Fund and experience ideas used to be plain labels that did nothing when
+ * tapped (Ben, 29 Oct 2026: "what's the point of listing all these things").
+ * Every idea now either searches the store, opens the cash fund form, or adds
+ * an experience by name, and is only shown when the store can do that.
+ */
+describe("every idea leads somewhere (29 Oct 2026)", () => {
+  const withFunds = { contributions: { toRegistrant: false } };
+
+  it("makes a fund idea a button that fills in the cash fund form", () => {
+    const html = page({ eventType: "wedding", ...withFunds });
+    expect(html).toContain('<button class="cat-chip js-idea-fund" type="button" data-title="Honeymoon fund">Honeymoon fund</button>');
+    expect(html).toContain('class="js-fund"');
+    expect(html).toContain("Tap a fund to set one up below.");
+  });
+
+  it("hides fund ideas when the store can't take funds", () => {
+    const html = page({ eventType: "wedding", contributions: null });
+    expect(html).not.toContain('class="cat-chip js-idea-fund"');
+    expect(html).not.toContain("Honeymoon fund");
+    expect(html).not.toContain("Cash &amp; honeymoon funds");
+    expect(html).not.toContain("Tap a fund");
+  });
+
+  it("makes an experience idea a button that adds it by name", () => {
+    const html = page({ eventType: "wedding" });
+    expect(html).toContain('<button class="cat-chip js-idea-exp" type="button" data-title="Hot air balloon ride">Hot air balloon ride</button>');
+    expect(html).toContain("post('/add-manual'");
+    expect(html).toContain("Tap an experience to add it to your list");
+  });
+
+  it("hides experience ideas when the store only allows its own products", () => {
+    const html = page({ eventType: "wedding", externalItemsAllowed: false });
+    expect(html).not.toContain('class="cat-chip js-idea-exp"');
+    expect(html).not.toContain("Cooking class");
+    expect(html).not.toContain("<summary>Experiences</summary>");
+  });
+
+  it("drops a group whose ideas are all hidden, but keeps the store ideas", () => {
+    const html = page({ eventType: "college", contributions: null });
+    expect(html).not.toContain("Tuition fund");
+    expect(html).toContain('href="/search?q=Mini%20fridge&amp;type=product"');
+  });
+
+  it("no longer lists ideas Giftpin can't deliver", () => {
+    for (const { value } of EVENT_TYPES) {
+      const html = page({ eventType: value, ...withFunds });
+      const labels = (html.match(/class="cat-chip[^>]*>[^<]*</g) ?? []).join("\n");
+      expect(labels).not.toMatch(/charit|donation|tzedakah|savings bond|volunteer/i);
+      expect(html).not.toContain("cat-chip--add");
+    }
+  });
+
+  it("gives every idea in every guide a real action", () => {
+    for (const { value } of EVENT_TYPES) {
+      const html = page({ eventType: value, ...withFunds });
+      const chips = html.match(/<(a|button|span) class="cat-chip[^"]*"[^>]*>/g) ?? [];
+      expect(chips.length).toBeGreaterThan(0);
+      for (const chip of chips) {
+        expect(chip).toMatch(/^<a class="cat-chip js-cat" href="\/search\?q=|^<button class="cat-chip js-idea-(fund|exp)" type="button" data-title="/);
+      }
+      let total = 0;
+      for (const g of ideaGuideFor(value).groups) for (const s of g.subcategories) total += s.items.length;
+      expect(chips.length).toBe(total);
+    }
   });
 });

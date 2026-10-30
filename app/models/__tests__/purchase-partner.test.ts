@@ -23,6 +23,7 @@ describe("gift notifications with a partner", () => {
       {
         id: "reg_1",
         title: "Sam & Alex",
+        eventType: "wedding",
         registrants: [
           { id: "rgt_owner", role: "owner", emailEnc: encrypt("sam@example.com") },
           { id: "rgt_partner", role: "co", emailEnc: encrypt("alex@example.com") },

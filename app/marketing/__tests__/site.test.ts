@@ -12,8 +12,11 @@ import { loader as babyRegistryLoader } from "../../routes/baby-registry";
 import { loader as homeGoodsLoader } from "../../routes/home-goods-registry";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
-import { MARKETING_PATHS } from "../../routes/sitemap[.xml]";
-import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
+import { loader as holidayLoader } from "../../routes/holiday-wish-lists";
+import { homeHtml } from "../home";
+import { MARKETING_PATHS, SEASONAL_PATHS, loader as sitemapLoader } from "../../routes/sitemap[.xml]";
+import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
+import { HOLIDAY_PROMO_ENDS_AT, SHOW_FOUNDING_OFFER, holidayPromoOn } from "../config";
 import { videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
@@ -22,6 +25,7 @@ const LANDING: Record<string, () => Promise<Response>> = {
   "/gift-registry-app": giftRegistryAppLoader,
   "/baby-registry": babyRegistryLoader,
   "/home-goods-registry": homeGoodsLoader,
+  "/holiday-wish-lists": holidayLoader,
 };
 
 async function page(path: string): Promise<string> {
@@ -55,7 +59,7 @@ describe("marketing site", () => {
     });
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide"])("%s renders with the shared nav, footer and icon", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"])("%s renders with the shared nav, footer and icon", async (path) => {
     const html = await page(path);
     expect(html).toContain('href="/pricing"');
     expect(html).toContain('href="/privacy"');
@@ -93,7 +97,7 @@ describe("marketing site", () => {
   });
 
   it("doesn't advertise Pro features that aren't merged, or a yearly price that isn't set up", async () => {
-    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/holiday-wish-lists"]) {
       const html = (await page(path)).toLowerCase();
       expect(html).not.toContain("point of sale");
       expect(html).not.toContain(" pos ");
@@ -101,6 +105,50 @@ describe("marketing site", () => {
       expect(html).not.toContain("group gift");
       expect(html).not.toContain("/yr");
       expect(html).not.toContain("per year");
+    }
+  });
+
+  it("explains the Which registry? choice for Babylist and copy-link registries", async () => {
+    for (const path of ["/", "/features", "/faq"]) {
+      const html = await page(path);
+      expect(html).toContain("Which registry?");
+      expect(html).toContain("Babylist");
+      expect(html).toContain("copy");
+    }
+    expect(await page("/")).toContain("Another registry (copy link)");
+    expect(await page("/baby-registry")).toContain("Babylist");
+  });
+
+  it("never claims a Babylist partnership, Amazon support or the unreleased share-menu app", async () => {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"]) {
+      const html = (await page(path)).toLowerCase();
+      expect(html).not.toContain("amazon");
+      expect(html).not.toMatch(/babylist[^<.]{0,40}(partner|endorse|official|certified)/);
+      expect(html).not.toMatch(/(partner|endorsed|official|certified)[^<.]{0,40}babylist/);
+      expect(html).not.toMatch(/<img[^>]+babylist/);
+      expect(html).not.toContain("share menu");
+      expect(html).not.toContain("share sheet");
+      expect(html).toContain("giftpin isn't affiliated with babylist or zola");
+    }
+  });
+
+  it("shows honest trust signals and no made-up social proof", async () => {
+    const home = await page("/");
+    for (const s of ["Made in Canada", "Reviewed by Shopify", 'href="#demo"', "two co-founders"]) expect(home).toContain(s);
+    for (const path of ["/", "/features", "/pricing", "/faq"]) {
+      const html = (await page(path)).toLowerCase();
+      expect(html).not.toContain("★");
+      expect(html).not.toContain("testimonial");
+      expect(html).not.toMatch(/\d[\d,]*\+? (merchants|installs|happy)|\d[\d,]*\+? stores (use|trust|love)/);
+    }
+  });
+
+  it("quotes the founding offer from the billing constants, or hides it when switched off", async () => {
+    for (const path of ["/", "/pricing"]) {
+      const html = await page(path);
+      const line = `first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get a ${FOUNDING_OFFER_TRIAL_DAYS}-day free trial`;
+      if (SHOW_FOUNDING_OFFER) expect(html).toContain(line);
+      else expect(html).not.toContain("Founding offer");
     }
   });
 
@@ -133,7 +181,7 @@ describe("marketing site", () => {
 
   it("every image the pages reference ships in public/", async () => {
     const pub = join(__dirname, "../../../public");
-    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"]) {
       const html = await page(path);
       for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/(?:brand|guides)\/[^"]+)"/g)) {
         expect(existsSync(join(pub, m[1])), m[1]).toBe(true);
@@ -157,8 +205,31 @@ describe("marketing site", () => {
       "/registry-guide": "registry-guide.tsx",
       "/gift-cards": "gift-cards.tsx",
       "/privacy": "privacy.tsx",
+      "/holiday-wish-lists": "holiday-wish-lists.tsx",
     };
-    for (const p of MARKETING_PATHS) expect(existsSync(join(routes, file[p] ?? "missing")), p).toBe(true);
+    for (const p of [...MARKETING_PATHS, ...SEASONAL_PATHS]) expect(existsSync(join(routes, file[p] ?? "missing")), p).toBe(true);
+  });
+});
+
+describe("holiday wish lists page", () => {
+  it("pitches a shareable list, not a save-for-later button, and quotes the founding offer", async () => {
+    const html = await page("/holiday-wish-lists");
+    expect(html).toContain("nobody doubles up");
+    expect(html).toContain("Is this a save-for-later wishlist button?");
+    // The exact Settings label merchants tick.
+    expect(html).toContain("tick Wish list under Occasions");
+    if (SHOW_FOUNDING_OFFER) expect(html).toContain(`${FOUNDING_OFFER_TRIAL_DAYS}-day free trial`);
+    expect(html.toLowerCase()).not.toContain("★");
+    expect(html.toLowerCase()).not.toContain("testimonial");
+  });
+
+  it("shows the home banner, footer link and sitemap entry only until the promo ends", async () => {
+    const before = new Date(HOLIDAY_PROMO_ENDS_AT.getTime() - 1000);
+    expect(homeHtml(before)).toContain('class="season"');
+    expect(homeHtml(HOLIDAY_PROMO_ENDS_AT)).not.toContain('class="season"');
+    expect(HOLIDAY_PROMO_ENDS_AT.toISOString()).toBe("2026-12-27T05:00:00.000Z");
+    const sitemap = await (await sitemapLoader()).text();
+    expect(sitemap.includes("/holiday-wish-lists")).toBe(holidayPromoOn());
   });
 });
 

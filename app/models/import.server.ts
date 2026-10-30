@@ -170,6 +170,7 @@ export async function runImport(
     if (options.emailRegistrants) {
       await sendEmail("registry-link", registry.email, {
         registryTitle: row.title,
+        eventType: row.eventType,
         url: absoluteProxyUrl(shop.domain, PROXY_PREFIX, "manage", { t: mintManageToken(row.id) }),
       });
       emailed++;

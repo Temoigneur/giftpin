@@ -71,7 +71,7 @@ ${finalCta("Ready to give your store a registry with no walls?")}
     nav: "features",
     title: "Giftpin features: gift registries for Shopify",
     description:
-      "Everything Giftpin does: registries with gifts from any store, your matching products suggested, no duplicate gifts, correct credit through Shop Pay, Apple Pay and Google Pay, and Pro analytics, branding and automatic emails.",
+      "Everything Giftpin does: registries with gifts from any store, an Add to registry button that also works with Babylist and other registries, your matching products suggested, no duplicate gifts, correct credit through Shop Pay, Apple Pay and Google Pay, and Pro analytics, branding and automatic emails.",
     body,
     css: CSS,
   });
@@ -110,6 +110,7 @@ const GUESTS: Feature[] = [
 const MERCHANT: Feature[] = [
   { icon: "sparkle", title: "Your product, suggested first", detail: "When a registrant adds something from another shop, Giftpin searches your catalog and shows your closest match beside it, one tap to swap." },
   { icon: "card", title: "Credit that survives express checkout", detail: "Shop Pay, Apple Pay, Google Pay and the Shop app skip the cart. Giftpin still credits every gift to the right registry and item." },
+  { icon: "link", title: "Works with the registry they already have", detail: "Shoppers with a registry elsewhere don't have to leave. Your Add to registry button can ask Which registry? and add the product to their Babylist registry, or copy its link for any registry that takes one, like Zola. Each choice is off until you turn it on." },
   { icon: "puzzle", title: "Theme blocks, no code", detail: "An Add to registry button for product pages, plus create, find and manage registry links you can place anywhere in the theme editor." },
   { icon: "globe", title: "On your own domain", detail: "Registry pages live on your store's domain and link guests back to your products." },
   { icon: "heart", title: "You choose the occasions", detail: "Turn each occasion on or off for your store in Giftpin's settings." },

@@ -188,6 +188,12 @@ export default function Settings() {
                 name="eventTypes"
                 value={type.value}
                 label={type.label}
+                {...(type.value === "wishlist"
+                  ? {
+                      details:
+                        "A shareable list with no event date, such as a holiday wish list. Family marks what they bought, so nobody doubles up. Off until you switch it on.",
+                    }
+                  : {})}
                 {...(settings.eventTypes.includes(type.value) ? { checked: true } : {})}
               />
             ))}
@@ -367,7 +373,7 @@ export default function Settings() {
           <s-checkbox
             name="findARegistryEnabled"
             label="Enable the public find-a-registry page"
-            details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown."
+            details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown. The Registry links theme block's “Find a gift registry” link opens this page."
             {...(settings.findARegistryEnabled ? { checked: true } : {})}
           />
         </s-section>

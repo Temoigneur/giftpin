@@ -299,6 +299,22 @@ export interface StoreMatchColumns {
   storeMatchHandle: string | null;
 }
 
+/**
+ * An item the registrant adds by name from the manage page (the ideas guide's
+ * experiences: a cooking class, a spa day), bought somewhere else. Counts as
+ * an outside item, so the store's "items from other stores" setting (off or
+ * capped) applies just as it does to a pasted link.
+ */
+export async function addNamedItem(input: AddManualInput) {
+  const registry = await db.registry.findUnique({
+    where: { id: input.registryId },
+    include: { shop: true, items: true },
+  });
+  if (!registry) throw new ItemError("Registry not found");
+  assertExternalAllowed(registry);
+  return addManualItem(input);
+}
+
 /** The escape hatch when a URL won't resolve. Never a dead end for the registrant. */
 export async function addManualItem(input: AddManualInput) {
   const url = input.url ? canonicalizeUrl(input.url).url : null;

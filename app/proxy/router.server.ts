@@ -10,6 +10,7 @@ import {
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
+import { isDatelessOccasion } from "../shared/settings";
 import {
   findBySlug,
   findVersionBySlug,
@@ -39,6 +40,7 @@ import {
   addInternalItem,
   addExternalItem,
   addManualItem,
+  addNamedItem,
   addFundItem,
   setItemFundGoal,
   parseFundGoal,
@@ -474,6 +476,7 @@ async function managePage(
       items: applyStock(registry.items.map((item) => toDisplayItem(item)), await registryStock(ctx.shop, registry)),
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings),
+      enabledEventTypes: settings.eventTypes,
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
       currency: shop.currency,
@@ -512,8 +515,19 @@ async function findPage(
   brand: Brand,
   settings: ShopSettings,
 ): Promise<Response> {
+  // The theme's "Registry links" block shows a "Find a gift registry" link by
+  // default, and the theme can't see this setting, so a store that hasn't
+  // turned the search on used to send that link to "Page not found" (Ben, 29
+  // Oct 2026). Tell the guest what to do instead of showing a dead end.
   if (!settings.findARegistryEnabled) {
-    return page(renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere."), 404);
+    return page(
+      renderSimplePage(
+        brand,
+        "Find a gift registry",
+        `${brand.shopName} doesn't have a public registry search. Ask the person you're shopping for to send you their registry link.`,
+        { label: "Start your own registry", href: ctx.pathPrefix },
+      ),
+    );
   }
 
   const query = (ctx.query.get("q") ?? "").trim().slice(0, 80);
@@ -694,7 +708,7 @@ async function handlePost(
     case "add-link":
       return addLinkAction(request, ctx, shop);
     case "add-manual":
-      return addManualAction(request, ctx);
+      return addManualAction(request, ctx, shop);
     case "add-from-store":
       return addFromStoreAction(request, ctx, shop);
     case "scan-lookup":
@@ -762,7 +776,7 @@ async function createRegistryAction(
     shopId: shop.id,
     customerId: ctx.loggedInCustomerId,
     eventType: values.eventType || "other",
-    eventDate: values.eventDate ? new Date(`${values.eventDate}T00:00:00Z`) : null,
+    eventDate: values.eventDate && !isDatelessOccasion(values.eventType) ? new Date(`${values.eventDate}T00:00:00Z`) : null,
     title: values.title.trim(),
     message: values.message.trim() || null,
     registrantName: values.registrantName.trim(),
@@ -774,7 +788,7 @@ async function createRegistryAction(
     t: mintManageToken(registry.id),
   });
 
-  await sendEmail("registry-link", email, { registryTitle: registry.title, url: manageUrl });
+  await sendEmail("registry-link", email, { registryTitle: registry.title, eventType: registry.eventType, url: manageUrl });
 
   // Straight into the registry rather than a "check your email" dead end —
   // the email is the durable copy, not the gate.
@@ -797,6 +811,7 @@ async function resendAction(
       if (!registrant) continue;
       await sendEmail("registry-link", email, {
         registryTitle: registry.title,
+        eventType: registry.eventType,
         url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: manageTokenFor(registry.id, registrant) }),
       });
     }
@@ -1442,7 +1457,13 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
  * end up with the item on their list, or they go and build the list somewhere
  * that doesn't fail them.
  */
-async function addManualAction(request: Request, ctx: ProxyContext): Promise<Response> {
+/**
+ * An item added by name, with an optional link and price. The manage page's
+ * ideas guide uses it for experiences (a cooking class, a spa day), which no
+ * store search can find (29 Oct 2026). Those are bought somewhere else, so
+ * the store's "items from other stores" setting applies (addNamedItem).
+ */
+async function addManualAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
   if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
 
@@ -1450,13 +1471,20 @@ async function addManualAction(request: Request, ctx: ProxyContext): Promise<Res
   const title = String(body.title ?? "").trim();
   if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
 
+  // Optional here, but a typed "$120" must not reach the database as text.
+  const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
+  const price = rawPrice ? normalizePrice(rawPrice) : null;
+  if (rawPrice && price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+
   try {
-    await addManualItem({
+    await addNamedItem({
       registryId: registry.id,
       title,
-      url: typeof body.url === "string" && body.url ? body.url : null,
-      price: typeof body.price === "string" ? body.price : null,
-      currency: typeof body.currency === "string" ? body.currency : null,
+      url: typeof body.url === "string" && body.url.trim() ? body.url.trim() : null,
+      price,
+      currency: price
+        ? normalizeCurrency(typeof body.currency === "string" ? body.currency : null) ?? shop.currency
+        : null,
       desiredQty: clampInt(body.desiredQty, 1, 99),
       note: cleanNote(body.note),
     });
@@ -1561,11 +1589,12 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
   const form = await request.formData();
   const privacy = String(form.get("privacy") ?? "unlisted");
   const eventDate = String(form.get("eventDate") ?? "");
+  const eventType = String(form.get("eventType") ?? registry.eventType);
 
   await updateRegistry(registry.id, {
     title: String(form.get("title") ?? registry.title).slice(0, 200),
-    eventType: String(form.get("eventType") ?? registry.eventType),
-    eventDate: eventDate ? new Date(`${eventDate}T00:00:00Z`) : null,
+    eventType,
+    eventDate: eventDate && !isDatelessOccasion(eventType) ? new Date(`${eventDate}T00:00:00Z`) : null,
     message: String(form.get("message") ?? "").slice(0, 2000) || null,
     country: normalizeCountry(form.get("country")),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",

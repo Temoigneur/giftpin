@@ -1,4 +1,5 @@
 import { registerHandler, enqueue } from "./queue.server";
+import { listNoun } from "../shared/settings";
 
 /**
  * Transactional email.
@@ -83,17 +84,21 @@ type TemplateFn = (data: Record<string, any>) => Mail;
 
 const templates: Record<string, TemplateFn> = {
   /** Magic link — the only way a registrant gets back into their registry. */
-  "registry-link": (d) => ({
-    to: d.to,
-    subject: `Your ${d.registryTitle} registry`,
-    text: `Open your registry: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit your registry, so keep it to yourself.`,
-    html: shell(
-      "Here's your registry",
-      `<p>Use this link whenever you want to add items or see what's been bought.</p>
-       <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit your registry — so keep it to yourself. The <em>share</em> link you send to guests is different and is view-only.</p>`,
-      { label: "Open my registry", url: d.url },
-    ),
-  }),
+  "registry-link": (d) => {
+    const noun = listNoun(d.eventType);
+    return {
+      to: d.to,
+      // A wish list's title usually says "wish list" already ("Sam's Wish List").
+      subject: noun === "registry" ? `Your ${d.registryTitle} registry` : `Your wish list: ${d.registryTitle}`,
+      text: `Open your ${noun}: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit your ${noun}, so keep it to yourself.`,
+      html: shell(
+        `Here's your ${noun}`,
+        `<p>Use this link whenever you want to add items or see what's been bought.</p>
+         <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit your ${noun} — so keep it to yourself. The <em>share</em> link you send to guests is different and is view-only.</p>`,
+        { label: `Open my ${noun}`, url: d.url },
+      ),
+    };
+  },
 
   /** A registrant added their partner. Their own link, so it can be revoked. */
   "registry-partner": (d) => {
@@ -112,21 +117,25 @@ const templates: Record<string, TemplateFn> = {
   },
 
   /** The moment that sells the app. */
-  "gift-purchased": (d) => ({
-    to: d.to,
-    subject: `Someone bought ${d.itemTitle}`,
-    text: `${d.buyerLine}\n\n${d.itemTitle} — ${d.qty} of ${d.desiredQty}\n\nSee your registry: ${d.url}`,
-    html: shell(
-      "You've been given a gift",
-      `<p><strong>${escapeHtml(d.itemTitle)}</strong></p>
-       <p>${escapeHtml(d.buyerLine)}</p>
-       ${d.buyerMessage ? `<blockquote style="margin:16px 0;padding:12px 16px;background:#fff;border-left:3px solid #ddd;border-radius:4px">${escapeHtml(d.buyerMessage)}</blockquote>` : ""}`,
-      { label: "See your registry", url: d.url },
-    ),
-  }),
+  "gift-purchased": (d) => {
+    const noun = listNoun(d.eventType);
+    return {
+      to: d.to,
+      subject: `Someone bought ${d.itemTitle}`,
+      text: `${d.buyerLine}\n\n${d.itemTitle} — ${d.qty} of ${d.desiredQty}\n\nSee your ${noun}: ${d.url}`,
+      html: shell(
+        "You've been given a gift",
+        `<p><strong>${escapeHtml(d.itemTitle)}</strong></p>
+         <p>${escapeHtml(d.buyerLine)}</p>
+         ${d.buyerMessage ? `<blockquote style="margin:16px 0;padding:12px 16px;background:#fff;border-left:3px solid #ddd;border-radius:4px">${escapeHtml(d.buyerMessage)}</blockquote>` : ""}`,
+        { label: `See your ${noun}`, url: d.url },
+      ),
+    };
+  },
 
   /** A guest chipped in toward a group gift or fund (SPIKE-C.md). */
   "gift-contribution": (d) => {
+    const noun = listNoun(d.eventType);
     const money = d.amount ? `${Number(d.amount).toFixed(2)} ${d.currency}` : "A gift card";
     const where = d.sentToRegistrant
       ? "The gift card itself comes in a separate email from the store, usually to this address. If your guest paid with Shop Pay, it went to them instead, so they can pass it on to you."
@@ -134,13 +143,13 @@ const templates: Record<string, TemplateFn> = {
     return {
       to: d.to,
       subject: `Someone chipped in toward ${d.itemTitle}`,
-      text: `${money} toward ${d.itemTitle}.\n\n${d.buyerLine}\n\n${where}\n\nSee your registry: ${d.url}`,
+      text: `${money} toward ${d.itemTitle}.\n\n${d.buyerLine}\n\n${where}\n\nSee your ${noun}: ${d.url}`,
       html: shell(
         "Someone chipped in",
         `<p><strong>${escapeHtml(money)}</strong> toward <strong>${escapeHtml(d.itemTitle)}</strong>.</p>
          <p>${escapeHtml(d.buyerLine)}</p>
          <p style="color:#6b6b6b;font-size:13px">${escapeHtml(where)}</p>`,
-        { label: "See your registry", url: d.url },
+        { label: `See your ${noun}`, url: d.url },
       ),
     };
   },
@@ -193,17 +202,20 @@ const templates: Record<string, TemplateFn> = {
   }),
 
   /** Registrant: most of the list is bought, so add more before late guests arrive. */
-  "most-gone": (d) => ({
-    to: d.to,
-    subject: `${d.fulfilled} of ${d.total} gifts on ${d.registryTitle} are taken care of`,
-    text: `Most of your registry has been bought: ${d.fulfilled} of ${d.total} gifts. Guests who haven't chosen yet will have more to pick from if you add a few more items.\n\nOpen your registry: ${d.url}`,
-    html: shell(
-      "Most of your registry is gone",
-      `<p><strong>${d.fulfilled} of ${d.total}</strong> gifts on your registry have been taken care of.</p>
-       <p>Guests who haven't chosen yet will have more to pick from if you add a few more items now.</p>`,
-      { label: "Add more items", url: d.url },
-    ),
-  }),
+  "most-gone": (d) => {
+    const noun = listNoun(d.eventType);
+    return {
+      to: d.to,
+      subject: `${d.fulfilled} of ${d.total} gifts on ${d.registryTitle} are taken care of`,
+      text: `Most of your ${noun} has been bought: ${d.fulfilled} of ${d.total} gifts. Guests who haven't chosen yet will have more to pick from if you add a few more items.\n\nOpen your ${noun}: ${d.url}`,
+      html: shell(
+        `Most of your ${noun} is gone`,
+        `<p><strong>${d.fulfilled} of ${d.total}</strong> gifts on your ${noun} have been taken care of.</p>
+         <p>Guests who haven't chosen yet will have more to pick from if you add a few more items now.</p>`,
+        { label: "Add more items", url: d.url },
+      ),
+    };
+  },
 
   /** Registrant, a few days after the event. */
   "thank-you-reminder": (d) => {

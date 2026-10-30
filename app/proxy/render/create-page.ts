@@ -1,6 +1,6 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr } from "./layout";
-import { EVENT_TYPES } from "../../shared/settings";
+import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion } from "../../shared/settings";
 import { occasionTemplate } from "../../shared/registry-ideas";
 import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 
@@ -36,12 +36,13 @@ export function renderPerks(shopName: string, perks: string[] | undefined): stri
 
 export function renderCreatePage(data: CreatePageData): string {
   const enabled = EVENT_TYPES.filter((t) => data.enabledEventTypes.includes(t.value));
-  const types = enabled.length ? enabled : EVENT_TYPES;
+  const types = enabled.length ? enabled : EVENT_TYPES.filter((t) => !OPT_IN_EVENT_TYPES.includes(t.value));
   const v = data.values ?? {};
   // Each occasion is its own template: the name and note placeholders follow
   // the dropdown (small inline script below; without JS they match the
   // initially selected occasion).
-  const initial = occasionTemplate(types.some((t) => t.value === v.eventType) ? v.eventType : types[0].value);
+  const initialType = types.some((t) => t.value === v.eventType) ? v.eventType : types[0].value;
+  const initial = occasionTemplate(initialType);
 
   const body = `
 <h1>Start a registry</h1>
@@ -59,7 +60,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
     ${types
       .map((t) => {
         const tpl = occasionTemplate(t.value);
-        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`;
+        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`;
       })
       .join("")}
   </select>
@@ -71,7 +72,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
          placeholder="${escapeAttr(initial.title)}" value="${escapeAttr(v.title)}">
   </div>
 
-  <div>
+  <div id="c-date-field"${isDatelessOccasion(initialType) ? " hidden" : ""}>
   <label for="c-date">When is it?</label>
   <input id="c-date" type="date" name="eventDate" value="${escapeAttr(v.eventDate)}">
   <p class="hint">Optional. We'll remind you to share your link as it gets closer.</p>
@@ -106,7 +107,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
     <button class="btn block" type="submit">Create my registry</button>
   </div>
 </form>
-<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;});})();</script>
+<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;var d=document.getElementById('c-date-field');d.hidden='nodate' in o.dataset;if(d.hidden)document.getElementById('c-date').value='';});})();</script>
 
 <div class="note">
   <p style="margin:0"><strong>Already have one?</strong></p>
