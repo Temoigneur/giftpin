@@ -1,0 +1,27 @@
+# Giftpin panels in the Shopify admin: "More actions -> Giftpin registry" on an
+# order, a customer and a product. Each opens a small modal answering "which
+# registry is this for / does this person have / is this on?". Backend:
+# app/routes/api.admin-panel.tsx.
+#
+# Ships with `npm run deploy` (shopify app deploy), not with the Railway
+# deploy of the web app.
+
+api_version = "2026-07"
+
+[[extensions]]
+type = "ui_extension"
+name = "Giftpin registry"
+handle = "admin-registry"
+description = "See which registry an order, customer or product belongs to."
+
+[[extensions.targeting]]
+module = "./src/OrderAction.tsx"
+target = "admin.order-details.action.render"
+
+[[extensions.targeting]]
+module = "./src/CustomerAction.tsx"
+target = "admin.customer-details.action.render"
+
+[[extensions.targeting]]
+module = "./src/ProductAction.tsx"
+target = "admin.product-details.action.render"
