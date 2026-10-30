@@ -33,7 +33,8 @@ export const registryWithItems = {
       include: { externalSource: true, purchases: true, claims: true },
       orderBy: [{ priority: "desc" as const }, { createdAt: "asc" as const }],
     },
-    registrants: true,
+    // Owner first: several callers read registrants[0] as the owner.
+    registrants: { orderBy: { createdAt: "asc" as const } },
     shop: true,
   },
 } satisfies Prisma.RegistryDefaultArgs;
@@ -131,14 +132,20 @@ export async function findVersionBySlug(
   });
 }
 
-/** Registries a given email owns, across one shop. Used by "email me my link". */
+/**
+ * Registries a given email owns or is the partner on, across one shop. Used by
+ * "email me my link". `registrants` holds only the matching registrant, so the
+ * caller can mint the right kind of link (see mintManageToken).
+ */
 export async function findByEmail(shopId: string, email: string) {
+  const emailHash = blindIndex(email);
   return db.registry.findMany({
     where: {
       shopId,
       status: "active",
-      registrants: { some: { emailHash: blindIndex(email) } },
+      registrants: { some: { emailHash } },
     },
+    include: { registrants: { where: { emailHash }, select: { id: true, role: true } } },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -147,13 +154,46 @@ export async function findByEmail(shopId: string, email: string) {
 // Magic links — the registrant's credential
 // ---------------------------------------------------------------------------
 
-export function mintManageToken(registryId: string): string {
-  return signToken({ p: MANAGE_TOKEN_PURPOSE, r: registryId }, MANAGE_TOKEN_TTL);
+/**
+ * The owner's link carries only the registry id. A partner's link also carries
+ * their Registrant id (`g`), so removing the partner shuts their link off:
+ * authorizeManage() refuses a `g` that's no longer on the registry.
+ */
+export function mintManageToken(registryId: string, partnerId?: string | null): string {
+  return signToken(
+    { p: MANAGE_TOKEN_PURPOSE, r: registryId, ...(partnerId ? { g: partnerId } : {}) },
+    MANAGE_TOKEN_TTL,
+  );
 }
 
 export function readManageToken(token: string | null | undefined): string | null {
-  const payload = verifyToken<{ p: string; r?: unknown }>(token, MANAGE_TOKEN_PURPOSE);
-  return payload && typeof payload.r === "string" ? payload.r : null;
+  return readManageGrant(token)?.registryId ?? null;
+}
+
+export function readManageGrant(
+  token: string | null | undefined,
+): { registryId: string; partnerId: string | null } | null {
+  const payload = verifyToken<{ p: string; r?: unknown; g?: unknown }>(token, MANAGE_TOKEN_PURPOSE);
+  if (!payload || typeof payload.r !== "string") return null;
+  return { registryId: payload.r, partnerId: typeof payload.g === "string" ? payload.g : null };
+}
+
+/**
+ * The link to hand a registrant for this registry: the owner's kind for the
+ * owner, a revocable one for a partner.
+ */
+export function manageTokenFor(registryId: string, registrant: { id: string; role: string }): string {
+  return mintManageToken(registryId, registrant.role === "co" ? registrant.id : null);
+}
+
+/**
+ * A fresh token with the same holder as `token` (owner or partner). The manage
+ * page hands one out on every visit; re-minting an owner token here would let a
+ * removed partner keep access.
+ */
+export function renewManageToken(token: string | null | undefined, registryId: string): string {
+  const grant = readManageGrant(token);
+  return mintManageToken(registryId, grant?.registryId === registryId ? grant.partnerId : null);
 }
 
 /**
@@ -174,7 +214,13 @@ export async function authorizeManage(
   const registry = await findById(registryId);
   if (!registry || registry.status !== "active") return null;
 
-  if (readManageToken(token) === registryId) return registry;
+  const grant = readManageGrant(token);
+  if (grant?.registryId === registryId) {
+    if (!grant.partnerId) return registry;
+    // A partner's link works only while they're still on the registry.
+    if (registry.registrants.some((r) => r.id === grant.partnerId && r.role === "co")) return registry;
+    return null;
+  }
 
   if (
     loggedInCustomerId &&
@@ -185,6 +231,57 @@ export async function authorizeManage(
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Partner (co-registrant)
+//
+// A registry has one owner and at most one partner. There are no accounts, so
+// the partner gets the same kind of magic link the owner has, and can do
+// everything the owner can. "Email me my link" finds them too (findByEmail
+// matches any registrant), so they can get back in on their own.
+// ---------------------------------------------------------------------------
+
+export type AddPartnerResult =
+  | { ok: true; partner: { id: string; name: string } }
+  | { ok: false; error: "has_partner" | "is_owner" };
+
+export async function addPartner(
+  registryId: string,
+  input: { name: string; email: string },
+): Promise<AddPartnerResult> {
+  const emailHash = blindIndex(input.email);
+  const existing = await db.registrant.findMany({
+    where: { registryId },
+    select: { role: true, emailHash: true },
+  });
+  if (existing.some((r) => r.role === "co")) return { ok: false, error: "has_partner" };
+  if (existing.some((r) => r.emailHash === emailHash)) return { ok: false, error: "is_owner" };
+
+  const partner = await db.registrant.create({
+    data: {
+      registryId,
+      name: input.name.slice(0, 120),
+      emailEnc: encrypt(input.email.trim().toLowerCase()),
+      emailHash,
+      role: "co",
+    },
+    select: { id: true, name: true },
+  });
+  // The guest page shows the registrants' names.
+  await touchRegistry(registryId);
+  return { ok: true, partner };
+}
+
+export async function removePartner(registryId: string): Promise<number> {
+  const { count } = await db.registrant.deleteMany({ where: { registryId, role: "co" } });
+  if (count) await touchRegistry(registryId);
+  return count;
+}
+
+/** The registrant who created the registry. Falls back to the first one. */
+export function ownerOf<T extends { role: string }>(registrants: T[]): T | undefined {
+  return registrants.find((r) => r.role === "owner") ?? registrants[0];
 }
 
 // ---------------------------------------------------------------------------

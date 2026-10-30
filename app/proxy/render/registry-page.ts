@@ -158,6 +158,7 @@ ${renderShare(data)}
 </div>
 
 ${renderShipChoice(data)}
+${renderListTools(data)}
 <div id="registro-items">${
   data.items.length === 0
     ? `<div class="empty"><p>This ${noun} doesn't have any items yet.</p><p>Check back soon.</p></div>`
@@ -219,6 +220,19 @@ function renderItemGroups(data: RegistryPageData): string {
     .join("\n");
 }
 
+/**
+ * Sort by price and "still needed only", for guests on a long list. Client-side
+ * only (the page is cached per registry, so no query params), hidden until the
+ * script runs, and only on lists long enough to need it.
+ */
+const LIST_TOOLS_MIN_ITEMS = 4;
+
+function renderListTools(data: RegistryPageData): string {
+  if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
+  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 0}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
+<div id="tools" hidden><select aria-label="Sort"><option value="">Suggested order</option><option value="1">Price: low to high</option><option value="-1">Price: high to low</option></select><label class="check"><input type="checkbox"> Only show what's still needed</label></div>`;
+}
+
 function renderItem(item: DisplayItem, data: RegistryPageData): string {
   const price = formatMoney(item.price, item.currency ?? data.currency);
   const remaining = item.remainingQty;
@@ -251,7 +265,12 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (item.isStale && price) meta.push("price may have changed");
   if (item.availability === "out_of_stock" && item.isExternal) meta.push("out of stock");
 
-  return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}">
+  // For the list tools. "Still needed" errs toward hiding: an item whose last
+  // one someone may be buying counts as taken (CLAUDE.md hard rule 5).
+  if (held && remaining === 0) classes.push("taken");
+  const sortPrice = item.isFund || !item.price ? "" : ` data-p="${item.price}"`;
+
+  return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}"${sortPrice}>
   ${image}
   <div>
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
@@ -452,8 +471,8 @@ function renderChipInAssets(data: RegistryPageData): string {
 }
 
 function clientScript(): string {
-  // Whole-line comments below are for us, not the guest: strip them so they
-  // don't count against the page's byte budget.
+  // Whole-line comments and indentation below are for us, not the guest:
+  // strip them so they don't count against the page's byte budget.
   return `
 (function(){
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
@@ -497,6 +516,24 @@ function clientScript(): string {
       .catch(function(){});
   }
   syncCart();
+
+  // Sort by price / still needed only, within each category's list so the
+  // categories stay put. Unpriced items (funds) go last; ties keep page order.
+  var tools=document.getElementById('tools');
+  function applyView(){
+    if(!tools)return;
+    var dir=+tools.querySelector('select').value,need=tools.querySelector('input').checked,n=0,box=document.getElementById('registro-items'),e=document.getElementById('none');
+    [].forEach.call(box.querySelectorAll('ul'),function(ul){
+      var lis=[].slice.call(ul.children),k=0;
+      lis.forEach(function(li,i){li.dataset.i=li.dataset.i||i+1;});
+      lis.sort(function(a,b){var x=a.dataset.p,y=b.dataset.p;return (dir&&(x||y)?!x?1:!y?-1:dir*(x-y):0)||a.dataset.i-b.dataset.i;});
+      lis.forEach(function(li){var c=li.classList;ul.appendChild(li);li.hidden=need&&(c.contains('done')||c.contains('taken'));k+=!li.hidden;});
+      if(ul.parentNode.className=='cat-group')ul.parentNode.hidden=!k;n+=k;
+    });
+    if(!e){e=document.createElement('p');e.id='none';e.className='empty';e.textContent='Everything on this list has been taken care of.';box.appendChild(e);}
+    e.hidden=n>0;
+  }
+  if(tools){tools.hidden=false;tools.onchange=applyView;}
 
   // Undo for "I bought this". The token only ever lives in the browser that
   // made the mark, and the server stops honouring it after a day.
@@ -615,6 +652,7 @@ function clientScript(): string {
           if(p&&cur)cur.innerHTML=p.innerHTML;
           cfg.version=next.version;
           banner.hidden=true;
+          applyView();
           syncCart();
           showUndo();
         });
@@ -642,5 +680,9 @@ function clientScript(): string {
     setInterval(checkVersion,20000);
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkVersion();});
   }
-})();`.replace(/^\s*\/\/.*\n/gm, "").trim();
+})();`
+    .replace(/^\s*\/\/.*\n/gm, "")
+    // Indentation too: same budget, and no line depends on it.
+    .replace(/^[ \t]+/gm, "")
+    .trim();
 }

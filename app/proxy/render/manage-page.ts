@@ -13,6 +13,7 @@ import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 import { renderPerks } from "./create-page";
 import { isSoldOutStoreItem } from "../../lib/stock";
+import { qrSvg } from "./qr";
 
 /**
  * The registrant's own view. Reached only with a valid magic-link token or a
@@ -101,6 +102,11 @@ export interface ManagePageData {
   scanner?: boolean;
   /** Barcode reader for phones without a built-in one; null = typing the number only. */
   scannerScriptUrl?: string | null;
+  /**
+   * The registry's partner (co-registrant), if one was added. Undefined hides
+   * the whole section, so older callers and tests render as before.
+   */
+  partner?: { name: string } | null;
 }
 
 export function renderManagePage(data: ManagePageData): string {
@@ -118,7 +124,9 @@ ${renderPerks(data.shopName, data.perks)}
   <p class="sub" style="word-break:break-all;margin:0 0 10px">${escapeHtml(data.shareUrl)}</p>
   <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share with guests</button>
   <button class="btn sm ghost js-share-copy" type="button" data-url="${escapeAttr(data.shareUrl)}">Copy link</button>
+  <button class="btn sm ghost js-qr-toggle" type="button" aria-expanded="false" aria-controls="share-qr">QR code</button>
   ${renderShareMenu(data.title, data.shareUrl)}
+  ${renderShareQr(data.shareUrl)}
   <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
   ${renderLinkElsewhere(data.eventType, data.privacy)}
 </div>
@@ -255,6 +263,8 @@ ${renderShipping(data)}
     <button class="btn" type="submit">Save changes</button>
   </div>
 </form>
+
+${renderPartner(data)}
 
 <div class="note">
   <p style="margin:0 0 8px"><strong>Delete this registry</strong></p>
@@ -820,6 +830,36 @@ function renderGifts(data: ManagePageData): string {
 }
 
 /**
+ * Partner (co-registrant). One per registry. They get their own private link
+ * by email and can do everything here; removing them turns that link off.
+ */
+function renderPartner(data: ManagePageData): string {
+  if (data.partner === undefined) return "";
+  const action = (path: string) => `${escapeAttr(data.actionUrl)}/${path}?t=${encodeURIComponent(data.token)}`;
+  const inner = data.partner
+    ? `<p style="margin:0 0 10px"><strong>${escapeHtml(data.partner.name)}</strong> can also manage this registry.</p>
+  <form method="post" action="${action("partner-remove")}" class="js-confirm-partner">
+    <button class="btn sm ghost" type="submit">Remove partner</button>
+  </form>
+  <p class="hint">Removing them turns off their link straight away. Gifts and settings stay as they are.</p>`
+    : `<p style="margin:0 0 10px">Planning this with someone? Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.</p>
+  <form method="post" action="${action("partner")}">
+    <label for="p-name">Their name</label>
+    <input id="p-name" type="text" name="name" maxlength="120" required autocomplete="off">
+    <label for="p-email">Their email</label>
+    <input id="p-email" type="email" name="email" maxlength="254" required autocomplete="off">
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm" type="submit">Add partner</button>
+    </div>
+  </form>
+  <p class="hint">Their name appears next to yours on the registry page. Their email is never shown to guests.</p>`;
+  return `<h2 id="partner">Your partner</h2>
+<div class="note">
+  ${inner}
+</div>`;
+}
+
+/**
  * Couples who also keep a registry elsewhere usually gather them on one page
  * (The Knot's registry page or a wedding website), which can link a registry
  * from another store by its address. Names are plain text: no partnership.
@@ -836,6 +876,22 @@ function renderLinkElsewhere(eventType: string, privacy: string): string {
       ? ` <strong>Your registry has a password</strong>, so guests who arrive from there will need it too. You can change this under Who can see this.`
       : "";
   return `<p class="hint">${escapeHtml(where)}${passwordNote}</p>`;
+}
+
+/**
+ * The guest link as a QR code, for printed invitations, shower signs and
+ * save-the-dates. Drawn on the server (no script, no outside service); the
+ * download is the same SVG, which prints sharp at any size, and the script
+ * swaps in a PNG for people pasting it into Word or Canva.
+ */
+function renderShareQr(url: string): string {
+  const svg = qrSvg(url, "QR code for your registry's guest link");
+  const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  return `<style>.share-qr:not([hidden]){display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:12px}.share-qr svg{width:168px;height:168px;display:block;border:1px solid #ddd;border-radius:8px}.share-qr p{flex:1 1 200px;margin:0}</style>
+  <div class="share-qr" id="share-qr" hidden>
+    ${svg}
+    <p class="hint">Guests can point their phone camera at this to open your registry. Add it to invitations or a sign at the event.<br><a class="btn sm ghost js-qr-download" href="${escapeAttr(href)}" download="registry-qr-code.svg" style="margin-top:8px">Download QR code</a></p>
+  </div>`;
 }
 
 /**
@@ -1114,6 +1170,8 @@ function manageScript(): string {
     }
     var del=e.target.closest('.js-confirm-delete');
     if(del&&!confirm('Delete this registry and everything on it? This cannot be undone.')){e.preventDefault();}
+    var rp=e.target.closest('.js-confirm-partner');
+    if(rp&&!confirm('Remove your partner? Their link to this registry will stop working.')){e.preventDefault();}
   });
 
   document.addEventListener('change',function(e){
@@ -1328,11 +1386,30 @@ function manageScript(): string {
       }else{showMenu();}
       return;
     }
+    var qrToggle=e.target.closest('.js-qr-toggle');
+    if(qrToggle){
+      var qr=document.getElementById('share-qr');qr.hidden=!qr.hidden;
+      qrToggle.setAttribute('aria-expanded',String(!qr.hidden));
+      if(!qr.hidden)pngQr(qr);
+      return;
+    }
     var shareCopy=e.target.closest('.js-share-copy');
     if(shareCopy){
       copyLink(shareCopy.dataset.url,function(){shareCopy.textContent='Link copied';});
     }
   });
+  // Swap the SVG download for a 1024px PNG, which more apps accept. If the
+  // canvas can't be read, the SVG link stays as it is.
+  function pngQr(qr){
+    var a=qr.querySelector('.js-qr-download');
+    if(!a||a.dataset.png)return;a.dataset.png='1';
+    var img=new Image();
+    img.onload=function(){
+      try{var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(img,0,0,1024,1024);
+        a.href=c.toDataURL('image/png');a.download='registry-qr-code.png';}catch(_){}
+    };
+    img.src=a.href;
+  }
   function copyLink(link,done){
     // execCommand first: it runs synchronously inside the click, so a
     // storefront's clipboard permissions policy can't block it. The async
