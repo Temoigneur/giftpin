@@ -48,7 +48,7 @@ export const GIFT_FOR_LABEL = "Gift for";
  * registry page, which rewrites cart lines when the guest changes where gifts ship.
  */
 export function shipToValue(names: string): string {
-  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and tap Change next to "Gifts ship to" above the gift list. Your cart will update automatically.`;
+  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and tap Change next to "Ships to" under this gift. Your cart will update automatically.`;
 }
 export function giftForValue(names: string, eventLabel: string, eventDate: Date | null): string {
   const date = eventDate

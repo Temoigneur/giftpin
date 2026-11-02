@@ -87,47 +87,53 @@ export interface RegistryPageData {
 /**
  * Where a guest's gift ships (2 Nov 2026, Ben: a box at the top of the page
  * read like one setting for everyone, when every guest decides for
- * themselves). Each guest is asked once, on their first "Add to cart", and the
- * answer is remembered in their browser for this registry. A one-line "Gifts
- * ship to ... Change" note then sits above the list; changing it also updates
- * this registry's lines already in their cart, so the "Gift ships to" note at
- * checkout always matches. The choice can't live in checkout itself: Shopify
- * only lets apps add UI to the shipping step on Plus stores.
+ * themselves). The guest is asked on EVERY "Add to cart" (Ben, same day: they
+ * may want gifts sent to different places), and nothing about shipping shows
+ * on the page before that. But one Shopify order has one shipping address, and
+ * purchase.server.ts rewrites it for the whole order when any of this
+ * registry's lines asks for it. So an answer also updates this registry's
+ * lines already in the cart to match, and the prompt says that a different
+ * place means a separate checkout. Each "In your cart" row then carries a
+ * "Ships to ... Change" note. The choice can't live in checkout itself: Shopify only lets apps
+ * add UI to the shipping step on Plus stores.
  *
- * window.rgShip(cb) is the hook the add-to-cart script calls: cb(true|false)
- * once the guest has chosen, or cb(null) if they close the prompt.
+ * window.rgShip(cb, form) is the hook the add-to-cart script calls:
+ * cb(true|false) once the guest has chosen (and the cart is in step), or
+ * cb(null) if they close the prompt.
+ * window.rgShipShow(row) adds that note to a new "In your cart" row (markInCart
+ * calls it) and refreshes every row's note.
  */
 function renderShipChoice(data: RegistryPageData): string {
   if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
   const who = data.registrantNames || "the registrant";
-  return `<style>.js-ship-line .linkish{display:inline;margin:0;padding:0 2px;font-size:inherit}</style>
-<p class="hint js-ship-line" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button> <span class="js-ship-status" role="status"></span></p>
+  return `<style>.js-ship{margin:0}.js-ship .linkish{display:inline;margin:0;padding:0 2px;font-size:inherit}</style>
 <dialog class="match-dialog js-ship-dialog" aria-labelledby="ship-q" data-who="${escapeAttr(who)}" data-key="rg_ship_${escapeAttr(data.registryId)}" data-label="${escapeAttr(shipToValue(data.registrantNames))}">
   <h2 id="ship-q" style="margin-top:0">Where should your gift go?</h2>
-  <p class="hint">Their address stays private. Checkout still asks for yours; we swap in theirs after you order, as long as you're in the same state or province.</p>
+  <p class="hint">Their address stays private. Checkout still asks for yours; we swap in theirs after you order, as long as you're in the same state or province. Each order ships to one place, so this also applies to their other gifts in your cart. To send gifts to different places, check out separately.</p>
   <p style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0"><button type="button" class="btn" value="1">Ship to ${escapeHtml(who)}</button><button type="button" class="btn ghost" value="0">Send to me</button></p>
 </dialog>
 <script>(function(){
-  var dlg=document.querySelector('.js-ship-dialog'),line=document.querySelector('.js-ship-line'),st=line.querySelector('.js-ship-status');
+  var dlg=document.querySelector('.js-ship-dialog'),st;
   var KEY=dlg.dataset.key,who=dlg.dataset.who,mem=null,pending=null;
   function get(){try{var v=localStorage.getItem(KEY);if(v==='1'||v==='0')return v==='1';}catch(_){}return mem;}
   function set(on){mem=on;try{localStorage.setItem(KEY,on?'1':'0');}catch(_){}show();}
-  function show(){var on=get();if(on===null)return;line.hidden=false;line.firstChild.textContent=on?'Gifts ship to '+who+'.':'Gifts ship to you.';}
+  function show(p){if(p&&p.insertAdjacentHTML)p.insertAdjacentHTML('beforeend','<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button></span>');var on=get();document.querySelectorAll('.js-ship').forEach(function(x){x.hidden=on===null;x.firstChild.textContent=on?'Ships to '+who+'.':'Ships to you.'})}
+  window.rgShipShow=show;
   function ask(cb){if(typeof dlg.showModal==='function'){pending=cb;dlg.showModal();}else cb(confirm('Ship to '+who+'? Cancel to send it to you.'));}
-  window.rgShip=function(cb){var on=get();if(on!==null)return cb(on);ask(function(v){if(v!==null)set(v);cb(v);});};
+  window.rgShip=function(cb,f){st=f;ask(function(v){if(v===null)return cb(v);set(v);update(v).then(function(){cb(v)})});};
   dlg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var cb=pending;pending=null;dlg.close();if(cb)cb(b.value==='1');});
   dlg.addEventListener('close',function(){var cb=pending;pending=null;if(cb)cb(null);});
-  line.querySelector('.js-ship-change').addEventListener('click',function(){ask(function(on){if(on===null)return;set(on);update(on);});});
-  show();
+  document.addEventListener('click',function(e){var c=e.target.closest('.js-ship-change');if(!c)return;st=c.closest('.js-add');ask(function(on){if(on===null)return;set(on);update(on);});});
+  function msg(t){var x=st&&st.querySelector('.js-status');if(x)x.textContent=t;}
   function update(on){
-    fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
+    return fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
       var lines=(cart.items||[]).filter(function(l){return l.properties&&l.properties._rg&&document.querySelector('.js-add[data-variant="'+String(l.variant_id)+'"]')&&(!!l.properties._rg_ship)!==on;});
       return lines.reduce(function(p,l){return p.then(function(){
         var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
         if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=dlg.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
         return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
-      })},Promise.resolve()).then(function(){st.textContent=lines.length?'Your cart is updated.':'';});
-    }).catch(function(){st.textContent="Couldn't update your cart. Remove the item and add it again.";});
+      })},Promise.resolve()).then(function(){msg(lines.length?'Your cart is updated.':'');});
+    }).catch(function(){msg("Couldn't update your cart. Remove the item and add it again.");});
   }
 })();</script>`;
 }
@@ -551,6 +557,7 @@ function clientScript(): string {
       var p=document.createElement('p');p.className='js-incart incart';
       p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>';
       if(b)b.parentNode.insertBefore(p,b);else form.appendChild(p);
+      if(window.rgShipShow)rgShipShow(p);
     }
   }
   // Cancel: take this gift's registry lines back out of the cart and show Add
@@ -631,7 +638,7 @@ function clientScript(): string {
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
     var btn=form.querySelector('button');btn.disabled=true;
     var qtyEl=form.querySelector('[name=qty]');
-    // Ask where it ships first (only on the guest's first add; see renderShipChoice).
+    // Ask where it ships first, on every add (see renderShipChoice).
     (window.rgShip||function(cb){cb(false)})(function(ship){
     if(ship===null){btn.disabled=false;return;}
     status(form,'Adding...');
@@ -644,7 +651,7 @@ function clientScript(): string {
       })
       .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
-    });
+    },form);
   });
 
   // Place the soft hold as the guest leaves. keepalive so it survives the
