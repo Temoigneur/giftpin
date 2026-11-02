@@ -32,7 +32,7 @@ describe("decideFee", () => {
     expect(decideFee({ ...sale, voided: true }, shop, sub()).status).toBe("waived_voided");
   });
 
-  it("waives sales made during a free trial, which covers a founding store's free year", () => {
+  it("waives sales made during a free trial, which covers a founding store's free period", () => {
     const founding = sub({ createdAt: new Date(NOW.getTime() - 200 * DAY), trialDays: 365 });
     expect(decideFee(sale, shop, founding).status).toBe("waived_trial");
   });

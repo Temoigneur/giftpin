@@ -150,16 +150,16 @@ describe("foundingOfferEligible", () => {
     expect(mockedCount).not.toHaveBeenCalled();
   });
 
-  it("gives the first ten stores installed since the start a slot", async () => {
-    mockedCount.mockResolvedValueOnce(9);
+  it("gives the first eleven stores installed since the start a slot", async () => {
+    mockedCount.mockResolvedValueOnce(10);
     expect(await foundingOfferEligible({ installedAt: start })).toBe(true);
     expect(mockedCount).toHaveBeenLastCalledWith({
       where: { installedAt: { gte: start, lt: start } },
     });
   });
 
-  it("doesn't give the eleventh store a slot", async () => {
-    mockedCount.mockResolvedValueOnce(10);
+  it("doesn't give the twelfth store a slot", async () => {
+    mockedCount.mockResolvedValueOnce(11);
     expect(await foundingOfferEligible({ installedAt: new Date(start.getTime() + 1000) })).toBe(
       false,
     );
