@@ -29,7 +29,12 @@ export interface ShopSettings {
   /** Merchant branding for the guest page. */
   accentColor: string;
   buttonLabel: string;
-  /** Let registrants opt into being listed in find-a-registry. */
+  /**
+   * Let registrants opt into being listed in find-a-registry. On by default
+   * since 2 Nov 2026 (Ben): off, a registrant could pick "Listed publicly" and
+   * the store's Find a gift registry link still said there was no search. Each
+   * registry stays unlisted unless its owner picks "Listed publicly".
+   */
   findARegistryEnabled: boolean;
   /** Hide who gave what until the event date. */
   hideBuyerUntilEvent: boolean;
@@ -153,7 +158,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   externalItemsCapPercent: 60,
   accentColor: "#1a1a1a",
   buttonLabel: "Add to registry",
-  findARegistryEnabled: false,
+  findARegistryEnabled: true,
   hideBuyerUntilEvent: false,
   contributionProduct: null,
   giftCardListing: GIFT_CARD_LISTING_DEFAULTS,

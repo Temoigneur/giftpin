@@ -146,6 +146,9 @@ function brandStyles(branding: PageBranding): string {
  *   completeness.
  * - The hero banner lifts off the page with the same shadow and hairline
  *   ring as the manage page's (2 Nov 2026, Ben).
+ * - Every dropdown draws its own chevron 14px in from the right edge. The
+ *   native arrow ignores padding and sat hard against the border (2 Nov
+ *   2026, Ben).
  * - Desktop: the single 680px column is sized for phones, where most guests
  *   open the link. From 960px up the page widens and item lists go two
  *   across; below the breakpoint it renders exactly as on a phone.
@@ -202,6 +205,7 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
 fieldset[hidden],.js-ship-region[hidden]{display:none}
 .qty{width:62px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
 input[type=text],input[type=email],input[type=url],input[type=date],input[type=password],input[type=tel],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+select{appearance:none;padding-right:38px;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23777' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center}
 textarea{min-height:88px;resize:vertical}
 label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
 .hint{font-size:13px;color:var(--muted);margin:6px 0 0;font-weight:400}

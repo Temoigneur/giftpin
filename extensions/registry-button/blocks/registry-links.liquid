@@ -2,8 +2,20 @@
   "Registry links" — app block for a header, footer or homepage section.
 
   Gives shoppers a way to start, find and manage a gift registry from
-  anywhere on the store. Plain links and a scoped inline style: no script, no
-  stylesheet request, nothing to slow the storefront down.
+  anywhere on the store. Plain links and a scoped inline style: no stylesheet
+  request, nothing to slow the storefront down. The one script runs only on
+  the cart page (below).
+
+  Cart page "Return to registry" (2 Nov 2026, Ben: an emptied cart said "Your
+  cart is empty" with no way back). The guest page saves the last registry a
+  guest opened in localStorage as giftpin_last ({u: path, t: title}); the
+  storefront is the same origin as the app proxy page, so this block can read
+  it. The link goes under the cart heading, and again under the empty-cart
+  message, wherever the theme is showing that one. Themes re-render
+  the cart after a removal, so it re-adds itself when that wipes it. Placement
+  is written against Dawn's markup (.title-wrapper-with-link,
+  .cart__empty-text) with a fallback to the top of <main>; not yet checked on
+  a live theme.
 
   Defaults are deliberately prominent (buttons, 18px, centred) and the link
   text says "gift registry" in full: "registry" alone is easy to miss or
@@ -31,6 +43,49 @@
     {%- endif -%}
   </ul>
 </nav>
+
+{%- if template.name == 'cart' and block.settings.show_cart_return -%}
+<script>
+  (function () {
+    var r;
+    try { r = JSON.parse(localStorage.getItem('giftpin_last') || 'null'); } catch (e) {}
+    if (!r || typeof r.u !== 'string' || r.u.indexOf({{ base | append: '/' | json }}) !== 0) return;
+    var text = {{ block.settings.cart_return_label | default: 'Return to registry' | json }};
+    function link() {
+      var p = document.createElement('p');
+      p.className = 'giftpin-return';
+      p.style.margin = '0.6em 0 1em';
+      var a = document.createElement('a');
+      a.href = r.u;
+      a.textContent = text + (r.t ? ': ' + r.t : '');
+      a.style.textDecoration = 'underline';
+      a.style.textUnderlineOffset = '3px';
+      p.appendChild(a);
+      return p;
+    }
+    function place() {
+      var spots = document.querySelectorAll('.title-wrapper-with-link, .cart__empty-text');
+      if (!spots.length) {
+        var main = document.querySelector('main');
+        if (main && !main.querySelector('.giftpin-return')) main.insertBefore(link(), main.firstChild);
+        return;
+      }
+      Array.prototype.forEach.call(spots, function (el) {
+        var next = el.nextElementSibling;
+        var has = next && next.classList.contains('giftpin-return');
+        var shown = el.offsetParent !== null;
+        if (shown && !has) el.parentNode.insertBefore(link(), next);
+        if (!shown && has) next.remove();
+      });
+    }
+    function start() {
+      place();
+      new MutationObserver(function () { place(); }).observe(document.querySelector('main') || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+  })();
+</script>
+{%- endif -%}
 
 <style>
   .giftpin-links--{{ block.id }} {
@@ -69,10 +124,12 @@
   "settings": [
     { "type": "text", "id": "heading", "label": "Heading", "default": "Gift registry" },
     { "type": "text", "id": "create_label", "label": "Create link text", "default": "Create a gift registry" },
-    { "type": "checkbox", "id": "show_find", "label": "Show the find-a-registry link", "default": true, "info": "Needs “Enable the public find-a-registry page” on in Giftpin → Settings → Privacy. Until then the link tells guests to ask for the registry link." },
+    { "type": "checkbox", "id": "show_find", "label": "Show the find-a-registry link", "default": true, "info": "Uses “Enable the public find-a-registry page” in Giftpin → Settings → Privacy (on by default). If a store turns it off, the link tells guests to ask for the registry link." },
     { "type": "text", "id": "find_label", "label": "Find link text", "default": "Find a gift registry" },
     { "type": "checkbox", "id": "show_manage", "label": "Show the manage-my-registry link", "default": true },
     { "type": "text", "id": "manage_label", "label": "Manage link text", "default": "Manage my gift registry" },
+    { "type": "checkbox", "id": "show_cart_return", "label": "Show “Return to registry” on the cart page", "default": true, "info": "Links back to the last registry the shopper opened on this device." },
+    { "type": "text", "id": "cart_return_label", "label": "Return link text", "default": "Return to registry" },
     {
       "type": "select",
       "id": "style",

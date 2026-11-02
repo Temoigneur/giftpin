@@ -639,10 +639,16 @@ describe("registry page in-cart state", () => {
     // Only lines carrying our _rg token for this variant are zeroed, via the
     // storefront's own cart API, so a guest's other cart items are untouched.
     expect(html).toContain("l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0");
-    expect(html).toContain("fetch('/cart/update.js'");
+    expect(html).toContain("pj('/cart/update.js',{updates:u})");
   });
 
   it("links the store name in the footer to the storefront home", () => {
     expect(page([item()])).toContain('Registry by <a href="/"><strong>Maple &amp; Clay</strong></a>');
+  });
+});
+
+describe("cart page Return to registry", () => {
+  it("remembers the registry the guest opened, for the theme block's cart link", () => {
+    expect(page([item()])).toContain("localStorage.setItem('giftpin_last',JSON.stringify({u:location.pathname,t:document.querySelector('h1').textContent}))");
   });
 });
