@@ -248,7 +248,7 @@ describe("registry page branding credit (Pro plan, confirmed 22 Sep 2026)", () =
     expect(html).not.toContain("Powered by");
     // The merchant's own attribution line is a separate, unrelated feature —
     // Pro removes Giftpin's credit, never the merchant's own name.
-    expect(html).toContain("Registry by <strong>Maple &amp; Clay</strong>");
+    expect(html).toContain('Registry by <a href="/"><strong>Maple &amp; Clay</strong></a>');
   });
 });
 
@@ -524,7 +524,7 @@ describe("pre-event reminder sign-up (Pro)", () => {
   });
 });
 
-describe("guest's ship-to-registrant choice (asked on first add, 2 Nov 2026)", () => {
+describe("guest's ship-to-registrant choice (asked on every add, 2 Nov 2026)", () => {
   it("asks each guest on their first add instead of showing a box for everyone", () => {
     const html = page([item()], { shipToRegistrant: true, registrantNames: "Maya & Alex" });
     expect(html).not.toContain("js-ship-choice");
@@ -536,11 +536,21 @@ describe("guest's ship-to-registrant choice (asked on first add, 2 Nov 2026)", (
     expect(html).toContain('data-key="rg_ship_registry_1"');
   });
 
-  it("lets the guest change it later, updating lines already in their cart", () => {
+  it("shows nothing about shipping until something is in the cart, then a Change note on that row", () => {
+    const html = page([item()], { shipToRegistrant: true, registrantNames: "Maya & Alex" });
+    expect(html).not.toContain("js-ship-line");
+    expect(html).not.toContain("Gifts ship to");
+    expect(html).toContain("if(window.rgShipShow)rgShipShow(p);");
+    expect(html).toContain('<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button></span>');
+  });
+
+  it("asks on every add, and keeps this registry's cart lines on one address", () => {
+    // One order has one shipping address, rewritten for the whole order.
     const html = page([item()], { shipToRegistrant: true });
-    expect(html).toContain('class="hint js-ship-line" hidden');
-    expect(html).toContain("js-ship-change");
+    expect(html).toContain("window.rgShip=function(cb,f){st=f;ask(function(v){if(v===null)return cb(v);set(v);update(v).then(function(){cb(v)})});};");
+    expect(html).toContain("To send gifts to different places, check out separately.");
     expect(html).toContain("/cart/change.js");
+    expect(html).toContain("},form);");
   });
 
   it("doesn't ask when ship-to-registrant is off", () => {
@@ -619,5 +629,20 @@ describe("registry note to guests", () => {
     const html = page([item()], { message: null });
     expect(html).not.toContain('class="vow"');
     expect(html).not.toContain(".vow{");
+  });
+});
+
+describe("registry page in-cart state", () => {
+  it("offers Cancel next to Check out, removing only this gift's registry lines", () => {
+    const html = page([item()]);
+    expect(html).toContain('Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>');
+    // Only lines carrying our _rg token for this variant are zeroed, via the
+    // storefront's own cart API, so a guest's other cart items are untouched.
+    expect(html).toContain("l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0");
+    expect(html).toContain("fetch('/cart/update.js'");
+  });
+
+  it("links the store name in the footer to the storefront home", () => {
+    expect(page([item()])).toContain('Registry by <a href="/"><strong>Maple &amp; Clay</strong></a>');
   });
 });
