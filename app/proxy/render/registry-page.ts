@@ -109,6 +109,30 @@ function renderShipChoice(data: RegistryPageData): string {
 })();</script>`;
 }
 
+/**
+ * The registrant's note to guests, set like a line from a wedding invitation
+ * rather than a form box (2 Nov 2026, Ben): centred serif italic between two
+ * fine accent-coloured hairlines that fade out at the ends, no card. Only emitted when the registry has
+ * a note, so registries without one carry none of these bytes.
+ *
+ * The font (Cormorant Garamond Italic, ~24KB) is served by the app itself,
+ * see app/routes/fonts.note-italic[.]woff2.tsx, and only downloads on pages
+ * that show a note. Without an app URL (tests) it falls back to Georgia.
+ * white-space:pre-line keeps the registrant's own paragraph breaks.
+ */
+function noteStyles(assetBase: string | null | undefined): string {
+  const base = (assetBase ?? "").replace(/\/+$/, "");
+  const face = /^https?:\/\//.test(base)
+    ? `@font-face{font-family:GiftpinNote;font-style:italic;font-weight:500;font-display:swap;src:url(${base}/fonts/note-italic.woff2) format("woff2")}`
+    : "";
+  return `<style>${face}
+.vow{margin:22px auto 18px;max-width:30em;text-align:center;font:italic 500 21px/1.45 GiftpinNote,Georgia,serif;white-space:pre-line;overflow-wrap:anywhere}
+.vow::before,.vow::after{content:"";display:block;width:160px;height:1px;margin:0 auto 16px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.vow::after{margin:16px auto 0}
+@media (min-width:960px){.vow{font-size:24px}}
+</style>`;
+}
+
 export function renderRegistryPage(data: RegistryPageData): string {
   const { progress } = data;
   const pct = progress.totalItems
@@ -127,7 +151,8 @@ export function renderRegistryPage(data: RegistryPageData): string {
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeAttr(data.title)}">
 <meta property="og:description" content="${escapeAttr(ogDescription)}">
-${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.coverImageUrl)}">` : ""}`;
+${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.coverImageUrl)}">` : ""}
+${data.message ? noteStyles(data.artBaseUrl) : ""}`;
 
   const body = `
 <header class="hero">
@@ -140,7 +165,7 @@ ${data.coverImageUrl ? `<meta property="og:image" content="${escapeAttr(data.cov
   <p class="sub">${escapeHtml(data.eventLabel)}${dateLine ? ` &middot; ${escapeHtml(dateLine)}` : ""}</p>
   <h1>${escapeHtml(data.title)}</h1>
   ${data.registrantNames ? `<p class="sub">${escapeHtml(data.registrantNames)}</p>` : ""}
-  ${data.message ? `<div class="note">${escapeHtml(data.message)}</div>` : ""}
+  ${data.message ? `<p class="vow">${escapeHtml(data.message)}</p>` : ""}
   <div id="registro-progress">${
     progress.totalItems
       ? `<div class="progress" role="img" aria-label="${pct}% of gifts claimed"><i style="width:${pct}%"></i></div>
@@ -169,9 +194,9 @@ ${renderDuplicateNotice(data)}
 
 ${data.offerReminder ? renderReminderSignup() : ""}
 
-${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? Buy a ${escapeHtml(data.shopName)} gift card</a></p>` : ""}
+${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? <u>Buy a ${escapeHtml(data.shopName)} gift card</u></a></p>` : ""}
 
-<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your ${noun}? Sign in or get your private edit link</a></p>
+<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your ${noun}? <u>Sign in or get your private edit link</u></a></p>
 
 <!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
@@ -229,7 +254,7 @@ const LIST_TOOLS_MIN_ITEMS = 4;
 
 function renderListTools(data: RegistryPageData): string {
   if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
-  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 0}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
+  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
 <div id="tools" hidden><select aria-label="Sort"><option value="">Suggested order</option><option value="1">Price: low to high</option><option value="-1">Price: high to low</option></select><label class="check"><input type="checkbox"> Only show what's still needed</label></div>`;
 }
 

@@ -231,7 +231,7 @@ details.ideas>summary:hover .ideas-cta{filter:brightness(1.08)}
 details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
 @media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
 .cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
-.owner-link{margin:28px 0 0;font-size:14px}
+.owner-link{margin:28px 0 0;font-size:14px}.owner-link a{text-decoration:none}
 .owner-link.big{font-size:clamp(13px,3.3vw,24px);line-height:1.25}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
 .store-link{font-size:13px}
