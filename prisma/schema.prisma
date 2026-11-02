@@ -76,6 +76,7 @@ model Shop {
 
   registries    Registry[]
   giftCardSales GiftCardSale[]
+  dailyStats    DailyStat[]
 
   @@index([uninstalledAt])
 }
@@ -442,6 +443,32 @@ model RegistryEvent {
 
   @@index([registryId, createdAt])
   @@index([type, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Daily counters — registry page views, guest actions, and the store's own
+// order totals, for the merchant's analytics and Giftpin's ops view. Counts
+// only: no IP address, cookie, user agent or customer id is ever stored here,
+// so nothing in this table is personal data. See app/models/stats.server.ts.
+// ---------------------------------------------------------------------------
+
+model DailyStat {
+  id     String @id @default(cuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  day    DateTime @db.Date // UTC day
+  metric String // see STAT_METRICS in app/shared/stats.ts
+  // "" for a store-wide counter. Not a relation on purpose: a deleted
+  // registry's past views still count toward the store's totals.
+  registryId String @default("")
+
+  count Int     @default(0)
+  // Money metrics only (store_sales), in shop currency. Zero otherwise.
+  value Decimal @default(0) @db.Decimal(14, 2)
+
+  @@unique([shopId, day, metric, registryId])
+  @@index([day, metric])
 }
 
 // ---------------------------------------------------------------------------

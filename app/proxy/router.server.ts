@@ -9,6 +9,8 @@ import {
   type ProxyContext,
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
+import { bumpStat, countView } from "../models/stats.server";
+import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
 import { isDatelessOccasion } from "../shared/settings";
 import {
@@ -151,6 +153,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 
     switch (head) {
       case "":
+        countView(request, shop.id, STAT_METRICS.createPageView);
         return page(renderCreatePage({
           ...brand,
           actionUrl: ctx.pathPrefix,
@@ -171,6 +174,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
         return await managePage(ctx, shop, settings, brand);
 
       case "find":
+        countView(request, shop.id, STAT_METRICS.findPageView);
         return await findPage(ctx, shop, brand, settings);
 
       case "my-registries":
@@ -197,6 +201,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
         return await unsubscribePage(ctx, brand);
 
       case "gift-card":
+        countView(request, shop.id, STAT_METRICS.giftCardPageView);
         return giftCardPage(ctx, shop, settings, brand);
 
       default:
@@ -283,6 +288,9 @@ async function registryPage(
       return page(renderPasswordPage({ ...brand, actionUrl: ctx.pathPrefix, slug }));
     }
   }
+
+  // Counted outside the page cache below, so a cached render still counts.
+  countView(request, shop.id, STAT_METRICS.registryView, registry.id);
 
   // Read-through cache. A registry link going out to 80 guests at once should
   // be one render, not 80 — and the version in the key means a purchase
@@ -864,6 +872,7 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
     return json({ ok: false, error: "That item is no longer on this registry" }, 404);
   }
   const names = item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & ");
+  void bumpStat(item.registry.shopId, STAT_METRICS.cartAdd, { registryId: item.registryId, count: qty });
 
   return json({
     ok: true,
@@ -1048,6 +1057,10 @@ async function claimAction(request: Request, ctx: ProxyContext): Promise<Respons
     include: { externalSource: true },
   });
   if (!item) return json({ ok: false }, 404);
+  if (item.sourceType !== "internal") {
+    const shopRow = await db.shop.findUnique({ where: { domain: ctx.shop }, select: { id: true } });
+    if (shopRow) void bumpStat(shopRow.id, STAT_METRICS.externalClick, { registryId: item.registryId });
+  }
 
   const claim = await placeClaim(item.id, item.registryId, guestFingerprint(request, item.id));
   if (!claim) return json({ ok: true, held: false });
