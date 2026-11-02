@@ -107,6 +107,11 @@ export interface ManagePageData {
    * the whole section, so older callers and tests render as before.
    */
   partner?: { name: string } | null;
+  /**
+   * "My registries" (every registry this person holds here). Undefined hides
+   * the link, so older callers and tests render as before.
+   */
+  myRegistriesUrl?: string;
   /** First-run setup dialog step (?setup=1|2 after create); see renderSetup. */
   setupStep?: 1 | 2;
   /** Open "Edit registry & preferences", e.g. after one of its forms was saved. */
@@ -116,7 +121,7 @@ export interface ManagePageData {
 export function renderManagePage(data: ManagePageData): string {
   const body = `
 ${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`}
-<p class="sub">Your registry</p>
+<p class="sub">Your registry${data.myRegistriesUrl ? ` &middot; <a href="${escapeAttr(data.myRegistriesUrl)}">My registries</a>` : ""}</p>
 <h1>${escapeHtml(data.title)}</h1>
 
 ${data.flash && !data.setupStep ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
