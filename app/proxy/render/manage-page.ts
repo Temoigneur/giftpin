@@ -401,10 +401,10 @@ function renderShipping(data: ManagePageData, setup = false): string {
     <label for="${id}-${name}">${label}${optional ? ' <span class="hint">(optional)</span>' : ""}</label>
     <input id="${id}-${name}" type="${type}" name="${name}" autocomplete="${autocomplete}" maxlength="120" value="${escapeAttr(a[name] ?? "")}">`;
 
-  return `${setup ? "" : `<h2 id="ship">Send gifts to me</h2>\n`}<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=1" : ""}" class="${setup ? "" : "note "}js-ship">
+  return `${setup ? "" : `<h2 id="ship">Let guests ship gifts to me</h2>\n`}<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=1" : ""}" class="${setup ? "" : "note "}js-ship">
   ${flash ? `<div class="${flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(flash.message)}</div>` : ""}
-  <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Ship gifts bought from ${escapeHtml(data.shopName)} straight to me</label>
-  <p class="hint">Guests never see your address, and each guest can choose to have their gift sent to themselves instead. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
+  <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Give guests the option to ship gifts from ${escapeHtml(data.shopName)} straight to me</label>
+  <p class="hint">Each guest decides when they add a gift to their cart: ship it to you, or send it to themselves (to wrap it or bring it along). Guests never see your address. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
   <fieldset class="js-ship-fields"${shipping.enabled ? "" : " hidden"}>
     <legend class="sr">Your shipping address</legend>
     <div class="duo">

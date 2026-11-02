@@ -726,10 +726,10 @@ const REG_SHARE: Step[] = [
     title: "Have gifts shipped to you",
     items: [
       "Right after you create your registry, we ask <b>Where should gifts go?</b> Tick the box and enter your shipping address, or skip it for now.",
-      "To change it later, click <b>Edit registry &amp; preferences</b>, then under <b>Send gifts to me</b> tick the box, enter your address and click <b>Save</b>. Gifts bought from this store are then sent straight to you.",
-      "Guests never see your address, and each guest can still choose to have their gift sent to themselves.",
+      "To change it later, click <b>Edit registry &amp; preferences</b>, then under <b>Let guests ship gifts to me</b> tick the box, enter your address and click <b>Save</b>. Guests can then ship gifts from this store straight to you.",
+      "Each guest decides when they add a gift to their cart: ship it to you, or send it to themselves. Guests never see your address.",
     ],
-    img: { src: "/guides/r8-ship.png", alt: "The Send gifts to me section with the box ticked and a shipping address filled in" },
+    img: { src: "/guides/r8-ship.png", alt: "The Let guests ship gifts to me section with the box ticked and a shipping address filled in" },
   },
 ];
 

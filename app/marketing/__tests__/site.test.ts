@@ -162,7 +162,7 @@ describe("marketing site", () => {
 
   it("registry guide covers starting, adding, the extension and sharing, and is linked from every page", async () => {
     const html = await page("/registry-guide");
-    for (const label of ["Create my registry", "Email me my link", "Look it up", "Copy connection link", "Share with guests", "Who can see this", "Send gifts to me"]) {
+    for (const label of ["Create my registry", "Email me my link", "Look it up", "Copy connection link", "Share with guests", "Who can see this", "Let guests ship gifts to me"]) {
       expect(html).toContain(label);
     }
     expect(await page("/")).toContain('href="/registry-guide"');

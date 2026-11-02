@@ -286,7 +286,7 @@ const LIST_TOOLS_MIN_ITEMS = 4;
 
 function renderListTools(data: RegistryPageData): string {
   if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
-  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto;appearance:none;padding-right:38px;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23777' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center}#registro-items [hidden]{display:none}</style>
+  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
 <div id="tools" hidden><select aria-label="Sort"><option value="">Suggested order</option><option value="1">Price: low to high</option><option value="-1">Price: high to low</option></select><label class="check"><input type="checkbox"> Only show what's still needed</label></div>`;
 }
 
@@ -533,8 +533,12 @@ function clientScript(): string {
   return `
 (function(){
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
+  // Remember this registry so the store's cart page can link back to it (the
+  // Registry links theme block reads giftpin_last; see registry-links.liquid).
+  try{localStorage.setItem('giftpin_last',JSON.stringify({u:location.pathname,t:document.querySelector('h1').textContent}))}catch(_){}
   function status(el,msg,ok){var s=el.querySelector('.js-status')||el.parentNode.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
-  function post(path,body){return fetch(cfg.actionUrl+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()})}
+  function pj(u,b){return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})}
+  function post(path,body){return pj(cfg.actionUrl+path,body).then(function(r){return r.json()})}
 
   // If this browser is the owner's (the manage page left a token in
   // localStorage), upgrade the always-visible owner link so it goes straight in.
@@ -564,7 +568,7 @@ function clientScript(): string {
   // to cart again. Adding places no hold, so nothing to release on our side.
   document.addEventListener('click',function(e){
     var c=e.target.closest('.js-uncart');if(!c)return;var f=c.closest('.js-add'),u={};c.disabled=true;
-    fetch('/cart.js').then(function(r){return r.json()}).then(function(k){k.items.forEach(function(l){if(l.properties&&l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0});return fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({updates:u})})})
+    fetch('/cart.js').then(function(r){return r.json()}).then(function(k){k.items.forEach(function(l){if(l.properties&&l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0});return pj('/cart/update.js',{updates:u})})
       .then(function(r){if(!r.ok)throw 0;f.querySelector('.js-incart').remove();f.querySelectorAll('.js-add-btn,.qty').forEach(function(x){x.hidden=false})}).catch(function(){c.disabled=false});
   });
   function syncCart(){
@@ -647,7 +651,7 @@ function clientScript(): string {
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token
         // travels on the cart LINE, which is what survives Shop Pay.
-        return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
+        return pj('/cart/add.js',res.payload);
       })
       .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
