@@ -938,7 +938,7 @@ function renderGifts(data: ManagePageData): string {
   return `<h2>Who gave what</h2>
 <p class="sub">For your thank-you notes.</p>
 <ul class="items">${rows}</ul>
-<p><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
+<p style="margin-top:16px"><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
 }
 
 /**

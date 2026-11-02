@@ -144,6 +144,8 @@ function brandStyles(branding: PageBranding): string {
  * - External items (.src) are visually secondary on purpose. The merchant's
  *   own catalog is the anchor of the registry; everything else is
  *   completeness.
+ * - The hero banner lifts off the page with the same shadow and hairline
+ *   ring as the manage page's (2 Nov 2026, Ben).
  * - Desktop: the single 680px column is sized for phones, where most guests
  *   open the link. From 960px up the page widens and item lists go two
  *   across; below the breakpoint it renders exactly as on a phone.
@@ -162,10 +164,11 @@ p{margin:0 0 12px}
 a{color:inherit}
 .sub{color:var(--muted);font-size:15px;margin:0 0 4px}
 .hero{margin-bottom:24px}
-.hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;background:var(--line)}
-.hero-art{width:100%;aspect-ratio:16/7;border-radius:var(--radius);margin-bottom:16px;overflow:hidden;background:var(--card)}
+.hero-img{width:100%;aspect-ratio:16/7;object-fit:cover;margin-bottom:16px;background:var(--line)}
+.hero-art{width:100%;aspect-ratio:16/7;margin-bottom:16px;overflow:hidden;background:var(--card)}
 .hero-art svg{width:100%;height:100%;display:block}
 .hero-painting{object-position:50% 50%}
+.hero-img,.hero-art{border-radius:18px;box-shadow:0 1px 3px rgb(16 24 40/.1),0 12px 28px -10px rgb(16 24 40/.3),0 0 0 1px var(--line)}
 .note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:16px 0;font-size:15px;box-shadow:var(--sh)}
 .progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}
 .progress>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
