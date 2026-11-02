@@ -94,7 +94,7 @@ ${
 ${body}
 </div>
 <footer class="foot">
-  <p>Registry by <strong>${escapeHtml(options.shopName)}</strong></p>
+  <p>Registry by <a href="/"><strong>${escapeHtml(options.shopName)}</strong></a></p>
   ${hidePoweredBy ? "" : `<p class="powered-by">Powered by <a href="https://giftpin.app/?utm_source=registry&amp;utm_medium=powered_by" target="_blank" rel="noopener nofollow">Giftpin</a></p>`}
 </footer>
 </body>
@@ -192,7 +192,7 @@ a{color:inherit}
 .btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
 .linkish{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;display:block;flex-basis:100%;text-align:left}
 .undo{margin:-8px 0 0;grid-column:2}.undo .linkish{display:inline;margin:0;padding:0 2px;color:var(--ink);font-weight:600}
-.incart{display:flex;align-items:center;gap:10px;margin:0;font-size:14px}
+.incart{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0;font-size:14px}.incart>*{white-space:nowrap}
 .incart[hidden],.btn[hidden],.qty[hidden]{display:none}
 .btn.sm{padding:8px 14px;font-size:14px;min-height:38px}
 .btn.block{width:100%}

@@ -248,7 +248,7 @@ describe("registry page branding credit (Pro plan, confirmed 22 Sep 2026)", () =
     expect(html).not.toContain("Powered by");
     // The merchant's own attribution line is a separate, unrelated feature —
     // Pro removes Giftpin's credit, never the merchant's own name.
-    expect(html).toContain("Registry by <strong>Maple &amp; Clay</strong>");
+    expect(html).toContain('Registry by <a href="/"><strong>Maple &amp; Clay</strong></a>');
   });
 });
 
@@ -619,5 +619,20 @@ describe("registry note to guests", () => {
     const html = page([item()], { message: null });
     expect(html).not.toContain('class="vow"');
     expect(html).not.toContain(".vow{");
+  });
+});
+
+describe("registry page in-cart state", () => {
+  it("offers Cancel next to Check out, removing only this gift's registry lines", () => {
+    const html = page([item()]);
+    expect(html).toContain('Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>');
+    // Only lines carrying our _rg token for this variant are zeroed, via the
+    // storefront's own cart API, so a guest's other cart items are untouched.
+    expect(html).toContain("l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0");
+    expect(html).toContain("fetch('/cart/update.js'");
+  });
+
+  it("links the store name in the footer to the storefront home", () => {
+    expect(page([item()])).toContain('Registry by <a href="/"><strong>Maple &amp; Clay</strong></a>');
   });
 });

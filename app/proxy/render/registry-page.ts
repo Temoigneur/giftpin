@@ -254,8 +254,11 @@ ${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftC
  * Order within a group is the incoming order, so merchant items stay on top.
  */
 function renderItemGroups(data: RegistryPageData): string {
+  // Template indentation costs ~1KB on a 30-item list against the page budget.
+  // Stripping it after a newline never changes rendering: the newline is kept,
+  // and nothing in an item uses <pre>, <textarea> or white-space:pre.
   const list = (items: DisplayItem[]) =>
-    `<ul class="items">${items.map((item) => renderItem(item, data)).join("\n")}</ul>`;
+    `<ul class="items">${items.map((item) => renderItem(item, data)).join("\n").replace(/\n[ \t]+/g, "\n")}</ul>`;
 
   if (!data.items.some((i) => i.category)) return list(data.items);
 
@@ -277,7 +280,7 @@ const LIST_TOOLS_MIN_ITEMS = 4;
 
 function renderListTools(data: RegistryPageData): string {
   if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
-  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
+  return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto;appearance:none;padding-right:38px;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23777' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center}#registro-items [hidden]{display:none}</style>
 <div id="tools" hidden><select aria-label="Sort"><option value="">Suggested order</option><option value="1">Price: low to high</option><option value="-1">Price: high to low</option></select><label class="check"><input type="checkbox"> Only show what's still needed</label></div>`;
 }
 
@@ -546,10 +549,17 @@ function clientScript(): string {
     if(b)b.hidden=true;if(q)q.hidden=true;
     if(!form.querySelector('.js-incart')){
       var p=document.createElement('p');p.className='js-incart incart';
-      p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a>';
+      p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>';
       if(b)b.parentNode.insertBefore(p,b);else form.appendChild(p);
     }
   }
+  // Cancel: take this gift's registry lines back out of the cart and show Add
+  // to cart again. Adding places no hold, so nothing to release on our side.
+  document.addEventListener('click',function(e){
+    var c=e.target.closest('.js-uncart');if(!c)return;var f=c.closest('.js-add'),u={};c.disabled=true;
+    fetch('/cart.js').then(function(r){return r.json()}).then(function(k){k.items.forEach(function(l){if(l.properties&&l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0});return fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({updates:u})})})
+      .then(function(r){if(!r.ok)throw 0;f.querySelector('.js-incart').remove();f.querySelectorAll('.js-add-btn,.qty').forEach(function(x){x.hidden=false})}).catch(function(){c.disabled=false});
+  });
   function syncCart(){
     if(!document.querySelector('.js-add'))return;
     fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'})
