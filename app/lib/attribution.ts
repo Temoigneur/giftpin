@@ -45,10 +45,10 @@ export const GIFT_FOR_LABEL = "Gift for";
 
 /**
  * The visible "Gift ships to" value, including how to undo it. Shared with the
- * registry page, which rewrites cart lines when the guest unticks the box.
+ * registry page, which rewrites cart lines when the guest changes where gifts ship.
  */
 export function shipToValue(names: string): string {
-  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and untick the shipping box above the gift list. Your cart will update automatically.`;
+  return `${names || "The registrant"}, at their address (added after you order). Want it sent to you instead? Return to their registry page and tap Change next to "Gifts ship to" above the gift list. Your cart will update automatically.`;
 }
 export function giftForValue(names: string, eventLabel: string, eventDate: Date | null): string {
   const date = eventDate

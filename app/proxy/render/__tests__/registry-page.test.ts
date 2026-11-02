@@ -524,24 +524,37 @@ describe("pre-event reminder sign-up (Pro)", () => {
   });
 });
 
-describe("guest's ship-to-registrant choice (25 Sep 2026)", () => {
-  it("offers the box, ticked by default, when the registrant saved an address", () => {
+describe("guest's ship-to-registrant choice (asked on first add, 2 Nov 2026)", () => {
+  it("asks each guest on their first add instead of showing a box for everyone", () => {
+    const html = page([item()], { shipToRegistrant: true, registrantNames: "Maya & Alex" });
+    expect(html).not.toContain("js-ship-choice");
+    expect(html).toContain('class="match-dialog js-ship-dialog"');
+    expect(html).toContain("Where should your gift go?");
+    expect(html).toContain("Ship to Maya &amp; Alex</button>");
+    expect(html).toContain(">Send to me</button>");
+    expect(html).toMatch(/data-label="[^"]*Want it sent to you instead[^"]*"/);
+    expect(html).toContain('data-key="rg_ship_registry_1"');
+  });
+
+  it("lets the guest change it later, updating lines already in their cart", () => {
     const html = page([item()], { shipToRegistrant: true });
-    expect(html).toMatch(/class="js-ship-choice" data-label="[^"]*Want it sent to you instead[^"]*" checked/);
+    expect(html).toContain('class="hint js-ship-line" hidden');
+    expect(html).toContain("js-ship-change");
     expect(html).toContain("/cart/change.js");
-    expect(html).toContain("Untick this to have it sent to you instead.");
   });
 
-  it("doesn't offer it when ship-to-registrant is off", () => {
-    expect(page([item()], { shipToRegistrant: false })).not.toContain('class="js-ship-choice"');
+  it("doesn't ask when ship-to-registrant is off", () => {
+    expect(page([item()], { shipToRegistrant: false })).not.toContain("js-ship-dialog");
   });
 
-  it("doesn't offer it when there are no store items to ship", () => {
-    expect(page([item({ sourceType: "web" })], { shipToRegistrant: true })).not.toContain('class="js-ship-choice"');
+  it("doesn't ask when there are no store items to ship", () => {
+    expect(page([item({ sourceType: "web" })], { shipToRegistrant: true })).not.toContain("js-ship-dialog");
   });
 
-  it("sends the guest's choice with add to cart", () => {
-    expect(page([item()], { shipToRegistrant: true })).toContain("shipToRegistrant:shipEl?shipEl.checked:false");
+  it("sends the guest's answer with add to cart, and adds nothing if they close the prompt", () => {
+    const html = page([item()], { shipToRegistrant: true });
+    expect(html).toContain("shipToRegistrant:ship}");
+    expect(html).toContain("if(ship===null){btn.disabled=false;return;}");
   });
 });
 

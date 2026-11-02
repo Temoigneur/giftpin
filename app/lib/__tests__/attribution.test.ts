@@ -198,7 +198,7 @@ describe("cartAddPayload", () => {
   it("names who the gift ships to in a visible line property, never the address", () => {
     const props = cartAddPayload("1", 1, "r", "i", true, "Maya & Jared").items[0].properties;
     expect(props["Gift ships to"]).toMatch(/^Maya & Jared, at their address/);
-    expect(props["Gift ships to"]).toContain("Want it sent to you instead? Return to their registry page and untick the shipping box");
+    expect(props["Gift ships to"]).toContain("Want it sent to you instead? Return to their registry page and tap Change next to \"Gifts ship to\"");
     expect(cartAddPayload("1", 1, "r", "i", false, "Maya & Jared").items[0].properties["Gift ships to"]).toBeUndefined();
   });
 });
