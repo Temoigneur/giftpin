@@ -76,36 +76,59 @@ export interface RegistryPageData {
   /** App origin serving public/art/ (SHOPIFY_APP_URL) — see eventHeroImage. */
   artBaseUrl?: string | null;
   /**
-   * The registrant saved a ship-to address. Guests still choose per purchase:
-   * the box below is ticked by default, and unticking it leaves the order's
-   * address alone (Ben, 25 Sep 2026: a guest may want it at their own door).
+   * The registrant saved a ship-to address. Each guest still chooses: they're
+   * asked on their first add (see renderShipChoice), and "Send to me" leaves
+   * the order's address alone (Ben, 25 Sep 2026: a guest may want it at their
+   * own door).
    */
   shipToRegistrant?: boolean;
 }
 
+/**
+ * Where a guest's gift ships (2 Nov 2026, Ben: a box at the top of the page
+ * read like one setting for everyone, when every guest decides for
+ * themselves). Each guest is asked once, on their first "Add to cart", and the
+ * answer is remembered in their browser for this registry. A one-line "Gifts
+ * ship to ... Change" note then sits above the list; changing it also updates
+ * this registry's lines already in their cart, so the "Gift ships to" note at
+ * checkout always matches. The choice can't live in checkout itself: Shopify
+ * only lets apps add UI to the shipping step on Plus stores.
+ *
+ * window.rgShip(cb) is the hook the add-to-cart script calls: cb(true|false)
+ * once the guest has chosen, or cb(null) if they close the prompt.
+ */
 function renderShipChoice(data: RegistryPageData): string {
   if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
   const who = data.registrantNames || "the registrant";
-  return `<div class="note">
-  <label class="check"><input type="checkbox" class="js-ship-choice" data-label="${escapeAttr(shipToValue(data.registrantNames))}" checked> Ship gifts from ${escapeHtml(data.shopName)} straight to ${escapeHtml(who)}</label>
-  <p class="hint">Their address stays private. Checkout will still ask for your address; we swap in theirs after you order, as long as you're in the same state or province. Untick this to have it sent to you instead. Anything already in your cart updates too.</p>
-  <p class="hint js-ship-status" role="status"></p>
-</div>
+  return `<style>.js-ship-line .linkish{display:inline;margin:0;padding:0 2px;font-size:inherit}</style>
+<p class="hint js-ship-line" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button> <span class="js-ship-status" role="status"></span></p>
+<dialog class="match-dialog js-ship-dialog" aria-labelledby="ship-q" data-who="${escapeAttr(who)}" data-key="rg_ship_${escapeAttr(data.registryId)}" data-label="${escapeAttr(shipToValue(data.registrantNames))}">
+  <h2 id="ship-q" style="margin-top:0">Where should your gift go?</h2>
+  <p class="hint">Their address stays private. Checkout still asks for yours; we swap in theirs after you order, as long as you're in the same state or province.</p>
+  <p style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0"><button type="button" class="btn" value="1">Ship to ${escapeHtml(who)}</button><button type="button" class="btn ghost" value="0">Send to me</button></p>
+</dialog>
 <script>(function(){
-  // Ticking or unticking the box also updates registry lines already in the
-  // cart, so the "Gift ships to" note at checkout always matches it.
-  var shipBox=document.querySelector('.js-ship-choice'),st=document.querySelector('.js-ship-status');
-  shipBox.addEventListener('change',function(){
-    var on=shipBox.checked;
+  var dlg=document.querySelector('.js-ship-dialog'),line=document.querySelector('.js-ship-line'),st=line.querySelector('.js-ship-status');
+  var KEY=dlg.dataset.key,who=dlg.dataset.who,mem=null,pending=null;
+  function get(){try{var v=localStorage.getItem(KEY);if(v==='1'||v==='0')return v==='1';}catch(_){}return mem;}
+  function set(on){mem=on;try{localStorage.setItem(KEY,on?'1':'0');}catch(_){}show();}
+  function show(){var on=get();if(on===null)return;line.hidden=false;line.firstChild.textContent=on?'Gifts ship to '+who+'.':'Gifts ship to you.';}
+  function ask(cb){if(typeof dlg.showModal==='function'){pending=cb;dlg.showModal();}else cb(confirm('Ship to '+who+'? Cancel to send it to you.'));}
+  window.rgShip=function(cb){var on=get();if(on!==null)return cb(on);ask(function(v){if(v!==null)set(v);cb(v);});};
+  dlg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var cb=pending;pending=null;dlg.close();if(cb)cb(b.value==='1');});
+  dlg.addEventListener('close',function(){var cb=pending;pending=null;if(cb)cb(null);});
+  line.querySelector('.js-ship-change').addEventListener('click',function(){ask(function(on){if(on===null)return;set(on);update(on);});});
+  show();
+  function update(on){
     fetch('/cart.js',{headers:{Accept:'application/json'},credentials:'same-origin'}).then(function(r){return r.json()}).then(function(cart){
       var lines=(cart.items||[]).filter(function(l){return l.properties&&l.properties._rg&&document.querySelector('.js-add[data-variant="'+String(l.variant_id)+'"]')&&(!!l.properties._rg_ship)!==on;});
       return lines.reduce(function(p,l){return p.then(function(){
         var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
-        if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=shipBox.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
+        if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=dlg.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
         return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
-      })},Promise.resolve()).then(function(){if(lines.length)st.textContent=on?'Your cart is updated: it ships to them.':'Your cart is updated: it ships to you.';});
+      })},Promise.resolve()).then(function(){st.textContent=lines.length?'Your cart is updated.':'';});
     }).catch(function(){st.textContent="Couldn't update your cart. Remove the item and add it again.";});
-  });
+  }
 })();</script>`;
 }
 
@@ -596,10 +619,13 @@ function clientScript(): string {
       return;
     }
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
-    var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
+    var btn=form.querySelector('button');btn.disabled=true;
     var qtyEl=form.querySelector('[name=qty]');
-    var shipEl=document.querySelector('.js-ship-choice');
-    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:shipEl?shipEl.checked:false})
+    // Ask where it ships first (only on the guest's first add; see renderShipChoice).
+    (window.rgShip||function(cb){cb(false)})(function(ship){
+    if(ship===null){btn.disabled=false;return;}
+    status(form,'Adding...');
+    post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:ship})
       .then(function(res){
         if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
         // Hand the signed properties to Shopify's own cart endpoint. The token
@@ -608,6 +634,7 @@ function clientScript(): string {
       })
       .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
+    });
   });
 
   // Place the soft hold as the guest leaves. keepalive so it survives the
