@@ -581,9 +581,30 @@ describe("wish list wording", () => {
   it("calls a Wish list a wish list, and every other occasion a registry", () => {
     const wish = page([], { eventType: "wishlist", eventLabel: "Wish list", eventDate: null });
     expect(wish).toContain("This wish list doesn't have any items yet.");
-    expect(wish).toContain("Your wish list? Sign in");
+    expect(wish).toContain("Your wish list? <u>Sign in");
     expect(wish).not.toContain("Wish list registry at");
     const other = page([]);
     expect(other).toContain("This registry doesn't have any items yet.");
+  });
+});
+
+describe("registry note to guests", () => {
+  it("sets the note as an invitation-style line, not a card, with paragraph breaks kept", () => {
+    const html = page([item()], { message: "Thank you.\n<b>See you there</b>" });
+    expect(html).toContain('<p class="vow">Thank you.\n&lt;b&gt;See you there&lt;/b&gt;</p>');
+    expect(html).toContain(".vow{");
+    expect(html).toContain("white-space:pre-line");
+  });
+
+  it("loads the note font from the app only when there is an app URL", () => {
+    expect(page([item()])).not.toContain("@font-face");
+    const html = page([item()], { artBaseUrl: "https://app.giftpin.app/" });
+    expect(html).toContain("src:url(https://app.giftpin.app/fonts/note-italic.woff2)");
+  });
+
+  it("adds no note styles when the registry has no note", () => {
+    const html = page([item()], { message: null });
+    expect(html).not.toContain('class="vow"');
+    expect(html).not.toContain(".vow{");
   });
 });
