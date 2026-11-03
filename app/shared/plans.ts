@@ -26,10 +26,29 @@ export const PRO_TRIAL_DAYS = 14;
  * before the offer, Ben's own included, out of the count. A new dev store
  * Ben installs on after this date WOULD take a slot.
  */
-export const FOUNDING_OFFER_SLOTS = 10;
-export const FOUNDING_OFFER_TRIAL_DAYS = 365;
+export const FOUNDING_OFFER_SLOTS = 11;
+export const FOUNDING_OFFER_TRIAL_DAYS = 180;
 // Midnight 23 Oct 2026, Toronto time (EDT, UTC-4).
 export const FOUNDING_OFFER_STARTS_AT = new Date("2026-10-23T04:00:00Z");
+
+/**
+ * The offer started as a free year for the first 10 stores. On 2 Nov 2026
+ * (Rincy's advice, Ben's call) it became 6 months (180 days) for the first
+ * 11 (one extra spot because Ben took one to demo Pro). Stores installed
+ * before FOUNDING_OFFER_SHORTENED_AT keep the year they were promised, even
+ * if they upgrade later; only later installs get 180 days. A trial already
+ * granted is fixed on its Shopify subscription and never changes either way.
+ */
+export const FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS = 365;
+// Midnight 3 Nov 2026, Toronto time (EST, UTC-5).
+export const FOUNDING_OFFER_SHORTENED_AT = new Date("2026-11-03T05:00:00Z");
+
+/** Free Pro trial length for a founding store installed at `installedAt`. */
+export function foundingTrialDays(installedAt: Date): number {
+  return installedAt.getTime() < FOUNDING_OFFER_SHORTENED_AT.getTime()
+    ? FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS
+    : FOUNDING_OFFER_TRIAL_DAYS;
+}
 
 /**
  * Pure part of the founding-offer check: a store installed at `installedAt`,
@@ -47,7 +66,7 @@ export function isFoundingSlot(installedAt: Date, earlierInstalls: number): bool
  * Giftpin's fee on gift cards sold through the giftpin.app gift card listing
  * (Ben, 24 Oct 2026): 2% of the card's value, billed as a Shopify usage
  * charge on the Pro subscription. Founding-offer stores pay nothing during
- * their free year; in practice no fee is charged during any free trial (see
+ * their free months; in practice no fee is charged during any free trial (see
  * app/models/gift-card-fee.server.ts). It never applies to a store's own
  * product sales or to registry gifts.
  */

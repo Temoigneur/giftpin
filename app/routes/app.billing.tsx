@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
 import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
-import { FOUNDING_OFFER_SLOTS, FOUNDING_OFFER_TRIAL_DAYS, GIFT_CARD_FEE_CAP, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
+import { FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS, GIFT_CARD_FEE_CAP, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS, foundingTrialDays } from "../shared/plans";
 import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
 
 /**
@@ -44,9 +44,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     price: PRO_PLAN_PRICE,
     isTest,
     liveSubscriptionName,
-    founding: shop.plan !== "pro" && (await foundingOfferEligible(shop)),
+    founding:
+      shop.plan !== "pro" && (await foundingOfferEligible(shop))
+        ? { trialDays: foundingTrialDays(shop.installedAt) }
+        : null,
   };
 };
+
+/** "a year" or "6 months"; just "year" after "your first" or "free". */
+function foundingPeriod(trialDays: number, afterFirst = false): string {
+  if (trialDays >= FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS) return afterFirst ? "year" : "a year";
+  return "6 months";
+}
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -64,7 +73,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const trialDays = shop.devStore
       ? 0
       : (await foundingOfferEligible(shop))
-        ? FOUNDING_OFFER_TRIAL_DAYS
+        ? foundingTrialDays(shop.installedAt)
         : PRO_TRIAL_DAYS;
     return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST || shop.devStore, trialDays });
   }
@@ -125,12 +134,15 @@ export default function Billing() {
               purchases — never billed to you.
             </s-paragraph>
             {founding && (
-              <s-banner tone="success" heading="Founding store offer: Pro free for a year">
+              <s-banner
+                tone="success"
+                heading={`Founding store offer: Pro free for ${foundingPeriod(founding.trialDays)}`}
+              >
                 <s-paragraph>
-                  You&apos;re one of the first {FOUNDING_OFFER_SLOTS} stores to install Giftpin, so
-                  Pro is free for your first year. Shopify will ask you to approve it. After the
-                  year it&apos;s ${price}/mo unless you cancel, and you can cancel any time before
-                  then at no charge.
+                  You&apos;re one of the first stores to install Giftpin, so Pro is free for your first{" "}
+                  {foundingPeriod(founding.trialDays, true)} ({founding.trialDays} days). Shopify
+                  will ask you to approve it. After that it&apos;s ${price}/mo unless you cancel, and
+                  you can cancel any time before then at no charge.
                 </s-paragraph>
               </s-banner>
             )}
@@ -158,7 +170,9 @@ export default function Billing() {
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="upgrade" />
               <s-button type="submit" {...(busy ? { loading: true } : {})}>
-                {founding ? "Start my free year of Pro" : `Upgrade to Pro — $${price}/mo`}
+                {founding
+                  ? `Start my free ${foundingPeriod(founding.trialDays, true)} of Pro`
+                  : `Upgrade to Pro — $${price}/mo`}
               </s-button>
             </fetcher.Form>
           </s-stack>
