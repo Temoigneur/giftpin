@@ -100,6 +100,24 @@ const templates: Record<string, TemplateFn> = {
     };
   },
 
+  /** "My registries": one link to every registry this email holds at the store. */
+  "registry-account": (d) => {
+    const titles: string[] = Array.isArray(d.titles) ? d.titles.map(String) : [];
+    const shopName = String(d.shopName ?? "the store");
+    return {
+      to: d.to,
+      subject: `Your registries at ${shopName}`,
+      text: `See all your registries at ${shopName}: ${d.url}\n\n${titles.map((t) => `- ${t}`).join("\n")}\n\nThis link works for 90 days. Anyone with it can edit these registries, so keep it to yourself.`,
+      html: shell(
+        "Your registries",
+        `<p>Here's one link to every registry you've started at ${escapeHtml(shopName)} with this email:</p>
+         <ul>${titles.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
+         <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit these registries, so keep it to yourself. Registries you start later with this email show up there too.</p>`,
+        { label: "See my registries", url: d.url },
+      ),
+    };
+  },
+
   /** A registrant added their partner. Their own link, so it can be revoked. */
   "registry-partner": (d) => {
     const who = d.inviterName ? `${d.inviterName} added you` : "You've been added";

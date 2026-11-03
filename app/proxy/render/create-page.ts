@@ -1,6 +1,7 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr } from "./layout";
-import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion } from "../../shared/settings";
+import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion, eventTypeLabel } from "../../shared/settings";
+import { ACCOUNT_STORAGE_KEY, REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { occasionTemplate } from "../../shared/registry-ideas";
 import { COUNTRIES, DEFAULT_COUNTRY } from "../../shared/retailers";
 
@@ -110,12 +111,12 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 <script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;var d=document.getElementById('c-date-field');d.hidden='nodate' in o.dataset;if(d.hidden)document.getElementById('c-date').value='';});})();</script>
 
 <div class="note">
-  <p style="margin:0"><strong>Already have one?</strong></p>
+  <p style="margin:0"><strong>Already have one?</strong> We'll email you a link to all your registries here.</p>
   <form method="post" action="${escapeAttr(data.actionUrl)}/resend" style="margin-top:10px">
     <label class="sr" for="c-resend">Your email</label>
     <input id="c-resend" type="email" name="email" placeholder="Your email" required>
     <div class="row" style="margin-top:10px">
-      <button class="btn sm ghost" type="submit">Email me my link</button>
+      <button class="btn sm ghost" type="submit">Email me my registries</button>
     </div>
   </form>
 </div>
@@ -267,5 +268,89 @@ export function renderRegistryChooser(
            `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Manage</a></p></div></li>`,
        )
        .join("")}</ul>`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// My registries
+// ---------------------------------------------------------------------------
+
+type PageBrand = { shopName: string; accentColor: string; branding?: PageBranding | null };
+
+export interface AccountPageData extends PageBrand {
+  /** Proxy root, e.g. /apps/registry. */
+  actionUrl: string;
+  registries: { id: string; title: string; eventType: string; eventDate: Date | null; partner: boolean; href: string; token: string }[];
+  /** "Start another registry", prefilled with this person's name and email. */
+  createHref: string;
+  /** Fresh account token, saved in this browser. Null for a store-account sign-in with no email link. */
+  accountToken: string | null;
+}
+
+function formatEventDate(date: Date | null): string {
+  if (!date) return "";
+  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+
+/** Every registry one person holds at this store, from their emailed My registries link. */
+export function renderAccountPage(data: AccountPageData): string {
+  const list = data.registries.length
+    ? `<ul class="items">${data.registries
+        .map((r) => {
+          const meta = [eventTypeLabel(r.eventType), formatEventDate(r.eventDate), r.partner ? "You're a partner" : ""]
+            .filter(Boolean)
+            .join(" · ");
+          return `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p class="item-meta">${escapeHtml(meta)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Open</a></p></div></li>`;
+        })
+        .join("")}</ul>`
+    : `<p>There are no registries with this email yet.</p>`;
+
+  // Remember the account link on this browser (the manage page's "My
+  // registries" link uses it), and hand every registry to the storefront's
+  // "Add to registry" button, the same list the manage page writes.
+  const remember = data.accountToken
+    ? `<script>(function(){try{localStorage.setItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)},${JSON.stringify(data.accountToken)});var K=${JSON.stringify(REGISTRIES_STORAGE_KEY)},s=JSON.parse(localStorage.getItem(K)||'[]');if(!Array.isArray(s))s=[];var mine=${JSON.stringify(
+        data.registries.slice(0, 10).map((r) => ({ id: r.id, title: r.title, token: r.token })),
+      ).replace(/</g, "\\u003c")};mine.slice().reverse().forEach(function(m){s=s.filter(function(r){return r&&r.id!==m.id});s.unshift(m);});localStorage.setItem(K,JSON.stringify(s.slice(0,10)));}catch(_){}})();</script>`
+    : "";
+
+  return layout(
+    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `<h1>My registries</h1>
+     <p class="sub">Everything you've started at ${escapeHtml(data.shopName)} with this email. Pick one to open it.</p>
+     ${list}
+     <p style="margin-top:24px"><a class="btn" href="${escapeAttr(data.createHref)}">Start another registry</a></p>
+     <p class="hint">A new registry made with the same email shows up here on its own. Keep this page's link to yourself: anyone who has it can edit these registries.</p>
+     ${remember}`,
+  );
+}
+
+/**
+ * /account without a working link. If this browser saved a My registries link
+ * before, go straight there. Otherwise offer to email one: in one click from a
+ * manage page (the link goes to that registry's own email), or by typing the
+ * email. Never lists anything here, so a forwarded manage link can't open the
+ * owner's other registries.
+ */
+export function renderAccountSignInPage(data: PageBrand & { actionUrl: string; manageToken: string | null; expired: boolean }): string {
+  const ask = data.manageToken
+    ? `<form method="post" action="${escapeAttr(data.actionUrl)}/account-link?t=${encodeURIComponent(data.manageToken)}" class="note">
+         <p style="margin:0 0 10px">We'll email a link to all your registries to the address on this one.</p>
+         <button class="btn" type="submit">Email me the link</button>
+       </form>`
+    : `<form method="post" action="${escapeAttr(data.actionUrl)}/resend" class="note">
+         <label for="a-email">Your email</label>
+         <input id="a-email" type="email" name="email" required>
+         <div class="row" style="margin-top:16px"><button class="btn" type="submit">Email me my registries</button></div>
+       </form>`;
+  const redirect = data.expired
+    ? `<script>try{localStorage.removeItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)})}catch(_){}</script>`
+    : `<script>(function(){try{var a=localStorage.getItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)});if(a)location.replace(${JSON.stringify(`${data.actionUrl}/account?a=`)}+encodeURIComponent(a));}catch(_){}})();</script>`;
+  return layout(
+    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `${redirect}
+     <h1>My registries</h1>
+     <p class="sub">${data.expired ? "That link has expired. " : ""}See every registry you've started here with one email. For your privacy, we send the link to your inbox.</p>
+     ${ask}`,
   );
 }
