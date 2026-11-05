@@ -1,15 +1,28 @@
-query CartInput {
+query Input($collectionIds: [ID!]) {
   cart {
     lines {
       id
-      cost {
-        subtotalAmount {
-          amount
+      quantity
+      registryTag: attribute(key: "_rg") {
+        value
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            isGiftCard
+            inAnyCollection(ids: $collectionIds)
+          }
         }
       }
     }
   }
   discount {
     discountClasses
+    metafield(namespace: "$app", key: "function-configuration") {
+      jsonValue
+    }
   }
 }

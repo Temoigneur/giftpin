@@ -9,7 +9,7 @@ import {
   cartLinesDiscountsGenerateRun,
   readConfig,
   type RunInput,
-} from "../../../extensions/registry-discount/src/cart_lines_discounts_generate_run";
+} from "../../../extensions/registry-discount/src/registry_discount";
 
 const form = (values: Record<string, string>) => ({ get: (name: string) => values[name] ?? null });
 const NOW = new Date("2026-11-05T12:00:00Z");

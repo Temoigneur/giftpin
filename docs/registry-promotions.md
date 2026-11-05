@@ -31,3 +31,13 @@ Needs `shopify app deploy` first (new function extension).
 7. Function input shape (`attribute(key:)` alias, `isGiftCard`) accepted by
    `shopify app function build`; generated types may need `npm run shopify
    app function typegen`.
+
+## Function build (fix, 5 Nov)
+The first version of the function never built (no schema.graphql, no codegen
+config), so `shopify app deploy` released nothing and creating a promotion said
+"Function registry-discount not found". Rebuilt on the CLI's own discount
+scaffold. The logic is plain TypeScript in `src/registry_discount.ts` (tested by
+`app/shared/__tests__/promotions.test.ts`); `src/cart_lines_discounts_generate_run.js`
+re-exports it for the build. Verified with Shopify CLI 3.85: GraphQL types
+generate against the schema and the JS bundles. The last step (javy → wasm) needs
+Shopify's CDN, so the first full build happens on your `shopify app deploy`.

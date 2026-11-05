@@ -20,7 +20,7 @@ import {
   type PromotionKind,
   type PromotionSummary,
 } from "../shared/promotions";
-import { readConfig } from "../../extensions/registry-discount/src/cart_lines_discounts_generate_run";
+import { readConfig } from "../../extensions/registry-discount/src/registry_discount";
 
 type GraphqlClient = (query: string, options?: { variables?: Record<string, unknown> }) => Promise<Response>;
 

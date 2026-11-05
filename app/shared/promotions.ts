@@ -14,7 +14,7 @@
  *  - "coupon": a code discount. Guests type a code the store shares.
  */
 
-import type { PromotionConfig } from "../../extensions/registry-discount/src/cart_lines_discounts_generate_run";
+import type { PromotionConfig } from "../../extensions/registry-discount/src/registry_discount";
 
 export type { PromotionConfig };
 
