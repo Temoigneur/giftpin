@@ -52,6 +52,25 @@
     var registries = null;
     var pendingDup = null;
 
+    // Registry sale or coupon on this product (Pro stores with a promotion
+    // running). The server answers with the line to show, or null.
+    var dealEl = root.querySelector("[data-giftpin-deal]");
+    if (dealEl && root.dataset.productId) {
+      fetch(
+        proxy + "/deal?product=" + encodeURIComponent(root.dataset.productId) +
+          "&price=" + encodeURIComponent(root.dataset.price || ""),
+        { headers: { Accept: "application/json" }, credentials: "same-origin" }
+      )
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (body) {
+          if (body && body.text) {
+            dealEl.textContent = body.text;
+            dealEl.hidden = false;
+          }
+        })
+        .catch(function () {});
+    }
+
     function status(message, isError) {
       if (!statusEl) return;
       statusEl.textContent = message || "";

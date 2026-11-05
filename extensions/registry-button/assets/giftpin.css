@@ -137,3 +137,14 @@
 .giftpin-choice .giftpin-btn--sm {
   flex: 1 1 140px;
 }
+
+.giftpin-deal {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--giftpin-accent, currentColor);
+}
+
+.giftpin-deal[hidden] {
+  display: none;
+}

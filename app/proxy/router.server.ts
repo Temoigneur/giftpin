@@ -195,6 +195,9 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
       case "my-registries":
         return await myRegistriesJson(ctx, shop);
 
+      case "deal":
+        return await productDealJson(ctx, shop, settings);
+
       case "account":
         return await accountPage(ctx, shop, brand);
 
@@ -661,6 +664,24 @@ async function findPage(
  * magic-link tokens the theme button reads out of localStorage, which the
  * server re-verifies on every write.
  */
+/**
+ * The registry deal for one product, for the "Add to registry" button block
+ * on the storefront product page. Advertising only (the checkout function
+ * grants the price). `?product=<numeric id>&price=<amount>`.
+ */
+async function productDealJson(ctx: ProxyContext, shop: ShopRecord, settings: ShopSettings): Promise<Response> {
+  const numeric = (ctx.query.get("product") ?? "").replace(/\D/g, "").slice(0, 20);
+  const deals = numeric ? await shopDeals(shop, settings) : [];
+  if (!numeric || deals.length === 0) return json({ text: null });
+  const gid = `gid://shopify/Product/${numeric}`;
+  const needCollections = deals.some((d) => d.config.collectionIds.length > 0);
+  const collections = needCollections ? await productCollections(shop.domain, [gid]) : {};
+  const deal = dealForProduct(deals, gid, collections[gid] ?? []);
+  if (!deal) return json({ text: null });
+  const price = Number(ctx.query.get("price")) || 0;
+  return json({ text: itemDealText(deal, price, shop.currency) });
+}
+
 async function myRegistriesJson(ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   if (!ctx.loggedInCustomerId) return json({ registries: [] });
 
