@@ -167,6 +167,11 @@ const HTML = `<!doctype html>
       email address they enter, encrypted, uses it only for that one
       reminder, and deletes it once the event has passed. Every reminder
       has a one-click unsubscribe link.</p>
+    <p>Giftpin counts visits to registry pages and actions such as adding a
+      gift to the cart, as daily totals per store and per registry, so the
+      merchant can see how their registries are doing. These counts store no
+      IP address, cookie, device identifier or anything else that could
+      identify a visitor.</p>
   </section>
 
   <section id="product-data">
@@ -215,6 +220,10 @@ const HTML = `<!doctype html>
         from the order count and stored as a yes/no), used for the
         merchant's "new customers" figure;</li>
       <li>the order's line items and totals, to credit the right gift.</li>
+      <li>the order total of <strong>every</strong> order, added to a daily
+        per-store sales total so the merchant can see what share of their
+        sales came through registries. Nothing about the order or the buyer
+        is kept for an order with no registry gift in it.</li>
     </ul>
     <p>Giftpin does not read or store a buyer's email address, phone number,
       or street address from Shopify. When a registrant has turned on
