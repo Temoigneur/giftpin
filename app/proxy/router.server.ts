@@ -100,6 +100,8 @@ import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/brandi
 import { applyStock, hiddenFromGuests, type StockMap } from "../lib/stock";
 import { fetchVariantStock, findVariantsByCode, getVariant } from "../lib/catalog.server";
 import { registrantPerks } from "../shared/perks";
+import { liveDeals, productCollections } from "../lib/promotions.server";
+import { bannerLines, dealForProduct, itemDealText, promotionPerkLines, type Deal } from "../shared/promotion-display";
 import { queueFlowTrigger } from "../models/flow.server";
 
 /**
@@ -166,7 +168,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
           ...brand,
           actionUrl: ctx.pathPrefix,
           enabledEventTypes: settings.eventTypes,
-          perks: perksFor(shop, settings),
+          perks: perksFor(shop, settings, await shopDeals(shop, settings)),
           values: profile ? { registrantName: profile.name, registrantEmail: profile.email } : undefined,
         }));
       }
@@ -257,13 +259,25 @@ function brandingFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): Pa
 type ShopRecord = NonNullable<Awaited<ReturnType<typeof db.shop.findUnique>>>;
 
 /** Registry perks (Pro) for the create and manage pages. See app/shared/perks.ts. */
-function perksFor(shop: Pick<ShopRecord, "plan">, settings: ShopSettings): string[] {
-  return registrantPerks({
+function perksFor(shop: Pick<ShopRecord, "plan" | "currency">, settings: ShopSettings, deals: Deal[] = []): string[] {
+  const perks = registrantPerks({
     pro: isPro(shop),
     registryPerks: settings.registryPerks,
     completionDiscountEnabled: settings.completionDiscountEnabled,
     completionDiscountPercent: settings.completionDiscountPercent,
   });
+  // Registry promotions (Pro): what guests get for buying from the registry.
+  return isPro(shop) ? [...perks, ...promotionPerkLines(deals, shop.currency)] : perks;
+}
+
+/**
+ * The store's running registry promotions (Pro), for the banner, price tags
+ * and perk lines. A minute of cache keeps it to one Admin API call per shop
+ * a minute however many pages are opened.
+ */
+async function shopDeals(shop: Pick<ShopRecord, "plan" | "domain">, settings: ShopSettings): Promise<Deal[]> {
+  if (!isPro(shop) || settings.promotionIds.length === 0) return [];
+  return cached(`deals:${shop.domain}`, 60, () => liveDeals(shop.domain, settings.promotionIds));
 }
 
 /**
@@ -306,7 +320,16 @@ async function registryPage(
   const html = await cached(
     registryCacheKey(registry.id, registry.version, registry.privacy === "password" ? "pw" : "page"),
     60,
-    async () => buildRegistryHtml(registry, ctx, shop, settings, brand, await registryStock(ctx.shop, registry)),
+    async () =>
+      buildRegistryHtml(
+        registry,
+        ctx,
+        shop,
+        settings,
+        brand,
+        await registryStock(ctx.shop, registry),
+        await registryDeals(shop, settings, registry),
+      ),
   );
 
   return page(html, 200, registry.indexable && registry.privacy === "public_");
@@ -343,6 +366,28 @@ async function registryStock(shopDomain: string, registry: RegistryWithItems): P
   return variantGids.length ? fetchVariantStock(shopDomain, variantGids) : new Map();
 }
 
+/** The promotions advertised on one registry page: a banner, and a price line per discounted item. */
+async function registryDeals(
+  shop: ShopRecord,
+  settings: ShopSettings,
+  registry: RegistryWithItems,
+): Promise<{ banner: string[]; itemDeals: Record<string, string> }> {
+  const deals = await shopDeals(shop, settings);
+  if (deals.length === 0) return { banner: [], itemDeals: {} };
+  const items = registry.items.filter((i) => i.sourceType === "internal" && i.productGid && i.purchasedQty < i.desiredQty);
+  const needCollections = deals.some((d) => d.config.collectionIds.length > 0);
+  const collections = needCollections ? await productCollections(shop.domain, items.map((i) => i.productGid!)) : {};
+  const itemDeals: Record<string, string> = {};
+  for (const item of items) {
+    const deal = dealForProduct(deals, item.productGid, collections[item.productGid!] ?? []);
+    if (deal) itemDeals[item.id] = itemDealText(deal, Number(item.snapshotPrice) || 0, item.snapshotCurrency ?? shop.currency);
+  }
+  // Nothing on this registry qualifies (a collection sale, none of whose
+  // products are here): don't advertise a deal the guest can't use.
+  if (Object.keys(itemDeals).length === 0) return { banner: [], itemDeals };
+  return { banner: bannerLines(deals, shop.currency), itemDeals };
+}
+
 function buildRegistryHtml(
   registry: RegistryWithItems,
   ctx: ProxyContext,
@@ -350,6 +395,7 @@ function buildRegistryHtml(
   settings: ShopSettings,
   brand: Brand,
   stock: StockMap = null,
+  promotions: { banner: string[]; itemDeals: Record<string, string> } = { banner: [], itemDeals: {} },
 ): string {
   const chipIn = contributionsAvailable(shop, settings);
   // A fund nobody can pay into (plan lapsed, or the merchant removed the gift
@@ -396,6 +442,8 @@ function buildRegistryHtml(
       ? `${ctx.pathPrefix.replace(/\/+$/, "")}/gift-card?src=registry`
       : null,
     shipToRegistrant: registry.shipToRegistrant,
+    promoBanner: promotions.banner,
+    itemDeals: promotions.itemDeals,
     contributions: chipIn
       ? {
           variants: settings.contributionProduct!.variants,
@@ -495,7 +543,7 @@ async function managePage(
       extensionConnect: ctx.query.get("extension") === "1",
       items: applyStock(registry.items.map((item) => toDisplayItem(item)), await registryStock(ctx.shop, registry)),
       soldOutHidden: settings.soldOutItems === "hide",
-      perks: perksFor(shop, settings),
+      perks: perksFor(shop, settings, await shopDeals(shop, settings)),
       enabledEventTypes: settings.eventTypes,
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
@@ -870,7 +918,7 @@ async function createRegistryAction(
         ...brand,
         actionUrl: ctx.pathPrefix,
         enabledEventTypes: settings.eventTypes,
-        perks: perksFor(shop, settings),
+        perks: perksFor(shop, settings, await shopDeals(shop, settings)),
         error: "Please fill in your name, a registry name and a valid email address.",
         values,
       }),

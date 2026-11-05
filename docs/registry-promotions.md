@@ -31,3 +31,14 @@ Needs `shopify app deploy` first (new function extension).
 7. Function input shape (`attribute(key:)` alias, `isGiftCard`) accepted by
    `shopify app function build`; generated types may need `npm run shopify
    app function typegen`.
+
+## Advertising (PR 2)
+Running promotions (status ACTIVE, Pro shops) are shown by `app/shared/promotion-display.ts`:
+- banner above the list on the guest registry page (inline CSS, so pages without
+  promotions carry no extra bytes; the 50KB test still passes);
+- "Registry price $X" / "15% off on 3+ registry gifts" on each discounted store item;
+- perk lines on the registrant's create and manage pages.
+Coupon codes are shown publicly on the page. Fetched from Shopify at most once a
+minute per shop (cache), on top of the 60s page cache, so a new promotion can
+take up to ~2 minutes to appear. Unverified live: banner and tags on a real
+storefront, collection-scoped matching.
