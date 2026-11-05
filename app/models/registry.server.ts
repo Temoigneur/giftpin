@@ -186,6 +186,101 @@ export function manageTokenFor(registryId: string, registrant: { id: string; rol
   return mintManageToken(registryId, registrant.role === "co" ? registrant.id : null);
 }
 
+// ---------------------------------------------------------------------------
+// "My registries": every registry one email holds at one store
+//
+// Still no accounts table. The email IS the account: Registrant.emailHash
+// already groups every registry (owner or partner) a person holds at a store,
+// so a new registry created with the same email joins the list on its own and
+// existing registries need no migration.
+//
+// The credential is a signed account token (shop + email hash) that is only
+// ever handed out by email, the same root of trust as a manage link. A manage
+// link is NOT enough to get one: owners forward manage links (to a parent, a
+// planner), and that must not open their other registries too.
+// ---------------------------------------------------------------------------
+
+const ACCOUNT_TOKEN_PURPOSE = "account";
+const ACCOUNT_TOKEN_TTL = MANAGE_TOKEN_TTL;
+
+export function mintAccountToken(shopId: string, emailHash: string): string {
+  return signToken({ p: ACCOUNT_TOKEN_PURPOSE, s: shopId, h: emailHash }, ACCOUNT_TOKEN_TTL);
+}
+
+/** The email hash the token stands for, or null if it's bad, expired or for another store. */
+export function readAccountToken(token: string | null | undefined, shopId: string): string | null {
+  const payload = verifyToken<{ p: string; s?: unknown; h?: unknown }>(token, ACCOUNT_TOKEN_PURPOSE);
+  if (!payload || payload.s !== shopId || typeof payload.h !== "string" || !payload.h) return null;
+  return payload.h;
+}
+
+export interface AccountRegistry {
+  id: string;
+  title: string;
+  eventType: string;
+  eventDate: Date | null;
+  /** The holder's own manage token for it: an owner link, or their revocable partner link. */
+  token: string;
+  partner: boolean;
+}
+
+/**
+ * Every active registry at this store held by the email behind `emailHash`
+ * (as owner or partner), plus any owned by the signed-in store customer.
+ * Newest first, capped so a runaway list can't blow up the page.
+ */
+export async function listAccountRegistries(
+  shopId: string,
+  emailHash: string | null,
+  customerId: string | null,
+): Promise<AccountRegistry[]> {
+  const or: Prisma.RegistryWhereInput[] = [];
+  if (emailHash) or.push({ registrants: { some: { emailHash } } });
+  if (customerId) or.push({ customerId: String(customerId) });
+  if (or.length === 0) return [];
+
+  const rows = await db.registry.findMany({
+    where: { shopId, status: "active", OR: or },
+    select: {
+      id: true,
+      title: true,
+      eventType: true,
+      eventDate: true,
+      customerId: true,
+      registrants: emailHash ? { where: { emailHash }, select: { id: true, role: true } } : false,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  return rows.map((row) => {
+    const mine = (row as { registrants?: { id: string; role: string }[] }).registrants ?? [];
+    // Owner beats partner if somehow both: the owner link can't be revoked from under them.
+    const holder = mine.find((r) => r.role === "owner") ?? mine[0] ?? null;
+    const ownedAsCustomer = customerId !== null && row.customerId !== null && String(row.customerId) === String(customerId);
+    const asPartner = holder?.role === "co" && !ownedAsCustomer;
+    return {
+      id: row.id,
+      title: row.title,
+      eventType: row.eventType,
+      eventDate: row.eventDate,
+      token: asPartner && holder ? manageTokenFor(row.id, holder) : mintManageToken(row.id),
+      partner: asPartner,
+    };
+  });
+}
+
+/** Name + email to prefill "Start another registry" with. Null if the email holds nothing here. */
+export async function accountProfile(shopId: string, emailHash: string): Promise<{ name: string; email: string } | null> {
+  const registrant = await db.registrant.findFirst({
+    where: { emailHash, registry: { shopId } },
+    orderBy: { createdAt: "desc" },
+    select: { name: true, emailEnc: true },
+  });
+  const email = registrant ? tryDecrypt(registrant.emailEnc) : null;
+  return registrant && email ? { name: registrant.name, email } : null;
+}
+
 /**
  * A fresh token with the same holder as `token` (owner or partner). The manage
  * page hands one out on every visit; re-minting an owner token here would let a

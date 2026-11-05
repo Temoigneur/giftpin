@@ -27,7 +27,7 @@ export const TRIAL_DAYS = PRO_TRIAL_DAYS;
  * tells a store whether it got one.
  */
 export const FOUNDING_OFFER = SHOW_FOUNDING_OFFER
-  ? `Founding offer: the first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get a ${FOUNDING_OFFER_TRIAL_DAYS}-day free trial of ${PRO_PLAN_DISPLAY_NAME}, then ${PRICE}/month unless you cancel. Your Plan page shows if you got a spot.`
+  ? `Founding offer: the first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get 6 months of ${PRO_PLAN_DISPLAY_NAME} free (a ${FOUNDING_OFFER_TRIAL_DAYS}-day trial), then ${PRICE}/month unless you cancel. Your Plan page shows if you got a spot.`
   : "";
 
 export type Feature = { icon: string; title: string; detail: string };

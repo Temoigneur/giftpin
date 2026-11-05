@@ -36,6 +36,10 @@ import {
   manageTokenFor,
   readManageGrant,
   renewManageToken,
+  mintAccountToken,
+  readAccountToken,
+  listAccountRegistries,
+  accountProfile,
   type RegistryWithItems,
 } from "../models/registry.server";
 import {
@@ -88,7 +92,10 @@ import {
   renderSimplePage,
   renderPasswordPage,
   renderFindPage,
+  renderAccountPage,
+  renderAccountSignInPage,
 } from "./render/create-page";
+import { blindIndex } from "../lib/crypto.server";
 import { escapeHtml, formatMoney } from "./render/layout";
 import { csvCell } from "../lib/csv";
 import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/branding";
@@ -152,14 +159,20 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
     }
 
     switch (head) {
-      case "":
+      case "": {
         countView(request, shop.id, STAT_METRICS.createPageView);
+        // "Start another registry" from My registries: same name and email, so
+        // the new one joins their list.
+        const accountHash = readAccountToken(ctx.query.get("a"), shop.id);
+        const profile = accountHash ? await accountProfile(shop.id, accountHash) : null;
         return page(renderCreatePage({
           ...brand,
           actionUrl: ctx.pathPrefix,
           enabledEventTypes: settings.eventTypes,
           perks: perksFor(shop, settings),
+          values: profile ? { registrantName: profile.name, registrantEmail: profile.email } : undefined,
         }));
+      }
 
       case "r":
         // /r/<slug>/version is the guest page's own polling endpoint (see
@@ -179,6 +192,9 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 
       case "my-registries":
         return await myRegistriesJson(ctx, shop);
+
+      case "account":
+        return await accountPage(ctx, shop, brand);
 
       // Browser-extension surface (V1, 19 Sep 2026). No shop-signed session,
       // no localStorage to read — the manage token, pasted once into the
@@ -496,6 +512,7 @@ async function managePage(
       actionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}`,
       token: freshToken,
       manageUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: freshToken }),
+      myRegistriesUrl: proxyUrl(ctx, "account", { t: freshToken }),
       externalItemsAllowed: settings.externalItems !== "off",
       version: registry.version,
       versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
@@ -615,6 +632,75 @@ async function myRegistriesJson(ctx: ProxyContext, shop: ShopRecord): Promise<Re
   });
 }
 
+/**
+ * My registries: every registry one email holds here. Opened from an emailed
+ * link (?a=); a signed-in store customer also sees the ones tied to their
+ * account. See mintAccountToken for why a manage link alone doesn't open it.
+ */
+async function accountPage(ctx: ProxyContext, shop: ShopRecord, brand: Brand): Promise<Response> {
+  const rawAccount = ctx.query.get("a");
+  const emailHash = readAccountToken(rawAccount, shop.id);
+  const customerId = ctx.loggedInCustomerId ? String(ctx.loggedInCustomerId) : null;
+  const rawManage = ctx.query.get("t");
+  const manageToken = readManageGrant(rawManage) ? rawManage : null;
+
+  if (!emailHash && !customerId) {
+    return page(
+      renderAccountSignInPage({
+        ...brand,
+        actionUrl: ctx.pathPrefix.replace(/\/+$/, ""),
+        manageToken,
+        expired: Boolean(rawAccount),
+      }),
+      rawAccount ? 403 : 200,
+    );
+  }
+
+  const registries = await listAccountRegistries(shop.id, emailHash, customerId);
+  const fresh = emailHash ? mintAccountToken(shop.id, emailHash) : null;
+  return page(
+    renderAccountPage({
+      ...brand,
+      actionUrl: ctx.pathPrefix,
+      registries: registries.map((r) => ({ ...r, href: proxyUrl(ctx, "manage", { t: r.token }) })),
+      createHref: fresh ? proxyUrl(ctx, "", { a: fresh }) : ctx.pathPrefix,
+      accountToken: fresh,
+      manageToken,
+    }),
+  );
+}
+
+async function sendAccountEmail(ctx: ProxyContext, shop: ShopRecord, email: string, titles: string[]): Promise<void> {
+  await sendEmail("registry-account", email, {
+    shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
+    titles: titles.slice(0, 20),
+    url: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "account", { a: mintAccountToken(shop.id, blindIndex(email)) }),
+  });
+}
+
+/**
+ * "Email me the link" from a manage page: sends the My registries link to the
+ * email of whoever this manage link belongs to (the owner, or the partner for a
+ * partner link). Never to the person clicking, unless that's them.
+ */
+async function accountLinkAction(ctx: ProxyContext, shop: ShopRecord, brand: Brand): Promise<Response> {
+  const registry = await requireManage(ctx);
+  if (registry) {
+    const grant = readManageGrant(ctx.query.get("t"));
+    const holder = grant?.partnerId
+      ? registry.registrants.find((r) => r.id === grant.partnerId)
+      : ownerOf(registry.registrants);
+    const email = holder ? registrantEmail(holder) : null;
+    if (email) {
+      const registries = await findByEmail(shop.id, email);
+      await sendAccountEmail(ctx, shop, email, registries.map((r) => r.title));
+    }
+  }
+  return page(
+    renderSimplePage(brand, "Check your email", "We've sent a link to all your registries to the email on this registry."),
+  );
+}
+
 async function confirmPage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   const claimId = readClaimToken(ctx.query.get("c"));
   if (!claimId) {
@@ -696,6 +782,8 @@ async function handlePost(
   switch (head) {
     case "create":
       return createRegistryAction(request, ctx, shop, settings, brand);
+    case "account-link":
+      return await accountLinkAction(ctx, shop, brand);
     case "resend":
       return resendAction(request, ctx, shop, brand);
     case "r":
@@ -823,7 +911,11 @@ async function resendAction(
 
   if (isEmail(email)) {
     const registries = await findByEmail(shop.id, email);
-    for (const registry of registries.slice(0, 5)) {
+    // More than one: a single My registries link rather than an email each.
+    if (registries.length > 1) {
+      await sendAccountEmail(ctx, shop, email, registries.map((r) => r.title));
+    }
+    for (const registry of registries.length === 1 ? registries : []) {
       const registrant = registry.registrants[0];
       if (!registrant) continue;
       await sendEmail("registry-link", email, {

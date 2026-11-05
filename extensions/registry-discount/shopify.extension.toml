@@ -1,0 +1,29 @@
+# Registry promotions (Giftpin Pro). A Shopify discount function that only
+# discounts cart lines carrying Giftpin's `_rg` registry tag, so a product
+# bought from a registry gets the deal and the same product bought normally
+# doesn't. One function backs every promotion: each discount the app creates
+# (app/lib/promotions.server.ts) stores its own settings in the
+# `$app:function-configuration` metafield, which is also where the
+# collection ids for inAnyCollection come from (input_variables below).
+#
+# Ships with `npm run deploy` (shopify app deploy), not with the Railway
+# deploy of the web app. Before the first deploy, run
+# `shopify app function schema` in this folder if the CLI asks for a schema.
+
+api_version = "2026-07"
+
+[[extensions]]
+name = "Giftpin registry promotions"
+handle = "registry-discount"
+type = "function"
+description = "Sales and coupons that only apply to gifts bought from a registry."
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  input_variables = { namespace = "$app", key = "function-configuration" }
+  export = "cart-lines-discounts-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

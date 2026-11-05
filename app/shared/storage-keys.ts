@@ -8,3 +8,10 @@ export const REGISTRIES_STORAGE_KEY = "giftpin.registries";
 
 /** The pre-rename key. Read once and migrated by the manage page. */
 export const LEGACY_REGISTRIES_STORAGE_KEY = "registro.registries";
+
+/**
+ * The signed "My registries" token (see mintAccountToken), saved when the
+ * registrant opens their emailed My registries link so the manage page's
+ * "My registries" link can go straight there next time on this browser.
+ */
+export const ACCOUNT_STORAGE_KEY = "giftpin.account";

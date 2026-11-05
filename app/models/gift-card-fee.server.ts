@@ -18,7 +18,7 @@ import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_PLAN } from "../sha
  *   waived_not_pro        store no longer on Pro, or uninstalled
  *   waived_no_usage_line  subscription predates the fee; nothing to bill
  *   waived_trial          sold during the subscription's free trial, which
- *                         covers a founding store's whole free year
+ *                         covers a founding store's whole free period
  *   failed                Shopify refused for 30 days (e.g. over the cap)
  *
  * A failure leaves feeStatus null so the next day's run tries again; the

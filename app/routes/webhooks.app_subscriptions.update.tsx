@@ -1,7 +1,8 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import { markWebhookProcessed } from "../lib/webhooks.server";
-import { setPlanFromSubscription } from "../models/shop.server";
+import { setPlanFromSubscription, settingsFor } from "../models/shop.server";
+import { pauseAllPromotions } from "../lib/promotions.server";
 
 /**
  * Keeps Shop.plan in sync with Shopify's own billing state. Fires on
@@ -21,7 +22,7 @@ import { setPlanFromSubscription } from "../models/shop.server";
  * real Upgrade click) can confirm or correct this — see STATUS.md.
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop, payload, webhookId, topic } = await authenticate.webhook(request);
+  const { shop, payload, webhookId, topic, admin } = await authenticate.webhook(request);
 
   if (await markWebhookProcessed(webhookId, "app_subscriptions/update", shop)) {
     return new Response();
@@ -41,7 +42,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return new Response();
   }
 
-  await setPlanFromSubscription(shop, sub.status, sub.admin_graphql_api_id ?? null);
+  const updated = await setPlanFromSubscription(shop, sub.status, sub.admin_graphql_api_id ?? null);
+
+  // Registry promotions are Pro. Shopify keeps running a discount until it's
+  // told otherwise, so a shop leaving Pro has its registry sales and coupons
+  // paused (not deleted: they come back with one click after re-upgrading).
+  const promotionIds = settingsFor(updated).promotionIds;
+  if (updated.plan !== "pro" && promotionIds.length > 0 && admin) {
+    await pauseAllPromotions((q, o) => admin.graphql(q, o), promotionIds);
+  }
 
   return new Response();
 };

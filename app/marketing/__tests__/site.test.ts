@@ -146,7 +146,7 @@ describe("marketing site", () => {
   it("quotes the founding offer from the billing constants, or hides it when switched off", async () => {
     for (const path of ["/", "/pricing"]) {
       const html = await page(path);
-      const line = `first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get a ${FOUNDING_OFFER_TRIAL_DAYS}-day free trial`;
+      const line = `first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get 6 months of Giftpin Pro free (a ${FOUNDING_OFFER_TRIAL_DAYS}-day trial)`;
       if (SHOW_FOUNDING_OFFER) expect(html).toContain(line);
       else expect(html).not.toContain("Founding offer");
     }
@@ -218,7 +218,7 @@ describe("holiday wish lists page", () => {
     expect(html).toContain("Is this a save-for-later wishlist button?");
     // The exact Settings label merchants tick.
     expect(html).toContain("tick Wish list under Occasions");
-    if (SHOW_FOUNDING_OFFER) expect(html).toContain(`${FOUNDING_OFFER_TRIAL_DAYS}-day free trial`);
+    if (SHOW_FOUNDING_OFFER) expect(html).toContain(`(a ${FOUNDING_OFFER_TRIAL_DAYS}-day trial)`);
     expect(html.toLowerCase()).not.toContain("★");
     expect(html.toLowerCase()).not.toContain("testimonial");
   });

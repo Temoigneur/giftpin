@@ -14,7 +14,7 @@ export const APP_STORE_URL = "https://apps.shopify.com/giftpin-gift-registry";
 
 /**
  * Whether the site advertises the founding offer (first FOUNDING_OFFER_SLOTS
- * installs from FOUNDING_OFFER_STARTS_AT get a year of Pro free; see
+ * installs from FOUNDING_OFFER_STARTS_AT get FOUNDING_OFFER_TRIAL_DAYS days of Pro free; see
  * app/shared/plans.ts). The site can't count installs, so set this to false
  * once the last spot is taken.
  */
