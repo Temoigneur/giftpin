@@ -20,6 +20,8 @@ import {
   type PromotionKind,
   type PromotionSummary,
 } from "../shared/promotions";
+import { unauthenticated } from "../shopify.server";
+import { dealsFromSummaries, type Deal } from "../shared/promotion-display";
 import { readConfig } from "../../extensions/registry-discount/src/registry_discount";
 
 type GraphqlClient = (query: string, options?: { variables?: Record<string, unknown> }) => Promise<Response>;
@@ -211,4 +213,44 @@ export async function pauseAllPromotions(graphql: GraphqlClient, ids: string[]):
     }
   }
   return paused;
+}
+
+/**
+ * The live promotions guests and registrants are told about. Fails soft to
+ * an empty list: Shopify hiccuping must never take a registry page down,
+ * and the discount still applies at checkout either way.
+ */
+export async function liveDeals(shopDomain: string, ids: string[]): Promise<Deal[]> {
+  if (ids.length === 0) return [];
+  try {
+    const { admin } = await unauthenticated.admin(shopDomain);
+    const { promotions } = await listPromotions((q, o) => admin.graphql(q, o), ids);
+    return dealsFromSummaries(promotions);
+  } catch (err) {
+    console.error("[promotions] live deals:", (err as Error).message);
+    return [];
+  }
+}
+
+const PRODUCT_COLLECTIONS = `#graphql
+  query giftpinProductCollections($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product { id collections(first: 50) { nodes { id } } }
+    }
+  }`;
+
+/** productGid → ids of the collections it's in. Only called when a live deal targets collections. */
+export async function productCollections(shopDomain: string, productGids: string[]): Promise<Record<string, string[]>> {
+  const out: Record<string, string[]> = {};
+  const ids = [...new Set(productGids)].slice(0, 250);
+  if (ids.length === 0) return out;
+  try {
+    const { admin } = await unauthenticated.admin(shopDomain);
+    const body = await run((q, o) => admin.graphql(q, o), PRODUCT_COLLECTIONS, { ids });
+    const nodes = (body.data?.nodes ?? []) as ({ id?: string; collections?: { nodes: { id: string }[] } } | null)[];
+    for (const node of nodes) if (node?.id) out[node.id] = node.collections?.nodes.map((c) => c.id) ?? [];
+  } catch (err) {
+    console.error("[promotions] product collections:", (err as Error).message);
+  }
+  return out;
 }

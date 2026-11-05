@@ -82,6 +82,13 @@ export interface RegistryPageData {
    * own door).
    */
   shipToRegistrant?: boolean;
+  /**
+   * Registry promotions (Pro): lines for the banner above the list, and a
+   * price line per discounted item (item id -> text). Advertising only; the
+   * discount itself is applied at checkout. See app/shared/promotion-display.ts.
+   */
+  promoBanner?: string[];
+  itemDeals?: Record<string, string>;
 }
 
 /**
@@ -212,6 +219,7 @@ ${renderShare(data)}
 </div>
 
 ${renderShipChoice(data)}
+${renderPromoBanner(data)}
 ${renderListTools(data)}
 <div id="registro-items">${
   data.items.length === 0
@@ -284,6 +292,14 @@ function renderItemGroups(data: RegistryPageData): string {
  */
 const LIST_TOOLS_MIN_ITEMS = 4;
 
+/** Registry promotions (Pro). Its CSS is inline so a page without any carries no extra bytes. */
+function renderPromoBanner(data: RegistryPageData): string {
+  const lines = data.promoBanner ?? [];
+  if (lines.length === 0) return "";
+  return `<style>.deal-banner{border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin:16px 0}.deal-banner p{margin:2px 0;font-weight:600}.deal{color:var(--accent)}</style>
+<div class="deal-banner" role="note">${lines.map((l) => `<p>${escapeHtml(l)}</p>`).join("")}</div>`;
+}
+
 function renderListTools(data: RegistryPageData): string {
   if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
   return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
@@ -320,6 +336,8 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (price && !item.isFund) meta.push(`<span class="price">${price}</span>`);
   if (item.desiredQty > 1) meta.push(`${item.purchasedQty} of ${item.desiredQty} bought`);
   if (item.isStale && price) meta.push("price may have changed");
+  const deal = data.itemDeals?.[item.id];
+  if (deal && !item.fulfilled) meta.push(`<b class="deal">${escapeHtml(deal)}</b>`);
   if (item.availability === "out_of_stock" && item.isExternal) meta.push("out of stock");
 
   // For the list tools. "Still needed" errs toward hiding: an item whose last

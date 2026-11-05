@@ -652,3 +652,19 @@ describe("cart page Return to registry", () => {
     expect(page([item()])).toContain("localStorage.setItem('giftpin_last',JSON.stringify({u:location.pathname,t:document.querySelector('h1').textContent}))");
   });
 });
+
+describe("registry promotions (Pro)", () => {
+  it("shows a banner and a price line on discounted items", () => {
+    const html = page([item({ id: "a" }), item({ id: "b" })], {
+      promoBanner: ["15% off when you buy from this registry, applied at checkout"],
+      itemDeals: { a: "Registry price $34.00" },
+    });
+    expect(html).toContain("15% off when you buy from this registry");
+    expect(html.match(/Registry price \$34\.00/g)).toHaveLength(1);
+  });
+  it("escapes promotion text and adds no bytes when there are none", () => {
+    expect(page([item()], { promoBanner: ["<img src=x>"] })).not.toContain("<img src=x>");
+    const plain = page([item()]);
+    expect(plain).not.toContain("deal-banner");
+  });
+});

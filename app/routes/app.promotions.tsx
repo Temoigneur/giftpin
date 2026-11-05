@@ -148,6 +148,11 @@ export default function Promotions() {
           usual way stays full price. Guests see the discount at checkout, including with Shop Pay.
         </s-paragraph>
         <s-paragraph>
+          Running promotions are advertised for you: a banner at the top of each registry, a &ldquo;Registry
+          price&rdquo; line on discounted gifts, and a line on the registrant&apos;s own page. A coupon&apos;s code is
+          shown there too, so guests know to use it.
+        </s-paragraph>
+        <s-paragraph>
           <s-text color="subdued">
             Anyone can make a registry and buy from it, so a registry price is about as open as a public coupon.
             Pick an amount you&apos;re happy to give anyone who goes to that trouble. Gift cards (cash funds and
