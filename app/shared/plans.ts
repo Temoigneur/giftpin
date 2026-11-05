@@ -43,9 +43,41 @@ export const FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS = 365;
 // Midnight 3 Nov 2026, Toronto time (EST, UTC-5).
 export const FOUNDING_OFFER_SHORTENED_AT = new Date("2026-11-03T05:00:00Z");
 
-/** Free Pro trial length for a founding store installed at `installedAt`. */
-export function foundingTrialDays(installedAt: Date): number {
-  return installedAt.getTime() < FOUNDING_OFFER_SHORTENED_AT.getTime()
+/**
+ * Stores Ben emailed on 30 Oct 2026 with the old "free for a year" offer
+ * (/mnt/project-files/marketing/founding-10-outreach.md). Ben's call, 5 Nov
+ * 2026: they keep the year whenever they install, as long as they get one of
+ * the founding spots. Matched on the store's primary domain (its own web
+ * address, not the .myshopify.com one), with any "www." dropped.
+ */
+export const FOUNDING_YEAR_PROMISED_DOMAINS: readonly string[] = [
+  "bergodesigns.ca",
+  "outerlayer.com",
+  "iheartscout.com",
+  "jillandthebeanstalk.ca",
+  "baabaazaar.com",
+  "kitchengear.ca",
+  "thecuisinet.com",
+  "absolutelyfab.ca",
+  "thecooksedge.com",
+];
+
+/** Whether a store with this primary domain was emailed the free-year offer. */
+export function wasPromisedFoundingYear(primaryDomain: string | null | undefined): boolean {
+  if (!primaryDomain) return false;
+  const host = primaryDomain.trim().toLowerCase().replace(/^www\./, "").replace(/\.$/, "");
+  return FOUNDING_YEAR_PROMISED_DOMAINS.includes(host);
+}
+
+/**
+ * Free Pro trial length for a founding store installed at `installedAt`,
+ * whose primary domain is `primaryDomain` (null if unknown).
+ */
+export function foundingTrialDays(installedAt: Date, primaryDomain: string | null = null): number {
+  if (installedAt.getTime() < FOUNDING_OFFER_SHORTENED_AT.getTime()) {
+    return FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS;
+  }
+  return wasPromisedFoundingYear(primaryDomain)
     ? FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS
     : FOUNDING_OFFER_TRIAL_DAYS;
 }
