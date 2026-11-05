@@ -52,9 +52,18 @@ describe("promotion display", () => {
     expect(itemDealText(coupon(), 40, "CAD")).toContain("with code REG15");
     expect(itemDealText(sale({ minQuantity: 3 }), 40, "CAD")).toBe("15% off on 3+ registry gifts");
     expect(bannerLines([coupon()], "CAD")[0]).toContain("use code REG15 at checkout");
-    expect(bannerLines([sale(), sale(), sale(), sale()], "CAD")).toHaveLength(3);
+    expect(bannerLines([15, 20, 25, 30].map((amount) => sale({ amount })), "CAD")).toHaveLength(3);
     expect(promotionPerkLines([sale({ allProducts: true, productIds: [] })], "CAD")[0]).toBe(
       "15% off for guests who buy from your registry",
     );
+  });
+});
+
+describe("duplicate promotions", () => {
+  it("says the same line once", () => {
+    const a = sale({ productIds: ["gid://shopify/Product/1"] });
+    const b = sale({ productIds: ["gid://shopify/Product/2"] });
+    expect(bannerLines([a, b], "CAD")).toHaveLength(1);
+    expect(promotionPerkLines([a, b], "CAD")).toHaveLength(1);
   });
 });
