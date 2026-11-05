@@ -14,7 +14,7 @@
  *  - "coupon": a code discount. Guests type a code the store shares.
  */
 
-import type { PromotionConfig } from "../../extensions/registry-discount/src/cart_lines_discounts_generate_run";
+import type { PromotionConfig } from "../../extensions/registry-discount/src/registry_discount";
 
 export type { PromotionConfig };
 
@@ -119,9 +119,12 @@ export function parsePromotionForm(form: { get(name: string): unknown }, now = n
 
   const defaultTitle = kind === "coupon" ? `Registry coupon ${code}` : "Registry sale";
   const title = String(form.get("title") ?? "").trim().slice(0, PROMOTION_TITLE_MAX) || defaultTitle;
+  // Blank means "say what the deal is", e.g. "Registry price: 20% off", so
+  // the guest sees the amount in the cart and at checkout, not just a name.
+  const deal = valueType === "percentage" ? `${amount}% off` : `$${amount} off each`;
   const message =
     String(form.get("message") ?? "").trim().slice(0, PROMOTION_MESSAGE_MAX) ||
-    (kind === "coupon" ? "Registry coupon" : "Registry price");
+    `${kind === "coupon" ? "Registry coupon" : "Registry price"}: ${deal}`;
 
   return {
     ok: true,

@@ -9,7 +9,7 @@ import {
   cartLinesDiscountsGenerateRun,
   readConfig,
   type RunInput,
-} from "../../../extensions/registry-discount/src/cart_lines_discounts_generate_run";
+} from "../../../extensions/registry-discount/src/registry_discount";
 
 const form = (values: Record<string, string>) => ({ get: (name: string) => values[name] ?? null });
 const NOW = new Date("2026-11-05T12:00:00Z");
@@ -42,6 +42,11 @@ describe("parsePromotionForm", () => {
     expect(d.config).toMatchObject({ valueType: "percentage", amount: 15, allProducts: true, minQuantity: 1 });
     expect(d.startsAt).toEqual(NOW);
     expect(d.endsAt).toBeNull();
+  });
+  it("words the checkout message with the deal when left blank", () => {
+    expect(draft({ amount: "20", appliesTo: "all" }).config.message).toBe("Registry price: 20% off");
+    expect(draft({ kind: "coupon", code: "REG", amount: "15", appliesTo: "all" }).config.message).toBe("Registry coupon: 15% off");
+    expect(draft({ amount: "20", appliesTo: "all", message: "Gift deal" }).config.message).toBe("Gift deal");
   });
   it("rejects out-of-range, empty selections and bad dates", () => {
     expect(parsePromotionForm(form({ amount: "95", appliesTo: "all" })).ok).toBe(false);
