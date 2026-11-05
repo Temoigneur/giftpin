@@ -43,6 +43,11 @@ describe("parsePromotionForm", () => {
     expect(d.startsAt).toEqual(NOW);
     expect(d.endsAt).toBeNull();
   });
+  it("words the checkout message with the deal when left blank", () => {
+    expect(draft({ amount: "20", appliesTo: "all" }).config.message).toBe("Registry price: 20% off");
+    expect(draft({ kind: "coupon", code: "REG", amount: "15", appliesTo: "all" }).config.message).toBe("Registry coupon: 15% off");
+    expect(draft({ amount: "20", appliesTo: "all", message: "Gift deal" }).config.message).toBe("Gift deal");
+  });
   it("rejects out-of-range, empty selections and bad dates", () => {
     expect(parsePromotionForm(form({ amount: "95", appliesTo: "all" })).ok).toBe(false);
     expect(parsePromotionForm(form({ amount: "10", appliesTo: "selected" })).ok).toBe(false);

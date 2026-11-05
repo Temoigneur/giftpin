@@ -430,7 +430,8 @@ function NewPromotion() {
           <s-text-field
             name="message"
             label="What guests see at checkout"
-            placeholder={kind === "coupon" ? "Registry coupon" : "Registry price"}
+            details="Leave empty to show the deal, like 'Registry price: 20% off'."
+            placeholder={kind === "coupon" ? "Registry coupon: 15% off" : "Registry price: 15% off"}
             maxLength={PROMOTION_MESSAGE_MAX}
           />
 
