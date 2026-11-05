@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { enqueue } from "../lib/queue.server";
@@ -173,10 +174,35 @@ export default function Settings() {
   const [soldOutItems, setSoldOutItems] = useState(settings.soldOutItems);
 
   const saving = fetcher.state !== "idle";
+  const formRef = useRef<HTMLFormElement>(null);
+  const shopify = useAppBridge();
+
+  // The header Save sits far from the "Saved" text at the bottom, so confirm
+  // with a toast wherever the merchant pressed it.
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.ok) {
+      shopify.toast.show("Settings saved");
+    }
+  }, [fetcher.state, fetcher.data, shopify]);
 
   return (
     <s-page heading="Settings">
-      <fetcher.Form method="post">
+      {/* Page header, top right. Saves everything down to "Automatic emails";
+          group gifts and funds keep their own Save below. */}
+      <s-button
+        slot="primary-action"
+        variant="primary"
+        onClick={() => formRef.current?.requestSubmit()}
+        {...(saving ? { loading: true } : {})}
+      >
+        Save
+      </s-button>
+      {fetcher.data?.warnings?.map((warning) => (
+        <s-banner key={warning} tone="warning">
+          <s-paragraph>{warning}</s-paragraph>
+        </s-banner>
+      ))}
+      <fetcher.Form method="post" ref={formRef}>
         <s-section heading="Occasions">
           <s-paragraph>
             <s-text color="subdued">Which kinds of registry customers can create.</s-text>
