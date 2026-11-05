@@ -339,7 +339,8 @@ export function renderAccountPage(data: AccountPageData): string {
      <p style="margin-top:24px"><a class="btn" href="${escapeAttr(data.createHref)}">Start another registry</a></p>
      <p class="hint">A new registry made with the same email shows up here on its own. Keep this page's link to yourself: anyone who has it can edit these registries.</p>
      ${remember}
-     ${storeAccountOnly}`,
+     ${storeAccountOnly}
+     ${data.accountToken ? `<form method="post" action="${escapeAttr(root)}/account-link?a=${encodeURIComponent(data.accountToken)}" style="margin-top:12px"><button class="btn sm ghost" type="submit">Email me this link</button></form>` : ""}`,
   );
 }
 

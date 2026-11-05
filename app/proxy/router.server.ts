@@ -676,6 +676,17 @@ async function sendAccountEmail(ctx: ProxyContext, shop: ShopRecord, email: stri
  * partner link). Never to the person clicking, unless that's them.
  */
 async function accountLinkAction(ctx: ProxyContext, shop: ShopRecord, brand: Brand): Promise<Response> {
+  // From the My registries page itself: the account link already proves the
+  // email, so send a fresh copy to it.
+  const accountHash = readAccountToken(ctx.query.get("a"), shop.id);
+  if (accountHash) {
+    const profile = await accountProfile(shop.id, accountHash);
+    if (profile) {
+      const registries = await findByEmail(shop.id, profile.email);
+      await sendAccountEmail(ctx, shop, profile.email, registries.map((r) => r.title));
+    }
+    return page(renderSimplePage(brand, "Check your email", "We've sent the link to all your registries to your email."));
+  }
   const registry = await requireManage(ctx);
   if (registry) {
     const grant = readManageGrant(ctx.query.get("t"));

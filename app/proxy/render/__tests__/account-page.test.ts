@@ -113,7 +113,15 @@ describe("signed in to the store account, no emailed link", () => {
 
   it("isn't offered once the emailed link is in use", () => {
     const withLink = renderAccountPage({ ...brand, actionUrl: "/apps/registry", registries: [], createHref: "/a", accountToken: "ACC", manageToken: "MT" });
-    expect(withLink).not.toContain("account-link");
+    expect(withLink).not.toContain("account-link?t=");
     expect(withLink).not.toContain("location.replace");
+  });
+});
+
+describe("emailed-link view", () => {
+  it("offers to email the link again", () => {
+    const html = renderAccountPage({ ...brand, actionUrl: "/apps/registry", registries: [], createHref: "/a", accountToken: "ACC" });
+    expect(html).toContain('action="/apps/registry/account-link?a=ACC"');
+    expect(html).toContain("Email me this link");
   });
 });
