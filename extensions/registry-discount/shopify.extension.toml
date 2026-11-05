@@ -10,9 +10,15 @@ description = "t:description"
   [[extensions.targeting]]
   target = "cart.lines.discounts.generate.run"
   input_query = "src/cart_lines_discounts_generate_run.graphql"
-  input_variables = { namespace = "$app", key = "function-configuration" }
   export = "cart-lines-discounts-generate-run"
 
   [extensions.build]
   command = ""
   path = "dist/function.wasm"
+
+  # Extension-level variables (marked deprecated in favour of per-target
+  # input_variables, which only CLI 4.9+ understands; Ben's older CLI got
+  # "Variable definitions are missing" with the per-target form).
+  [extensions.input.variables]
+  namespace = "$app"
+  key = "function-configuration"
