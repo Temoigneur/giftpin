@@ -72,17 +72,20 @@ function scope(deal: Deal): string {
 
 /** One banner line per deal, at most `max`. */
 export function bannerLines(deals: Deal[], currency: string, max = 3): string[] {
-  return deals.slice(0, max).map((deal) => {
+  const lines = deals.map((deal) => {
     const tier = deal.config.minQuantity > 1 ? ` when you buy ${deal.config.minQuantity}+ gifts from this registry` : " when you buy from this registry";
     const base = `${dealValue(deal, currency)}${scope(deal)}${tier}`;
     return deal.kind === "coupon" ? `${base}: use code ${deal.code} at checkout` : `${base}, applied at checkout`;
   });
+  // Two promotions can read the same ("20% off on select gifts"): say it once.
+  return [...new Set(lines)].slice(0, max);
 }
 
 /** What the registrant is told they're offering their guests. */
 export function promotionPerkLines(deals: Deal[], currency: string, max = 2): string[] {
-  return deals.slice(0, max).map((deal) => {
+  const lines = deals.map((deal) => {
     const tier = deal.config.minQuantity > 1 ? ` when guests buy ${deal.config.minQuantity}+ gifts` : " for guests who buy from your registry";
     return `${dealValue(deal, currency)}${scope(deal)}${tier}${deal.kind === "coupon" ? ` (code ${deal.code})` : ""}`;
   });
+  return [...new Set(lines)].slice(0, max);
 }

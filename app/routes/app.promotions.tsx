@@ -319,9 +319,16 @@ function NewPromotion() {
         <input type="hidden" name="intent" value="create" />
         <input type="hidden" name="productIds" value={JSON.stringify(products.map((p) => p.id))} />
         <input type="hidden" name="collectionIds" value={JSON.stringify(collections.map((c) => c.id))} />
+        {/*
+          The three choice lists below post through these hidden inputs, from
+          React state. Relying on the s-choice-list's own form value let an
+          "All products" promotion save as "specific products" (5 Nov 2026).
+        */}
+        <input type="hidden" name="kind" value={kind} />
+        <input type="hidden" name="valueType" value={valueType} />
+        <input type="hidden" name="appliesTo" value={appliesTo} />
         <s-stack direction="block" gap="base">
           <s-choice-list
-            name="kind"
             label="Type"
             values={[kind]}
             onChange={(event) => {
@@ -361,7 +368,6 @@ function NewPromotion() {
           />
 
           <s-choice-list
-            name="valueType"
             label="Discount"
             values={[valueType]}
             onChange={(event) => {
@@ -386,7 +392,6 @@ function NewPromotion() {
           )}
 
           <s-choice-list
-            name="appliesTo"
             label="Applies to"
             values={[appliesTo]}
             onChange={(event) => {
