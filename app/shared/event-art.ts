@@ -202,8 +202,7 @@ const EVENT_PAINTINGS: Record<string, { widths: number[]; path: (w: number) => s
   "bridal-shower": { widths: [1024, 1952], path: (w) => `/art/bridal-shower-v1-${w}.webp` },
   baby: { widths: [1024, 1952], path: (w) => `/art/baby-v1-${w}.webp` },
   christening: { widths: [1024, 1952], path: (w) => `/art/christening-v1-${w}.webp` },
-  // The cake sits right of centre; shift the phone crop so the balloons aren't clipped.
-  birthday: { widths: [1024, 1952], path: (w) => `/art/birthday-v1-${w}.webp`, position: "62% 50%" },
+  birthday: { widths: [1024, 1952], path: (w) => `/art/birthday-v2-${w}.webp` },
   "coming-of-age": { widths: [1024, 1952], path: (w) => `/art/coming-of-age-v1-${w}.webp` },
   graduation: { widths: [1024, 1952], path: (w) => `/art/graduation-v1-${w}.webp` },
   college: { widths: [1024, 1952], path: (w) => `/art/college-v1-${w}.webp` },

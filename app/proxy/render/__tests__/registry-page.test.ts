@@ -308,7 +308,7 @@ describe("registry page hero art (default background, 23 Sep 2026)", () => {
     ["bridal-shower", "bridal-shower-v1"],
     ["baby", "baby-v1"],
     ["christening", "christening-v1"],
-    ["birthday", "birthday-v1"],
+    ["birthday", "birthday-v2"],
     ["coming-of-age", "coming-of-age-v1"],
     ["graduation", "graduation-v1"],
     ["college", "college-v1"],
