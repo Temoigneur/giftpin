@@ -88,6 +88,12 @@ export interface ShopSettings {
    * create and manage pages. See app/shared/perks.ts.
    */
   registryPerks: string;
+  /**
+   * Registry promotions (Pro): the Shopify discount node ids of this store's
+   * registry sales and coupons. Shopify holds everything else, in each
+   * discount's own metafield. See app/shared/promotions.ts.
+   */
+  promotionIds: string[];
 }
 
 export const EVENT_TYPES: { value: string; label: string }[] = [
@@ -174,6 +180,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   fontFamily: "system",
   soldOutItems: "show",
   registryPerks: "",
+  promotionIds: [],
 };
 
 export const COMPLETION_DISCOUNT_PERCENT_RANGE = { min: 5, max: 50 } as const;

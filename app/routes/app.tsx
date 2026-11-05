@@ -64,6 +64,7 @@ export default function App() {
       <s-app-nav>
         <s-link href="/app">Overview</s-link>
         <s-link href="/app/registries">Registries</s-link>
+        <s-link href="/app/promotions">Promotions</s-link>
         <s-link href="/app/analytics">Analytics</s-link>
         <s-link href="/app/in-store">In-store</s-link>
         <s-link href="/app/settings">Settings</s-link>
