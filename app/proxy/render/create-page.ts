@@ -285,6 +285,12 @@ export interface AccountPageData extends PageBrand {
   createHref: string;
   /** Fresh account token, saved in this browser. Null for a store-account sign-in with no email link. */
   accountToken: string | null;
+  /**
+   * Signed in to the store account but no emailed link: registries started
+   * without signing in aren't listed, so offer the email link too (from a
+   * manage page, in one click). Only used while accountToken is null.
+   */
+  manageToken?: string | null;
 }
 
 function formatEventDate(date: Date | null): string {
@@ -303,7 +309,18 @@ export function renderAccountPage(data: AccountPageData): string {
           return `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p class="item-meta">${escapeHtml(meta)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Open</a></p></div></li>`;
         })
         .join("")}</ul>`
-    : `<p>There are no registries with this email yet.</p>`;
+    : data.accountToken
+      ? `<p>There are no registries with this email yet.</p>`
+      : `<p>No registries are linked to your store account yet.</p>`;
+  const root = data.actionUrl.replace(/\/+$/, "");
+  // Store-account sign-in only: the list holds just the registries started
+  // while signed in, so offer the email link for the rest.
+  const storeAccountOnly = data.accountToken
+    ? ""
+    : `${followSavedLink(root)}
+     <h2>Don't see one?</h2>
+     <p>Registries you started without signing in are kept under your email instead.</p>
+     ${emailLinkForm(root, data.manageToken ?? null)}`;
 
   // Remember the account link on this browser (the manage page's "My
   // registries" link uses it), and hand every registry to the storefront's
@@ -317,11 +334,12 @@ export function renderAccountPage(data: AccountPageData): string {
   return layout(
     { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `<h1>My registries</h1>
-     <p class="sub">Everything you've started at ${escapeHtml(data.shopName)} with this email. Pick one to open it.</p>
+     <p class="sub">${data.accountToken ? `Everything you've started at ${escapeHtml(data.shopName)} with this email.` : `Registries linked to your ${escapeHtml(data.shopName)} account.`} Pick one to open it.</p>
      ${list}
      <p style="margin-top:24px"><a class="btn" href="${escapeAttr(data.createHref)}">Start another registry</a></p>
      <p class="hint">A new registry made with the same email shows up here on its own. Keep this page's link to yourself: anyone who has it can edit these registries.</p>
-     ${remember}`,
+     ${remember}
+     ${storeAccountOnly}`,
   );
 }
 
@@ -333,24 +351,37 @@ export function renderAccountPage(data: AccountPageData): string {
  * owner's other registries.
  */
 export function renderAccountSignInPage(data: PageBrand & { actionUrl: string; manageToken: string | null; expired: boolean }): string {
-  const ask = data.manageToken
-    ? `<form method="post" action="${escapeAttr(data.actionUrl)}/account-link?t=${encodeURIComponent(data.manageToken)}" class="note">
+  return layout(
+    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `${data.expired ? forgetSavedLink() : followSavedLink(data.actionUrl)}
+     <h1>My registries</h1>
+     <p class="sub">${data.expired ? "That link has expired. " : ""}See every registry you've started here with one email. For your privacy, we send the link to your inbox.</p>
+     ${emailLinkForm(data.actionUrl, data.manageToken)}`,
+  );
+}
+
+/**
+ * One click from a manage page (goes to that registry's own email), or type
+ * the email.
+ */
+function emailLinkForm(actionUrl: string, manageToken: string | null): string {
+  return manageToken
+    ? `<form method="post" action="${escapeAttr(actionUrl)}/account-link?t=${encodeURIComponent(manageToken)}" class="note">
          <p style="margin:0 0 10px">We'll email a link to all your registries to the address on this one.</p>
          <button class="btn" type="submit">Email me the link</button>
        </form>`
-    : `<form method="post" action="${escapeAttr(data.actionUrl)}/resend" class="note">
+    : `<form method="post" action="${escapeAttr(actionUrl)}/resend" class="note">
          <label for="a-email">Your email</label>
          <input id="a-email" type="email" name="email" required>
          <div class="row" style="margin-top:16px"><button class="btn" type="submit">Email me my registries</button></div>
        </form>`;
-  const redirect = data.expired
-    ? `<script>try{localStorage.removeItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)})}catch(_){}</script>`
-    : `<script>(function(){try{var a=localStorage.getItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)});if(a)location.replace(${JSON.stringify(`${data.actionUrl}/account?a=`)}+encodeURIComponent(a));}catch(_){}})();</script>`;
-  return layout(
-    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
-    `${redirect}
-     <h1>My registries</h1>
-     <p class="sub">${data.expired ? "That link has expired. " : ""}See every registry you've started here with one email. For your privacy, we send the link to your inbox.</p>
-     ${ask}`,
-  );
+}
+
+/** This browser opened an emailed My registries link before: go straight there. */
+function followSavedLink(actionUrl: string): string {
+  return `<script>(function(){try{var a=localStorage.getItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)});if(a)location.replace(${JSON.stringify(`${actionUrl}/account?a=`)}+encodeURIComponent(a));}catch(_){}})();</script>`;
+}
+
+function forgetSavedLink(): string {
+  return `<script>try{localStorage.removeItem(${JSON.stringify(ACCOUNT_STORAGE_KEY)})}catch(_){}</script>`;
 }

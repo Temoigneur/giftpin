@@ -35,9 +35,11 @@ describe("My registries page", () => {
   });
 
   it("has an empty state", () => {
-    const empty = renderAccountPage({ ...brand, actionUrl: "/a", registries: [], createHref: "/a", accountToken: null });
+    const empty = renderAccountPage({ ...brand, actionUrl: "/a", registries: [], createHref: "/a", accountToken: "ACC" });
     expect(empty).toContain("no registries with this email yet");
-    expect(empty).not.toContain(ACCOUNT_STORAGE_KEY);
+    // Never saves a token it wasn't given.
+    const none = renderAccountPage({ ...brand, actionUrl: "/a", registries: [], createHref: "/a", accountToken: null });
+    expect(none).not.toContain("localStorage.setItem(\"giftpin.account\"");
   });
 });
 
@@ -83,5 +85,35 @@ describe("manage page", () => {
     };
     expect(renderManagePage(base)).not.toContain(">My registries<");
     expect(renderManagePage({ ...base, myRegistriesUrl: "/apps/registry/account?t=T" })).toContain('href="/apps/registry/account?t=T">My registries<');
+  });
+});
+
+describe("signed in to the store account, no emailed link", () => {
+  // Ben, 5 Nov 2026: My registries from the manage page showed no
+  // "Email me the link" while signed in to the store, so registries started
+  // without signing in could never be reached from there.
+  const html = renderAccountPage({
+    ...brand,
+    actionUrl: "/apps/registry",
+    registries: [],
+    createHref: "/apps/registry",
+    accountToken: null,
+    manageToken: "MT",
+  });
+
+  it("still offers the one-click email link", () => {
+    expect(html).toContain('action="/apps/registry/account-link?t=MT"');
+    expect(html).toContain("Email me the link");
+    expect(html).toContain("No registries are linked to your store account yet");
+  });
+
+  it("goes to a saved emailed link if this browser has one", () => {
+    expect(html).toContain("location.replace");
+  });
+
+  it("isn't offered once the emailed link is in use", () => {
+    const withLink = renderAccountPage({ ...brand, actionUrl: "/apps/registry", registries: [], createHref: "/a", accountToken: "ACC", manageToken: "MT" });
+    expect(withLink).not.toContain("account-link");
+    expect(withLink).not.toContain("location.replace");
   });
 });

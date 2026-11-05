@@ -633,14 +633,15 @@ async function accountPage(ctx: ProxyContext, shop: ShopRecord, brand: Brand): P
   const rawAccount = ctx.query.get("a");
   const emailHash = readAccountToken(rawAccount, shop.id);
   const customerId = ctx.loggedInCustomerId ? String(ctx.loggedInCustomerId) : null;
+  const rawManage = ctx.query.get("t");
+  const manageToken = readManageGrant(rawManage) ? rawManage : null;
 
   if (!emailHash && !customerId) {
-    const manageToken = ctx.query.get("t");
     return page(
       renderAccountSignInPage({
         ...brand,
         actionUrl: ctx.pathPrefix.replace(/\/+$/, ""),
-        manageToken: readManageGrant(manageToken) ? manageToken : null,
+        manageToken,
         expired: Boolean(rawAccount),
       }),
       rawAccount ? 403 : 200,
@@ -656,6 +657,7 @@ async function accountPage(ctx: ProxyContext, shop: ShopRecord, brand: Brand): P
       registries: registries.map((r) => ({ ...r, href: proxyUrl(ctx, "manage", { t: r.token }) })),
       createHref: fresh ? proxyUrl(ctx, "", { a: fresh }) : ctx.pathPrefix,
       accountToken: fresh,
+      manageToken,
     }),
   );
 }
