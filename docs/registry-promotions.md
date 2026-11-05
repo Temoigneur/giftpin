@@ -52,3 +52,12 @@ scaffold. The logic is plain TypeScript in `src/registry_discount.ts` (tested by
 re-exports it for the build. Verified with Shopify CLI 3.85: GraphQL types
 generate against the schema and the JS bundles. The last step (javy → wasm) needs
 Shopify's CDN, so the first full build happens on your `shopify app deploy`.
+
+## Verified live (5 Nov 2026, giftpin-merchant-view, Bogus gateway)
+- Function built and released with `shopify app deploy` (needed extension-level
+  `[extensions.input.variables]` on Ben's older CLI).
+- Registry sale created from the Promotions page (20% off, all products).
+- Standard checkout, item added from a registry: 20% off applied.
+- Same product added from its own product page: full price.
+Still to check: Shop Pay (registro-dev), coupon with a code, collection and
+min-quantity deals, pause on downgrade, banner and price tags (need #106 live).
