@@ -19,7 +19,7 @@ import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/sup
  */
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { session, billing, admin } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
 
   // Display-only freshness check against Shopify's own record, in case a
@@ -46,10 +46,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     liveSubscriptionName,
     founding:
       shop.plan !== "pro" && (await foundingOfferEligible(shop))
-        ? { trialDays: foundingTrialDays(shop.installedAt) }
+        ? { trialDays: foundingTrialDays(shop.installedAt, await primaryDomainHost(admin)) }
         : null,
   };
 };
+
+/**
+ * The store's primary domain (e.g. "bergodesigns.ca"), used only to honour
+ * the free year promised to the stores Ben emailed on 30 Oct 2026 (see
+ * FOUNDING_YEAR_PROMISED_DOMAINS). Null if Shopify doesn't answer, which
+ * falls back to the normal founding trial.
+ */
+async function primaryDomainHost(admin: { graphql: (query: string) => Promise<Response> }): Promise<string | null> {
+  try {
+    const res = await admin.graphql(`#graphql
+      query FoundingPrimaryDomain { shop { primaryDomain { host } } }`);
+    const json = (await res.json()) as { data?: { shop?: { primaryDomain?: { host?: string } } } };
+    return json.data?.shop?.primaryDomain?.host ?? null;
+  } catch (err) {
+    console.error("[billing] primary domain lookup failed:", (err as Error).message);
+    return null;
+  }
+}
 
 /** "a year" or "6 months"; just "year" after "your first" or "free". */
 function foundingPeriod(trialDays: number, afterFirst = false): string {
@@ -58,7 +76,7 @@ function foundingPeriod(trialDays: number, afterFirst = false): string {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { session, billing, admin } = await authenticate.admin(request);
   const form = await request.formData();
   const intent = String(form.get("intent"));
 
@@ -73,7 +91,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const trialDays = shop.devStore
       ? 0
       : (await foundingOfferEligible(shop))
-        ? foundingTrialDays(shop.installedAt)
+        ? foundingTrialDays(shop.installedAt, await primaryDomainHost(admin))
         : PRO_TRIAL_DAYS;
     return billing.request({ plan: PRO_PLAN, isTest: BILLING_IS_TEST || shop.devStore, trialDays });
   }
