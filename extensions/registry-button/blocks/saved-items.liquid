@@ -1,0 +1,38 @@
+{% comment %}
+  "Saved items" — app block listing what this shopper hearted with the
+  "Save for later" block. Put it on a page, the cart page or the homepage.
+  The list lives in the shopper's browser, so it is empty on a new device.
+{% endcomment %}
+
+<section
+  class="giftpin-saved"
+  data-giftpin-saved-root
+  data-product-base="{{ routes.root_url | append: 'products/' }}"
+  data-label-remove="{{ 'save_for_later.remove' | t | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.heading != blank -%}
+    <h2 class="giftpin-saved__heading">{{ block.settings.heading | escape }}</h2>
+  {%- endif -%}
+  <p class="giftpin-saved__empty" data-giftpin-saved-empty>{{ block.settings.empty_text | default: 'Nothing saved yet. Tap the heart on a product to keep it here.' | escape }}</p>
+  <ul class="giftpin-saved__list" data-giftpin-saved-list></ul>
+</section>
+
+{{ 'giftpin-saved.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'giftpin-saved.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Saved items",
+  "target": "section",
+  "stylesheet": "giftpin-saved.css",
+  "javascript": "giftpin-saved.js",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Saved for later" },
+    {
+      "type": "text", "id": "empty_text", "label": "Text when nothing is saved",
+      "default": "Nothing saved yet. Tap the heart on a product to keep it here."
+    }
+  ]
+}
+{% endschema %}
