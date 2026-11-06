@@ -271,4 +271,6 @@ export const frManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.msg": "Message (facultatif)",
   "manage.gc.add": "Ajouter au panier",
   "manage.gc.hint": "Vous payez à la caisse de {shop}, et la carte-cadeau se dépense ici. Si vous préférez l'envoyer vous-même, laissez la case décochée et la carte vous sera envoyée. Shopify n'envoie pas de cartes-cadeaux à quelqu'un d'autre quand vous payez avec Shop Pay : utilisez alors le bouton de paiement habituel.",
+  "manage.lang.label": "Langue de cette liste",
+  "manage.lang.hint": "Les invités voient la page de la liste, et les courriels de la liste sont envoyés, dans cette langue. Les noms et notes que vous saisissez restent tels que vous les avez écrits.",
 };

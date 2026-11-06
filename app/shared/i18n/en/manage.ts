@@ -269,4 +269,6 @@ export const enManage = {
   "manage.gc.msg": "Message (optional)",
   "manage.gc.add": "Add to cart",
   "manage.gc.hint": "You pay at {shop}'s checkout, and the gift card is spent here. If you'd rather send it yourself, leave the box unticked and the card comes to you. Shopify doesn't send gift cards to someone else when you pay with Shop Pay, so use the regular Check out button for that.",
+  "manage.lang.label": "Language of this registry",
+  "manage.lang.hint": "Guests see the registry page, and registry emails go out, in this language. The names and notes you type stay as you wrote them.",
 } as const;

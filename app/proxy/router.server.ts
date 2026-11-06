@@ -9,18 +9,18 @@ import {
   type ProxyContext,
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
-import { withLocale } from "../lib/i18n.server";
-import { currentLocale, t, type MessageKey } from "../shared/i18n";
+import { withLocale, overrideLocale } from "../lib/i18n.server";
+import { currentLocale, registryLanguageFrom, t, type MessageKey } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
 import { isDatelessOccasion } from "../shared/settings";
 import {
-  findBySlug,
+  findBySlug as findBySlugRaw,
   findVersionBySlug,
   findByEmail,
   createRegistry,
-  authorizeManage,
+  authorizeManage as authorizeManageRaw,
   mintManageToken,
   readManageToken,
   updateRegistry,
@@ -131,6 +131,24 @@ import { queueFlowTrigger } from "../models/flow.server";
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
 
+/**
+ * A registry can have a language of its own (Registry.language; null follows
+ * the store). Once a request has found its registry, the rest of it is in
+ * that language: the page, its error messages and its emails.
+ */
+function inRegistryLanguage<T extends { language?: string | null } | null>(registry: T): T {
+  if (registry) overrideLocale(registry.language);
+  return registry;
+}
+
+async function findBySlug(...args: Parameters<typeof findBySlugRaw>) {
+  return inRegistryLanguage(await findBySlugRaw(...args));
+}
+
+async function authorizeManage(...args: Parameters<typeof authorizeManageRaw>) {
+  return inRegistryLanguage(await authorizeManageRaw(...args));
+}
+
 export async function handleProxyRequest(request: Request): Promise<Response> {
   let ctx: ProxyContext;
   try {
@@ -184,6 +202,7 @@ async function routeProxyRequest(
           ...brand,
           actionUrl: ctx.pathPrefix,
           enabledEventTypes: settings.eventTypes,
+          languageChoice: settings.registryLanguageChoice ? settings.language : null,
           perks: perksFor(shop, settings, await shopDeals(shop, settings)),
           values: profile ? { registrantName: profile.name, registrantEmail: profile.email } : undefined,
         }));
@@ -569,6 +588,8 @@ async function managePage(
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings, await shopDeals(shop, settings)),
       enabledEventTypes: settings.eventTypes,
+      languageChoice: settings.registryLanguageChoice,
+      language: registry.language ?? settings.language,
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
       currency: shop.currency,
@@ -922,7 +943,7 @@ async function handlePost(
     case "match-preview":
       return matchPreviewAction(request, ctx);
     case "settings":
-      return settingsAction(request, ctx);
+      return settingsAction(request, ctx, settings);
     case "shipping":
       return shippingAction(request, ctx);
     case "partner":
@@ -947,7 +968,7 @@ async function createRegistryAction(
 ): Promise<Response> {
   const form = await request.formData();
   const values = Object.fromEntries(
-    ["eventType", "title", "eventDate", "registrantName", "registrantEmail", "message", "country"].map((k) => [
+    ["eventType", "title", "eventDate", "registrantName", "registrantEmail", "message", "country", "language"].map((k) => [
       k,
       String(form.get(k) ?? ""),
     ]),
@@ -960,6 +981,7 @@ async function createRegistryAction(
         ...brand,
         actionUrl: ctx.pathPrefix,
         enabledEventTypes: settings.eventTypes,
+        languageChoice: settings.registryLanguageChoice ? settings.language : null,
         perks: perksFor(shop, settings, await shopDeals(shop, settings)),
         error: t("server.createInvalid"),
         values,
@@ -978,7 +1000,10 @@ async function createRegistryAction(
     registrantName: values.registrantName.trim(),
     registrantEmail: email,
     country: normalizeCountry(values.country),
+    language: registryLanguageFrom(values.language, settings.language, settings.registryLanguageChoice),
   });
+  // The first email and the page it lands on are in the language just chosen.
+  overrideLocale(registry.language);
 
   const manageUrl = absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", {
     t: mintManageToken(registry.id),
@@ -1789,7 +1814,7 @@ async function removeItemAction(request: Request, ctx: ProxyContext): Promise<Re
   }
 }
 
-async function settingsAction(request: Request, ctx: ProxyContext): Promise<Response> {
+async function settingsAction(request: Request, ctx: ProxyContext, settings: ShopSettings): Promise<Response> {
   const registry = await requireManage(ctx);
   if (!registry) return new Response("Unauthorized", { status: 403 });
 
@@ -1804,6 +1829,9 @@ async function settingsAction(request: Request, ctx: ProxyContext): Promise<Resp
     eventDate: eventDate && !isDatelessOccasion(eventType) ? new Date(`${eventDate}T00:00:00Z`) : null,
     message: String(form.get("message") ?? "").slice(0, 2000) || null,
     country: normalizeCountry(form.get("country")),
+    ...(settings.registryLanguageChoice && form.has("language")
+      ? { language: registryLanguageFrom(form.get("language"), settings.language, true) }
+      : {}),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",
     // Being listed and being indexable are the same decision, and it is always
     // an explicit opt-in by the registrant.

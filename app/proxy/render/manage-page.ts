@@ -12,7 +12,7 @@ import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../sha
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
 import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
-import { renderPerks } from "./create-page";
+import { renderPerks, renderLanguagePicker } from "./create-page";
 import { isSoldOutStoreItem } from "../../lib/stock";
 import { qrSvg } from "./qr";
 
@@ -99,6 +99,10 @@ export interface ManagePageData {
   perks?: string[];
   /** The shop's switched-on occasions; an opt-in one (wish list) is only offered when listed here. */
   enabledEventTypes?: string[];
+  /** The store lets registrants pick their registry's language. */
+  languageChoice?: boolean;
+  /** This registry's language (its own, or the store's). */
+  language?: string;
   /** In-store barcode scanning on the registrant's phone (Pro). */
   scanner?: boolean;
   /** Barcode reader for phones without a built-in one; null = typing the number only. */
@@ -320,7 +324,9 @@ function renderPreferences(data: ManagePageData): string {
     ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${normalizeCountry(data.country) === c.code ? " selected" : ""}>${escapeHtml(countryName(c.code, c.label))}</option>`).join("")}
   </select>
   <p class="hint">${T("manage.prefs.shopHint")}</p>
-
+${data.languageChoice ? `
+  ${renderLanguagePicker("f-language", data.language ?? "en")}
+` : ""}
   <label for="f-privacy">${T("manage.prefs.who")}</label>
   <select id="f-privacy" name="privacy">
     <option value="unlisted"${data.privacy === "unlisted" ? " selected" : ""}>${T("manage.prefs.priv.unlisted")}</option>

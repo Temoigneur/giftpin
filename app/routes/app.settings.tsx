@@ -115,6 +115,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       Math.max(10, Number(form.get("externalItemsCapPercent") ?? 60)),
     ),
     language: toLocale(form.get("language")),
+    registryLanguageChoice: form.get("registryLanguageChoice") === "on",
     accentColor: /^#[0-9a-fA-F]{6}$/.test(String(form.get("accentColor")))
       ? String(form.get("accentColor"))
       : "#1a1a1a",
@@ -338,6 +339,12 @@ export default function Settings() {
               </s-option>
             ))}
           </s-select>
+          <s-checkbox
+            name="registryLanguageChoice"
+            label="Let registrants choose a language for their own registry"
+            details="Adds a language picker to the create and manage pages, so a registrant can show their registry and its emails in another language. Off, every registry follows the language above."
+            {...(settings.registryLanguageChoice ? { checked: true } : {})}
+          />
           <s-text-field
             name="buttonLabel"
             label="Button label"

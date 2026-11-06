@@ -271,4 +271,6 @@ export const ptBRManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.msg": "Mensagem (opcional)",
   "manage.gc.add": "Adicionar ao carrinho",
   "manage.gc.hint": "Você paga no checkout de {shop} e o vale-presente é usado aqui. Se preferir enviá-lo você mesmo, deixe a caixa desmarcada e o vale chega para você. A Shopify não envia vales-presente para outra pessoa quando você paga com Shop Pay, então use o botão normal de finalizar compra para isso.",
+  "manage.lang.label": "Idioma desta lista",
+  "manage.lang.hint": "Os convidados veem a página da lista, e os e-mails da lista são enviados, neste idioma. Os nomes e observações que você digita ficam como você escreveu.",
 };
