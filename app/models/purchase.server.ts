@@ -344,19 +344,14 @@ async function notifyRegistrant(
     detail: { purpose: "gift_purchased_notification" },
   });
 
-  const buyerLine = gift.hidden
-    ? "We'll tell you who it was after the event."
-    : gift.buyerName
-      ? `From ${gift.buyerName}.`
-      : "The buyer chose not to share their name.";
-
   for (const { registrant, email } of recipients) {
     await sendEmail("gift-purchased", email, {
       eventType: registry.eventType,
       itemTitle: gift.itemTitle,
       qty: gift.qty,
       desiredQty: gift.desiredQty,
-      buyerLine,
+      // Worded by the email template, in the store's language.
+      buyer: { hidden: gift.hidden, name: gift.buyerName },
       url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
         t: manageTokenFor(registry.id, registrant),
       }),
@@ -392,18 +387,12 @@ async function notifyRegistrantOfContribution(
     detail: { purpose: "contribution_notification" },
   });
 
-  const buyerLine = gift.hidden
-    ? "We'll tell you who it was after the event."
-    : gift.buyerName
-      ? `From ${gift.buyerName}.`
-      : "They chose not to share their name.";
-
   await sendEmail("gift-contribution", email, {
     eventType: registry.eventType,
     itemTitle: gift.itemTitle,
     amount: gift.amount,
     currency: gift.currency,
-    buyerLine,
+    buyer: { hidden: gift.hidden, name: gift.buyerName },
     sentToRegistrant: gift.sentToRegistrant,
     url: absoluteProxyUrl(shopDomain, "/apps/registry", "manage", {
       t: mintManageToken(registry.id),

@@ -21,6 +21,7 @@ import {
   contrastRatio,
 } from "../shared/branding";
 import { listGiftCardProducts } from "../lib/contribution-product.server";
+import { LOCALES, LOCALE_NAMES, toLocale } from "../shared/i18n";
 import { PERKS_MAX_LENGTH, PERKS_MAX_LINES, cleanPerks } from "../shared/perks";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 import { GIFT_CARD_BLURB_MAX, MAX_LISTED_GIFT_CARD, cleanGiftCardBlurb, listedGiftCardAmounts } from "../shared/gift-card-listing";
@@ -113,6 +114,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       95,
       Math.max(10, Number(form.get("externalItemsCapPercent") ?? 60)),
     ),
+    language: toLocale(form.get("language")),
     accentColor: /^#[0-9a-fA-F]{6}$/.test(String(form.get("accentColor")))
       ? String(form.get("accentColor"))
       : "#1a1a1a",
@@ -324,6 +326,18 @@ export default function Settings() {
         </s-section>
 
         <s-section heading="Appearance">
+          <s-select
+            name="language"
+            label="Registry page language"
+            value={settings.language}
+            details="The language guests see on registry pages and in registry emails. The text you type, like registry names and product titles, is shown as entered."
+          >
+            {LOCALES.map((code) => (
+              <s-option key={code} value={code}>
+                {LOCALE_NAMES[code]}
+              </s-option>
+            ))}
+          </s-select>
           <s-text-field
             name="buttonLabel"
             label="Button label"

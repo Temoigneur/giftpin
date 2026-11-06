@@ -1,5 +1,8 @@
 import { registerHandler, enqueue } from "./queue.server";
-import { listNoun } from "../shared/settings";
+import { t, tn, tNoun, type MessageKey } from "../shared/i18n";
+import { withLocale } from "./i18n.server";
+import db from "../db.server";
+import { settingsFor } from "../models/shop.server";
 
 /**
  * Transactional email.
@@ -82,92 +85,109 @@ function escapeAttr(value: string): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TemplateFn = (data: Record<string, any>) => Mail;
 
+type Vars = Record<string, string | number>;
+
+/** `t()` for an `Html` message: string vars are escaped, `raw` ones are trusted markup. */
+function h(key: MessageKey, vars: Vars = {}, raw: Vars = {}): string {
+  const safe: Vars = {};
+  for (const [k, v] of Object.entries(vars)) safe[k] = typeof v === "string" ? escapeHtml(v) : v;
+  return t(key, { ...safe, ...raw });
+}
+
+const strong = (value: string) => `<strong>${escapeHtml(value)}</strong>`;
+
+/** "From Sam." etc. `buyerLine` (already written) wins, for callers that predate `buyer`. */
+function buyerText(d: Record<string, any>, anonymousKey: "email.buyer.anonymous" | "email.buyer.anonymousContribution"): string {
+  if (typeof d.buyerLine === "string" && d.buyerLine) return d.buyerLine;
+  const buyer = d.buyer as { hidden?: boolean; name?: string | null } | undefined;
+  if (buyer?.hidden) return t("email.buyer.hidden");
+  if (buyer?.name) return t("email.buyer.named", { name: buyer.name });
+  return t(anonymousKey);
+}
+
 const templates: Record<string, TemplateFn> = {
   /** Magic link — the only way a registrant gets back into their registry. */
-  "registry-link": (d) => {
-    const noun = listNoun(d.eventType);
-    return {
-      to: d.to,
-      // A wish list's title usually says "wish list" already ("Sam's Wish List").
-      subject: noun === "registry" ? `Your ${d.registryTitle} registry` : `Your wish list: ${d.registryTitle}`,
-      text: `Open your ${noun}: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit your ${noun}, so keep it to yourself.`,
-      html: shell(
-        `Here's your ${noun}`,
-        `<p>Use this link whenever you want to add items or see what's been bought.</p>
-         <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit your ${noun} — so keep it to yourself. The <em>share</em> link you send to guests is different and is view-only.</p>`,
-        { label: `Open my ${noun}`, url: d.url },
-      ),
-    };
-  },
+  "registry-link": (d) => ({
+    to: d.to,
+    // A wish list's title usually says "wish list" already ("Sam's Wish List").
+    subject: tNoun("email.link.subject", d.eventType, { title: d.registryTitle }),
+    text: tNoun("email.link.text", d.eventType, { url: d.url }),
+    html: shell(
+      tNoun("email.link.heading", d.eventType),
+      `<p>${t("email.link.useHtml")}</p>
+         <p style="color:#6b6b6b;font-size:13px">${tNoun("email.link.noteHtml", d.eventType)}</p>`,
+      { label: tNoun("email.link.cta", d.eventType), url: d.url },
+    ),
+  }),
 
   /** "My registries": one link to every registry this email holds at the store. */
   "registry-account": (d) => {
     const titles: string[] = Array.isArray(d.titles) ? d.titles.map(String) : [];
-    const shopName = String(d.shopName ?? "the store");
+    const shopName = String(d.shopName ?? t("email.account.defaultShop"));
     return {
       to: d.to,
-      subject: `Your registries at ${shopName}`,
-      text: `See all your registries at ${shopName}: ${d.url}\n\n${titles.map((t) => `- ${t}`).join("\n")}\n\nThis link works for 90 days. Anyone with it can edit these registries, so keep it to yourself.`,
+      subject: t("email.account.subject", { shop: shopName }),
+      text: `${t("email.account.text", { shop: shopName, url: d.url })}\n\n${titles.map((x) => `- ${x}`).join("\n")}\n\n${t("email.account.textNote")}`,
       html: shell(
-        "Your registries",
-        `<p>Here's one link to every registry you've started at ${escapeHtml(shopName)} with this email:</p>
-         <ul>${titles.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
-         <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit these registries, so keep it to yourself. Registries you start later with this email show up there too.</p>`,
-        { label: "See my registries", url: d.url },
+        t("email.account.heading"),
+        `<p>${h("email.account.introHtml", { shop: shopName })}</p>
+         <ul>${titles.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+         <p style="color:#6b6b6b;font-size:13px">${t("email.account.noteHtml")}</p>`,
+        { label: t("email.account.cta"), url: d.url },
       ),
     };
   },
 
   /** A registrant added their partner. Their own link, so it can be revoked. */
   "registry-partner": (d) => {
-    const who = d.inviterName ? `${d.inviterName} added you` : "You've been added";
+    const named = Boolean(d.inviterName);
+    const form = named ? "named" : "unnamed";
+    const vars = { name: String(d.inviterName ?? ""), title: d.registryTitle, shop: d.shopName };
     return {
       to: d.to,
-      subject: `${who} to the ${d.registryTitle} registry`,
-      text: `${who} to the ${d.registryTitle} registry at ${d.shopName}. You can add gifts and see what's been bought.\n\nOpen the registry: ${d.url}\n\nThis link works for 90 days. Anyone with it can edit the registry, so keep it to yourself. If it expires, ask for a new one on the store's registry page with this email address.`,
+      subject: t(`email.partner.subject.${form}`, vars),
+      text: `${t(`email.partner.lead.${form}`, vars)} ${t("email.partner.then")}\n\n${t("email.partner.open", { url: d.url })}\n\n${t("email.partner.textNote")}`,
       html: shell(
-        `${who} to a registry`,
-        `<p>${escapeHtml(who)} to the <strong>${escapeHtml(d.registryTitle)}</strong> registry at ${escapeHtml(d.shopName)}. You can add gifts and see what's been bought.</p>
-       <p style="color:#6b6b6b;font-size:13px">The link works for 90 days, and anyone who has it can edit the registry, so keep it to yourself. If it expires, ask for a new one on the store's registry page with this email address.</p>`,
-        { label: "Open the registry", url: d.url },
+        t(`email.partner.heading.${form}`, vars),
+        `<p>${h(`email.partner.lead.${form}`, { name: vars.name, shop: vars.shop }, { title: strong(vars.title) })} ${t("email.partner.then")}</p>
+       <p style="color:#6b6b6b;font-size:13px">${t("email.partner.noteHtml")}</p>`,
+        { label: t("email.partner.cta"), url: d.url },
       ),
     };
   },
 
   /** The moment that sells the app. */
   "gift-purchased": (d) => {
-    const noun = listNoun(d.eventType);
+    const buyer = buyerText(d, "email.buyer.anonymous");
     return {
       to: d.to,
-      subject: `Someone bought ${d.itemTitle}`,
-      text: `${d.buyerLine}\n\n${d.itemTitle} — ${d.qty} of ${d.desiredQty}\n\nSee your ${noun}: ${d.url}`,
+      subject: t("email.purchased.subject", { item: d.itemTitle }),
+      text: tNoun("email.purchased.text", d.eventType, { buyer, item: d.itemTitle, qty: d.qty, desired: d.desiredQty, url: d.url }),
       html: shell(
-        "You've been given a gift",
+        t("email.purchased.heading"),
         `<p><strong>${escapeHtml(d.itemTitle)}</strong></p>
-         <p>${escapeHtml(d.buyerLine)}</p>
+         <p>${escapeHtml(buyer)}</p>
          ${d.buyerMessage ? `<blockquote style="margin:16px 0;padding:12px 16px;background:#fff;border-left:3px solid #ddd;border-radius:4px">${escapeHtml(d.buyerMessage)}</blockquote>` : ""}`,
-        { label: `See your ${noun}`, url: d.url },
+        { label: tNoun("email.purchased.cta", d.eventType), url: d.url },
       ),
     };
   },
 
   /** A guest chipped in toward a group gift or fund (SPIKE-C.md). */
   "gift-contribution": (d) => {
-    const noun = listNoun(d.eventType);
-    const money = d.amount ? `${Number(d.amount).toFixed(2)} ${d.currency}` : "A gift card";
-    const where = d.sentToRegistrant
-      ? "The gift card itself comes in a separate email from the store, usually to this address. If your guest paid with Shop Pay, it went to them instead, so they can pass it on to you."
-      : "The gift card was emailed to your guest, so they can pass it on to you.";
+    const money = d.amount ? `${Number(d.amount).toFixed(2)} ${d.currency}` : t("email.contribution.moneyFallback");
+    const where = t(d.sentToRegistrant ? "email.contribution.where.toRegistrant" : "email.contribution.where.toGuest");
+    const buyer = buyerText(d, "email.buyer.anonymousContribution");
     return {
       to: d.to,
-      subject: `Someone chipped in toward ${d.itemTitle}`,
-      text: `${money} toward ${d.itemTitle}.\n\n${d.buyerLine}\n\n${where}\n\nSee your ${noun}: ${d.url}`,
+      subject: t("email.contribution.subject", { item: d.itemTitle }),
+      text: tNoun("email.contribution.text", d.eventType, { money, item: d.itemTitle, buyer, where, url: d.url }),
       html: shell(
-        "Someone chipped in",
-        `<p><strong>${escapeHtml(money)}</strong> toward <strong>${escapeHtml(d.itemTitle)}</strong>.</p>
-         <p>${escapeHtml(d.buyerLine)}</p>
+        t("email.contribution.heading"),
+        `<p>${h("email.contribution.leadHtml", {}, { money: strong(money), item: strong(d.itemTitle) })}</p>
+         <p>${escapeHtml(buyer)}</p>
          <p style="color:#6b6b6b;font-size:13px">${escapeHtml(where)}</p>`,
-        { label: `See your ${noun}`, url: d.url },
+        { label: tNoun("email.contribution.cta", d.eventType), url: d.url },
       ),
     };
   },
@@ -175,27 +195,27 @@ const templates: Record<string, TemplateFn> = {
   /** Sent to a guest who clicked through to an external retailer. */
   "claim-followup": (d) => ({
     to: d.to,
-    subject: `Did you buy ${d.itemTitle}?`,
-    text: `You headed to ${d.domain} for "${d.itemTitle}". Let us know so nobody buys it twice:\n\nYes, I bought it: ${d.confirmUrl}\nNo, I didn't: ${d.releaseUrl}`,
+    subject: t("email.followup.subject", { item: d.itemTitle }),
+    text: t("email.followup.text", { domain: d.domain, item: d.itemTitle, confirmUrl: d.confirmUrl, releaseUrl: d.releaseUrl }),
     html: shell(
-      "Did you end up buying it?",
-      `<p>You headed to <strong>${escapeHtml(d.domain)}</strong> for <strong>${escapeHtml(d.itemTitle)}</strong>. We've held it on the registry so nobody buys it twice — but only for a little longer.</p>`,
-      { label: "Yes, I bought it", url: d.confirmUrl },
+      t("email.followup.heading"),
+      `<p>${h("email.followup.bodyHtml", {}, { domain: strong(d.domain), item: strong(d.itemTitle) })}</p>`,
+      { label: t("email.followup.cta"), url: d.confirmUrl },
     ).replace(
       "</div></body>",
-      `<p style="font-size:13px"><a href="${escapeAttr(d.releaseUrl)}" style="color:#6b6b6b">No, I didn't buy it — put it back</a></p></div></body>`,
+      `<p style="font-size:13px"><a href="${escapeAttr(d.releaseUrl)}" style="color:#6b6b6b">${escapeHtml(t("email.followup.release"))}</a></p></div></body>`,
     ),
   }),
 
   /** Nudge before the event so leftover items get bought. */
   "event-reminder": (d) => ({
     to: d.to,
-    subject: `${d.registryTitle} — ${d.remaining} items still unclaimed`,
-    text: `Your event is coming up and ${d.remaining} items haven't been bought yet.\n\n${d.url}`,
+    subject: tn("email.eventReminder.subject", d.remaining, { title: d.registryTitle }),
+    text: tn("email.eventReminder.text", d.remaining, { url: d.url }),
     html: shell(
-      "Your event is coming up",
-      `<p><strong>${d.remaining}</strong> items on your registry haven't been bought yet. Now is a good time to share the link again, or trim anything you've changed your mind about.</p>`,
-      { label: "Open my registry", url: d.url },
+      t("email.eventReminder.heading"),
+      `<p>${h("email.eventReminder.bodyHtml_" + (d.remaining === 1 ? "one" : "other") as MessageKey, {}, { n: `<strong>${d.remaining}</strong>` })}</p>`,
+      { label: t("email.eventReminder.cta"), url: d.url },
     ),
   }),
 
@@ -204,52 +224,55 @@ const templates: Record<string, TemplateFn> = {
   // -------------------------------------------------------------------------
 
   /** To a guest who asked to be reminded. Must always carry the unsubscribe link. */
-  "guest-event-reminder": (d) => ({
-    to: d.to,
-    subject: `${d.registryTitle} is ${inDays(d.days)}`,
-    text: `${d.registryTitle} is ${inDays(d.days)}. ${d.remaining > 0 ? `${d.remaining} ${plural(d.remaining, "gift is", "gifts are")} still on the registry.` : "Every gift on the registry has been taken care of."}\n\nSee the registry: ${d.url}\n\nYou asked ${d.shopName} to remind you. Stop these emails: ${d.unsubscribeUrl}`,
-    html: withFooter(
-      shell(
-        `${d.registryTitle} is ${inDays(d.days)}`,
-        `<p>You asked us to remind you before the big day.</p>
-         <p>${d.remaining > 0 ? `<strong>${d.remaining}</strong> ${plural(d.remaining, "gift is", "gifts are")} still on the registry, so there's still time to pick something.` : "Every gift on the registry has been taken care of, but the list is still there if you'd like to look."}</p>`,
-        { label: "See the registry", url: d.url },
-      ),
-      `You're getting this because you asked ${escapeHtml(d.shopName)} to remind you about this registry. <a href="${escapeAttr(d.unsubscribeUrl)}" style="color:#6b6b6b">Stop these emails</a>`,
-    ),
-  }),
-
-  /** Registrant: most of the list is bought, so add more before late guests arrive. */
-  "most-gone": (d) => {
-    const noun = listNoun(d.eventType);
+  "guest-event-reminder": (d) => {
+    const when = inDays(d.days);
+    const left = d.remaining > 0 ? tn("email.guestReminder.left", d.remaining) : t("email.guestReminder.none");
     return {
       to: d.to,
-      subject: `${d.fulfilled} of ${d.total} gifts on ${d.registryTitle} are taken care of`,
-      text: `Most of your ${noun} has been bought: ${d.fulfilled} of ${d.total} gifts. Guests who haven't chosen yet will have more to pick from if you add a few more items.\n\nOpen your ${noun}: ${d.url}`,
-      html: shell(
-        `Most of your ${noun} is gone`,
-        `<p><strong>${d.fulfilled} of ${d.total}</strong> gifts on your ${noun} have been taken care of.</p>
-         <p>Guests who haven't chosen yet will have more to pick from if you add a few more items now.</p>`,
-        { label: "Add more items", url: d.url },
+      subject: t("email.guestReminder.subject", { title: d.registryTitle, when }),
+      text: t("email.guestReminder.text", { title: d.registryTitle, when, left, url: d.url, shop: d.shopName, unsubscribe: d.unsubscribeUrl }),
+      html: withFooter(
+        shell(
+          t("email.guestReminder.subject", { title: d.registryTitle, when }),
+          `<p>${t("email.guestReminder.introHtml")}</p>
+         <p>${d.remaining > 0 ? h(("email.guestReminder.leftHtml_" + (d.remaining === 1 ? "one" : "other")) as MessageKey, {}, { n: `<strong>${d.remaining}</strong>` }) : t("email.guestReminder.noneHtml")}</p>`,
+          { label: t("email.guestReminder.cta"), url: d.url },
+        ),
+        h("email.guestReminder.footerHtml", { shop: d.shopName }, {
+          link: `<a href="${escapeAttr(d.unsubscribeUrl)}" style="color:#6b6b6b">${escapeHtml(t("email.guestReminder.stop"))}</a>`,
+        }),
       ),
     };
   },
 
+  /** Registrant: most of the list is bought, so add more before late guests arrive. */
+  "most-gone": (d) => ({
+    to: d.to,
+    subject: t("email.mostGone.subject", { fulfilled: d.fulfilled, total: d.total, title: d.registryTitle }),
+    text: tNoun("email.mostGone.text", d.eventType, { fulfilled: d.fulfilled, total: d.total, url: d.url }),
+    html: shell(
+      tNoun("email.mostGone.heading", d.eventType),
+      `<p>${tNoun("email.mostGone.countHtml", d.eventType, { fulfilled: d.fulfilled, total: d.total })}</p>
+         <p>${t("email.mostGone.moreHtml")}</p>`,
+      { label: t("email.mostGone.cta"), url: d.url },
+    ),
+  }),
+
   /** Registrant, a few days after the event. */
   "thank-you-reminder": (d) => {
     const gifts = (d.gifts as { item: string; from: string }[]) ?? [];
-    const more = d.moreCount > 0 ? `\n...and ${d.moreCount} more in the full list.` : "";
+    const more = d.moreCount > 0 ? `\n${t("email.thankYou.more", { n: d.moreCount })}` : "";
     return {
       to: d.to,
-      subject: `Time for thank-you notes`,
-      text: `Here's who gave what, so thank-you notes are easy:\n\n${gifts.map((g) => `- ${g.item}: ${g.from}`).join("\n")}${more}\n\nDownload the full list: ${d.csvUrl}\nOpen your registry: ${d.url}`,
+      subject: t("email.thankYou.subject"),
+      text: t("email.thankYou.text", { list: gifts.map((g) => `- ${g.item}: ${g.from}`).join("\n"), more, csvUrl: d.csvUrl, url: d.url }),
       html: shell(
-        "Time for thank-you notes",
-        `<p>Here's who gave what from <strong>${escapeHtml(d.registryTitle)}</strong>, so the notes are easy.</p>
+        t("email.thankYou.subject"),
+        `<p>${h("email.thankYou.introHtml", {}, { title: strong(d.registryTitle) })}</p>
          <ul style="padding-left:18px">${gifts.map((g) => `<li><strong>${escapeHtml(g.item)}</strong>: ${escapeHtml(g.from)}</li>`).join("")}</ul>
-         ${d.moreCount > 0 ? `<p>...and ${d.moreCount} more in the full list.</p>` : ""}
-         <p style="font-size:13px"><a href="${escapeAttr(d.url)}" style="color:#6b6b6b">Open my registry</a></p>`,
-        { label: "Download the full list", url: d.csvUrl },
+         ${d.moreCount > 0 ? `<p>${escapeHtml(t("email.thankYou.more", { n: d.moreCount }))}</p>` : ""}
+         <p style="font-size:13px"><a href="${escapeAttr(d.url)}" style="color:#6b6b6b">${escapeHtml(t("email.thankYou.open"))}</a></p>`,
+        { label: t("email.thankYou.cta"), url: d.csvUrl },
       ),
     };
   },
@@ -257,27 +280,31 @@ const templates: Record<string, TemplateFn> = {
   /** Registrant, after the event: the completion discount. */
   "completion-discount": (d) => ({
     to: d.to,
-    subject: `${d.percent}% off what's left on ${d.registryTitle}`,
-    text: `Thanks for building ${d.registryTitle} with ${d.shopName}. Use code ${d.code} for ${d.percent}% off the ${d.shopName} products still on your list${d.remaining > 0 ? ` (${d.remaining} ${plural(d.remaining, "item", "items")})` : ""}. It works once, until ${d.endsOn}.\n\nSee what's left: ${d.url}`,
+    subject: t("email.discount.subject", { percent: d.percent, title: d.registryTitle }),
+    text: t("email.discount.text", {
+      title: d.registryTitle,
+      shop: d.shopName,
+      code: d.code,
+      percent: d.percent,
+      items: d.remaining > 0 ? tn("email.discount.items", d.remaining) : "",
+      ends: d.endsOn,
+      url: d.url,
+    }),
     html: shell(
-      `${d.percent}% off what's left on your list`,
-      `<p>Thanks for building <strong>${escapeHtml(d.registryTitle)}</strong> with ${escapeHtml(d.shopName)}. Here's a thank-you for the ${escapeHtml(d.shopName)} products still on your list.</p>
+      t("email.discount.heading", { percent: d.percent }),
+      `<p>${h("email.discount.introHtml", { shop: d.shopName }, { title: strong(d.registryTitle) })}</p>
        <p style="font-size:22px;font-weight:700;letter-spacing:1px;background:#fff;border:1px dashed #bbb;border-radius:8px;padding:14px;text-align:center">${escapeHtml(d.code)}</p>
-       <p style="color:#6b6b6b;font-size:13px">${d.percent}% off, one use, until ${escapeHtml(d.endsOn)}. Enter it at checkout.</p>`,
-      { label: "See what's left", url: d.url },
+       <p style="color:#6b6b6b;font-size:13px">${h("email.discount.noteHtml", { percent: d.percent, ends: d.endsOn })}</p>`,
+      { label: t("email.discount.cta"), url: d.url },
     ),
   }),
 };
 
 function inDays(days: number): string {
-  if (days <= 0) return "today";
-  if (days === 1) return "tomorrow";
-  if (days === 14) return "in two weeks";
-  return `in ${days} days`;
-}
-
-function plural(n: number, one: string, many: string): string {
-  return n === 1 ? one : many;
+  if (days <= 0) return t("email.when.today");
+  if (days === 1) return t("email.when.tomorrow");
+  if (days === 14) return t("email.when.twoWeeks");
+  return tn("email.when.days", days);
 }
 
 function withFooter(html: string, footer: string): string {
@@ -296,13 +323,33 @@ export async function sendEmail(
   await enqueue("send-email", { template, to, data });
 }
 
+/**
+ * The language an email goes out in: the store's, found from the store address
+ * every link in it starts with (absoluteProxyUrl builds them all from the shop
+ * domain). Looked up when the job runs, so a language the merchant just
+ * switched to applies to mail still waiting in the queue. Anything unexpected
+ * is English.
+ */
+async function localeForMail(data: Record<string, unknown>): Promise<string> {
+  const link = [data.url, data.confirmUrl].find((v) => typeof v === "string") as string | undefined;
+  if (!link) return "en";
+  try {
+    const domain = new URL(link).hostname;
+    const shop = await db.shop.findUnique({ where: { domain }, select: { settings: true } });
+    return shop ? settingsFor(shop).language : "en";
+  } catch {
+    return "en";
+  }
+}
+
 registerHandler("send-email", async ({ template, to, data }) => {
   const build = templates[template];
   if (!build) {
     console.warn(`[mail] unknown template "${template}"`);
     return;
   }
-  await deliver(build({ ...data, to }));
+  const locale = await localeForMail(data);
+  await deliver(withLocale(locale, () => build({ ...data, to })));
 });
 
 export const __testables = { templates, shell, escapeHtml };

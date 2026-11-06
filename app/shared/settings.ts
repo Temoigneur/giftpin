@@ -26,6 +26,12 @@ export interface ShopSettings {
   externalItems: "off" | "on" | "capped";
   /** When externalItems is "capped", the maximum share of items that may be external. */
   externalItemsCapPercent: number;
+  /**
+   * Language of the guest, create and manage pages and the emails (see
+   * app/shared/i18n). One language per store for now; "en" for every store that
+   * hasn't picked one.
+   */
+  language: string;
   /** Merchant branding for the guest page. */
   accentColor: string;
   buttonLabel: string;
@@ -162,6 +168,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   eventTypesKnown: EVENT_TYPES.map((t) => t.value),
   externalItems: "on",
   externalItemsCapPercent: 60,
+  language: "en",
   accentColor: "#1a1a1a",
   buttonLabel: "Add to registry",
   findARegistryEnabled: true,
