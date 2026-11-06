@@ -1,4 +1,6 @@
 import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL, holidayPromoOn } from "./config";
+import { CHROME, FLAGS, LANG_COOKIE, LOCALES, LOCALE_NAMES, siteLocaleFromRequest } from "./chrome-copy";
+import type { Locale } from "../shared/i18n";
 
 /**
  * Shared shell for the public marketing site (giftpin.app: `/`, `/features`,
@@ -17,15 +19,35 @@ export const SUPPORT = "support@giftpin.app";
 
 const EARLY_ACCESS = `mailto:${SUPPORT}?subject=${encodeURIComponent("Giftpin early access")}`;
 
+/**
+ * The language the page being built is framed in (header, menu, footer,
+ * install button). Set by `renderFor` around a synchronous render, so a page
+ * function never has to be handed it. This is safe only because every page
+ * builder is synchronous: nothing awaits between setting and resetting it, so
+ * two requests can't interleave. Don't add an `await` inside a builder.
+ */
+let activeLocale: Locale = "en";
+export function siteLocale(): Locale {
+  return activeLocale;
+}
+
+/** Builds a page in the language its `?lang=` asked for. `render` must be synchronous. */
+export function renderFor(request: Request, render: () => string): Response {
+  const previous = activeLocale;
+  activeLocale = siteLocaleFromRequest(request);
+  try {
+    return htmlResponse(render());
+  } finally {
+    activeLocale = previous;
+  }
+}
+
 /** Primary call to action: the App Store listing once it exists. */
 export function cta(): { href: string; label: string; note: string } {
+  const c = CHROME[activeLocale];
   return APP_STORE_URL
-    ? { href: APP_STORE_URL, label: "Install on Shopify", note: "Free to install from the Shopify App Store." }
-    : {
-        href: EARLY_ACCESS,
-        label: "Get early access",
-        note: "Coming soon to the Shopify App Store. Tell us you're interested and we'll write when it's live.",
-      };
+    ? { href: APP_STORE_URL, label: c.install, note: c.installNote }
+    : { href: EARLY_ACCESS, label: c.early, note: c.earlyNote };
 }
 
 export function esc(s: string): string {
@@ -42,6 +64,8 @@ export function htmlResponse(html: string): Response {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
+      // The language can come from a cookie, so a cache must not share one language's copy.
+      Vary: "Cookie",
     },
   });
 }
@@ -57,29 +81,49 @@ export function sitePage(opts: {
   /** Page-specific CSS, appended after the shared stylesheet. */
   css?: string;
   jsonLd?: object[];
+  /** Page language (the html lang attribute). Default English. */
+  lang?: string;
+  /** Appended to the canonical URL, e.g. "?lang=fr", for translated copies of a page. */
+  query?: string;
+  /** hreflang links to the other languages of this page. */
+  alternates?: { lang: string; href: string }[];
 }): string {
-  const url = `${SITE_URL}${opts.path}`;
+  const url = `${SITE_URL}${opts.path}${opts.query ?? ""}`;
   const c = cta();
+  const loc = activeLocale;
+  const ch = CHROME[loc];
+  // Keep the visitor's language as they move around the site.
+  const q = loc === "en" ? "" : `?lang=${loc}`;
   const link = (key: NavKey, href: string, label: string) =>
-    `<a href="${href}"${opts.nav === key ? ' aria-current="page"' : ""}>${label}</a>`;
+    `<a href="${href}${q}"${opts.nav === key ? ' aria-current="page"' : ""}>${label}</a>`;
   const links = [
-    link("features", "/features", "Features"),
-    link("pricing", "/pricing", "Pricing"),
-    link("faq", "/faq", "FAQ"),
-    `<a href="/#demo">Demo</a>`,
+    link("features", "/features", ch.features),
+    link("pricing", "/pricing", ch.pricing),
+    link("faq", "/faq", ch.faq),
+    `<a href="/${q}#demo">${ch.demo}</a>`,
   ].join("");
+  // A menu of links rather than a <select>: a select can't show flags. Each link
+  // works without JavaScript (?lang=), and a click also sets the cookie that
+  // keeps the choice as the visitor moves around the site.
+  const picker = () => `<details class="lang-menu">
+  <summary aria-label="${esc(ch.language)}">${FLAGS[loc]}<span>${esc(LOCALE_NAMES[loc])}</span></summary>
+  <ul>${LOCALES.map(
+    (l) => `<li><a href="${opts.path}?lang=${l}" lang="${l}" hreflang="${l}" data-lang="${l}"${l === loc ? ' aria-current="true"' : ""}>${FLAGS[l]}<span>${esc(LOCALE_NAMES[l])}</span></a></li>`,
+  ).join("")}</ul>
+</details>`;
   const ld = (opts.jsonLd ?? [])
     .map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`)
     .join("\n");
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${esc(opts.lang ?? "en")}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(opts.title)}</title>
 <meta name="description" content="${esc(opts.description)}">
 <link rel="canonical" href="${url}">
+${(opts.alternates ?? []).map((a) => `<link rel="alternate" hreflang="${esc(a.lang)}" href="${esc(a.href)}">`).join("\n")}
 <meta property="og:site_name" content="Giftpin">
 <meta property="og:title" content="${esc(opts.title)}">
 <meta property="og:description" content="${esc(opts.description)}">
@@ -100,15 +144,16 @@ export function sitePage(opts: {
 ${ld}
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">${ch.skip}</a>
 <header class="site-top">
   <div class="wrap bar">
-    <a class="brand" href="/" aria-label="Giftpin home"><img src="/brand/giftpin-icon-64.png" alt="" width="32" height="32">Giftpin</a>
-    <nav class="links" aria-label="Main">${links}</nav>
+    <a class="brand" href="/${q}" aria-label="${esc(ch.homeLabel)}"><img src="/brand/giftpin-icon-64.png" alt="" width="32" height="32">Giftpin</a>
+    <nav class="links" aria-label="${esc(ch.navLabel)}">${links}</nav>
+    ${picker()}
     <a class="btn sm dark hide-sm" href="${esc(c.href)}">${c.label}</a>
     <details class="menu">
-      <summary aria-label="Menu">${icon("menu")}</summary>
-      <nav aria-label="Main">${links}<a class="btn dark" href="${esc(c.href)}">${c.label}</a></nav>
+      <summary aria-label="${esc(ch.menu)}">${icon("menu")}</summary>
+      <nav aria-label="${esc(ch.navLabel)}">${links}${picker()}<a class="btn dark" href="${esc(c.href)}">${c.label}</a></nav>
     </details>
   </div>
 </header>
@@ -120,13 +165,13 @@ ${opts.body}
     <div class="foot-grid">
       <div>
         <a class="brand" href="/"><img src="/brand/giftpin-icon-64.png" alt="" width="32" height="32">Giftpin</a>
-        <p>The gift registry for Shopify stores that isn't limited to your catalog, and still puts your products first.</p>
+        <p>${ch.tagline}</p>
       </div>
-      <div><h3>Product</h3><a href="/features">Features</a><a href="/pricing">Pricing</a><a href="/#demo">Demo</a><a href="/faq">FAQ</a></div>
-      <div><h3>Guides</h3><a href="/setup">Setup guide</a><a href="/registry-guide">Creating a registry</a><a href="/gift-registry-app">Gift registry app</a><a href="/wedding-registry">Universal wedding registry</a><a href="/baby-registry">Baby registry</a><a href="/home-goods-registry">Home goods stores</a><a href="/compare">Choosing a registry app</a><a href="/gift-cards">Gift cards</a>${holidayPromoOn() ? `<a href="/holiday-wish-lists">Holiday wish lists</a>` : ""}</div>
-      <div><h3>Company</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy">Privacy policy</a></div>
+      <div><h3>${ch.product}</h3><a href="/features${q}">${ch.features}</a><a href="/pricing${q}">${ch.pricing}</a><a href="/${q}#demo">${ch.demo}</a><a href="/faq${q}">${ch.faq}</a></div>
+      <div><h3>${ch.guides}</h3><a href="/setup${q}">${ch.setup}</a><a href="/registry-guide${q}">${ch.creating}</a><a href="/gift-registry-app${q}">${ch.app}</a><a href="/wedding-registry${q}">${ch.wedding}</a><a href="/baby-registry${q}">${ch.baby}</a><a href="/home-goods-registry${q}">${ch.home}</a><a href="/compare${q}">${ch.compare}</a><a href="/gift-cards${q}">${ch.giftCards}</a>${holidayPromoOn() ? `<a href="/holiday-wish-lists${q}">${ch.holiday}</a>` : ""}</div>
+      <div><h3>${ch.company}</h3><a href="mailto:${SUPPORT}">${SUPPORT}</a><a href="/privacy${q}">${ch.privacy}</a></div>
     </div>
-    <p class="fine">© Giftpin. Shopify, Shop Pay, Apple Pay, Google Pay, Babylist and Zola are trademarks of their owners. Giftpin isn't affiliated with Babylist or Zola.</p>
+    <p class="fine">${ch.fine}</p>
   </div>
 </footer>
 <script>
@@ -135,6 +180,14 @@ ${opts.body}
   if(!("IntersectionObserver" in window)){els.forEach(function(e){e.classList.add("in")});return;}
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}})},{rootMargin:"0px 0px -8% 0px"});
   els.forEach(function(e){io.observe(e)});
+  document.querySelectorAll("a[data-lang]").forEach(function(a){
+    a.addEventListener("click",function(){
+      document.cookie="${LANG_COOKIE}="+a.getAttribute("data-lang")+"; path=/; max-age=31536000; SameSite=Lax";
+    });
+  });
+  document.addEventListener("click",function(e){
+    document.querySelectorAll(".lang-menu[open]").forEach(function(d){if(!d.contains(e.target))d.open=false});
+  });
   document.querySelectorAll(".menu nav a").forEach(function(a){a.addEventListener("click",function(){a.closest("details").open=false})});
 })();
 </script>
@@ -152,7 +205,7 @@ export function finalCta(heading = "Give your customers the registry they actual
     <p>${c.note}</p>
     <div class="cta-row center">
       <a class="btn light lg" href="${esc(c.href)}">${c.label}</a>
-      <a class="btn ghost-light lg" href="/pricing">See pricing</a>
+      <a class="btn ghost-light lg" href="/pricing${activeLocale === "en" ? "" : `?lang=${activeLocale}`}">${CHROME[activeLocale].seePricing}</a>
     </div>
   </div>
 </section>`;
@@ -268,6 +321,19 @@ p{margin:0}
 .i{width:24px; height:24px; flex:none}
 .wrap{max-width:1160px; margin:0 auto; padding-inline:16px}
 @media (min-width:700px){.wrap{padding-inline:28px}}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.lang-menu{position:relative; font-size:14px; font-weight:600}
+.lang-menu summary{list-style:none; display:flex; align-items:center; gap:8px; cursor:pointer; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink)}
+.lang-menu summary::-webkit-details-marker{display:none}
+.lang-menu summary::after{content:""; width:6px; height:6px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); margin:-3px 0 0 2px}
+.lang-menu ul{position:absolute; right:0; top:calc(100% + 6px); z-index:60; margin:0; padding:6px; list-style:none; min-width:190px; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 32px -12px rgba(21,20,46,.35)}
+.lang-menu li a{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; color:var(--ink); text-decoration:none}
+.lang-menu li a:hover,.lang-menu li a[aria-current]{background:var(--tint)}
+.flag{flex:none; border-radius:3px; overflow:hidden}
+.menu .lang-menu{margin:10px 0}
+.menu .lang-menu summary::after{margin-left:auto}
+.menu .lang-menu summary{display:flex; width:auto; height:auto; place-items:initial; border-radius:10px; color:var(--ink)}
+.menu .lang-menu ul{position:static; box-shadow:none; margin-top:6px}
 .skip{position:absolute; left:-999px; top:8px; background:#fff; color:#000; padding:8px 12px; border-radius:8px; z-index:99}
 .skip:focus{left:8px}
 .grad-text{background:var(--grad-text); -webkit-background-clip:text; background-clip:text; color:transparent}
@@ -317,7 +383,7 @@ p{margin:0}
 .menu nav{position:absolute; left:0; right:0; top:68px; background:var(--band); border-bottom:1px solid var(--band-line); padding:12px 16px 20px; display:grid; gap:4px}
 .menu nav a:not(.btn){color:var(--band-ink); text-decoration:none; font-weight:600; font-size:18px; padding:12px 4px; border-bottom:1px solid var(--band-line)}
 .menu nav .btn{margin-top:14px}
-@media (max-width:860px){.site-top .links, .hide-sm{display:none} .menu{display:block}}
+@media (max-width:860px){.site-top .links, .hide-sm, .bar>.lang-menu{display:none} .menu{display:block}}
 
 /* dark hero band */
 .hero{position:relative; background:var(--band); color:var(--band-ink); overflow:hidden; isolation:isolate}

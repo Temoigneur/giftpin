@@ -1,5 +1,6 @@
+import type { LoaderFunctionArgs } from "react-router";
 import { registryGuideHtml } from "../marketing/guides";
-import { htmlResponse } from "../marketing/layout";
+import { renderFor } from "../marketing/layout";
 
 /** Registry creator guide at giftpin.app/registry-guide. Resource route: no auth, no session. */
-export const loader = async () => htmlResponse(registryGuideHtml());
+export const loader = ({ request }: LoaderFunctionArgs) => renderFor(request, () => registryGuideHtml());

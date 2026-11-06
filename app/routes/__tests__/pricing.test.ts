@@ -4,7 +4,7 @@ import { PRO_PLAN_DISPLAY_NAME, PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../sha
 
 describe("public pricing page", () => {
   it("serves HTML without auth", async () => {
-    const res = await loader();
+    const res = await loader({ request: new Request("https://giftpin.app/pricing"), params: {}, context: {} } as never);
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toContain("text/html");
   });

@@ -1,5 +1,6 @@
+import type { LoaderFunctionArgs } from "react-router";
 import { faqHtml } from "../marketing/faq";
-import { htmlResponse } from "../marketing/layout";
+import { renderFor } from "../marketing/layout";
 
 /** Public FAQ page at giftpin.app/faq. Resource route: no auth, no session. */
-export const loader = async () => htmlResponse(faqHtml());
+export const loader = ({ request }: LoaderFunctionArgs) => renderFor(request, () => faqHtml());

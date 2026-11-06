@@ -1,5 +1,6 @@
+import type { LoaderFunctionArgs } from "react-router";
 import { babyRegistryHtml } from "../marketing/guides";
-import { htmlResponse } from "../marketing/layout";
+import { renderFor } from "../marketing/layout";
 
 /** Search landing page at giftpin.app/baby-registry. Resource route: no auth, no session. */
-export const loader = async () => htmlResponse(babyRegistryHtml());
+export const loader = ({ request }: LoaderFunctionArgs) => renderFor(request, () => babyRegistryHtml());

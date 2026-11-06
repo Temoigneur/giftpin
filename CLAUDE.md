@@ -142,6 +142,18 @@ again. `console.warn` on a missing handler looks like a shrug, not an
 alarm — don't trust "no error in the logs" as evidence a job ran; check the
 database.
 
+## Hard rule #9, added 6 Nov 2026
+
+**giftpin.app page builders must stay synchronous.** The marketing site picks
+its language (`?lang=`, else the `giftpin-lang` cookie) in `renderFor()`
+(`app/marketing/layout.ts`), which sets a module-level locale around one
+synchronous render and resets it. That is only safe because nothing `await`s
+in between, so two requests can't interleave. Don't add an `await` inside a
+page builder; load data first, then pass it in (as `giftCardsHtml(stores)` does).
+The setup and registry guides' words live in `app/marketing/guide-copy/<lang>.ts`;
+a bold button name is written `{{key}}` so it is filled from the app's own
+dictionaries, and `guides-i18n.test.ts` fails if a translation drifts from English.
+
 ## Resolved (kept briefly for history)
 
 - ~~In-store (POS) attribution unverified live~~ — confirmed passing 26 Sep
