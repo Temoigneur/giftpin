@@ -1,44 +1,60 @@
-import { BILLING_FAQ, faqJsonLd, faqList } from "./faq-copy";
-import { cta, esc, finalCta, icon, sitePage } from "./layout";
-import { FOUNDING_OFFER, FREE_FEATURES, PRICE, PRO_FEATURES, PRO_NAME, TRIAL, TRIAL_DAYS } from "./plans-copy";
+import { billingFaq, faqJsonLd, faqList } from "./faq-copy";
+import { cta, esc, finalCta, icon, localeMeta, siteLocale, sitePage } from "./layout";
+import { foundingOffer, freeFeatures, proFeatures, siteVars, PRICE, PRO_NAME } from "./plans-copy";
+import { SITE_COPY, fill } from "./site-copy";
 
 /**
  * giftpin.app/pricing: the URL for the Shopify listing's "more pricing
  * information" field. Price, trial and plan name come from
  * `app/shared/plans.ts` via plans-copy.ts, the same constants billing uses.
+ * The words are in site-copy/<language>.ts. Synchronous (CLAUDE.md hard rule 9).
  */
 export function pricingHtml(): string {
+  const loc = siteLocale();
+  const k = SITE_COPY[loc].pricing;
+  const vars = siteVars(loc);
   const c = cta();
   const li = (t: string) => `<li>${icon("check")}<span>${t}</span></li>`;
+  const free = freeFeatures(loc);
+  const pro = proFeatures(loc);
+  const faq = billingFaq(loc);
+  const founding = foundingOffer(loc);
+  const q = loc === "en" ? "" : `?lang=${loc}`;
+
+  const row = (title: string, inFree: boolean) => {
+    const yes = `<span class="yes">${icon("check")}<span class="sr">${k.included}</span></span>`;
+    const no = `<span class="no">${icon("dash")}<span class="sr">${k.notIncluded}</span></span>`;
+    return `<tr><th scope="row">${esc(title)}</th><td>${inFree ? yes : no}</td><td>${yes}</td></tr>`;
+  };
 
   const body = `
 <section class="hero page-hero pricing-hero">
   <div class="wrap">
-    <p class="eyebrow">${icon("sparkle")} Pricing</p>
-    <h1>Free to start.<br><span class="grad-text">Pro when you're ready.</span></h1>
-    <p class="lede">Every store gets unlimited gift registries at no cost. ${PRO_NAME} adds analytics, sales reports, your own branding, automatic emails and priority support.</p>
-    ${FOUNDING_OFFER ? `<p class="founding">${icon("star")} ${esc(FOUNDING_OFFER)}</p>` : ""}
+    <p class="eyebrow">${icon("sparkle")} ${k.eyebrow}</p>
+    <h1>${k.h1a}<br><span class="grad-text">${k.h1b}</span></h1>
+    <p class="lede">${fill(k.lede, vars)}</p>
+    ${founding ? `<p class="founding">${icon("star")} ${esc(founding)}</p>` : ""}
   </div>
 </section>
 
 <section class="plans-sec">
   <div class="wrap plans">
     <article class="plan rise" aria-labelledby="free-h">
-      <h2 id="free-h">Free</h2>
-      <p class="for">For every store that wants a registry.</p>
-      <p class="price">$0 <small>/ month</small></p>
-      <p class="sub">No card needed.</p>
+      <h2 id="free-h">${k.free}</h2>
+      <p class="for">${k.freeFor}</p>
+      <p class="price">$0 <small>${k.perMonth}</small></p>
+      <p class="sub">${k.noCard}</p>
       <a class="btn ghost block" href="${esc(c.href)}">${c.label}</a>
-      <ul>${FREE_FEATURES.map((f) => li(esc(f.title))).join("")}</ul>
+      <ul>${free.map((f) => li(esc(f.title))).join("")}</ul>
     </article>
 
     <article class="plan pro rise" aria-labelledby="pro-h">
-      <div class="plan-top"><h2 id="pro-h">${PRO_NAME}</h2><span class="badge">${TRIAL}</span></div>
-      <p class="for">For stores that want registries to drive revenue.</p>
-      <p class="price">${PRICE} <small>/ month</small></p>
-      <p class="sub">Billed in USD through your Shopify invoice.</p>
-      <a class="btn dark block" href="${esc(c.href)}">${APP_CTA(c.label)}</a>
-      <ul>${li("<strong>Everything in Free</strong>")}${PRO_FEATURES.map((f) => li(`${esc(f.title)}<small>${esc(f.detail)}</small>`)).join("")}</ul>
+      <div class="plan-top"><h2 id="pro-h">${PRO_NAME}</h2><span class="badge">${esc(String(vars.trial))}</span></div>
+      <p class="for">${k.proFor}</p>
+      <p class="price">${PRICE} <small>${k.perMonth}</small></p>
+      <p class="sub">${k.billedUsd}</p>
+      <a class="btn dark block" href="${esc(c.href)}">${c.isInstall ? fill(k.startTrial, vars) : c.label}</a>
+      <ul>${li(`<strong>${k.everythingFree}</strong>`)}${pro.map((f) => li(`${esc(f.title)}<small>${esc(f.detail)}</small>`)).join("")}</ul>
     </article>
   </div>
   <p class="wrap note">${c.note}</p>
@@ -47,18 +63,18 @@ export function pricingHtml(): string {
 <section class="sec">
   <div class="wrap">
     <div class="sec-head center rise">
-      <h2>Compare plans</h2>
-      <p class="lede">Both plans include unlimited registries, items and guests, and neither takes a cut of your product sales.</p>
+      <h2>${k.compareH2}</h2>
+      <p class="lede">${k.compareLede}</p>
     </div>
     <div class="table-wrap rise">
       <table class="compare">
-        <thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Pro</th></tr></thead>
+        <thead><tr><th scope="col">${k.feature}</th><th scope="col">${k.free}</th><th scope="col">${k.pro}</th></tr></thead>
         <tbody>
-          <tr class="grp"><th scope="rowgroup" colspan="3">Registries</th></tr>
-          ${FREE_FEATURES.map((f) => row(f.title, true)).join("")}
+          <tr class="grp"><th scope="rowgroup" colspan="3">${k.registries}</th></tr>
+          ${free.map((f) => row(f.title, true)).join("")}
           <tr class="grp"><th scope="rowgroup" colspan="3">${PRO_NAME}</th></tr>
-          ${PRO_FEATURES.map((f) => row(f.title, false)).join("")}
-          <tr class="price-row"><th scope="row">Price</th><td>$0</td><td>${PRICE}/mo<br><small>after a ${TRIAL_DAYS}-day trial</small></td></tr>
+          ${pro.map((f) => row(f.title, false)).join("")}
+          <tr class="price-row"><th scope="row">${k.priceRow}</th><td>$0</td><td>${PRICE}${k.perMo}<br><small>${fill(k.afterTrial, vars)}</small></td></tr>
         </tbody>
       </table>
     </div>
@@ -67,34 +83,25 @@ export function pricingHtml(): string {
 
 <section class="sec tint" id="faq">
   <div class="wrap narrow">
-    <div class="sec-head center rise"><h2>Pricing questions</h2></div>
-    <div class="rise">${faqList(BILLING_FAQ)}</div>
-    <p class="more rise"><a href="/faq">More questions ${icon("arrow")}</a></p>
+    <div class="sec-head center rise"><h2>${k.faqH2}</h2></div>
+    <div class="rise">${faqList(faq)}</div>
+    <p class="more rise"><a href="/faq${q}">${k.moreQuestions} ${icon("arrow")}</a></p>
   </div>
 </section>
 
-${finalCta("Start free. Upgrade when registries take off.")}
+${finalCta(k.finalCta)}
 `;
 
   return sitePage({
     path: "/pricing",
     nav: "pricing",
-    title: "Giftpin Pricing",
-    description: `Giftpin is free for unlimited gift registries. ${PRO_NAME} is ${PRICE}/month with a ${TRIAL}, and adds analytics, sales reports, your branding, automatic emails and priority support.`,
+    title: k.title,
+    description: fill(k.description, vars),
     body,
     css: CSS,
-    jsonLd: [faqJsonLd(BILLING_FAQ)],
+    ...localeMeta("/pricing"),
+    jsonLd: [faqJsonLd(faq)],
   });
-}
-
-// Before the App Store listing exists there's nothing to start a trial on,
-// so the Pro card says the same "Get early access" as everywhere else.
-const APP_CTA = (label: string) => (label === "Install on Shopify" ? `Start ${TRIAL}` : label);
-
-function row(title: string, inFree: boolean): string {
-  const yes = `<span class="yes">${icon("check")}<span class="sr">Included</span></span>`;
-  const no = `<span class="no">${icon("dash")}<span class="sr">Not included</span></span>`;
-  return `<tr><th scope="row">${esc(title)}</th><td>${inFree ? yes : no}</td><td>${yes}</td></tr>`;
 }
 
 const CSS = `

@@ -1,105 +1,114 @@
 import { EVENT_TYPES } from "../shared/settings";
+import { t, type MessageKey } from "../shared/i18n";
 import { APP_STORE_URL, SITE_URL, holidayPromoOn } from "./config";
-import { FAQ_GROUPS, faqList } from "./faq-copy";
-import { cta, demoVideo, esc, finalCta, icon, sitePage } from "./layout";
-import { FOUNDING_OFFER, PRICE, PRO_FEATURES, PRO_NAME, TRIAL } from "./plans-copy";
+import { faqGroups, faqList } from "./faq-copy";
+import { cta, demoVideo, esc, finalCta, icon, localeMeta, siteLocale, sitePage } from "./layout";
+import { PRICE, PRO_NAME, foundingOffer, proFeatures, siteVars } from "./plans-copy";
+import { SITE_COPY, fill } from "./site-copy";
 
-/** giftpin.app home page. */
+/**
+ * giftpin.app home page. The words live in site-copy/<language>.ts; this
+ * file is layout and icons. Strings there are trusted HTML, so they are
+ * not escaped again here. Must stay synchronous (CLAUDE.md hard rule 9).
+ */
 export function homeHtml(now: Date = new Date()): string {
+  const loc = siteLocale();
+  const k = SITE_COPY[loc].home;
+  const vars = siteVars(loc);
+  const f = (s: string) => fill(s, { ...vars, appStore: esc(APP_STORE_URL) });
   const c = cta();
-  const occasions = EVENT_TYPES.filter((t) => t.value !== "other");
-  const faqPicks = [
-    FAQ_GROUPS[1].items[1],
-    FAQ_GROUPS[2].items[0],
-    FAQ_GROUPS[3].items[3],
-    FAQ_GROUPS[3].items[1],
-  ];
+  const occasions = EVENT_TYPES.filter((o) => o.value !== "other");
+  const groups = faqGroups(loc);
+  const byId = (id: string) => groups.find((g) => g.id === id)!.items;
+  const faqPicks = [byId("registrants")[1], byId("checkout")[0], byId("billing")[3], byId("billing")[1]];
+  const founding = foundingOffer(loc);
+  const q = loc === "en" ? "" : `?lang=${loc}`;
 
   const body = `
-${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon("gift")} New for the holidays: shareable wish lists, so family doesn't buy duplicates. <span>See how ${icon("arrow")}</span></a></p>` : ""}
+${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists${q}">${icon("gift")} ${k.season} <span>${k.seeHow} ${icon("arrow")}</span></a></p>` : ""}
 <section class="hero home-hero">
   <div class="wrap hh">
     <div class="hh-copy">
-      <p class="eyebrow">${icon("sparkle")} The gift registry app for Shopify</p>
-      <h1>One registry.<br>Every store.<br><span class="grad-text">Your checkout first.</span></h1>
-      <p class="lede">Your customers put everything they want on one registry, from your shelves and from any shop online. Giftpin puts your matching products right beside the rest. Guests get one link. You get the sale.</p>
+      <p class="eyebrow">${icon("sparkle")} ${k.eyebrow}</p>
+      <h1>${k.h1a}<br>${k.h1b}<br><span class="grad-text">${k.h1c}</span></h1>
+      <p class="lede">${k.lede}</p>
       <div class="cta-row">
         <a class="btn dark lg" href="${esc(c.href)}">${c.label} ${icon("arrow")}</a>
-        <a class="btn ghost-band lg" href="#demo">${icon("play")} Watch the demo</a>
+        <a class="btn ghost-band lg" href="#demo">${icon("play")} ${k.watchDemo}</a>
       </div>
       <ul class="proof">
-        <li>${icon("check")} Free plan with unlimited registries</li>
-        <li>${icon("check")} ${PRO_NAME} ${TRIAL}</li>
-        <li>${icon("check")} Billed through Shopify</li>
-        <li>${icon("check")} Made in Canada</li>
+        <li>${icon("check")} ${k.proofFree}</li>
+        <li>${icon("check")} ${f(k.proofPro)}</li>
+        <li>${icon("check")} ${k.proofBilled}</li>
+        <li>${icon("check")} ${k.proofCanada}</li>
       </ul>
-      ${FOUNDING_OFFER ? `<p class="founding">${icon("star")} ${esc(FOUNDING_OFFER)}</p>` : ""}
+      ${founding ? `<p class="founding">${icon("star")} ${esc(founding)}</p>` : ""}
     </div>
 
-    <div class="hh-art" aria-label="Example registry" role="img">
+    <div class="hh-art" aria-label="${esc(k.exampleLabel)}" role="img">
       <div class="reg">
         <div class="reg-hd">
           <span class="av">M&amp;T</span>
-          <div><strong>Maya &amp; Theo's Wedding</strong><span>24 gifts from 6 stores</span></div>
+          <div><strong>${k.regName}</strong><span>${k.regSub}</span></div>
         </div>
-        <div class="bar-lab"><span>62% gifted</span><span>9 left</span></div>
+        <div class="bar-lab"><span>${k.pctGifted}</span><span>${k.nLeft}</span></div>
         <div class="prog"><i></i></div>
         <div class="it">
           <span class="th t1">${icon("gift")}</span>
-          <div><strong>Stand mixer</strong><span class="src mine">${icon("store")} Your store</span></div>
-          <span class="st give">Give this</span>
+          <div><strong>${k.standMixer}</strong><span class="src mine">${icon("store")} ${k.yourStore}</span></div>
+          <span class="st give">${k.giveThis}</span>
         </div>
         <div class="it">
           <span class="th t2">${icon("heart")}</span>
-          <div><strong>Cast-iron Dutch oven</strong><span class="src">${icon("globe")} Another shop</span></div>
-          <span class="st held">May be taken</span>
+          <div><strong>${k.dutchOven}</strong><span class="src">${icon("globe")} ${k.anotherShop}</span></div>
+          <span class="st held">${k.mayBeTaken}</span>
         </div>
         <div class="it">
           <span class="th t3">${icon("sparkle")}</span>
-          <div><strong>Linen bedding set</strong><span class="src mine">${icon("store")} Your store</span></div>
-          <span class="st done">${icon("check")} Gifted</span>
+          <div><strong>${k.linenSet}</strong><span class="src mine">${icon("store")} ${k.yourStore}</span></div>
+          <span class="st done">${icon("check")} ${k.gifted}</span>
         </div>
       </div>
-      <div class="toast t-a">${icon("card")}<div><strong>Paid with Shop Pay</strong><span>Credited to Maya &amp; Theo</span></div></div>
-      <div class="toast t-b">${icon("bell")}<div><strong>New gift!</strong><span>Linen bedding set</span></div></div>
+      <div class="toast t-a">${icon("card")}<div><strong>${k.toastPaid}</strong><span>${k.toastCredited}</span></div></div>
+      <div class="toast t-b">${icon("bell")}<div><strong>${k.toastNew}</strong><span>${k.linenSet}</span></div></div>
     </div>
   </div>
 
   <div class="wrap pay">
-    <p>Every gift credited to the right registry, however guests pay</p>
-    <ul><li>Shop Pay</li><li>Apple Pay</li><li>Google Pay</li><li>Shop app</li><li>Standard checkout</li></ul>
+    <p>${k.payLine}</p>
+    <ul><li>Shop Pay</li><li>Apple Pay</li><li>Google Pay</li><li>Shop app</li><li>${k.payStandard}</li></ul>
   </div>
 </section>
 
 <section class="sec" id="your-store">
   <div class="wrap spot">
     <div class="rise">
-      <p class="eyebrow">${icon("store")} Built for merchants</p>
-      <h2>Other registries send customers elsewhere. <span class="grad-text">Giftpin sends them back.</span></h2>
-      <p class="lede" style="margin:18px 0 32px">A registry locked to one catalog makes couples and parents look elsewhere for the rest. Giftpin lets them add anything, then looks in your catalog first and puts your product right beside it.</p>
+      <p class="eyebrow">${icon("store")} ${k.merchEyebrow}</p>
+      <h2>${k.merchH2a} <span class="grad-text">${k.merchH2b}</span></h2>
+      <p class="lede" style="margin:18px 0 32px">${k.merchLede}</p>
       <ol class="pts">
-        <li><span class="n">1</span><div><h3>Start from your shelves</h3><p>Shoppers browse your store from inside their registry, and wedding registries get room-by-room ideas that open a search of your catalog.</p></div></li>
-        <li><span class="n">2</span><div><h3>Your product appears beside theirs</h3><p>When someone adds an item from another shop, Giftpin searches your catalog and shows your closest match right next to it.</p></div></li>
-        <li><span class="n">3</span><div><h3>One tap to switch to yours</h3><p>They swap in your product, and guests buy it through your checkout. Suggestions are the shopper's choice, and guests only see the ones they keep.</p></div></li>
+        <li><span class="n">1</span><div><h3>${k.merch1h}</h3><p>${k.merch1p}</p></div></li>
+        <li><span class="n">2</span><div><h3>${k.merch2h}</h3><p>${k.merch2p}</p></div></li>
+        <li><span class="n">3</span><div><h3>${k.merch3h}</h3><p>${k.merch3p}</p></div></li>
       </ol>
     </div>
     <div class="rise">
       <div class="match-card">
-        <p class="mc-lab">Added from another shop</p>
+        <p class="mc-lab">${k.addedElsewhere}</p>
         <div class="it flat">
           <span class="th t2">${icon("heart")}</span>
-          <div><strong>Cast-iron Dutch oven</strong><span class="src">${icon("globe")} Another shop</span></div>
+          <div><strong>${k.dutchOven}</strong><span class="src">${icon("globe")} ${k.anotherShop}</span></div>
         </div>
         <div class="match">
-          <p class="mc-lab accent">${icon("sparkle")} Similar item in your store</p>
+          <p class="mc-lab accent">${icon("sparkle")} ${k.similarItem}</p>
           <div class="it flat">
             <span class="th t1">${icon("gift")}</span>
-            <div><strong>Enameled casserole pot</strong><span class="src mine">${icon("store")} Your store</span></div>
-            <span class="st give">Use this instead</span>
+            <div><strong>${k.casserole}</strong><span class="src mine">${icon("store")} ${k.yourStore}</span></div>
+            <span class="st give">${k.useInstead}</span>
           </div>
         </div>
       </div>
-      <p class="fine-print">Illustration with example products. Giftpin only reads your catalog to find a match; nothing in your store is changed.</p>
+      <p class="fine-print">${k.illustration}</p>
     </div>
   </div>
 </section>
@@ -107,28 +116,28 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec tint" id="any-registry">
   <div class="wrap spot">
     <div class="rise">
-      <p class="eyebrow">${icon("link")} Already registered somewhere else?</p>
-      <h2>Your Add to registry button works with <span class="grad-text">the registry they already have.</span></h2>
-      <p class="lede" style="margin:18px 0 32px">Plenty of shoppers arrive with a registry on Babylist or a wedding site. Instead of losing them, your product page asks <em>Which registry?</em> and sends the gift wherever their list lives.</p>
+      <p class="eyebrow">${icon("link")} ${k.anyEyebrow}</p>
+      <h2>${k.anyH2a} <span class="grad-text">${k.anyH2b}</span></h2>
+      <p class="lede" style="margin:18px 0 32px">${k.anyLede}</p>
       <ol class="pts">
-        <li><span class="n">1</span><div><h3>Your store's registry</h3><p>The usual one tap onto a Giftpin registry, credited to you when guests buy.</p></div></li>
-        <li><span class="n">2</span><div><h3>Their Babylist registry</h3><p>Added through Babylist's own add-to-Babylist script, with the size or colour they picked. It only loads when a shopper chooses it.</p></div></li>
-        <li><span class="n">3</span><div><h3>Any registry that takes a link</h3><p>Giftpin copies the product link, with the variant they chose, and tells them where to paste it, or to use that site's own button, like Add to Zola.</p></div></li>
+        <li><span class="n">1</span><div><h3>${k.any1h}</h3><p>${k.any1p}</p></div></li>
+        <li><span class="n">2</span><div><h3>${k.any2h}</h3><p>${k.any2p}</p></div></li>
+        <li><span class="n">3</span><div><h3>${k.any3h}</h3><p>${k.any3p}</p></div></li>
       </ol>
     </div>
     <div class="rise">
       <div class="match-card picker-card">
-        <p class="mc-lab">Your product page</p>
+        <p class="mc-lab">${k.yourProductPage}</p>
         <div class="it flat">
           <span class="th t1">${icon("gift")}</span>
-          <div><strong>Organic cotton swaddle set</strong><span class="src mine">${icon("store")} Your store</span></div>
+          <div><strong>${k.swaddle}</strong><span class="src mine">${icon("store")} ${k.yourStore}</span></div>
         </div>
         <div class="match">
-          <p class="mc-lab accent">${icon("gift")} Which registry?</p>
-          <div class="choices"><span class="solid">My store registry</span><span>My Babylist registry</span><span>Another registry (copy link)</span></div>
+          <p class="mc-lab accent">${icon("gift")} ${k.whichRegistry}</p>
+          <div class="choices"><span class="solid">${k.choiceMine}</span><span>${k.choiceBabylist}</span><span>${k.choiceOther}</span></div>
         </div>
       </div>
-      <p class="fine-print">Illustration. Both extra choices are off until you tick them in the button's settings, on Free and ${PRO_NAME}. Giftpin isn't affiliated with Babylist or Zola, and it doesn't track purchases made from registries on other sites.</p>
+      <p class="fine-print">${f(k.anyFine)}</p>
     </div>
   </div>
 </section>
@@ -136,14 +145,14 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec" id="how">
   <div class="wrap">
     <div class="sec-head center rise">
-      <p class="eyebrow">How it works</p>
-      <h2>Three steps. One link. Zero duplicate toasters.</h2>
-      <p class="lede">Nothing for guests to sign up for, and nothing for them to install.</p>
+      <p class="eyebrow">${k.howEyebrow}</p>
+      <h2>${k.howH2}</h2>
+      <p class="lede">${k.howLede}</p>
     </div>
     <div class="grid-3 steps">
-      <div class="card rise"><span class="big-n">1</span><h3>Start a registry</h3><p>Right from your store. Pick the occasion, name it, done. The registrant gets a private link by email to manage it, no account needed.</p></div>
-      <div class="card rise"><span class="big-n">2</span><h3>Add anything</h3><p>Your products with one tap on the Add to registry button, and anything from any other shop by pasting a link. Your closest matches are suggested along the way.</p></div>
-      <div class="card rise"><span class="big-n">3</span><h3>Share and celebrate</h3><p>Guests open one page and pick a gift, and it's marked so nobody buys it twice. The registrant hears about every gift and keeps a who-gave-what list.</p></div>
+      <div class="card rise"><span class="big-n">1</span><h3>${k.how1h}</h3><p>${k.how1p}</p></div>
+      <div class="card rise"><span class="big-n">2</span><h3>${k.how2h}</h3><p>${k.how2p}</p></div>
+      <div class="card rise"><span class="big-n">3</span><h3>${k.how3h}</h3><p>${k.how3p}</p></div>
     </div>
   </div>
 </section>
@@ -151,9 +160,9 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec tint" id="demo">
   <div class="wrap">
     <div class="sec-head center rise">
-      <p class="eyebrow">${icon("play")} Demo</p>
-      <h2>See Giftpin in action</h2>
-      <p class="lede">Watch a registry come together, from the first item to the thank-you list.</p>
+      <p class="eyebrow">${icon("play")} ${k.demoEyebrow}</p>
+      <h2>${k.demoH2}</h2>
+      <p class="lede">${k.demoLede}</p>
     </div>
     <div class="rise demo-frame">${demoVideo()}</div>
   </div>
@@ -162,61 +171,61 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec" id="features">
   <div class="wrap">
     <div class="sec-head rise">
-      <p class="eyebrow">Features</p>
-      <h2>Everything a registry needs, on the free plan.</h2>
-      <p class="lede">Unlimited registries, items and guests. No per-registry fees and no fee on your product sales.</p>
+      <p class="eyebrow">${k.featEyebrow}</p>
+      <h2>${k.featH2}</h2>
+      <p class="lede">${k.featLede}</p>
     </div>
     <div class="bento">
       <div class="card wide rise">
         <span class="chip-ico">${icon("globe")}</span>
-        <h3>Any store, one list</h3>
-        <p>Your products, a boutique's candles and a big-box stroller, all on one page. Registrants paste a product link and Giftpin fills in the photo, name and price.</p>
-        <div class="stores" aria-hidden="true"><span class="mine">Your store</span><span>Home goods shop</span><span>Big-box retailer</span><span>Local boutique</span><span>Handmade marketplace</span></div>
+        <h3>${k.f1h}</h3>
+        <p>${k.f1p}</p>
+        <div class="stores" aria-hidden="true"><span class="mine">${k.yourStore}</span><span>${k.storeHome}</span><span>${k.storeBig}</span><span>${k.storeBoutique}</span><span>${k.storeHandmade}</span></div>
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("shield")}</span>
-        <h3>No duplicate gifts</h3>
-        <p>The moment a guest goes to buy, the registry shows <em>Someone may be buying this</em>. If they don't, it comes back.</p>
+        <h3>${k.f2h}</h3>
+        <p>${k.f2p}</p>
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("card")}</span>
-        <h3>Credited through every checkout</h3>
-        <p>Shop Pay, Apple Pay, Google Pay and the Shop app skip the cart. Giftpin still credits every gift to the right registry.</p>
+        <h3>${k.f3h}</h3>
+        <p>${k.f3p}</p>
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("truck")}</span>
-        <h3>Ships straight to them</h3>
-        <p>When the registrant saves an address, gifts bought from your store go right to their door. Guests never see it.</p>
+        <h3>${k.f4h}</h3>
+        <p>${k.f4p}</p>
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("bulb")}</span>
-        <h3>Ideas that fill the list</h3>
-        <p>Room-by-room ideas for weddings and an ideas guide for every other occasion, each opening a search of your catalog.</p>
+        <h3>${k.f5h}</h3>
+        <p>${k.f5p}</p>
       </div>
       <div class="card rise">
         <span class="chip-ico">${icon("list")}</span>
-        <h3>Thank-you cards made easy</h3>
-        <p>A who-gave-what list the registrant can download as a spreadsheet, so nobody gets missed.</p>
+        <h3>${k.f6h}</h3>
+        <p>${k.f6p}</p>
       </div>
       <div class="card wide rise">
         <span class="chip-ico">${icon("puzzle")}</span>
-        <h3>Drops into your theme, no code</h3>
-        <p>Add Giftpin's blocks in the theme editor: an Add to registry button on product pages, and registry links for anywhere else. Registry pages live on your own domain.</p>
-        <div class="blocks" aria-hidden="true"><span class="solid">${icon("gift")} Add to registry</span><span>Create a gift registry</span><span>Find a gift registry</span><span>Manage my gift registry</span></div>
+        <h3>${k.f7h}</h3>
+        <p>${k.f7p}</p>
+        <div class="blocks" aria-hidden="true"><span class="solid">${icon("gift")} ${k.blockAdd}</span><span>${k.blockCreate}</span><span>${k.blockFind}</span><span>${k.blockManage}</span></div>
       </div>
     </div>
-    <p class="more rise"><a href="/features">See every feature ${icon("arrow")}</a></p>
+    <p class="more rise"><a href="/features${q}">${k.seeEvery} ${icon("arrow")}</a></p>
   </div>
 </section>
 
 <section class="sec" id="occasions">
   <div class="wrap">
     <div class="sec-head center rise">
-      <p class="eyebrow">${icon("heart")} Occasions</p>
-      <h2>Weddings are just the start.</h2>
-      <p class="lede">${occasions.length} occasions ready on day one, each with its own gift ideas guide. You choose which ones your store offers.</p>
+      <p class="eyebrow">${icon("heart")} ${k.occEyebrow}</p>
+      <h2>${k.occH2}</h2>
+      <p class="lede">${fill(k.occLede, { n: occasions.length })}</p>
     </div>
-    <div class="occ rise">${occasions.map((o) => `<span>${esc(o.label)}</span>`).join("")}</div>
+    <div class="occ rise">${occasions.map((o) => `<span>${esc(loc === "en" ? o.label : t(`event.${o.value}` as MessageKey, undefined, loc))}</span>`).join("")}</div>
   </div>
 </section>
 
@@ -225,13 +234,13 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
     <div class="pro-card rise">
       <div class="pro-copy">
         <p class="eyebrow">${icon("sparkle")} ${PRO_NAME}</p>
-        <h2>Turn registries into <span class="grad-text">repeat revenue.</span></h2>
-        <p class="lede">See what registries earn you, make every page look like your store, and let Giftpin follow up with guests and registrants on its own.</p>
-        <p class="pro-price"><strong>${PRICE}</strong> / month <span>${TRIAL}</span></p>
-        <div class="cta-row"><a class="btn light" href="/pricing">Compare plans ${icon("arrow")}</a></div>
+        <h2>${k.proH2a} <span class="grad-text">${k.proH2b}</span></h2>
+        <p class="lede">${k.proLede}</p>
+        <p class="pro-price"><strong>${PRICE}</strong> ${k.perMonth} <span>${esc(String(vars.trial))}</span></p>
+        <div class="cta-row"><a class="btn light" href="/pricing${q}">${k.comparePlans} ${icon("arrow")}</a></div>
       </div>
       <ul class="pro-list">
-        ${PRO_FEATURES.map((f) => `<li>${icon(f.icon)}<div><strong>${esc(f.title)}</strong><span>${esc(f.detail)}</span></div></li>`).join("")}
+        ${proFeatures(loc).map((p) => `<li>${icon(p.icon)}<div><strong>${esc(p.title)}</strong><span>${esc(p.detail)}</span></div></li>`).join("")}
       </ul>
     </div>
   </div>
@@ -240,13 +249,13 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec tint">
   <div class="wrap">
     <div class="sec-head center rise">
-      <p class="eyebrow">${icon("lock")} Honest by design</p>
-      <h2>Good for guests. Good for you.</h2>
+      <p class="eyebrow">${icon("lock")} ${k.honestEyebrow}</p>
+      <h2>${k.honestH2}</h2>
     </div>
     <div class="grid-3">
-      <div class="card rise"><span class="chip-ico">${icon("percent")}</span><h3>No fee on your sales</h3><p>Neither plan takes a cut of your own product sales. Pro is a flat ${PRICE} a month, billed through Shopify.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("shield")}</span><h3>Disclosed, never hidden</h3><p>Giftpin may earn a small commission when a guest buys from another website. It's disclosed on the registry page and never changes the guest's price.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("lock")}</span><h3>Your store stays yours</h3><p>Giftpin reads your catalog to suggest products. It never edits your products, prices or inventory.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("percent")}</span><h3>${k.h1h}</h3><p>${f(k.h1p)}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("shield")}</span><h3>${k.h2h}</h3><p>${k.h2p}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("lock")}</span><h3>${k.h3h}</h3><p>${k.h3p}</p></div>
     </div>
   </div>
 </section>
@@ -254,17 +263,17 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec" id="trust">
   <div class="wrap">
     <div class="sec-head center rise">
-      <p class="eyebrow">${icon("heart")} New on the Shopify App Store</p>
-      <h2>Don't take our word for it. <span class="grad-text">Check for yourself.</span></h2>
-      <p class="lede">Giftpin is new, so there aren't many reviews yet. Here's what you can see before you install, and how easy it is to walk away.</p>
+      <p class="eyebrow">${icon("heart")} ${k.trustEyebrow}</p>
+      <h2>${k.trustH2a} <span class="grad-text">${k.trustH2b}</span></h2>
+      <p class="lede">${k.trustLede}</p>
     </div>
     <div class="grid-3">
-      <div class="card rise"><span class="chip-ico">${icon("shield")}</span><h3>Reviewed by Shopify</h3><p>Giftpin passed Shopify's app review before it was listed on the <a href="${esc(APP_STORE_URL)}">Shopify App Store</a>, and runs on Shopify's own billing.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("play")}</span><h3>Watch the whole thing first</h3><p>The <a href="#demo">demo video</a> shows a real registry from the first item to the thank-you list. No sign-up needed to watch.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("bolt")}</span><h3>Free to try, easy to leave</h3><p>The Free plan has no time limit. ${PRO_NAME} starts with a ${TRIAL}, and you cancel from Shopify like any other app.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("heart")}</span><h3>Made in Canada by its founders</h3><p>Giftpin is built by two co-founders, not a faceless agency. When you write in, the people who built it answer.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("mail")}</span><h3>Help setting it up</h3><p>Follow the <a href="/setup">setup guide</a>, or email <a href="mailto:support@giftpin.app">support@giftpin.app</a> and we'll help you get the button on your product pages.</p></div>
-      <div class="card rise"><span class="chip-ico">${icon("lock")}</span><h3>Privacy you can read</h3><p>See exactly what Giftpin stores about registrants and guests, and why, in the <a href="/privacy">privacy policy</a>.</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("shield")}</span><h3>${k.t1h}</h3><p>${f(k.t1p)}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("play")}</span><h3>${k.t2h}</h3><p>${k.t2p}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("bolt")}</span><h3>${k.t3h}</h3><p>${f(k.t3p)}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("heart")}</span><h3>${k.t4h}</h3><p>${k.t4p}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("mail")}</span><h3>${k.t5h}</h3><p>${k.t5p}</p></div>
+      <div class="card rise"><span class="chip-ico">${icon("lock")}</span><h3>${k.t6h}</h3><p>${k.t6p}</p></div>
     </div>
   </div>
 </section>
@@ -272,26 +281,26 @@ ${holidayPromoOn(now) ? `<p class="season"><a href="/holiday-wish-lists">${icon(
 <section class="sec tint">
   <div class="wrap faq-teaser">
     <div class="rise">
-      <p class="eyebrow">FAQ</p>
-      <h2>Questions, answered.</h2>
-      <p class="lede" style="margin:16px 0 24px">Still curious? Email <a href="mailto:support@giftpin.app">support@giftpin.app</a> and a real person will write back.</p>
-      <a class="btn ghost" href="/faq">All questions ${icon("arrow")}</a>
+      <p class="eyebrow">${k.faqEyebrow}</p>
+      <h2>${k.faqH2}</h2>
+      <p class="lede" style="margin:16px 0 24px">${k.faqLede}</p>
+      <a class="btn ghost" href="/faq${q}">${k.allQuestions} ${icon("arrow")}</a>
     </div>
     <div class="rise">${faqList(faqPicks)}</div>
   </div>
 </section>
 
-${finalCta()}
+${finalCta(k.finalCta)}
 `;
 
   return sitePage({
     path: "/",
     nav: "home",
-    title: "Giftpin: gift registries with items from any store, for Shopify",
-    description:
-      "Giftpin is the Shopify gift registry that isn't limited to your catalog. Customers add gifts from any store, Giftpin suggests your matching products, and every purchase is credited correctly, even through Shop Pay.",
+    title: k.title,
+    description: k.description,
     body,
     css: CSS,
+    ...localeMeta("/"),
     jsonLd: [
       {
         "@context": "https://schema.org",

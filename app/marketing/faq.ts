@@ -1,45 +1,51 @@
-import { FAQ_GROUPS, faqJsonLd, faqList } from "./faq-copy";
-import { finalCta, icon, sitePage } from "./layout";
+import { faqGroups, faqJsonLd, faqList } from "./faq-copy";
+import { finalCta, icon, localeMeta, siteLocale, sitePage } from "./layout";
+import { SITE_COPY } from "./site-copy";
 
-/** giftpin.app/faq: every question, grouped. */
+/** giftpin.app/faq: every question, grouped. Synchronous (CLAUDE.md hard rule 9). */
 export function faqHtml(): string {
+  const loc = siteLocale();
+  const k = SITE_COPY[loc].faq;
+  const groups = faqGroups(loc);
   const body = `
 <section class="hero page-hero">
   <div class="wrap">
-    <p class="eyebrow">${icon("sparkle")} FAQ</p>
-    <h1>Questions, <span class="grad-text">answered.</span></h1>
-    <p class="lede">Can't find what you need? Email <a class="light-link" href="mailto:support@giftpin.app">support@giftpin.app</a> and a real person will write back.</p>
+    <p class="eyebrow">${icon("sparkle")} ${k.eyebrow}</p>
+    <h1>${k.h1a} <span class="grad-text">${k.h1b}</span></h1>
+    <p class="lede">${k.lede}</p>
   </div>
 </section>
 
 <section class="sec">
   <div class="wrap faq-layout">
-    <nav class="toc" aria-label="Topics">
-      ${FAQ_GROUPS.map((g) => `<a href="#${g.id}">${g.title}</a>`).join("")}
+    <nav class="toc" aria-label="${k.topicsLabel}">
+      ${groups.map((g) => `<a href="#${g.id}">${g.title}</a>`).join("")}
     </nav>
     <div>
-      ${FAQ_GROUPS.map(
-        (g) => `<section class="grp" id="${g.id}" aria-labelledby="${g.id}-h">
+      ${groups
+        .map(
+          (g) => `<section class="grp" id="${g.id}" aria-labelledby="${g.id}-h">
         <h2 id="${g.id}-h">${g.title}</h2>
         ${faqList(g.items)}
       </section>`,
-      ).join("")}
+        )
+        .join("")}
     </div>
   </div>
 </section>
 
-${finalCta()}
+${finalCta(SITE_COPY[loc].home.finalCta)}
 `;
 
   return sitePage({
     path: "/faq",
     nav: "faq",
-    title: "Giftpin FAQ",
-    description:
-      "Answers about Giftpin, the Shopify gift registry app: setup, gifts from other stores, duplicate-gift protection, Shop Pay and express checkout, plans, billing and privacy.",
+    title: k.title,
+    description: k.description,
     body,
     css: CSS,
-    jsonLd: [faqJsonLd(FAQ_GROUPS.flatMap((g) => g.items))],
+    ...localeMeta("/faq"),
+    jsonLd: [faqJsonLd(groups.flatMap((g) => g.items))],
   });
 }
 

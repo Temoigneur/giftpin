@@ -6,7 +6,9 @@ import {
   PRO_PLAN_PRICE,
   PRO_TRIAL_DAYS,
 } from "../shared/plans";
+import type { Locale } from "../shared/i18n";
 import { SHOW_FOUNDING_OFFER } from "./config";
+import { SITE_COPY, fill } from "./site-copy";
 
 /**
  * What each plan includes, as the marketing site words it. Price, trial and
@@ -18,46 +20,46 @@ import { SHOW_FOUNDING_OFFER } from "./config";
  */
 export const PRICE = `$${PRO_PLAN_PRICE.toFixed(2)}`;
 export const PRO_NAME = PRO_PLAN_DISPLAY_NAME;
-export const TRIAL = `${PRO_TRIAL_DAYS}-day free trial`;
+export const TRIAL = fill(SITE_COPY.en.plans.trial, { days: PRO_TRIAL_DAYS });
 export const TRIAL_DAYS = PRO_TRIAL_DAYS;
+
+/** Values for the {placeholders} in the site copy, taken from the billing constants. */
+export function siteVars(locale: Locale): Record<string, string | number> {
+  return {
+    pro: PRO_NAME,
+    price: PRICE,
+    days: PRO_TRIAL_DAYS,
+    trial: fill(SITE_COPY[locale].plans.trial, { days: PRO_TRIAL_DAYS }),
+    fee: GIFT_CARD_FEE_PERCENT,
+    slots: FOUNDING_OFFER_SLOTS,
+  };
+}
+
+/** The trial in words, e.g. "14-day free trial". */
+export const trialText = (locale: Locale) => String(siteVars(locale).trial);
 
 /**
  * One line on the founding offer, or "" once SHOW_FOUNDING_OFFER is off.
  * Worded so it stays true while spots remain: the Plan page, not the site,
- * tells a store whether it got one.
+ * tells a store whether it got one. The trial length here is
+ * FOUNDING_OFFER_TRIAL_DAYS, not the standard one.
  */
-export const FOUNDING_OFFER = SHOW_FOUNDING_OFFER
-  ? `Founding offer: the first ${FOUNDING_OFFER_SLOTS} stores to install from 23 October 2026 get 6 months of ${PRO_PLAN_DISPLAY_NAME} free (a ${FOUNDING_OFFER_TRIAL_DAYS}-day trial), then ${PRICE}/month unless you cancel. Your Plan page shows if you got a spot.`
-  : "";
+export function foundingOffer(locale: Locale): string {
+  if (!SHOW_FOUNDING_OFFER) return "";
+  return fill(SITE_COPY[locale].plans.founding, { ...siteVars(locale), days: FOUNDING_OFFER_TRIAL_DAYS });
+}
+
+/** English, for the pages that aren't translated yet. */
+export const FOUNDING_OFFER = foundingOffer("en");
 
 export type Feature = { icon: string; title: string; detail: string };
 
-export const FREE_FEATURES: Feature[] = [
-  { icon: "gift", title: "Unlimited registries, items and guests", detail: "No caps and no per-registry fees." },
-  { icon: "globe", title: "Gifts from your store and any online shop", detail: "Registrants paste a link and Giftpin fills in the photo, name and price." },
-  { icon: "store", title: "Your matching product suggested", detail: "Beside every item added from another shop, when your catalog has a close match." },
-  { icon: "heart", title: "Weddings, baby showers, birthdays and more", detail: "You choose which occasions your store offers." },
-  { icon: "shield", title: "No duplicate gifts", detail: "Guests reserve a gift, so nothing is bought twice." },
-  { icon: "card", title: "Credited through every checkout", detail: "Including Shop Pay, Apple Pay, Google Pay and the Shop app." },
-  { icon: "truck", title: "Gifts ship straight to the registrant", detail: "When they save an address, gifts bought from your store go to them." },
-  { icon: "list", title: "Who-gave-what list for thank-you notes", detail: "Registrants can download it as a spreadsheet." },
-  { icon: "link", title: "Add to the registry they already have", detail: "Your Add to registry button can offer their Babylist registry, or copy the product link for any registry that takes one." },
-  { icon: "puzzle", title: "Theme blocks for your store", detail: "An Add to registry button on product pages, and create, find and manage links anywhere." },
-  { icon: "chart", title: "Overview dashboard", detail: "Registries, items and gifts at a glance." },
-  { icon: "box", title: "Sold-out products handled", detail: "Registries check your live stock. Sold-out items show as sold out, or hide until you restock." },
-  { icon: "upload", title: "Import registries from another app", detail: "Upload a spreadsheet from your old registry app. Items match your products by SKU or barcode, and gifts already bought stay bought." },
-  { icon: "mail", title: "Email support", detail: "" },
-];
+// Icons are not language-specific, so they live here; the words live in site-copy/.
+const FREE_ICONS = ["gift", "globe", "store", "heart", "shield", "card", "truck", "list", "link", "puzzle", "chart", "box", "upload", "mail"];
+const PRO_ICONS = ["chart", "report", "palette", "percent", "bell", "gift", "scan", "star", "download", "headset"];
 
-export const PRO_FEATURES: Feature[] = [
-  { icon: "chart", title: "Registry analytics", detail: "Registries, items and gifts over 30 days, 90 days or 12 months, with revenue, new customers, where gifts were bought and registries by occasion." },
-  { icon: "report", title: "Registry sales report", detail: "Revenue, orders, new customers and average order from registries, month by month." },
-  { icon: "palette", title: "Your branding on registry pages", detail: "Your logo, colours and font, with the \"Powered by Giftpin\" credit removed." },
-  { icon: "percent", title: "Completion discount", detail: "After the event, the registrant gets a single-use code for your products still on their list. You choose the percentage and how long it lasts." },
-  { icon: "bell", title: "Automatic registry emails", detail: "A reminder before the event to guests who opt in, an alert when most items are gone, and a thank-you reminder listing who gave what." },
-  { icon: "gift", title: "Your gift cards on giftpin.app", detail: `List your store in the giftpin.app gift card directory and add a gift card link to registry pages. Shoppers buy your gift cards at your own checkout. Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each card sold this way, nothing during your free trial.` },
-  { icon: "scan", title: "In-store barcode scanner", detail: "Registrants shopping in your store scan a product's barcode with their own phone and add it to their registry. No app to install and no extra hardware." },
-  { icon: "star", title: "Registry perks", detail: "Tell registrants what they get for registering with you, like free gift wrapping. Shown when they start a registry and on their own registry page." },
-  { icon: "download", title: "CSV export", detail: "Every registry and purchase, ready for your spreadsheet or email tool." },
-  { icon: "headset", title: "Priority email support", detail: "Replies within one business day." },
-];
+const withIcons = (icons: string[], items: { title: string; detail: string }[], vars: Record<string, string | number>): Feature[] =>
+  items.map((f, i) => ({ icon: icons[i], title: fill(f.title, vars), detail: fill(f.detail, vars) }));
+
+export const freeFeatures = (locale: Locale): Feature[] => withIcons(FREE_ICONS, SITE_COPY[locale].plans.free, siteVars(locale));
+export const proFeatures = (locale: Locale): Feature[] => withIcons(PRO_ICONS, SITE_COPY[locale].plans.pro, siteVars(locale));
