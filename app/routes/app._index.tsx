@@ -224,6 +224,12 @@ function ThemeSetup() {
   // the home page, where shoppers miss it.
   const addRegistryLinksUrl = `${editor}?template=index&addAppBlockId=${apiKey}/registry-links&target=sectionGroup:header`;
 
+  // Save for later (heart) goes in the product's main section like the button.
+  // Saved items is a standalone section, so it lands in a new Apps section on
+  // the cart page, where a shopper looks for what they set aside.
+  const addSaveButtonUrl = `${editor}?template=product&addAppBlockId=${apiKey}/save-for-later&target=mainSection`;
+  const addSavedItemsUrl = `${editor}?template=cart&addAppBlockId=${apiKey}/saved-items&target=newAppsSection`;
+
   const vintage = themeSupport === "vintage";
   const productBlocked = vintage || themeSupport === "no-product-blocks";
 
@@ -270,7 +276,7 @@ function ThemeSetup() {
       {!vintage && (
         <s-stack direction="block" gap="base">
           <s-paragraph>
-            Giftpin has two blocks. Each button opens the theme editor with the block already added: check where
+            Giftpin has four blocks. Each button opens the theme editor with the block already added: check where
             it landed, drag it where you want it, then press Save.
           </s-paragraph>
 
@@ -297,6 +303,33 @@ function ThemeSetup() {
             <s-stack direction="inline" gap="base">
               <s-button href={addRegistryLinksUrl} target="_blank" variant={productBlocked ? "primary" : "secondary"}>
                 Add registry links
+              </s-button>
+            </s-stack>
+          </s-stack>
+
+          <s-stack direction="block" gap="small-100">
+            <s-heading>Save for later heart</s-heading>
+            <s-paragraph>
+              A heart on product pages. Shoppers keep products they like in their own browser, with no account.
+            </s-paragraph>
+            {!productBlocked && (
+              <s-stack direction="inline" gap="base">
+                <s-button href={addSaveButtonUrl} target="_blank" variant="secondary">
+                  Add heart to product pages
+                </s-button>
+              </s-stack>
+            )}
+          </s-stack>
+
+          <s-stack direction="block" gap="small-100">
+            <s-heading>Saved items</s-heading>
+            <s-paragraph>
+              Shows what a shopper has hearted. The button adds it to the cart page; you can also add it to any
+              other page by hand.
+            </s-paragraph>
+            <s-stack direction="inline" gap="base">
+              <s-button href={addSavedItemsUrl} target="_blank" variant="secondary">
+                Add saved items to the cart page
               </s-button>
             </s-stack>
           </s-stack>
