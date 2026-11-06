@@ -1,0 +1,66 @@
+{% comment %}
+  "Save for later" heart — app block for the product template.
+
+  A heart toggle that keeps products in this shopper's browser (localStorage),
+  so no account and no personal data. Pair it with the "Saved items" block on
+  any page to show the list. Shoppers can then add what they saved to a gift
+  registry from the product page as usual.
+{% endcomment %}
+
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+
+<div
+  class="giftpin-save"
+  data-giftpin-save-root
+  data-handle="{{ product.handle | escape }}"
+  data-title="{{ product.title | escape }}"
+  data-image="{% if product.featured_image %}{{ product.featured_image | image_url: width: 160 }}{% endif %}"
+  data-price="{{ current_variant.price | money | escape }}"
+  data-label-save="{{ block.settings.save_label | default: 'Save for later' | escape }}"
+  data-label-saved="{{ block.settings.saved_label | default: 'Saved' | escape }}"
+  data-label-error="{{ 'save_for_later.error' | t | escape }}"
+  {{ block.shopify_attributes }}
+  style="
+    --giftpin-accent: {{ block.settings.accent_color }};
+    --giftpin-radius: {{ block.settings.corner_radius }}px;
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px;
+  "
+>
+  <button type="button" class="giftpin-heart" data-giftpin-save aria-pressed="false">
+    <svg width="20" height="20" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10 17s-6.5-4-6.5-8.6C3.5 5.9 5.2 4.5 7 4.5c1.3 0 2.4.7 3 1.8.6-1.1 1.7-1.8 3-1.8 1.8 0 3.5 1.4 3.5 3.9C16.5 13 10 17 10 17Z"/>
+    </svg>
+    <span data-giftpin-save-label>{{ block.settings.save_label | default: 'Save for later' }}</span>
+  </button>
+  <p class="giftpin-save__status" data-giftpin-save-status role="status" aria-live="polite"></p>
+</div>
+
+{{ 'giftpin-saved.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'giftpin-saved.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Save for later",
+  "target": "section",
+  "enabled_on": { "templates": ["product"] },
+  "stylesheet": "giftpin-saved.css",
+  "javascript": "giftpin-saved.js",
+  "settings": [
+    { "type": "text", "id": "save_label", "label": "Label", "default": "Save for later" },
+    { "type": "text", "id": "saved_label", "label": "Label once saved", "default": "Saved" },
+    { "type": "color", "id": "accent_color", "label": "Button colour", "default": "#1a1a1a" },
+    {
+      "type": "range", "id": "corner_radius", "label": "Corner radius",
+      "min": 0, "max": 24, "step": 2, "unit": "px", "default": 10
+    },
+    {
+      "type": "range", "id": "margin_top", "label": "Space above",
+      "min": 0, "max": 48, "step": 4, "unit": "px", "default": 12
+    },
+    {
+      "type": "range", "id": "margin_bottom", "label": "Space below",
+      "min": 0, "max": 48, "step": 4, "unit": "px", "default": 12
+    }
+  ]
+}
+{% endschema %}

@@ -13,5 +13,9 @@
     "babylist_error": "Couldn't open Babylist. Please try again.",
     "other_option": "Another registry (copy link)",
     "link_copied": "Product link copied. In your other registry, paste it where it asks for a link, or use that site's own button, like Add to Zola."
+  },
+  "save_for_later": {
+    "error": "Couldn't save that on this browser.",
+    "remove": "Remove"
   }
 }

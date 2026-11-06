@@ -16,6 +16,7 @@ to "Giftpin" on 20 Sep 2026.
 - Merchant admin (React Router 7 + Polaris web components): onboarding, ROI
   dashboard with the merchant-share number, registry list, settings
 - Theme app extension: "Add to registry" app block, survives theme updates
+- Theme app blocks "Save for later" (heart) and "Saved items": favourites kept in the shopper's browser, no account
 - Guest registry page via app proxy — server-rendered HTML, no client framework,
   under 50KB for a 30-item registry (asserted in tests)
 - Registrant management via magic link — no customer account required
