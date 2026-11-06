@@ -74,7 +74,6 @@
 .giftpin-saved__price { display: block; font-size: 14px; opacity: .75; }
 
 .giftpin-saved__remove {
-  flex: none;
   padding: 6px 10px;
   font-family: inherit;
   font-size: 14px;
@@ -86,3 +85,20 @@
 }
 
 .giftpin-saved__empty { margin: 0; opacity: .75; }
+
+.giftpin-saved__actions {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.giftpin-saved__add {
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  text-decoration: none;
+}

@@ -82,6 +82,7 @@
     if (!listEl) return;
     var base = (root.dataset.productBase || "/products/").replace(/\/?$/, "/");
     var removeLabel = root.dataset.labelRemove || "Remove";
+    var addLabel = root.dataset.labelAdd || "Add to registry";
 
     function paint() {
       var list = read();
@@ -117,6 +118,17 @@
         a.appendChild(text);
         li.appendChild(a);
 
+        var actions = document.createElement("div");
+        actions.className = "giftpin-saved__actions";
+        // Opens the product page with the Add to registry flow already
+        // started (see the giftpin_add handling at the end of giftpin.js).
+        var addLink = document.createElement("a");
+        addLink.className = "giftpin-saved__add";
+        addLink.href = base + encodeURIComponent(item.h) + "?giftpin_add=1";
+        addLink.textContent = addLabel;
+        addLink.setAttribute("aria-label", addLabel + ": " + String(item.t || item.h));
+        actions.appendChild(addLink);
+
         var rm = document.createElement("button");
         rm.type = "button";
         rm.className = "giftpin-saved__remove";
@@ -129,7 +141,8 @@
           write(current);
           refreshAll();
         });
-        li.appendChild(rm);
+        actions.appendChild(rm);
+        li.appendChild(actions);
         listEl.appendChild(li);
       });
     }

@@ -16,6 +16,7 @@
   },
   "save_for_later": {
     "error": "Couldn't save that on this browser.",
-    "remove": "Remove"
+    "remove": "Remove",
+    "add_to_registry": "Add to registry"
   }
 }
