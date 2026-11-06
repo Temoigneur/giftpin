@@ -21,32 +21,27 @@ import { videoEmbed } from "../layout";
 
 const req = (url: string) => ({ request: new Request(url), params: {}, context: {} }) as never;
 
-const LANDING: Record<string, () => Promise<Response>> = {
+type Loader = (args: never) => Response | Promise<Response>;
+
+const LOADERS: Record<string, Loader> = {
+  "/": homeLoader,
+  "/features": featuresLoader,
+  "/pricing": pricingLoader,
+  "/wedding-registry": weddingLoader,
+  "/compare": compareLoader,
+  "/setup": setupLoader,
+  "/registry-guide": registryGuideLoader,
   "/gift-registry-app": giftRegistryAppLoader,
   "/baby-registry": babyRegistryLoader,
   "/home-goods-registry": homeGoodsLoader,
   "/holiday-wish-lists": holidayLoader,
+  "/faq": faqLoader,
 };
 
-async function page(path: string): Promise<string> {
-  const res = LANDING[path]
-    ? await LANDING[path]()
-    :
-    path === "/"
-      ? await homeLoader(req("https://giftpin.app/"))
-      : path === "/features"
-        ? await featuresLoader()
-        : path === "/pricing"
-          ? await pricingLoader()
-          : path === "/wedding-registry"
-            ? await weddingLoader()
-            : path === "/compare"
-              ? await compareLoader()
-              : path === "/setup"
-                ? await setupLoader()
-                : path === "/registry-guide"
-                  ? await registryGuideLoader()
-                  : await faqLoader();
+/** `init` can carry a ?lang= in the path or a cookie header, like a real visit. */
+async function page(path: string, init?: { query?: string; cookie?: string }): Promise<string> {
+  const request = new Request(`https://giftpin.app${path}${init?.query ?? ""}`, init?.cookie ? { headers: { cookie: init.cookie } } : undefined);
+  const res = await LOADERS[path]({ request, params: {}, context: {} } as never);
   expect(res.status).toBe(200);
   expect(res.headers.get("Content-Type")).toContain("text/html");
   return res.text();
@@ -154,7 +149,7 @@ describe("marketing site", () => {
 
   it("setup guide walks through install, theme, settings and Pro, and is linked from every page", async () => {
     const html = await page("/setup");
-    for (const label of ["Add button to product pages", "Add registry links", "Add heart to product pages", "Add saved items to the cart page", "Occasions", "Items from other stores", "Upgrade to Pro", "Automatically fulfill only the gift cards"]) {
+    for (const label of ["Add button to product pages", "Add registry links", "Add heart to product pages", "Add saved items to the cart page", "Occasions", "Items from other stores", "Cancel Pro", "Automatically fulfill only the gift cards"]) {
       expect(html).toContain(label);
     }
     expect(await page("/")).toContain('href="/setup"');
@@ -162,7 +157,7 @@ describe("marketing site", () => {
 
   it("registry guide covers starting, adding, the extension and sharing, and is linked from every page", async () => {
     const html = await page("/registry-guide");
-    for (const label of ["Create my registry", "Email me my link", "Look it up", "Copy connection link", "Share with guests", "Who can see this", "Let guests ship gifts to me"]) {
+    for (const label of ["Create my registry", "Email me my registries", "Look it up", "Copy connection link", "Share with guests", "Who can see this", "Let guests ship gifts to me"]) {
       expect(html).toContain(label);
     }
     expect(await page("/")).toContain('href="/registry-guide"');

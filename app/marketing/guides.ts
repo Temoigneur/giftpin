@@ -1,6 +1,9 @@
-import { esc, finalCta, icon, sitePage } from "./layout";
+import { esc, finalCta, icon, sitePage, siteLocale } from "./layout";
 import { FOUNDING_OFFER, PRICE, PRO_NAME, TRIAL } from "./plans-copy";
-import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
+import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
+import { GUIDE_COPY, type Shot, type Step } from "./guide-copy";
+import { LOCALES, t, type Locale, type MessageKey } from "../shared/i18n";
+import { SITE_URL } from "./config";
 
 /**
  * Search landing pages: each answers one thing a merchant types into Google
@@ -457,327 +460,84 @@ ${finalCta("Give shoppers a holiday list that starts in your store.")}
 }
 
 /**
- * Merchant setup guide at giftpin.app/setup. Every label in bold here is the
- * exact text of a button, heading or menu item in the app (app/routes/app.*)
- * or the Shopify admin, so a merchant can follow it literally. Update it
- * whenever those labels change.
+ * The setup guide (giftpin.app/setup) and registry guide (/registry-guide).
+ * Their words live in guide-copy/<language>.ts. Every bold label in them is
+ * either a `{{key}}` that is filled from the app's own dictionaries (so it is
+ * always the exact on-screen text in that language) or a Shopify screen name.
+ * Update the copy whenever the app's labels or button positions change.
  */
-type Shot = { src: string; alt: string };
-type Step = { title: string; items: string[]; img?: Shot | Shot[]; id?: string };
-const shots = (img: Step["img"]) =>
-  (img ? (Array.isArray(img) ? img : [img]) : [])
-    .map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`)
-    .join("");
+const GUIDE_VARS: Record<string, string> = {
+  trialDays: String(PRO_TRIAL_DAYS),
+  proName: PRO_NAME,
+  price: PRICE,
+  feePct: String(GIFT_CARD_FEE_PERCENT),
+  holdDays: String(GIFT_CARD_FEE_HOLD_DAYS),
+};
 
-const steps = (list: Step[]) =>
-  `<div class="steps">${list
-    .map(
-      (st, i) => `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
+// Items are trusted literals from guide-copy; nothing here comes from a request.
+const fillLabels = (html: string, locale: Locale) =>
+  html.replace(/\{\{([^}]+)\}\}/g, (_m, key: string) =>
+    key in GUIDE_VARS ? esc(GUIDE_VARS[key]) : esc(t(key as MessageKey, undefined, locale)),
+  );
+
+const guideShots = (list: Shot[]) =>
+  list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join("");
+
+function guideSteps(list: Step[], english: Step[], locale: Locale): string {
+  return `<div class="steps">${list
+    .map((st, i) => {
+      const base = english[i]?.img;
+      const imgs = base ? (Array.isArray(base) ? base : [base]) : [];
+      const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
+      return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
   <span class="step-n">${i + 1}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${it}</li>`).join("")}</ol>${shots(st.img)}</div>
-</div>`,
-    )
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown)}</div>
+</div>`;
+    })
     .join("")}</div>`;
+}
 
-// Items are trusted literals with inline <b> for UI labels; nothing here comes from a request.
-const GET_STARTED: Step[] = [
-  {
-    title: "Install Giftpin",
-    items: [
-      "Open Giftpin on the Shopify App Store and click <b>Install</b>.",
-      "Approve the permissions screen. Giftpin opens on its <b>Overview</b> page in your Shopify admin.",
-    ],
-  },
-  {
-    title: "Add Giftpin to your theme",
-    items: [
-      "On <b>Overview</b>, go to <b>Add Giftpin to your theme</b> and pick a theme. You can set up an unpublished copy first.",
-      "Click <b>Add button to product pages</b>. The theme editor opens with the Add to registry button already added. Drag it where you want it, then press <b>Save</b>.",
-      "Back in Giftpin, click <b>Add registry links</b>. This adds Create, Find and Manage registry links under your header. Press <b>Save</b> in the theme editor.",
-      "Optional, for a favourites list: click <b>Add heart to product pages</b>. This opens the product page in the theme editor with a <b>Save for later</b> heart added. Press <b>Save</b>.",
-      "Then click <b>Add saved items to the cart page</b>. This adds a <b>Saved items</b> list to your cart page, so shoppers can find what they hearted. Press <b>Save</b>.",
-      "These two are not switched on automatically. Until you add them in the theme editor and press <b>Save</b>, shoppers won't see a heart. Hearts are kept in the shopper's own browser, with no account, so the list is empty on a new device.",
-      "Prefer to place them by hand? In the theme editor, open the page, click <b>Add block</b> (or <b>Add section</b>), open the <b>Apps</b> group and choose <b>Save for later</b> or <b>Saved items</b>.",
-      "Using a vintage (pre-Online Store 2.0) theme? The blocks won't work there, but your registry pages still do: add a menu item pointing to <b>/apps/registry</b> in <b>Online Store → Navigation</b>.",
-    ],
-    img: [
-      { src: "/guides/m1-overview.png", alt: "Giftpin's Overview page with the Add Giftpin to your theme card, the Add button to product pages and Add registry links buttons" },
-      { src: "/guides/m2-theme-editor.png", alt: "The Shopify theme editor with the Add to registry block selected on a product page" },
-    ],
-  },
-  {
-    title: "Check your registry pages",
-    items: [
-      "On <b>Overview</b>, under <b>Your registry pages</b>, click <b>Create a registry</b> to see the page your customers use.",
-      "Create a test registry, add a product with the Add to registry button, and open the guest link to see what guests see.",
-      "Every registry your customers create shows up under <b>Registries</b> in Giftpin's menu.",
-    ],
-    img: [
-      { src: "/guides/m3-product-page.png", alt: "A storefront product page with the Add to registry button under Buy it now, and the Create, Find and Manage registry links above" },
-      { src: "/guides/m7-registries.png", alt: "Giftpin's Registries page listing two wedding registries with their items and progress" },
-    ],
-  },
-];
-
-const SETTINGS: Step[] = [
-  {
-    title: "Choose your occasions",
-    items: [
-      "Open <b>Settings</b>. Under <b>Occasions</b>, tick the kinds of registry customers can create: weddings, baby showers, birthdays, graduations, housewarmings and more.",
-    ],
-    img: { src: "/guides/m5-occasions.png", alt: "Giftpin Settings showing the Occasions checklist and the Items from other stores choices" },
-  },
-  {
-    title: "Decide on items from other stores",
-    items: [
-      "Under <b>Items from other stores</b>, choose <b>Allow (recommended)</b>, <b>Allow, but keep my products in the majority</b>, or <b>My products only</b>.",
-      "Allowing them is what makes customers pick your registry as their main one. Giftpin suggests your closest matching product beside each outside item.",
-    ],
-  },
-  {
-    title: "Match your store's look",
-    items: [
-      "Under <b>Appearance</b>, set the <b>Button label</b> and <b>Accent colour</b>.",
-      "The Add to registry button and registry links have their own settings in the theme editor: label, icon, colours, size and spacing.",
-      "To let shoppers who keep their registry somewhere else use your button too, tick <b>Also offer Babylist</b> or <b>Also offer \"Another registry\"</b> (copies the product link for sites like Zola) in the button's settings. The button then asks which registry.",
-      "With Pro, <b>Your branding</b> adds your logo, colours and font to registry pages and removes the Powered by Giftpin credit.",
-    ],
-    img: { src: "/guides/m6-appearance.png", alt: "Giftpin Settings Appearance section with the Button label and Accent colour fields" },
-  },
-  {
-    title: "Set privacy",
-    items: [
-      "Under <b>Privacy</b>, choose whether to hide who gave what until the event date, and whether to turn on the public find-a-registry page. Only registries whose owners opt in are listed there.",
-    ],
-  },
-];
-
-const PRO_STEPS: Step[] = [
-  {
-    title: "Start Pro",
-    items: [
-      `Open <b>Plan</b> in Giftpin's menu and click <b>Upgrade to Pro</b>. You get a ${TRIAL}, then ${PRO_NAME} is ${PRICE}/month. <b>Cancel Pro</b> is on the same page.`,
-    ],
-  },
-  {
-    title: "Group gifts and funds",
-    items: [
-      "In your Shopify admin, go to <b>Products → Gift cards → Add a gift card product</b>, with a few amounts such as $25, $50 and $100.",
-      "In <b>Settings → General → Order processing</b>, choose <b>Automatically fulfill only the gift cards</b>. Shopify only sends a gift card once its order is fulfilled.",
-      "In Giftpin, open <b>Settings</b>. Under <b>Group gifts and funds</b>, pick that gift card and press <b>Save</b>. Guests can now chip in toward a big item or a cash fund.",
-    ],
-  },
-  {
-    id: "gift-cards",
-    title: "Sell gift cards on giftpin.app",
-    items: [
-      "Set up the gift card in the step above first. The listing uses the same gift card, in amounts up to $500.",
-      "In Giftpin, open <b>Settings</b>. Under <b>Sell gift cards on giftpin.app</b>, tick <b>List my gift cards on giftpin.app</b>, add <b>One line about your store</b>, and press <b>Save</b>.",
-      "Your store now appears at <a href=\"/gift-cards\">giftpin.app/gift-cards</a>, under your country, and your registry pages get a <b>Rather give a gift card?</b> link. Shoppers buy your gift card at your own checkout, so you keep the money and any unspent balance. Gift cards sold this way show up in Giftpin's <b>Analytics</b>.",
-      `Giftpin charges ${GIFT_CARD_FEE_PERCENT}% of each gift card sold this way, on your Shopify bill, ${GIFT_CARD_FEE_HOLD_DAYS} days after the sale so a refunded card is never charged. There's no fee during your free trial.`,
-    ],
-  },
-  {
-    title: "After-event discount and automatic emails",
-    items: [
-      "Under <b>After the event (Pro)</b>, turn on a one-time discount for your products still on the registry, and set the percentage and how long the code works.",
-      "Under <b>Automatic emails (Pro)</b>, choose the guest reminder, the most-of-your-list-is-bought alert and the thank-you note reminder.",
-    ],
-  },
-  {
-    title: "In-store mode",
-    items: [
-      "Open <b>In-store</b> in Giftpin's menu to find a customer's registry or start one for them at the counter.",
-      "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Embedded Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel.",
-    ],
-  },
-];
-
-const SETUP_FAQ = [
-  {
-    q: "Where do I see my customers' registries?",
-    a: "Open Registries in Giftpin's menu. Overview shows registry revenue, new customers and gifts given.",
-  },
-  {
-    q: "Do registrants or guests need an account?",
-    a: "No. Registrants get a private manage link by email, and guests only need the registry link.",
-  },
-  {
-    q: "What happens to the theme blocks if I uninstall?",
-    a: "Shopify removes both Giftpin blocks from your themes automatically.",
-  },
-  {
-    q: "I'm stuck. Who do I contact?",
-    a: "Email support@giftpin.app with your store's .myshopify.com address and what you were trying to do.",
-  },
-];
-
-export function setupHtml(): string {
+function guideHtml(kind: "setup" | "registry", locale: Locale): string {
+  const copy = GUIDE_COPY[locale];
+  const eng = GUIDE_COPY.en;
+  const doc = copy[kind];
+  const engDoc = eng[kind];
+  const path = kind === "setup" ? "/setup" : "/registry-guide";
+  const notes = [copy.ui.shotsNote, kind === "setup" ? copy.ui.shopifyNote : ""].filter(Boolean);
   const body = `
-${hero(
-  `${icon("list")} Setup guide`,
-  `Set up Giftpin<br><span class="grad-text">in about ten minutes</span>`,
-  "Everything a merchant needs, from install to your first registry. Bold text is exactly what you'll see on screen.",
-)}
-${section("Get started", "", steps(GET_STARTED))}
-${section("Make it yours", "All in Giftpin's Settings page.", steps(SETTINGS), true)}
-${section(`${PRO_NAME}`, "Optional extras for stores that want more.", steps(PRO_STEPS))}
-${section("Common questions", "", faqList(SETUP_FAQ), true)}
-${finalCta("Ready to give your customers a registry?")}
+${hero(`${icon(kind === "setup" ? "list" : "gift")} ${esc(doc.eyebrow)}`, doc.h1, doc.lede)}
+${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
+${doc.sections
+  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale), sec.tint))
+  .join("\n")}
+${section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint)}
+${kind === "setup" ? finalCta(copy.ui.finalCta) : ""}
 `;
   return sitePage({
-    path: "/setup",
+    path,
     nav: "guides",
-    title: "Giftpin setup guide for Shopify merchants",
-    description:
-      "How to install Giftpin, add the registry button and links to your Shopify theme, choose occasions and settings, and turn on Pro features.",
+    title: doc.metaTitle,
+    description: doc.description,
     body,
     css: CSS,
-    jsonLd: [faqLd(SETUP_FAQ)],
+    jsonLd: [faqLd(doc.faq)],
+    lang: locale,
+    query: locale === "en" ? "" : `?lang=${locale}`,
+    alternates: [
+      ...LOCALES.map((l) => ({ lang: l, href: `${SITE_URL}${path}${l === "en" ? "" : `?lang=${l}`}` })),
+      { lang: "x-default", href: `${SITE_URL}${path}` },
+    ],
   });
 }
 
-/* ------------------------------------------------------------------ */
+/** Merchant setup guide at giftpin.app/setup. */
+export function setupHtml(locale: Locale = siteLocale()): string {
+  return guideHtml("setup", locale);
+}
 
-/**
- * Registry creator guide at giftpin.app/registry-guide: for the customer who
- * starts a registry on a store that uses Giftpin. Same rule as the setup
- * guide: bold text is the exact on-screen label (app/proxy/render/*.ts, the
- * theme blocks in extensions/registry-button, browser-extension/popup.html).
- * The store's own name appears where the page says "this store".
- */
-const REG_START: Step[] = [
-  {
-    title: "Start your registry",
-    items: [
-      "On the store's website, click <b>Create a gift registry</b> (usually under the header or in the menu). You can also press <b>Add to registry</b> on any product, and you'll be asked to start one.",
-      "Choose the occasion under <b>What's the occasion?</b>, then fill in <b>Registry name</b>, <b>When is it?</b>, <b>Your name</b> and <b>Your email</b>.",
-      "Under <b>Where will your guests shop?</b>, pick your guests' country. Giftpin uses it to suggest stores for things this store doesn't sell.",
-      "Optionally write <b>A note for your guests</b>, then click <b>Create my registry</b>.",
-    ],
-    img: { src: "/guides/r1-start.png", alt: "The Start a registry form with the occasion, registry name, date, name, email and country filled in" },
-  },
-  {
-    title: "Keep your private link",
-    items: [
-      "Giftpin emails you a private link to manage your registry. You don't need an account or a password: that link is your way in, so keep the email. It works for 90 days.",
-      "Lost it, or it stopped working? On the store's <b>Create a gift registry</b> page, under <b>Already have one?</b>, enter your email and click <b>Email me my link</b>.",
-      "Never share this link. Anyone who has it can edit your registry. Guests get a different link (see Share it below).",
-    ],
-    img: { src: "/guides/r2-manage-link.png", alt: "The email Giftpin sends, with the Open my registry button" },
-  },
-];
-
-const REG_ADD: Step[] = [
-  {
-    title: "Add this store's products",
-    items: [
-      "Browse the store and click <b>Add to registry</b> on any product page. You'll see <b>Added to your registry</b> and a <b>Back to your registry</b> link.",
-      "Pressing it again on the same product asks how many you'd like in total, so nothing gets added twice by accident.",
-      "Using a different phone or computer? Open your private link from the email there first, so the button knows which registry is yours.",
-    ],
-    img: { src: "/guides/r4-added.png", alt: "A product page after pressing Add to registry, showing Added to your registry and a Back to your registry link" },
-  },
-  {
-    title: "Add gifts from any other website",
-    items: [
-      "On your registry, go to <b>Add items</b>, paste the product's address into <b>Product link</b> and click <b>Look it up</b>. Giftpin fills in the name, photo and price.",
-      "Some big stores block this. If that happens, type the <b>Name</b> and <b>Price</b> yourself and click <b>Add to registry</b>.",
-      "Giftpin may show something similar from this store. Click <b>Preview &amp; swap</b> to see it, or keep your original.",
-    ],
-    img: { src: "/guides/r5-paste-link.png", alt: "The Add items box with a Target link looked up, showing the photo, name and price it found" },
-  },
-  {
-    title: "Or use the Chrome extension",
-    items: [
-      `On a computer, install <a href="https://chromewebstore.google.com/detail/giftpin-%E2%80%94-add-to-registry/hfmielpmefknpgpekhfehnfdlhiobdkk" target="_blank" rel="noopener">the Giftpin extension for Chrome</a>.`,
-      "On your registry, under <b>Connect the browser extension</b>, click <b>Copy connection link</b>. Open the extension, paste it into <b>Manage link</b> and click <b>Connect</b>. You only do this once.",
-      "Now, on any product page on any website, open the extension, choose the <b>Quantity</b> and click <b>Add to registry</b>.",
-    ],
-    img: { src: "/guides/r6-extension.png", alt: "The Giftpin extension on a Walmart product page, with the quantity and Add to registry button" },
-  },
-  {
-    title: "Fine-tune your list",
-    items: [
-      "Under <b>Your list</b>, open any item to change <b>How many you'd like</b>, add a <b>Note for guests</b> (a size or colour, say) or pick a <b>Category</b>, then click <b>Update</b>.",
-      "Not sure what to add? Your registry suggests ideas for your occasion.",
-    ],
-    img: { src: "/guides/r7-item.png", alt: "An item on the list opened for editing, with a note for guests, the quantity and the category" },
-  },
-];
-
-const REG_SHARE: Step[] = [
-  {
-    title: "Share it with guests",
-    items: [
-      "At the top of your registry, click <b>Share with guests</b> and send the link by email, text message, WhatsApp or Facebook, or click <b>Copy link</b>.",
-      "Guests see your gifts and what's still needed. They never see your email or address, and they don't need an account.",
-    ],
-    img: [
-      { src: "/guides/r3-share.png", alt: "The share link with Copy link, Email, Text message, WhatsApp and Facebook buttons" },
-      { src: "/guides/r10-guest-view.png", alt: "What guests see: the registry with a store item, a gift already taken care of, and an item from Walmart" },
-    ],
-  },
-  {
-    title: "Choose who can see it",
-    items: [
-      "At the bottom of your registry, click <b>Edit registry &amp; preferences</b>. Under <b>Registry settings</b>, use <b>Who can see this</b>: <b>Anyone with the link (recommended)</b>, <b>Anyone with the link and a password</b>, or <b>Listed publicly, so guests can search for it</b> on the store's <b>Find a gift registry</b> page.",
-      "Click <b>Save changes</b>. The same section lets you change the name, occasion, date and note.",
-    ],
-    img: { src: "/guides/r9-privacy.png", alt: "The Who can see this menu with its three choices" },
-  },
-  {
-    title: "Have gifts shipped to you",
-    items: [
-      "Right after you create your registry, we ask <b>Where should gifts go?</b> Tick the box and enter your shipping address, or skip it for now.",
-      "To change it later, click <b>Edit registry &amp; preferences</b>, then under <b>Let guests ship gifts to me</b> tick the box, enter your address and click <b>Save</b>. Guests can then ship gifts from this store straight to you.",
-      "Each guest decides when they add a gift to their cart: ship it to you, or send it to themselves. Guests never see your address.",
-    ],
-    img: { src: "/guides/r8-ship.png", alt: "The Let guests ship gifts to me section with the box ticked and a shipping address filled in" },
-  },
-];
-
-const REG_FAQ = [
-  {
-    q: "How do guests avoid buying the same thing?",
-    a: "Orders from this store update your registry automatically. For gifts from other websites, guests tap I bought this after buying, and the item shows as taken. Guests who change their mind can undo it for 24 hours.",
-  },
-  {
-    q: "How do I know who gave me what?",
-    a: "Your registry has a Who gave what list for your thank-you notes, and Giftpin emails you when someone buys a gift.",
-  },
-  {
-    q: "Can guests chip in toward something big?",
-    a: "If the store offers it, yes. Your registry can turn an item into a group gift, or hold a cash fund for a honeymoon or a house, paid as the store's gift cards.",
-  },
-  {
-    q: "Can I delete my registry?",
-    a: "Yes. Click Edit registry & preferences at the bottom of your registry, then Delete registry. This removes every item and the record of who bought what, and it can't be undone.",
-  },
-];
-
-export function registryGuideHtml(): string {
-  const body = `
-${hero(
-  `${icon("gift")} Registry guide`,
-  `Create your gift registry<br><span class="grad-text">and share one link</span>`,
-  "How to start a Giftpin registry, add gifts from this store and anywhere else, and share it with your guests. Bold text is exactly what you'll see on screen.",
-)}
-${section("Get started", "", steps(REG_START))}
-${section("Add your gifts", "From this store, and from any other website.", steps(REG_ADD), true)}
-${section("Share it", "", steps(REG_SHARE))}
-${section("Common questions", "", faqList(REG_FAQ), true)}
-`;
-  return sitePage({
-    path: "/registry-guide",
-    nav: "guides",
-    title: "How to create a gift registry with Giftpin",
-    description:
-      "How to start a Giftpin gift registry on a store, add gifts from that store and any other website, share it with guests and have gifts shipped to you.",
-    body,
-    css: CSS,
-    jsonLd: [faqLd(REG_FAQ)],
-  });
+/** Registry creator guide at giftpin.app/registry-guide. */
+export function registryGuideHtml(locale: Locale = siteLocale()): string {
+  return guideHtml("registry", locale);
 }
 
 const CSS = `

@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { homeHtml } from "../marketing/home";
-import { htmlResponse } from "../marketing/layout";
+import { renderFor } from "../marketing/layout";
 
 /**
  * Root route, two jobs:
@@ -30,7 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (SHOPIFY_PARAMS.some((p) => url.searchParams.has(p))) {
     throw redirect(`/app${url.search}`);
   }
-  return htmlResponse(homeHtml());
+  return renderFor(request, () => homeHtml());
 };
 
 // Deliberately no default export: a route module without one is a *resource
