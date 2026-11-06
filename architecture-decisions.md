@@ -301,10 +301,10 @@ There is no order, no webhook, no truth. What you have is the honour system, and
 
 **Soft claim, and this is the one place a reservation earns its complexity:**
 
-1. Guest taps "Buy at Best Buy" → you write a `Claim` (qty, `expires_at = now + 48h`) and open the retailer in a new tab.
+1. Guest taps "Buy at Best Buy" → you write a `Claim` (qty, `expires_at = now + 2h`) and open the retailer in a new tab.
 2. The item immediately shows as *"someone may be buying this"* — greyed, still clickable with a warning.
 3. Guest returns (or follows the emailed link 20 minutes later): "Did you buy it?" → Yes creates a `Purchase`; No releases the claim.
-4. No answer in 48h → the `reap` job releases it and emails once more.
+4. No answer in 2h → the `reap` job releases it and emails once more.
 
 Note the asymmetry, and put it in the docs: **internal items need no reservation because the order webhook is ground truth; external items need one because nothing else will ever tell you.** The brief's §9 recommendation ("don't reserve in MVP") was written before external items were in scope and applies only to internal ones.
 

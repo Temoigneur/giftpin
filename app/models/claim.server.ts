@@ -27,7 +27,7 @@ const CLAIM_PURPOSE = "claim";
 
 function holdHours(): number {
   const configured = Number(process.env.CLAIM_HOLD_HOURS);
-  return Number.isFinite(configured) && configured > 0 ? configured : 48;
+  return Number.isFinite(configured) && configured > 0 ? configured : 2;
 }
 
 export interface ClaimResult {
