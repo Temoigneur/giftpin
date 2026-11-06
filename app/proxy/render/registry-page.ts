@@ -564,7 +564,7 @@ function clientScript(): string {
     var owned=JSON.parse(localStorage.getItem('${REGISTRIES_STORAGE_KEY}')||localStorage.getItem('${LEGACY_REGISTRIES_STORAGE_KEY}')||'[]');
     var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
     var ownerEl=document.getElementById('registro-owner');
-    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);}
+    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);ownerEl.querySelector('u').textContent='Manage it (saved on this device)';}
   }catch(_){}
 
   // Store items: once a line for this variant is in the guest's cart, swap
