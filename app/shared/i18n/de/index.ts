@@ -3,6 +3,7 @@ import { deEmail } from "./email";
 import { deCommon } from "./common";
 import { deGuest } from "./guest";
 import { deCreate } from "./create";
+import { deServer } from "./server";
 
 export const de: Messages = {
   "noun.registry": "Geschenkeliste",
@@ -11,4 +12,5 @@ export const de: Messages = {
   ...deCommon,
   ...deGuest,
   ...deCreate,
+  ...deServer,
 };

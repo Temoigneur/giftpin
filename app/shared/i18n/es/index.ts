@@ -3,6 +3,7 @@ import { esEmail } from "./email";
 import { esCommon } from "./common";
 import { esGuest } from "./guest";
 import { esCreate } from "./create";
+import { esServer } from "./server";
 
 export const es: Messages = {
   "noun.registry": "lista de regalos",
@@ -11,4 +12,5 @@ export const es: Messages = {
   ...esCommon,
   ...esGuest,
   ...esCreate,
+  ...esServer,
 };

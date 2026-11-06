@@ -3,6 +3,7 @@ import { ptBREmail } from "./email";
 import { ptBRCommon } from "./common";
 import { ptBRGuest } from "./guest";
 import { ptBRCreate } from "./create";
+import { ptBRServer } from "./server";
 
 export const ptBR: Messages = {
   "noun.registry": "lista de presentes",
@@ -11,4 +12,5 @@ export const ptBR: Messages = {
   ...ptBRCommon,
   ...ptBRGuest,
   ...ptBRCreate,
+  ...ptBRServer,
 };

@@ -3,6 +3,7 @@ import { frEmail } from "./email";
 import { frCommon } from "./common";
 import { frGuest } from "./guest";
 import { frCreate } from "./create";
+import { frServer } from "./server";
 
 export const fr: Messages = {
   "noun.registry": "liste de cadeaux",
@@ -11,4 +12,5 @@ export const fr: Messages = {
   ...frCommon,
   ...frGuest,
   ...frCreate,
+  ...frServer,
 };
