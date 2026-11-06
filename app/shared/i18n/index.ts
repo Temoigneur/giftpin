@@ -68,6 +68,10 @@ export function setLocaleSource(fn: () => Locale | undefined): void {
   source = fn;
 }
 
+export function hasMessage(key: string): key is MessageKey {
+  return key in en;
+}
+
 export function currentLocale(): Locale {
   return source() ?? "en";
 }
@@ -120,6 +124,18 @@ export function tNoun(
   locale: Locale = currentLocale(),
 ): string {
   return t(`${base}.${eventType === "wishlist" ? "wishlist" : "registry"}` as MessageKey, vars, locale);
+}
+
+const HTML_ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+/**
+ * `t()` for a message that contains markup (an `...Html` key): string `vars`
+ * are HTML-escaped, `raw` ones are trusted markup the caller already built.
+ */
+export function th(key: MessageKey, vars: Vars = {}, raw: Vars = {}, locale: Locale = currentLocale()): string {
+  const safe: Vars = {};
+  for (const [k, v] of Object.entries(vars)) safe[k] = typeof v === "string" ? v.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]) : v;
+  return t(key, { ...safe, ...raw }, locale);
 }
 
 /** "registry" or "wish list" in the active language, for `{noun}` slots. */

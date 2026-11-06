@@ -7,6 +7,8 @@
  * `value` is what is stored in RegistryItem.category; never rename one without
  * a data migration. Order here is the order groups appear on the guest page.
  */
+import { t } from "./i18n";
+
 export const GIFT_CATEGORIES = [
   { value: "kitchen", label: "Kitchen" },
   { value: "dining", label: "Dining & Entertaining" },
@@ -25,5 +27,6 @@ export function isGiftCategory(value: unknown): value is GiftCategoryValue {
 }
 
 export function giftCategoryLabel(value: string | null | undefined): string {
-  return GIFT_CATEGORIES.find((c) => c.value === value)?.label ?? "Miscellaneous";
+  const category = GIFT_CATEGORIES.find((c) => c.value === value)?.value ?? "misc";
+  return t(`category.${category}`);
 }

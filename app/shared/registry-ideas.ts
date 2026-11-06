@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { WEDDING_GIFT_CATEGORIES, type IdeaKind } from "./wedding-categories";
 
 export type { IdeaKind };
@@ -77,7 +78,8 @@ const TEMPLATES: Record<string, OccasionTemplate> = {
 
 /** Starting text for an occasion's create form. Falls back to the general one. */
 export function occasionTemplate(eventType: string): OccasionTemplate {
-  return TEMPLATES[eventType] ?? TEMPLATES.other;
+  const kind = eventType in TEMPLATES ? eventType : "other";
+  return { title: t(`occasion.${kind}.title` as never), note: t(`occasion.${kind}.note` as never) };
 }
 
 /** An item written as "Name" or "Name|better search term". */

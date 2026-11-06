@@ -8,6 +8,7 @@
  * behind it. Everything with a Prisma dependency stays in models/shop.server.ts.
  */
 
+import { t, hasMessage } from "./i18n";
 import type { ContributionProduct } from "./contributions";
 import { GIFT_CARD_LISTING_DEFAULTS, type GiftCardListing } from "./gift-card-listing";
 
@@ -214,6 +215,8 @@ export function mergeSettings(stored: Partial<ShopSettings>): ShopSettings {
   };
 }
 
+/** An occasion's name in the active language ("Registry" if it isn't one we know). */
 export function eventTypeLabel(value: string): string {
-  return EVENT_TYPES.find((t) => t.value === value)?.label ?? "Registry";
+  const key = `event.${value}`;
+  return hasMessage(key) ? t(key as never) : t("event.fallback");
 }
