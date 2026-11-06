@@ -231,7 +231,7 @@ ${renderDuplicateNotice(data)}
 
 ${data.offerReminder ? renderReminderSignup() : ""}
 
-${data.giftCardUrl ? `<p class="owner-link big"><a href="${escapeAttr(data.giftCardUrl)}">Rather give a gift card? <u>Buy a ${escapeHtml(data.shopName)} gift card</u></a></p>` : ""}
+${data.giftCardUrl ? `<p class="owner-link big">Rather give a gift card? Buy a <a href="${escapeAttr(data.giftCardUrl)}"><u>${escapeHtml(data.shopName)} gift card</u></a></p>` : ""}
 
 <p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your ${noun}? <u>Sign in or get your private edit link</u></a></p>
 
