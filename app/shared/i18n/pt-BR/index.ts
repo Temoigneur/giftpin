@@ -4,6 +4,7 @@ import { ptBRCommon } from "./common";
 import { ptBRGuest } from "./guest";
 import { ptBRCreate } from "./create";
 import { ptBRServer } from "./server";
+import { ptBRManage } from "./manage";
 
 export const ptBR: Messages = {
   "noun.registry": "lista de presentes",
@@ -13,4 +14,5 @@ export const ptBR: Messages = {
   ...ptBRGuest,
   ...ptBRCreate,
   ...ptBRServer,
+  ...ptBRManage,
 };

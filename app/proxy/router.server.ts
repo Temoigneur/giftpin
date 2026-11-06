@@ -10,7 +10,7 @@ import {
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
 import { withLocale } from "../lib/i18n.server";
-import { currentLocale, t } from "../shared/i18n";
+import { currentLocale, t, type MessageKey } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
@@ -2008,23 +2008,32 @@ function firstNameOnly(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
 }
 
-const PARTNER_FLASH: Record<string, { kind: "ok" | "err"; message: string }> = {
-  "partner-added": { kind: "ok", message: "Done. We've emailed your partner their own link to this registry." },
-  "partner-removed": { kind: "ok", message: "Your partner has been removed. Links already sent to them stop working." },
-  "partner-invalid": { kind: "err", message: "Please enter your partner's name and a valid email address." },
-  "partner-exists": { kind: "err", message: "This registry already has a partner. Remove them first to add someone else." },
-  "partner-self": { kind: "err", message: "That email is already on this registry." },
+const PARTNER_FLASH: Record<string, MessageKey> = {
+  "partner-added": "manage.flash.partnerAdded",
+  "partner-removed": "manage.flash.partnerRemoved",
+  "partner-invalid": "manage.flash.partnerInvalid",
+  "partner-exists": "manage.flash.partnerExists",
+  "partner-self": "manage.flash.partnerSelf",
+};
+const PARTNER_FLASH_KIND: Record<string, "ok" | "err"> = {
+  "partner-added": "ok",
+  "partner-removed": "ok",
+  "partner-invalid": "err",
+  "partner-exists": "err",
+  "partner-self": "err",
 };
 
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
   const flash = ctx.query.get("flash");
-  if (flash === "saved") return { kind: "ok", message: "Your changes are saved." };
-  if (flash === "ship-saved") return { kind: "ok", message: "Your shipping address is saved." };
-  if (flash?.startsWith("partner-") && flash in PARTNER_FLASH) return PARTNER_FLASH[flash];
-  if (flash === "ship-off") return { kind: "ok", message: "Gifts won't be sent to you, and your address has been deleted." };
+  if (flash === "saved") return { kind: "ok", message: t("manage.flash.saved") };
+  if (flash === "ship-saved") return { kind: "ok", message: t("manage.flash.shipSaved") };
+  if (flash?.startsWith("partner-") && flash in PARTNER_FLASH) {
+    return { kind: PARTNER_FLASH_KIND[flash], message: t(PARTNER_FLASH[flash]) };
+  }
+  if (flash === "ship-off") return { kind: "ok", message: t("manage.flash.shipOff") };
   const shipError = flash?.startsWith("ship-") ? flash.slice(5) : null;
   if (shipError && shipError in SHIPPING_ADDRESS_ERRORS) {
-    return { kind: "err", message: SHIPPING_ADDRESS_ERRORS[shipError as ShippingAddressError] };
+    return { kind: "err", message: t(`manage.flash.shipErr.${shipError}` as MessageKey) };
   }
   return null;
 }
