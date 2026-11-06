@@ -218,7 +218,8 @@ describe("registry page gift card link", () => {
   it("links to the store's gift card page only when given the URL", () => {
     const withLink = renderRegistryPage({ ...(base as object), giftCardUrl: "/apps/registry/gift-card?src=registry" } as never);
     expect(withLink).toContain('href="/apps/registry/gift-card?src=registry"');
-    expect(withLink).toContain("Buy a Maple &amp; Co gift card");
+    // Only "<store> gift card" is the link; "Buy a" stays plain text.
+    expect(withLink).toContain('Buy a <a href="/apps/registry/gift-card?src=registry"><u>Maple &amp; Co gift card</u></a>');
     expect(renderRegistryPage(base)).not.toContain("gift-card?src=registry");
   });
 
