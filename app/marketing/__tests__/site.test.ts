@@ -154,7 +154,7 @@ describe("marketing site", () => {
 
   it("setup guide walks through install, theme, settings and Pro, and is linked from every page", async () => {
     const html = await page("/setup");
-    for (const label of ["Add button to product pages", "Add registry links", "Occasions", "Items from other stores", "Upgrade to Pro", "Automatically fulfill only the gift cards"]) {
+    for (const label of ["Add button to product pages", "Add registry links", "Add heart to product pages", "Add saved items to the cart page", "Occasions", "Items from other stores", "Upgrade to Pro", "Automatically fulfill only the gift cards"]) {
       expect(html).toContain(label);
     }
     expect(await page("/")).toContain('href="/setup"');
