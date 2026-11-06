@@ -1,7 +1,8 @@
 import type { PageBranding } from "../../shared/branding";
 import type { ContributionVariant } from "../../shared/contributions";
 import { GIFT_CARD_PROPERTY } from "../../lib/attribution";
-import { layout, escapeHtml, escapeAttr, formatMoney } from "./layout";
+import { layout, escapeHtml, escapeAttr, formatMoney, tx } from "./layout";
+import { t } from "../../shared/i18n";
 
 /**
  * The store's own gift card page, /apps/registry/gift-card — where
@@ -40,34 +41,34 @@ export function renderGiftCardPage(data: GiftCardPageData): string {
     .join("");
 
   const body = `
-<h1>${escapeHtml(data.shopName)} gift card</h1>
-<p class="sub">${escapeHtml(data.blurb || `Let them pick something they love at ${data.shopName}.`)}</p>
+<h1>${tx(t("manage.gc.title", { shop: data.shopName }))}</h1>
+<p class="sub">${tx(data.blurb || t("manage.gc.blurb", { shop: data.shopName }))}</p>
 
 <form method="post" action="/cart/add" class="note js-gc">
   <input type="hidden" name="quantity" value="1">
   <input type="hidden" name="properties[${GIFT_CARD_PROPERTY}]" value="${escapeAttr(data.token)}">
-  <fieldset class="gc-amts"><legend>Pick an amount</legend>${amounts}</fieldset>
+  <fieldset class="gc-amts"><legend>${tx(t("manage.gc.pick"))}</legend>${amounts}</fieldset>
 
   <div class="js-gc-recipient" hidden>
     <label class="check"><input type="checkbox" class="js-gc-send" name="properties[__shopify_send_gift_card_to_recipient]" value="true" disabled>
-      Email it straight to someone</label>
+      ${tx(t("manage.gc.send"))}</label>
     <div class="fields js-gc-fields" hidden>
-      <div><label for="gc-email">Their email</label>
+      <div><label for="gc-email">${tx(t("manage.gc.email"))}</label>
         <input id="gc-email" type="email" name="properties[Recipient email]" maxlength="254" required disabled></div>
-      <div><label for="gc-name">Their name</label>
+      <div><label for="gc-name">${tx(t("manage.gc.name"))}</label>
         <input id="gc-name" type="text" name="properties[Recipient name]" maxlength="255" disabled></div>
-      <div><label for="gc-msg">Message (optional)</label>
+      <div><label for="gc-msg">${tx(t("manage.gc.msg"))}</label>
         <textarea id="gc-msg" name="properties[Message]" maxlength="200" rows="3" disabled></textarea></div>
     </div>
   </div>
 
-  <div class="row" style="margin-top:16px"><button class="btn" type="submit">Add to cart</button></div>
-  <p class="hint">You pay at ${escapeHtml(data.shopName)}'s checkout, and the gift card is spent here. If you'd rather send it yourself, leave the box unticked and the card comes to you. Shopify doesn't send gift cards to someone else when you pay with Shop Pay, so use the regular Check out button for that.</p>
+  <div class="row" style="margin-top:16px"><button class="btn" type="submit">${tx(t("manage.gc.add"))}</button></div>
+  <p class="hint">${tx(t("manage.gc.hint", { shop: data.shopName }))}</p>
 </form>`;
 
   return layout(
     {
-      title: `${data.shopName} gift card`,
+      title: t("manage.gc.title", { shop: data.shopName }),
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,

@@ -1,8 +1,9 @@
 import type { PageBranding } from "../../shared/branding";
-import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref } from "./layout";
+import { layout, escapeHtml, escapeAttr, formatMoney, jsonForScript, storeMatchHref, tx, jsStr } from "./layout";
+import { t, th, formatMediumDate, countryName, type MessageKey } from "../../shared/i18n";
 import type { DisplayItem } from "../../models/item.server";
 import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion, eventTypeLabel } from "../../shared/settings";
-import { GIFT_CATEGORIES } from "../../shared/gift-categories";
+import { GIFT_CATEGORIES, giftCategoryLabel } from "../../shared/gift-categories";
 import { ideaGuideFor, type GiftIdeaItem } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
 import { ideaAliases } from "../../shared/idea-aliases";
@@ -118,10 +119,15 @@ export interface ManagePageData {
   prefsOpen?: boolean;
 }
 
+/** Translated text for an HTML text position (escapes & < > only). */
+const T = (key: MessageKey, vars?: Record<string, string | number>): string => tx(t(key, vars));
+/** Translated text for an HTML attribute. */
+const A = (key: MessageKey, vars?: Record<string, string | number>): string => escapeAttr(t(key, vars));
+
 export function renderManagePage(data: ManagePageData): string {
   const body = `
 ${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${eventHeroArt(data.eventType)}</div>`}
-<p class="sub">Your registry${data.myRegistriesUrl ? ` &middot; <a href="${escapeAttr(data.myRegistriesUrl)}">My registries</a>` : ""}</p>
+<p class="sub">${T("manage.yourReg")}${data.myRegistriesUrl ? ` &middot; <a href="${escapeAttr(data.myRegistriesUrl)}">${T("manage.myRegs")}</a>` : ""}</p>
 <h1>${escapeHtml(data.title)}</h1>
 
 ${data.flash && !data.setupStep ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
@@ -129,54 +135,54 @@ ${data.flash && !data.setupStep ? `<div class="${data.flash.kind === "ok" ? "ok"
 ${renderPerks(data.shopName, data.perks)}
 
 <div class="note">
-  <p style="margin:0 0 8px"><strong>Your share link</strong></p>
+  <p style="margin:0 0 8px"><strong>${T("manage.shareLink")}</strong></p>
   <p class="sub" style="word-break:break-all;margin:0 0 10px">${escapeHtml(data.shareUrl)}</p>
-  <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share with guests</button>
-  <button class="btn sm ghost js-share-copy" type="button" data-url="${escapeAttr(data.shareUrl)}">Copy link</button>
-  <button class="btn sm ghost js-qr-toggle" type="button" aria-expanded="false" aria-controls="share-qr">QR code</button>
+  <button class="btn sm js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">${T("manage.shareBtn")}</button>
+  <button class="btn sm ghost js-share-copy" type="button" data-url="${escapeAttr(data.shareUrl)}">${T("manage.copyLink")}</button>
+  <button class="btn sm ghost js-qr-toggle" type="button" aria-expanded="false" aria-controls="share-qr">${T("manage.qr")}</button>
   ${renderShareMenu(data.title, data.shareUrl)}
   ${renderShareQr(data.shareUrl)}
-  <p class="hint">Guests see the gifts and what's left. They never see your email or address.</p>
+  <p class="hint">${T("manage.guestsSee")}</p>
   ${renderLinkElsewhere(data.eventType, data.privacy)}
 </div>
 
 ${data.chromeExtensionUrl || data.extensionConnect ? `<style>.touch-only{display:none}@media (hover:none) and (pointer:coarse){.touch-only{display:block}.no-touch{display:none}}</style>
-<h2 id="extension">Connect the browser extension</h2>
+<h2 id="extension">${T("manage.ext.title")}</h2>
 <div class="note">
-  ${data.chromeExtensionUrl ? `<p style="margin:0 0 10px"><a href="${escapeAttr(data.chromeExtensionUrl)}" target="_blank" rel="noopener">Get the Giftpin extension for Chrome</a></p>` : ""}
-  <p class="touch-only" style="margin:0 0 10px"><strong>This part needs a computer.</strong> The extension runs in Chrome on a computer, not on phones or tablets. Open this page on your computer to connect it.</p>
-  <p style="margin:0 0 10px">Add gifts from Amazon, Etsy or any other website in one click. Copy the link below, open the Giftpin extension in Chrome, and paste it in.</p>
-  <label class="sr" for="manage-link">Your private connection link</label>
+  ${data.chromeExtensionUrl ? `<p style="margin:0 0 10px"><a href="${escapeAttr(data.chromeExtensionUrl)}" target="_blank" rel="noopener">${T("manage.ext.get")}</a></p>` : ""}
+  <p class="touch-only" style="margin:0 0 10px"><strong>${T("manage.ext.needsComputerB")}</strong> ${T("manage.ext.needsComputer")}</p>
+  <p style="margin:0 0 10px">${T("manage.ext.add")}</p>
+  <label class="sr" for="manage-link">${T("manage.ext.linkLabel")}</label>
   <input id="manage-link" class="js-manage-link" type="text" readonly value="${escapeAttr(data.manageUrl)}">
   <div class="row" style="margin-top:10px">
-    <button class="btn sm js-copy" type="button">Copy connection link</button>
+    <button class="btn sm js-copy" type="button">${T("manage.ext.copy")}</button>
     <span class="js-status item-meta" role="status"></span>
   </div>
-  <p class="hint">This link is private &mdash; anyone who has it can edit your registry. It is not the guest share link above.</p>
+  <p class="hint">${T("manage.ext.private")}</p>
 </div>
 ` : ""}
 
-<h2>Add items</h2>
+<h2>${T("manage.addItems")}</h2>
 
 ${renderIdeaGuide(data)}
 
 <div class="duo">
 <div class="note">
-  <p style="margin:0 0 10px"><strong>From ${escapeHtml(data.shopName)}</strong></p>
-  <a class="btn sm block" href="${escapeAttr(data.storeSearchUrl)}">Browse the store</a>
-  <p class="hint">Look for the &ldquo;Add to registry&rdquo; button on any product page. These are the items guests can buy in one tap.</p>
+  <p style="margin:0 0 10px"><strong>${T("manage.fromShop", { shop: data.shopName })}</strong></p>
+  <a class="btn sm block" href="${escapeAttr(data.storeSearchUrl)}">${T("manage.browse")}</a>
+  <p class="hint">${T("manage.browseHint")}</p>
   ${data.scanner ? renderScanner(data) : ""}
 </div>
 
 ${
   data.externalItemsAllowed
     ? `<div class="note">
-  <p style="margin:0 0 10px"><strong>From anywhere else</strong></p>
+  <p style="margin:0 0 10px"><strong>${T("manage.elsewhere")}</strong></p>
   <form class="js-paste" novalidate>
-    <label class="sr" for="paste-url">Product link</label>
-    <input id="paste-url" type="url" name="url" placeholder="Paste a link to any product" required>
+    <label class="sr" for="paste-url">${T("manage.productLink")}</label>
+    <input id="paste-url" type="url" name="url" placeholder="${A("manage.pastePh")}" required>
     <div class="row js-paste-lookup" style="margin-top:10px">
-      <button class="btn sm" type="submit">Look it up</button>
+      <button class="btn sm" type="submit">${T("manage.lookUp")}</button>
       <span class="js-status item-meta" role="status"></span>
     </div>
     <div class="js-paste-found" hidden>
@@ -185,34 +191,34 @@ ${
         <div class="md-card">
           <img class="item-img js-paste-img" alt="" width="72" height="72" hidden>
           <div class="md-info">
-            <label for="paste-title">Name</label>
+            <label for="paste-title">${T("manage.name")}</label>
             <input id="paste-title" type="text" name="title" maxlength="300">
-            <label for="paste-price">Price</label>
-            <input id="paste-price" type="text" name="price" inputmode="decimal" maxlength="20" placeholder="e.g. 49.99">
+            <label for="paste-price">${T("manage.price")}</label>
+            <input id="paste-price" type="text" name="price" inputmode="decimal" maxlength="20" placeholder="${A("manage.pricePh")}">
           </div>
         </div>
         <div class="match js-paste-match" hidden>
-          <p class="item-meta"><strong>Closest match in ${escapeHtml(data.shopName)}</strong></p>
+          <p class="item-meta"><strong>${T("manage.closest", { shop: data.shopName })}</strong></p>
           <div class="js-paste-match-cards"></div>
-          <label class="check"><input type="checkbox" name="showMatch"> Show this to guests too</label>
+          <label class="check"><input type="checkbox" name="showMatch"> ${T("manage.showMatch")}</label>
         </div>
       </div>
-      <label for="paste-note">Note for guests (optional)</label>
-      <input id="paste-note" type="text" name="note" maxlength="500" placeholder="e.g. grey or purple is fine">
+      <label for="paste-note">${T("manage.noteLabel")}</label>
+      <input id="paste-note" type="text" name="note" maxlength="500" placeholder="${A("manage.notePh")}">
       <div class="row" style="margin-top:10px">
-        <button class="btn sm" type="submit">Add to registry</button>
-        <button class="btn sm ghost js-paste-cancel" type="button">Cancel</button>
+        <button class="btn sm" type="submit">${T("manage.addToReg")}</button>
+        <button class="btn sm ghost js-paste-cancel" type="button">${T("manage.cancel")}</button>
         <span class="js-status item-meta" role="status"></span>
       </div>
     </div>
   </form>
   ${
     data.chromeExtensionUrl
-      ? `<p class="hint touch-only">On a phone, big stores like Amazon, Wayfair and Target block us from reading their pages, so you'll type the name and price yourself. To have the photo and price filled in for you, add those items with the <a href="#extension">Giftpin Chrome extension</a> on a computer.</p>
-  <p class="hint no-touch">On a computer? The <a href="#extension">Giftpin browser extension</a> is the easiest way: it picks up the photo and price even on sites that block us here.</p>`
-      : `<p class="hint">Some big stores block us from reading their pages. If that happens, type the name and price yourself and we'll add it with the link.</p>`
+      ? `<p class="hint touch-only">${th("manage.phoneHint", {}, { link: `<a href="#extension">${T("manage.phoneHintLink")}</a>` })}</p>
+  <p class="hint no-touch">${th("manage.desktopHint", {}, { link: `<a href="#extension">${T("manage.desktopHintLink")}</a>` })}</p>`
+      : `<p class="hint">${T("manage.blockHint")}</p>`
   }
-  <p class="hint">We'll pull the name, photo and price from the page and show you anything similar in ${escapeHtml(data.shopName)}. Guests go to that store to buy it, and tell us when they have &mdash; so nobody buys it twice.</p>
+  <p class="hint">${T("manage.pullHint", { shop: data.shopName })}</p>
 </div>`
     : ""
 }
@@ -221,10 +227,10 @@ ${
 ${renderFundSetup(data)}
 
 <div id="registro-list">
-<h2>Your list${data.items.length ? ` (${data.items.length})` : ""}</h2>
+<h2>${T("manage.yourList")}${data.items.length ? ` (${data.items.length})` : ""}</h2>
 ${
   data.items.length === 0
-    ? `<div class="empty"><p>Nothing here yet. Add your first gift above.</p></div>`
+    ? `<div class="empty"><p>${T("manage.empty")}</p></div>`
     : `<ul class="items">${data.items.map((item) => renderManageItem(item, data)).join("\n")}</ul>`
 }
 
@@ -252,7 +258,7 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
 
   return layout(
     {
-      title: `Manage ${data.title}`,
+      title: t("manage.pageTitle", { title: data.title }),
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,
@@ -275,64 +281,64 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
 function renderPreferences(data: ManagePageData): string {
   const shipOn = data.shipping?.enabled ?? false;
   const visibility =
-    data.privacy === "public_" ? "Listed publicly" : data.privacy === "password" ? "Link and password" : "Anyone with the link";
+    data.privacy === "public_" ? t("manage.vis.public") : data.privacy === "password" ? t("manage.vis.password") : t("manage.vis.link");
   const facts = [
     eventTypeLabel(data.eventType),
     data.eventDate && !isDatelessOccasion(data.eventType)
-      ? new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(data.eventDate)
+      ? formatMediumDate(data.eventDate)
       : null,
     visibility,
-    shipOn ? "Gifts ship to you" : null,
-    data.partner ? `With ${data.partner.name}` : null,
+    shipOn ? t("manage.shipsToYou") : null,
+    data.partner ? t("manage.withPartner", { name: data.partner.name }) : null,
   ].filter(Boolean) as string[];
   return `<details class="note prefs" id="prefs"${data.prefsOpen ? " open" : ""}>
-  <summary><span class="prefs-head"><strong>Registry &amp; preferences</strong><span class="prefs-facts">${facts.map(escapeHtml).join(" &middot; ")}</span></span><span class="prefs-cta"><span class="prefs-cta-open">Edit registry &amp; preferences</span><span class="prefs-cta-close">Close</span></span></summary>
+  <summary><span class="prefs-head"><strong>${T("manage.prefs.head")}</strong><span class="prefs-facts">${facts.map(escapeHtml).join(" &middot; ")}</span></span><span class="prefs-cta"><span class="prefs-cta-open">${T("manage.prefs.open")}</span><span class="prefs-cta-close">${T("manage.prefs.close")}</span></span></summary>
   <div class="prefs-body">
-  <h2>Registry settings</h2>
+  <h2>${T("manage.prefs.settings")}</h2>
   <form method="post" action="${escapeAttr(data.actionUrl)}/settings?t=${encodeURIComponent(data.token)}" class="prefs-form">
-  <label for="f-title">Registry name</label>
+  <label for="f-title">${T("manage.prefs.name")}</label>
   <input id="f-title" type="text" name="title" value="${escapeAttr(data.title)}" maxlength="200" required>
 
-  <label for="f-event">Occasion</label>
+  <label for="f-event">${T("manage.prefs.occasion")}</label>
   <select id="f-event" name="eventType">
     ${EVENT_TYPES.filter((t) => !OPT_IN_EVENT_TYPES.includes(t.value) || t.value === data.eventType || data.enabledEventTypes?.includes(t.value)).map(
-      (t) => `<option value="${escapeAttr(t.value)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${t.value === data.eventType ? " selected" : ""}>${escapeHtml(t.label)}</option>`,
+      (t) => `<option value="${escapeAttr(t.value)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${t.value === data.eventType ? " selected" : ""}>${escapeHtml(eventTypeLabel(t.value))}</option>`,
     ).join("")}
   </select>
 
   <div id="f-date-field"${isDatelessOccasion(data.eventType) ? " hidden" : ""}>
-  <label for="f-date">Date</label>
+  <label for="f-date">${T("manage.prefs.date")}</label>
   <input id="f-date" type="date" name="eventDate" value="${data.eventDate ? data.eventDate.toISOString().slice(0, 10) : ""}">
   </div>
   <script>(function(){var s=document.getElementById('f-event'),d=document.getElementById('f-date-field');s.addEventListener('change',function(){d.hidden='nodate' in s.options[s.selectedIndex].dataset;});})();</script>
 
-  <label for="f-msg">A note for your guests</label>
-  <textarea id="f-msg" name="message" maxlength="2000" placeholder="Thank you for celebrating with us...">${escapeHtml(data.message)}</textarea>
+  <label for="f-msg">${T("manage.prefs.note")}</label>
+  <textarea id="f-msg" name="message" maxlength="2000" placeholder="${A("manage.prefs.notePh")}">${escapeHtml(data.message)}</textarea>
 
-  <label for="f-country">Where do your guests shop?</label>
+  <label for="f-country">${T("manage.prefs.shop")}</label>
   <select id="f-country" name="country">
-    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${normalizeCountry(data.country) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${normalizeCountry(data.country) === c.code ? " selected" : ""}>${escapeHtml(countryName(c.code, c.label))}</option>`).join("")}
   </select>
-  <p class="hint">When this store doesn't carry something, we suggest that country's stores.</p>
+  <p class="hint">${T("manage.prefs.shopHint")}</p>
 
-  <label for="f-privacy">Who can see this</label>
+  <label for="f-privacy">${T("manage.prefs.who")}</label>
   <select id="f-privacy" name="privacy">
-    <option value="unlisted"${data.privacy === "unlisted" ? " selected" : ""}>Anyone with the link (recommended)</option>
-    <option value="password"${data.privacy === "password" ? " selected" : ""}>Anyone with the link and a password</option>
-    <option value="public_"${data.privacy === "public_" ? " selected" : ""}>Listed publicly, so guests can search for it</option>
+    <option value="unlisted"${data.privacy === "unlisted" ? " selected" : ""}>${T("manage.prefs.priv.unlisted")}</option>
+    <option value="password"${data.privacy === "password" ? " selected" : ""}>${T("manage.prefs.priv.password")}</option>
+    <option value="public_"${data.privacy === "public_" ? " selected" : ""}>${T("manage.prefs.priv.public")}</option>
   </select>
-  <p class="hint">Your registry is never indexed by search engines unless you choose to list it. Your email and address are never shown to anyone.</p>
+  <p class="hint">${T("manage.prefs.privHint")}</p>
 
   <div class="row" style="margin-top:18px">
-    <button class="btn" type="submit">Save changes</button>
+    <button class="btn" type="submit">${T("manage.prefs.save")}</button>
   </div>
 </form>
   ${renderShipping(data)}
   ${renderPartner(data)}
-  <h2>Delete this registry</h2>
-  <p class="hint" style="margin:0 0 10px">Removes the registry, every item, and everything we know about who bought what. This can't be undone.</p>
+  <h2>${T("manage.prefs.delTitle")}</h2>
+  <p class="hint" style="margin:0 0 10px">${T("manage.prefs.delHint")}</p>
   <form method="post" action="${escapeAttr(data.actionUrl)}/delete?t=${encodeURIComponent(data.token)}" class="js-confirm-delete">
-    <button class="btn sm ghost" type="submit">Delete registry</button>
+    <button class="btn sm ghost" type="submit">${T("manage.prefs.delBtn")}</button>
   </form>
   </div>
 </details>`;
@@ -363,26 +369,26 @@ function renderSetup(data: ManagePageData): string {
   const total = data.partner === undefined ? 1 : 2;
   const screens = {
     1: {
-      title: "Where should gifts go?",
-      sub: `Gifts bought from ${escapeHtml(data.shopName)} can be shipped straight to you, so guests don't need your address.`,
+      title: T("manage.setup.shipTitle"),
+      sub: T("manage.setup.shipSub", { shop: data.shopName }),
       body: renderShipping(data, true),
     },
     2: {
-      title: "Planning this with someone?",
-      sub: "Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.",
+      title: T("manage.setup.partnerTitle"),
+      sub: T("manage.setup.partnerSub"),
       body: renderPartner(data, true),
     },
   } as const;
   const screen = screens[step];
   return `<dialog id="setup" class="setup" open aria-labelledby="setup-title">
-  <form method="dialog" class="setup-close"><button type="submit" aria-label="Close">&times;</button></form>
-  ${total > 1 ? `<p class="setup-step">Step ${step} of ${total}</p>
+  <form method="dialog" class="setup-close"><button type="submit" aria-label="${A("manage.prefs.close")}">&times;</button></form>
+  ${total > 1 ? `<p class="setup-step">${T("manage.setup.step", { n: step, total })}</p>
   <div class="setup-dots" aria-hidden="true">${[1, 2].map((n) => `<i${n <= step ? ' class="on"' : ""}></i>`).join("")}</div>` : ""}
   <h2 id="setup-title" tabindex="-1" autofocus>${screen.title}</h2>
   <p class="sub">${screen.sub}</p>
   ${step === 2 && data.flash ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
   ${screen.body}
-  <p class="hint">You can change this any time under Edit registry &amp; preferences.</p>
+  <p class="hint">${T("manage.setup.change")}</p>
 </dialog>
 <script>(function(){var d=document.getElementById('setup');if(!d)return;
 try{var u=new URL(location.href);u.searchParams.delete('setup');history.replaceState(null,'',u.toString());}catch(_){}
@@ -403,46 +409,46 @@ function renderShipping(data: ManagePageData, setup = false): string {
   const country = a.countryCode || a.countryCodeV2 || normalizeCountry(data.country);
   const flash = shipping.flash;
   const input = (name: string, label: string, autocomplete: string, optional = false, type = "text") => `
-    <label for="${id}-${name}">${label}${optional ? ' <span class="hint">(optional)</span>' : ""}</label>
+    <label for="${id}-${name}">${label}${optional ? ` <span class="hint">${T("manage.optional")}</span>` : ""}</label>
     <input id="${id}-${name}" type="${type}" name="${name}" autocomplete="${autocomplete}" maxlength="120" value="${escapeAttr(a[name] ?? "")}">`;
 
-  return `${setup ? "" : `<h2 id="ship">Let guests ship gifts to me</h2>\n`}<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=1" : ""}" class="${setup ? "" : "note "}js-ship">
+  return `${setup ? "" : `<h2 id="ship">${T("manage.ship.title")}</h2>\n`}<form method="post" action="${escapeAttr(data.actionUrl)}/shipping?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=1" : ""}" class="${setup ? "" : "note "}js-ship">
   ${flash ? `<div class="${flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(flash.message)}</div>` : ""}
-  <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> Give guests the option to ship gifts from ${escapeHtml(data.shopName)} straight to me</label>
-  <p class="hint">Each guest decides when they add a gift to their cart: ship it to you, or send it to themselves (to wrap it or bring it along). Guests never see your address. If a guest checks out from a different ${country === "GB" ? "country" : "state, province or country"}, the store sends that gift to the guest's address instead, because the tax would change.</p>
+  <label class="check"><input type="checkbox" name="enabled" class="js-ship-toggle"${shipping.enabled ? " checked" : ""}> ${T("manage.ship.toggle", { shop: data.shopName })}</label>
+  <p class="hint">${T(country === "GB" ? "manage.ship.hintCountry" : "manage.ship.hintRegion")}</p>
   <fieldset class="js-ship-fields"${shipping.enabled ? "" : " hidden"}>
-    <legend class="sr">Your shipping address</legend>
+    <legend class="sr">${T("manage.ship.legend")}</legend>
     <div class="duo">
-      <div>${input("firstName", "First name", "given-name")}</div>
-      <div>${input("lastName", "Last name", "family-name")}</div>
+      <div>${input("firstName", T("manage.ship.first"), "given-name")}</div>
+      <div>${input("lastName", T("manage.ship.last"), "family-name")}</div>
     </div>
-    ${input("address1", "Street address", "address-line1")}
-    ${input("address2", "Apartment, suite, etc.", "address-line2", true)}
-    ${input("city", "City", "address-level2")}
-    <label for="${id}-country">Country</label>
+    ${input("address1", T("manage.ship.street"), "address-line1")}
+    ${input("address2", T("manage.ship.apt"), "address-line2", true)}
+    ${input("city", T("manage.ship.city"), "address-level2")}
+    <label for="${id}-country">${T("manage.ship.country")}</label>
     <select id="${id}-country" name="countryCode" class="js-ship-country" autocomplete="country">
-      ${SHIPPING_COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${c.code === country ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+      ${SHIPPING_COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${c.code === country ? " selected" : ""}>${escapeHtml(countryName(c.code, c.label))}</option>`).join("")}
     </select>
     ${Object.entries(PROVINCES)
       .map(
         ([code, p]) => `<div class="js-ship-region" data-country="${code}"${code === country ? "" : " hidden"}>
-    <label for="${id}-region-${code}">${p.label}</label>
+    <label for="${id}-region-${code}">${T(`manage.region.${p.label}` as MessageKey)}</label>
     <select id="${id}-region-${code}" name="provinceCode" autocomplete="address-level1"${code === country ? "" : " disabled"}>
-      <option value="">Choose&hellip;</option>
+      <option value="">${T("manage.ship.choose")}</option>
       ${p.regions.map((r) => `<option value="${escapeAttr(r.code)}"${code === country && r.code === a.provinceCode ? " selected" : ""}>${escapeHtml(r.label)}</option>`).join("")}
     </select>
     </div>`,
       )
       .join("")}
-    ${input("zip", country === "US" ? "ZIP code" : "Postal code", "postal-code")}
-    ${input("phone", "Phone, for the courier", "tel", true, "tel")}
+    ${input("zip", T(country === "US" ? "manage.ship.zip" : "manage.ship.postal"), "postal-code")}
+    ${input("phone", T("manage.ship.phone"), "tel", true, "tel")}
   </fieldset>
   <div class="row" style="margin-top:18px">
     ${
       setup
-        ? `<button class="btn" type="submit">Save and continue</button>
-    <a class="btn ghost" href="${escapeAttr(setupHref(data, 2))}">Skip for now</a>`
-        : `<button class="btn" type="submit">Save</button>`
+        ? `<button class="btn" type="submit">${T("manage.setup.saveContinue")}</button>
+    <a class="btn ghost" href="${escapeAttr(setupHref(data, 2))}">${T("manage.setup.skip")}</a>`
+        : `<button class="btn" type="submit">${T("manage.save")}</button>`
     }
   </div>
 </form>`;
@@ -494,15 +500,15 @@ function renderIdeaGuide(data: ManagePageData): string {
 </details>`;
   }).join("\n");
 
-  const how = [`Tap an item to search ${escapeHtml(data.shopName)}'s store.`];
-  if (kinds.has("experience")) how.push("Tap an experience to add it to your list, with a link to book it if you have one.");
-  if (kinds.has("fund")) how.push("Tap a fund to set one up below.");
+  const how = [T("manage.ideas.how1", { shop: data.shopName })];
+  if (kinds.has("experience")) how.push(T("manage.ideas.how2"));
+  if (kinds.has("fund")) how.push(T("manage.ideas.how3"));
 
   return `<details class="note ideas">
   <summary>
     <span class="ideas-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg></span>
-    <span class="ideas-text"><span class="ideas-q">Not sure what to add?</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
-    <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">Browse ideas</span><span class="ideas-cta-close">Hide ideas</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+    <span class="ideas-text"><span class="ideas-q">${T("manage.ideas.q")}</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
+    <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">${T("manage.ideas.open")}</span><span class="ideas-cta-close">${T("manage.ideas.close")}</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
   </summary>
   <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} ${how.join(" ")}</p>
   ${groups}
@@ -528,10 +534,10 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
 
   const image = item.imageUrl
     ? `<img class="item-img" src="${escapeAttr(item.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
-    : `<div class="item-img ph">No photo</div>`;
+    : `<div class="item-img ph">${T("manage.item.noPhoto")}</div>`;
 
   const source = item.isExternal
-    ? `<span class="src${item.sourceType === "shopify_ext" ? " live" : ""}">${escapeHtml(item.externalDomain ?? "elsewhere")}</span>`
+    ? `<span class="src${item.sourceType === "shopify_ext" ? " live" : ""}">${escapeHtml(item.externalDomain ?? t("manage.item.elsewhere"))}</span>`
     : `<span class="src live">${escapeHtml(data.shopName)}</span>`;
 
   // The bar only ever reports what was really bought (or raised): it never
@@ -540,39 +546,39 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
     ? item.fund && item.fund.goal > 0 ? item.fund.funded / item.fund.goal : 0
     : item.desiredQty > 0 ? item.purchasedQty / item.desiredQty : 0;
   const pct = Math.round(Math.min(1, Math.max(0, done)) * 100);
-  const count = item.isFund ? fundLine(item, data) : `${item.purchasedQty} of ${item.desiredQty} bought`;
+  const count = item.isFund ? fundLine(item, data) : T("manage.item.bought", { n: item.purchasedQty, total: item.desiredQty });
 
   return `<li class="item mi${item.fulfilled ? " done" : ""}">
-  <div class="mi-media">${image}${item.fulfilled ? `<span class="mi-badge">${item.isFund ? "Fully funded" : "All bought"}</span>` : ""}</div>
+  <div class="mi-media">${image}${item.fulfilled ? `<span class="mi-badge">${T(item.isFund ? "manage.item.funded" : "manage.item.allBought")}</span>` : ""}</div>
   <div class="mi-body">
     <p class="item-title">${escapeHtml(item.title)}</p>
     <p class="mi-src">${source}</p>
     <p class="mi-price">${price && !item.isFund ? `<span class="price">${price}</span>` : ""}<span class="mi-count">${count}</span></p>
     <div class="mi-bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
-    ${!item.isFund && item.fund ? `<p class="item-meta">Group gift: ${fundLine(item, data)}</p>` : ""}
+    ${!item.isFund && item.fund ? `<p class="item-meta">${T("manage.item.groupGift", { line: fundLine(item, data) })}</p>` : ""}
     ${
       isSoldOutStoreItem(item) && !item.fulfilled
-        ? `<p class="item-meta"><strong>Sold out right now.</strong> ${data.soldOutHidden ? "Guests won't see it until it's back in stock." : "Guests can't add it to their cart until it's back in stock."}</p>`
+        ? `<p class="item-meta"><strong>${T("manage.item.soldOut")}</strong> ${T(data.soldOutHidden ? "manage.item.soldOutHidden" : "manage.item.soldOutShown")}</p>`
         : ""
     }
     ${renderStoreMatch(item, data)}
   </div>
   ${renderGroupGift(item, data)}
   <form class="row mi-edit js-item" data-item="${id}">
-      <label class="sr" for="note-${id}">Note for guests</label>
-      <input class="item-note-input" id="note-${id}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="Note for guests (optional), e.g. grey or purple" style="flex:1 1 100%">
+      <label class="sr" for="note-${id}">${T("manage.item.noteLabel")}</label>
+      <input class="item-note-input" id="note-${id}" type="text" name="note" maxlength="500" value="${escapeAttr(item.note ?? "")}" placeholder="${A("manage.item.notePh")}" style="flex:1 1 100%">
       ${
         item.isFund
           ? `<input type="hidden" name="desiredQty" value="1">`
-          : `<span class="mi-qty"><label for="dq-${id}">Qty</label><input class="qty" id="dq-${id}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric"></span>`
+          : `<span class="mi-qty"><label for="dq-${id}">${T("manage.item.qty")}</label><input class="qty" id="dq-${id}" type="number" name="desiredQty" value="${item.desiredQty}" min="${Math.max(1, item.purchasedQty)}" max="99" inputmode="numeric"></span>`
       }
-      <label class="sr" for="cat-${id}">Category</label>
+      <label class="sr" for="cat-${id}">${T("manage.item.category")}</label>
       <select class="cat-select" id="cat-${id}" name="category">
-        <option value=""${item.category ? "" : " selected"}>No category</option>
-        ${GIFT_CATEGORIES.map((c) => `<option value="${escapeAttr(c.value)}"${c.value === item.category ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+        <option value=""${item.category ? "" : " selected"}>${T("manage.item.noCategory")}</option>
+        ${GIFT_CATEGORIES.map((c) => `<option value="${escapeAttr(c.value)}"${c.value === item.category ? " selected" : ""}>${escapeHtml(giftCategoryLabel(c.value))}</option>`).join("")}
       </select>
-      <button class="btn sm ghost" type="submit">Update</button>
-      ${item.purchasedQty === 0 ? `<button class="mi-remove js-remove" type="button" data-item="${id}">Remove</button>` : ""}
+      <button class="btn sm ghost" type="submit">${T("manage.item.update")}</button>
+      ${item.purchasedQty === 0 ? `<button class="mi-remove js-remove" type="button" data-item="${id}">${T("manage.item.remove")}</button>` : ""}
       <span class="js-status item-meta" role="status"></span>
   </form>
 </li>`;
@@ -688,26 +694,36 @@ details.prefs>summary:focus-visible{outline:2px solid var(--accent);outline-offs
  */
 function renderScanner(data: ManagePageData): string {
   return `<div class="scan js-scan" data-zxing="${escapeAttr(data.scannerScriptUrl ?? "")}">
-  <button class="btn sm block js-scan-open" type="button" style="margin-top:10px">Scan a barcode in the store</button>
-  <p class="hint">In the shop? Scan the barcode on a product's tag or box with your phone to add it.</p>
+  <button class="btn sm block js-scan-open" type="button" style="margin-top:10px">${T("manage.scan.open")}</button>
+  <p class="hint">${T("manage.scan.hint")}</p>
   <div class="js-scan-panel" hidden>
     <video class="js-scan-video" playsinline muted hidden style="width:100%;max-height:260px;border-radius:10px;background:#000;object-fit:cover"></video>
     <p class="item-meta js-scan-msg" role="status"></p>
     <form class="row js-scan-form" novalidate>
-      <label class="sr" for="scan-code">Barcode number</label>
-      <input id="scan-code" name="code" type="text" inputmode="numeric" autocomplete="off" maxlength="64" placeholder="Or type the barcode number" style="flex:1;min-height:44px">
-      <button class="btn sm ghost" type="submit">Look up</button>
+      <label class="sr" for="scan-code">${T("manage.scan.codeLabel")}</label>
+      <input id="scan-code" name="code" type="text" inputmode="numeric" autocomplete="off" maxlength="64" placeholder="${A("manage.scan.codePh")}" style="flex:1;min-height:44px">
+      <button class="btn sm ghost" type="submit">${T("manage.scan.lookUp")}</button>
     </form>
     <div class="js-scan-result"></div>
-    <button class="linkish js-scan-close" type="button">Done scanning</button>
+    <button class="linkish js-scan-close" type="button">${T("manage.scan.done")}</button>
   </div>
 </div>
 <script>${scannerScript()}</script>`;
 }
 
 function scannerScript(): string {
+  const S = {
+    noCam: t("manage.scan.noCam"), starting: t("manage.scan.starting"), point: t("manage.scan.point"),
+    denied: t("manage.scan.denied"), camFail: t("manage.scan.camFail"), looking: t("manage.scan.looking"),
+    lookFail: t("manage.scan.lookFail"), none: t("manage.scan.none"), again: t("manage.scan.again"),
+    pick: t("manage.scan.pick"), found: t("manage.scan.found"), soldOut: t("manage.scan.soldOut"),
+    onList: t("manage.scan.onList"), add: t("manage.addToReg"), another: t("manage.scan.another"),
+    retry: t("manage.scan.retry"), adding: t("manage.scan.adding"), addFail: t("manage.scan.addFail"),
+    oneMore: t("manage.scan.oneMore"), already: t("manage.scan.already"), now: t("manage.scan.now"), added: t("manage.scan.added"),
+  };
   return `
 (function(){
+  var S=${jsonForScript(S)};
   var cfg=JSON.parse(document.getElementById('registro-config')?document.getElementById('registro-config').textContent:'{}');
   var root=document.querySelector('.js-scan');if(!root)return;
   var panel=root.querySelector('.js-scan-panel'),video=root.querySelector('.js-scan-video'),msg=root.querySelector('.js-scan-msg'),out=root.querySelector('.js-scan-result'),form=root.querySelector('.js-scan-form');
@@ -739,8 +755,8 @@ function scannerScript(): string {
   }
   function start(){
     if(running)return;paused=false;
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser can\\'t use the camera. Type the number under the barcode instead.');return;}
-    say('Starting the camera...');running=true;
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say(S.noCam);return;}
+    say(S.starting);running=true;
     var constraints={video:{facingMode:{ideal:'environment'}},audio:false};
     if('BarcodeDetector' in window){
       var want=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
@@ -750,7 +766,7 @@ function scannerScript(): string {
         return navigator.mediaDevices.getUserMedia(constraints).then(function(s){
           stream=s;video.srcObject=s;video.hidden=false;return video.play();
         }).then(function(){
-          say('Point the camera at a barcode.');
+          say(S.point);
           (function tick(){
             if(!running)return;
             if(paused||video.readyState<2)return setTimeout(tick,300);
@@ -762,33 +778,32 @@ function scannerScript(): string {
     }
     loadZxing().then(function(){
       reader=new window.ZXing.BrowserMultiFormatReader();
-      video.hidden=false;say('Point the camera at a barcode.');
+      video.hidden=false;say(S.point);
       return reader.decodeFromConstraints(constraints,video,function(result){if(result&&!paused)found(result.getText());});
     }).catch(fail);
   }
   function fail(err){
     stop();
     var denied=err&&(err.name==='NotAllowedError'||err.name==='SecurityError');
-    say(denied?'Camera access is off for this page. Allow the camera in your browser settings, or type the number under the barcode.':'The camera didn\\'t start. Type the number under the barcode instead.',true);
+    say(denied?S.denied:S.camFail,true);
   }
-  function resume(){out.innerHTML='';paused=false;if(running)say('Point the camera at a barcode.');else start();}
+  function resume(){out.innerHTML='';paused=false;if(running)say(S.point);else start();}
   function lookup(code){
     code=String(code||'').trim();if(!code){paused=false;return;}
-    say('Looking up '+code+'...');out.innerHTML='';
+    say(S.looking.replace('{code}',code));out.innerHTML='';
     call('/scan-lookup',{code:code}).then(function(res){
-      if(!res||!res.ok)throw new Error(res&&res.error||'Couldn\\'t look that up');
+      if(!res||!res.ok)throw new Error(res&&res.error||S.lookFail);
       if(!res.matches.length){
-        say('No product in this store has the barcode '+code+'. Ask someone in the shop, or try another.',true);
-        out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">Scan again</button>';return;
+        say(S.none.replace('{code}',code),true);
+        out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">'+esc(S.again)+'</button>';return;
       }
-      say(res.matches.length>1?'Pick the one you want.':'Found it.');
+      say(res.matches.length>1?S.pick:S.found);
       out.innerHTML=res.matches.map(function(m){
         return '<div class="md-card" style="margin-top:10px">'+(m.imageUrl?'<img class="item-img" src="'+esc(m.imageUrl)+'" alt="" width="72" height="72">':'')+
-          '<div class="md-info"><p class="item-title">'+esc(m.title)+'</p><p class="item-meta">'+esc(m.price||'')+(m.availableForSale?'':' &middot; sold out right now')+'</p>'+
-          '<div class="row"><button class="btn sm js-scan-add" type="button" data-variant="'+esc(m.variantId)+'">'+(m.onRegistry?'On your list: add one more':'Add to registry')+'</button><span class="js-status item-meta" role="status"></span></div></div></div>';
-      }).join('')+'<button class="btn sm ghost js-scan-next" type="button" style="margin-top:10px">Scan another</button>';
-      out.querySelectorAll('.js-scan-add').forEach(function(b){if(/add one more/.test(b.textContent))b.dataset.more='1';});
-    }).catch(function(e){say(e.message,true);out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">Try again</button>';});
+          '<div class="md-info"><p class="item-title">'+esc(m.title)+'</p><p class="item-meta">'+esc(m.price||'')+(m.availableForSale?'':' &middot; '+esc(S.soldOut))+'</p>'+
+          '<div class="row"><button class="btn sm js-scan-add" type="button" data-variant="'+esc(m.variantId)+'"'+(m.onRegistry?' data-more="1"':'')+'>'+esc(m.onRegistry?S.onList:S.add)+'</button><span class="js-status item-meta" role="status"></span></div></div></div>';
+      }).join('')+'<button class="btn sm ghost js-scan-next" type="button" style="margin-top:10px">'+esc(S.another)+'</button>';
+    }).catch(function(e){say(e.message,true);out.innerHTML='<button class="btn sm ghost js-scan-next" type="button">'+esc(S.retry)+'</button>';});
   }
   root.addEventListener('click',function(e){
     if(e.target.closest('.js-scan-open')){panel.hidden=false;e.target.closest('.js-scan-open').hidden=true;start();return;}
@@ -796,11 +811,11 @@ function scannerScript(): string {
     if(e.target.closest('.js-scan-next')){resume();return;}
     var add=e.target.closest('.js-scan-add');
     if(add){
-      var st=add.parentNode.querySelector('.js-status');add.disabled=true;st.textContent='Adding...';st.style.color='';
+      var st=add.parentNode.querySelector('.js-status');add.disabled=true;st.textContent=S.adding;st.style.color='';
       call('/scan-add',{variantId:add.dataset.variant,addOne:add.dataset.more==='1'}).then(function(res){
-        if(!res||!res.ok)throw new Error(res&&res.error||'Couldn\\'t add that');
-        if(res.duplicate){add.disabled=false;add.dataset.more='1';add.textContent='Add one more';st.textContent='Already on your list ('+res.currentQty+' wanted).';return;}
-        add.textContent=res.desiredQty?'Now '+res.desiredQty+' on your list':'Added';st.textContent='';
+        if(!res||!res.ok)throw new Error(res&&res.error||S.addFail);
+        if(res.duplicate){add.disabled=false;add.dataset.more='1';add.textContent=S.oneMore;st.textContent=S.already.replace('{n}',res.currentQty);return;}
+        add.textContent=res.desiredQty?S.now.replace('{n}',res.desiredQty):S.added;st.textContent='';
       }).catch(function(err){add.disabled=false;st.textContent=err.message;st.style.color='#8c1d13';});
     }
   });
@@ -816,7 +831,6 @@ function scannerScript(): string {
 function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
   const m = item.storeMatch;
   if (!m) return "";
-  const shop = escapeHtml(data.shopName);
   const href = escapeAttr(storeMatchHref(m));
   const isProduct = m.kind === "product";
   const id = escapeAttr(item.id);
@@ -824,25 +838,25 @@ function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
   const previewAttrs = `class="js-match-preview" data-item="${id}" data-orig="${escapeAttr(item.title)}" data-kept="${m.status === "kept" ? "1" : "0"}"`;
   const link = isProduct
     ? `<a ${previewAttrs} href="${href}" target="_blank" rel="noopener">${escapeHtml(m.title)}</a>`
-    : `<a ${previewAttrs} href="${href}" target="_blank" rel="noopener">Browse ${escapeHtml(m.title)} products</a>`;
+    : `<a ${previewAttrs} href="${href}" target="_blank" rel="noopener">${T("manage.match.browse", { title: m.title })}</a>`;
 
   if (m.status === "kept") {
     return `<div class="match">
-  <p class="item-meta">Guests also see: ${link} at ${shop}</p>
-  <div class="row"><button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">Remove link</button></div>
+  <p class="item-meta">${th("manage.match.also", { shop: data.shopName }, { link })}</p>
+  <div class="row"><button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">${T("manage.match.removeLink")}</button></div>
 </div>`;
   }
-  const lead = isProduct ? `Similar item in ${shop}:` : `${shop} sells ${escapeHtml(m.title)} products:`;
+  const lead = isProduct ? T("manage.match.leadProduct", { shop: data.shopName }) : T("manage.match.leadBrowse", { shop: data.shopName, title: m.title });
   return `<div class="match">
   <p class="item-meta"><strong>${lead}</strong> ${link}</p>
   <div class="row">
-    <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="keep">Show to guests</button>
+    <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="keep">${T("manage.match.show")}</button>
     ${
       isProduct
-        ? `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="swap" data-orig="${escapeAttr(item.title)}" data-kept="0">Preview &amp; swap</button>`
-        : `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="preview" data-orig="${escapeAttr(item.title)}" data-kept="0">See matching products in ${shop}</button>`
+        ? `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="swap" data-orig="${escapeAttr(item.title)}" data-kept="0">${T("manage.match.swap")}</button>`
+        : `<button class="btn sm ghost js-match-preview" type="button" data-item="${id}" data-action="preview" data-orig="${escapeAttr(item.title)}" data-kept="0">${T("manage.match.see", { shop: data.shopName })}</button>`
     }
-    <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">Remove</button>
+    <button class="btn sm ghost js-match" type="button" data-item="${id}" data-action="dismiss">${T("manage.item.remove")}</button>
   </div>
 </div>`;
 }
@@ -851,13 +865,13 @@ function renderStoreMatch(item: DisplayItem, data: ManagePageData): string {
 function renderMatchDialog(data: ManagePageData): string {
   return `<dialog id="match-dialog" class="match-dialog" aria-labelledby="match-dialog-title">
   <div class="md-head">
-    <h2 id="match-dialog-title">From ${escapeHtml(data.shopName)}</h2>
-    <button class="dismiss js-md-close" type="button" aria-label="Close">&times;</button>
+    <h2 id="match-dialog-title">${T("manage.fromShop", { shop: data.shopName })}</h2>
+    <button class="dismiss js-md-close" type="button" aria-label="${A("manage.prefs.close")}">&times;</button>
   </div>
-  <div id="md-body" role="status">Loading&hellip;</div>
+  <div id="md-body" role="status">${T("manage.match.loading")}</div>
   <div class="row md-foot">
-    <button class="btn sm ghost js-md-keep" type="button">Show to guests</button>
-    <button class="btn sm ghost js-md-close" type="button">Close</button>
+    <button class="btn sm ghost js-md-keep" type="button">${T("manage.match.show")}</button>
+    <button class="btn sm ghost js-md-close" type="button">${T("manage.prefs.close")}</button>
   </div>
 </dialog>`;
 }
@@ -869,7 +883,7 @@ function renderMatchDialog(data: ManagePageData): string {
 function fundLine(item: DisplayItem, data: ManagePageData): string {
   if (!item.fund) return "";
   const currency = item.currency ?? data.currency;
-  return `${formatMoney(item.fund.funded, currency) || "Nothing"} of ${formatMoney(item.fund.goal, currency)} raised`;
+  return T("manage.fund.line", { funded: formatMoney(item.fund.funded, currency) || t("manage.fund.nothing"), goal: formatMoney(item.fund.goal, currency) });
 }
 
 /** "Add a cash fund" plus where chip-in gift cards go. */
@@ -877,24 +891,24 @@ function renderFundSetup(data: ManagePageData): string {
   if (!data.contributions) return "";
   const checked = data.contributions.toRegistrant ? " checked" : "";
   return `<div class="note">
-  <p style="margin:0 0 10px"><strong>A cash fund</strong></p>
-  <p class="hint" style="margin-top:0">For a honeymoon, a house or anything bigger. Guests chip in any of a few set amounts, paid as ${escapeHtml(data.shopName)} gift cards.</p>
+  <p style="margin:0 0 10px"><strong>${T("manage.fund.title")}</strong></p>
+  <p class="hint" style="margin-top:0">${T("manage.fund.hint", { shop: data.shopName })}</p>
   <form class="js-fund">
-    <label class="sr" for="fund-title">Fund name</label>
-    <input id="fund-title" type="text" name="title" maxlength="300" placeholder="e.g. Honeymoon in Portugal" required>
-    <label class="sr" for="fund-goal">Goal</label>
-    <input id="fund-goal" type="number" name="goal" min="1" step="1" inputmode="numeric" placeholder="Goal, e.g. 1500" required style="margin-top:10px">
-    <label class="sr" for="fund-note">Note for guests (optional)</label>
-    <input id="fund-note" type="text" name="note" maxlength="500" placeholder="Optional note for guests" style="margin-top:10px">
+    <label class="sr" for="fund-title">${T("manage.fund.name")}</label>
+    <input id="fund-title" type="text" name="title" maxlength="300" placeholder="${A("manage.fund.namePh")}" required>
+    <label class="sr" for="fund-goal">${T("manage.fund.goal")}</label>
+    <input id="fund-goal" type="number" name="goal" min="1" step="1" inputmode="numeric" placeholder="${A("manage.fund.goalPh")}" required style="margin-top:10px">
+    <label class="sr" for="fund-note">${T("manage.noteLabel")}</label>
+    <input id="fund-note" type="text" name="note" maxlength="500" placeholder="${A("manage.fund.notePh")}" style="margin-top:10px">
     <div class="row" style="margin-top:10px">
-      <button class="btn sm" type="submit">Add fund</button>
+      <button class="btn sm" type="submit">${T("manage.fund.add")}</button>
       <span class="js-status item-meta" role="status"></span>
     </div>
   </form>
   <form class="js-contrib-to" style="margin-top:14px">
     <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
       <input type="checkbox" name="toRegistrant"${checked} style="width:auto;margin-top:4px">
-      <span>Email chip-in gift cards straight to me. <span class="hint" style="display:inline">Guests will see my email address in their cart and at checkout. Guests who pay with Shop Pay still get the card themselves. Leave this off and each card goes to the guest to pass on.</span></span>
+      <span>${T("manage.fund.emailMe")} <span class="hint" style="display:inline">${T("manage.fund.emailMeHint")}</span></span>
     </label>
     <span class="js-status item-meta" role="status"></span>
   </form>
@@ -908,10 +922,10 @@ function renderGroupGift(item: DisplayItem, data: ManagePageData): string {
   const id = escapeAttr(item.id);
   const goal = item.fund ? String(item.fund.goal) : item.price ? String(Math.ceil(item.price * item.desiredQty)) : "";
   return `<form class="row js-group" data-item="${id}" style="margin-top:8px">
-  <label class="mi-gg" for="gg-${id}">${item.isFund ? "Goal" : "Group gift goal"}</label>
-  <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="Goal">
-  <button class="btn sm ghost" type="submit">${item.isFund ? "Update goal" : item.fund ? "Update group gift" : "Let guests chip in"}</button>
-  ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">Stop chip-ins</button>` : ""}
+  <label class="mi-gg" for="gg-${id}">${T(item.isFund ? "manage.group.goal" : "manage.group.goalLabel")}</label>
+  <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="${A("manage.group.goal")}">
+  <button class="btn sm ghost" type="submit">${T(item.isFund ? "manage.group.updateGoal" : item.fund ? "manage.group.update" : "manage.group.letChip")}</button>
+  ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">${T("manage.group.stop")}</button>` : ""}
   <span class="js-status item-meta" role="status"></span>
 </form>`;
 }
@@ -922,28 +936,28 @@ function renderGifts(data: ManagePageData): string {
   const rows = data.gifts
     .map((gift) => {
       const who = gift.hidden
-        ? "<em>Hidden until your event</em>"
+        ? `<em>${T("manage.gift.hidden")}</em>`
         : gift.buyerName
           ? escapeHtml(gift.buyerName)
-          : "<em>Anonymous</em>";
+          : `<em>${T("manage.gift.anon")}</em>`;
       return `<li class="item" style="grid-template-columns:1fr">
   <div>
     <p class="item-title">${escapeHtml(gift.itemTitle)}</p>
-    <p class="item-meta">From ${who}${
+    <p class="item-meta">${th("manage.gift.from", {}, { who })}${
       gift.isContribution
-        ? ` &middot; chipped in${gift.amount ? ` ${formatMoney(gift.amount, data.currency)}` : ""}`
+        ? ` &middot; ${gift.amount ? T("manage.gift.chippedAmt", { amount: formatMoney(gift.amount, data.currency) }) : T("manage.gift.chipped")}`
         : gift.qty > 1 ? ` &middot; ${gift.qty}` : ""
-    }${gift.source === "external" ? " &middot; bought elsewhere" : ""}</p>
-    ${gift.message ? `<p class="item-note">&ldquo;${escapeHtml(gift.message)}&rdquo;</p>` : ""}
+    }${gift.source === "external" ? ` &middot; ${T("manage.gift.elsewhere")}` : ""}</p>
+    ${gift.message ? `<p class="item-note">“${escapeHtml(gift.message)}”</p>` : ""}
   </div>
 </li>`;
     })
     .join("\n");
 
-  return `<h2>Who gave what</h2>
-<p class="sub">For your thank-you notes.</p>
+  return `<h2>${T("manage.gift.title")}</h2>
+<p class="sub">${T("manage.gift.sub")}</p>
 <ul class="items">${rows}</ul>
-<p style="margin-top:16px"><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">Download as a spreadsheet</a></p>`;
+<p style="margin-top:16px"><a class="btn sm ghost" href="${escapeAttr(data.actionUrl)}/thank-you.csv">${T("manage.gift.csv")}</a></p>`;
 }
 
 /**
@@ -955,29 +969,29 @@ function renderPartner(data: ManagePageData, setup = false): string {
   const action = (path: string) => `${escapeAttr(data.actionUrl)}/${path}?t=${encodeURIComponent(data.token)}${setup ? "&amp;setup=2" : ""}`;
   const id = setup ? "setup-p" : "p";
   const inner = data.partner
-    ? `<p style="margin:0 0 10px"><strong>${escapeHtml(data.partner.name)}</strong> can also manage this registry.</p>
+    ? `<p style="margin:0 0 10px">${th("manage.partner.also", {}, { name: `<strong>${escapeHtml(data.partner.name)}</strong>` })}</p>
   <form method="post" action="${action("partner-remove")}" class="js-confirm-partner">
-    <button class="btn sm ghost" type="submit">Remove partner</button>
+    <button class="btn sm ghost" type="submit">${T("manage.partner.remove")}</button>
   </form>
-  <p class="hint">Removing them turns off their link straight away. Gifts and settings stay as they are.</p>`
-    : `${setup ? "" : `<p style="margin:0 0 10px">Planning this with someone? Add them and we'll email them their own private link. They can add gifts, see what's been bought and change settings, just like you.</p>`}
+  <p class="hint">${T("manage.partner.removeHint")}</p>`
+    : `${setup ? "" : `<p style="margin:0 0 10px">${T("manage.setup.partnerTitle")} ${T("manage.setup.partnerSub")}</p>`}
   <form method="post" action="${action("partner")}">
-    <label for="${id}-name">Their name</label>
+    <label for="${id}-name">${T("manage.partner.name")}</label>
     <input id="${id}-name" type="text" name="name" maxlength="120" required autocomplete="off">
-    <label for="${id}-email">Their email</label>
+    <label for="${id}-email">${T("manage.partner.email")}</label>
     <input id="${id}-email" type="email" name="email" maxlength="254" required autocomplete="off">
     <div class="row" style="margin-top:12px">
       ${
         setup
-          ? `<button class="btn" type="submit">Add partner</button>
-      <button class="btn ghost" type="submit" formmethod="dialog" formnovalidate>Not now</button>`
-          : `<button class="btn sm" type="submit">Add partner</button>`
+          ? `<button class="btn" type="submit">${T("manage.partner.add")}</button>
+      <button class="btn ghost" type="submit" formmethod="dialog" formnovalidate>${T("manage.partner.notNow")}</button>`
+          : `<button class="btn sm" type="submit">${T("manage.partner.add")}</button>`
       }
     </div>
   </form>
-  <p class="hint">Their name appears next to yours on the registry page. Their email is never shown to guests.</p>`;
+  <p class="hint">${T("manage.partner.hint")}</p>`;
   if (setup) return inner;
-  return `<h2 id="partner">Your partner</h2>
+  return `<h2 id="partner">${T("manage.partner.title")}</h2>
 <div class="note">
   ${inner}
 </div>`;
@@ -991,13 +1005,10 @@ function renderPartner(data: ManagePageData, setup = false): string {
  * will be asked for the password, so say so.
  */
 function renderLinkElsewhere(eventType: string, privacy: string): string {
-  const where =
-    eventType === "wedding"
-      ? "Using The Knot or a wedding website? Add this as a registry from another store and paste the link above."
-      : "Using a wedding website or another registry site? Add this as a registry from another store and paste the link above.";
+  const where = t(eventType === "wedding" ? "manage.else.wedding" : "manage.else.other");
   const passwordNote =
     privacy === "password"
-      ? ` <strong>Your registry has a password</strong>, so guests who arrive from there will need it too. You can change this under Who can see this.`
+      ? ` ${th("manage.else.pw", {}, { b: `<strong>${T("manage.else.pwB")}</strong>` })}`
       : "";
   return `<p class="hint">${escapeHtml(where)}${passwordNote}</p>`;
 }
@@ -1009,12 +1020,12 @@ function renderLinkElsewhere(eventType: string, privacy: string): string {
  * swaps in a PNG for people pasting it into Word or Canva.
  */
 function renderShareQr(url: string): string {
-  const svg = qrSvg(url, "QR code for your registry's guest link");
+  const svg = qrSvg(url, t("manage.qr.alt"));
   const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   return `<style>.share-qr:not([hidden]){display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:12px}.share-qr svg{width:168px;height:168px;display:block;border:1px solid #ddd;border-radius:8px}.share-qr p{flex:1 1 200px;margin:0}</style>
   <div class="share-qr" id="share-qr" hidden>
     ${svg}
-    <p class="hint">Guests can point their phone camera at this to open your registry. Add it to invitations or a sign at the event.<br><a class="btn sm ghost js-qr-download" href="${escapeAttr(href)}" download="registry-qr-code.svg" style="margin-top:8px">Download QR code</a></p>
+    <p class="hint">${T("manage.qr.hint")}<br><a class="btn sm ghost js-qr-download" href="${escapeAttr(href)}" download="registry-qr-code.svg" style="margin-top:8px">${T("manage.qr.download")}</a></p>
   </div>`;
 }
 
@@ -1025,22 +1036,30 @@ function renderShareQr(url: string): string {
 function renderShareMenu(title: string, url: string): string {
   const text = `${title}: ${url}`;
   const links: [string, string][] = [
-    ["Email", `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`],
-    ["Text message", `sms:?&body=${encodeURIComponent(text)}`],
+    [t("manage.share.email"), `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`],
+    [t("manage.share.sms"), `sms:?&body=${encodeURIComponent(text)}`],
     ["WhatsApp", `https://wa.me/?text=${encodeURIComponent(text)}`],
     ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`],
   ];
   return `<style>.share-menu:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.share-link{flex:1 1 100%;min-height:40px;padding:0 10px;border:1px solid #ccc;border-radius:8px;font:inherit}</style>
   <div class="share-menu js-share-menu" hidden>
-    <input class="share-link" type="text" readonly value="${escapeAttr(url)}" aria-label="Guest link" onfocus="this.select()">
-    <button class="btn sm js-share-copy" type="button" data-url="${escapeAttr(url)}">Copy link</button>
+    <input class="share-link" type="text" readonly value="${escapeAttr(url)}" aria-label="${A("manage.share.guestLink")}" onfocus="this.select()">
+    <button class="btn sm js-share-copy" type="button" data-url="${escapeAttr(url)}">${T("manage.copyLink")}</button>
     ${links.map(([label, href]) => `<a class="btn sm" href="${escapeAttr(href)}" target="_blank" rel="noopener">${label}</a>`).join("\n    ")}
   </div>`;
 }
 
 function manageScript(): string {
+  const keys = ["useThis","viewStore","viewInStore","prodFail","instead","sells","noProducts","browseAll","pasteFirst","lookingLink","lookLinkFail","foundOn","blocked","blockedExt","needName","needPrice","adding","addLinkFail","saving","saved","saveFail","addingDots","addFail","fundFail","confirmDelete","confirmPartner","expText","expLink","expLinkPh","expPrice","expPricePh","expNotePh","fundIdea","checking","found1","foundN","openOne","noMatch","commission","pasteHint","pasteHintExt","couldNot","swapFail","confirmSwap","yourItem","swapWarn","confirmReplace","confirmRemove","removeFail","copied","linkCopied","copyPrompt"] as const;
+  const X: Record<string, string> = {
+    name: t("manage.name"), add: t("manage.addToReg"), cancel: t("manage.cancel"), notePh: t("manage.noteLabel"),
+    loading: t("manage.match.loading"),
+  };
+  for (const k of keys) X[k] = t(`manage.js.${k}` as MessageKey);
   return `
 (function(){
+  var X=${jsonForScript(X)};
+  function fmt(s,o){return s.replace(/\\{(\\w+)\\}/g,function(m,k){return o&&k in o?o[k]:m;});}
   ${IDEA_MATCH_JS}
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
 
@@ -1099,8 +1118,8 @@ function manageScript(): string {
     var t=document.createElement('p');t.className='item-title';t.textContent=p.title;info.appendChild(t);
     if(p.price){var pr=document.createElement('p');pr.className='item-meta';pr.textContent=p.price;info.appendChild(pr);}
     var row=document.createElement('div');row.className='row';
-    var b=document.createElement('button');b.type='button';b.className='btn sm js-md-swap';b.dataset.gid=p.id;b.textContent='Use this instead';row.appendChild(b);
-    var a=document.createElement('a');a.className='btn sm ghost';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent='View on store';row.appendChild(a);
+    var b=document.createElement('button');b.type='button';b.className='btn sm js-md-swap';b.dataset.gid=p.id;b.textContent=X.useThis;row.appendChild(b);
+    var a=document.createElement('a');a.className='btn sm ghost';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent=X.viewStore;row.appendChild(a);
     info.appendChild(row);card.appendChild(info);
     return card;
   }
@@ -1109,25 +1128,25 @@ function manageScript(): string {
     dlg.dataset.item=trigger.dataset.item;dlg.dataset.orig=trigger.dataset.orig||'';
     dlg.querySelector('.js-md-keep').hidden=trigger.dataset.kept==='1';
     dlg.querySelector('.js-md-keep').disabled=false;
-    body.textContent='Loading\u2026';
+    body.textContent=X.loading;
     dlg.showModal();
     post('/match-preview',{itemId:trigger.dataset.item}).then(function(res){
       body.textContent='';
-      if(!res||!res.ok){mdMessage((res&&res.error)||'Could not load the store\u2019s products');return;}
+      if(!res||!res.ok){mdMessage((res&&res.error)||X.prodFail);return;}
       var intro=document.createElement('p');intro.className='item-meta';
       intro.textContent=res.kind==='product'
-        ?'Instead of \u201c'+dlg.dataset.orig+'\u201d, '+cfg.shopName+' has:'
-        :cfg.shopName+' sells '+res.title+' products. Pick one to swap in for \u201c'+dlg.dataset.orig+'\u201d:';
+        ?fmt(X.instead,{orig:dlg.dataset.orig,shop:cfg.shopName})
+        :fmt(X.sells,{shop:cfg.shopName,title:res.title,orig:dlg.dataset.orig});
       body.appendChild(intro);
       if(res.products.length===0){
-        var none=document.createElement('p');none.className='item-meta';none.textContent='No products to show right now.';body.appendChild(none);
+        var none=document.createElement('p');none.className='item-meta';none.textContent=X.noProducts;body.appendChild(none);
       }
       res.products.forEach(function(p){body.appendChild(mdCard(p));});
       if(res.kind==='search'){
         var all=document.createElement('a');all.className='hint';all.target='_blank';all.rel='noopener';
-        all.href='/search?q='+encodeURIComponent(res.title)+'&type=product';all.textContent='Browse all '+res.title+' products';body.appendChild(all);
+        all.href='/search?q='+encodeURIComponent(res.title)+'&type=product';all.textContent=fmt(X.browseAll,{title:res.title});body.appendChild(all);
       }
-    }).catch(function(){body.textContent='';mdMessage('Could not load the store\u2019s products');});
+    }).catch(function(){body.textContent='';mdMessage(X.prodFail);});
   }
 
   function status(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
@@ -1194,7 +1213,7 @@ function manageScript(): string {
     var info=document.createElement('div');info.className='md-info';
     var t=document.createElement('p');t.className='item-title';t.textContent=p.title;info.appendChild(t);
     if(p.price){var pr=document.createElement('p');pr.className='item-meta';pr.textContent=p.price;info.appendChild(pr);}
-    var a=document.createElement('a');a.className='hint';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent='View in store';info.appendChild(a);
+    var a=document.createElement('a');a.className='hint';a.target='_blank';a.rel='noopener';a.href='/products/'+encodeURIComponent(p.handle);a.textContent=X.viewInStore;info.appendChild(a);
     card.appendChild(info);return card;
   }
   function resetPaste(paste){
@@ -1209,17 +1228,17 @@ function manageScript(): string {
   function lookUpLink(paste){
     var input=paste.querySelector('[name=url]');
     var lookup=paste.querySelector('.js-paste-lookup');var btn=lookup.querySelector('button');
-    if(!input.value.trim()){pasteStatus(lookup,'Paste a link first',false);input.focus();return;}
-    btn.disabled=true;pasteStatus(lookup,'Looking up that link\u2026');
+    if(!input.value.trim()){pasteStatus(lookup,X.pasteFirst,false);input.focus();return;}
+    btn.disabled=true;pasteStatus(lookup,X.lookingLink);
     post('/link-preview',{url:input.value}).then(function(res){
       btn.disabled=false;
-      if(!res||!res.ok){pasteStatus(lookup,(res&&res.error)||'Could not look up that link',false);return;}
+      if(!res||!res.ok){pasteStatus(lookup,(res&&res.error)||X.lookLinkFail,false);return;}
       pasteFound=res;pasteStatus(lookup,'');
       lookup.hidden=true;input.readOnly=true;
       var found=paste.querySelector('.js-paste-found');found.hidden=false;
       paste.querySelector('.js-paste-msg').textContent=res.found
-        ?'Here\u2019s what we found on '+res.domain+'. Change anything that\u2019s not right.'
-        :res.domain+' didn\u2019t let us read that page. Type the name and price and we\u2019ll add it with the link.'+(cfg.extension?' (The browser extension can read it, if you\u2019re on a computer.)':'');
+        ?fmt(X.foundOn,{domain:res.domain})
+        :fmt(X.blocked,{domain:res.domain})+(cfg.extension?X.blockedExt:'');
       var img=paste.querySelector('.js-paste-img');
       if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
       paste.querySelector('[name=title]').value=res.title||'';
@@ -1231,15 +1250,15 @@ function manageScript(): string {
         m.hidden=false;
       }else{m.hidden=true;}
       paste.querySelector(res.found?'[name=note]':'[name=title]').focus();
-    }).catch(function(){btn.disabled=false;pasteStatus(lookup,'Could not look up that link',false);});
+    }).catch(function(){btn.disabled=false;pasteStatus(lookup,X.lookLinkFail,false);});
   }
   function addLink(paste){
     var found=paste.querySelector('.js-paste-found');var btn=found.querySelector('button[type=submit]');
     var title=paste.querySelector('[name=title]').value.trim();
-    if(!title){pasteStatus(found,'Please give the item a name',false);paste.querySelector('[name=title]').focus();return;}
+    if(!title){pasteStatus(found,X.needName,false);paste.querySelector('[name=title]').focus();return;}
     var price=paste.querySelector('[name=price]').value.trim();
-    if(!price){pasteStatus(found,'Please add the price, so guests know what it costs',false);paste.querySelector('[name=price]').focus();return;}
-    btn.disabled=true;pasteStatus(found,'Adding\u2026');
+    if(!price){pasteStatus(found,X.needPrice,false);paste.querySelector('[name=price]').focus();return;}
+    btn.disabled=true;pasteStatus(found,X.adding);
     post('/add-link',{
       url:pasteFound.url,title:title,
       price:paste.querySelector('[name=price]').value,
@@ -1249,8 +1268,8 @@ function manageScript(): string {
       matchTitle:pasteFound.match?pasteFound.match.title:null
     }).then(function(res){
       if(res&&res.ok){location.reload();return;}
-      btn.disabled=false;pasteStatus(found,(res&&res.error)||'Could not add that link',false);
-    }).catch(function(){btn.disabled=false;pasteStatus(found,'Could not add that link',false);});
+      btn.disabled=false;pasteStatus(found,(res&&res.error)||X.addLinkFail,false);
+    }).catch(function(){btn.disabled=false;pasteStatus(found,X.addLinkFail,false);});
   }
   document.addEventListener('click',function(e){
     var c=e.target.closest('.js-paste-cancel');
@@ -1267,46 +1286,46 @@ function manageScript(): string {
     }
     var item=e.target.closest('.js-item');
     if(item){
-      e.preventDefault();status(item,'Saving...');
+      e.preventDefault();status(item,X.saving);
       post('/update-item',{itemId:item.dataset.item,desiredQty:Number(item.querySelector('[name=desiredQty]').value),category:item.querySelector('[name=category]').value,note:item.querySelector('[name=note]').value})
-        .then(function(res){status(item,res&&res.ok?'Saved':((res&&res.error)||'Could not save'),!(res&&res.ok));});
+        .then(function(res){status(item,res&&res.ok?X.saved:((res&&res.error)||X.saveFail),!(res&&res.ok));});
       return;
     }
     var idea=e.target.closest('.js-idea-add');
     if(idea){
-      e.preventDefault();var ib=idea.querySelector('button[type=submit]');ib.disabled=true;status(idea,'Adding...');
+      e.preventDefault();var ib=idea.querySelector('button[type=submit]');ib.disabled=true;status(idea,X.addingDots);
       post('/add-manual',{title:idea.querySelector('[name=title]').value,url:idea.querySelector('[name=url]').value.trim(),price:idea.querySelector('[name=price]').value.trim(),note:idea.querySelector('[name=note]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(idea,(res&&res.error)||'Could not add that',false);ib.disabled=false;}})
-        .catch(function(){status(idea,'Could not add that',false);ib.disabled=false;});
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(idea,(res&&res.error)||X.addFail,false);ib.disabled=false;}})
+        .catch(function(){status(idea,X.addFail,false);ib.disabled=false;});
       return;
     }
     var fund=e.target.closest('.js-fund');
     if(fund){
-      e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,'Adding...');
+      e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,X.addingDots);
       post('/add-fund',{title:fund.querySelector('[name=title]').value,goal:fund.querySelector('[name=goal]').value,note:fund.querySelector('[name=note]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(fund,(res&&res.error)||'Could not add the fund',false);fb.disabled=false;}})
-        .catch(function(){status(fund,'Could not add the fund',false);fb.disabled=false;});
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(fund,(res&&res.error)||X.fundFail,false);fb.disabled=false;}})
+        .catch(function(){status(fund,X.fundFail,false);fb.disabled=false;});
       return;
     }
     var group=e.target.closest('.js-group');
     if(group){
-      e.preventDefault();status(group,'Saving...');
+      e.preventDefault();status(group,X.saving);
       post('/item-fund',{itemId:group.dataset.item,goal:group.querySelector('[name=goal]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(group,(res&&res.error)||'Could not save',false);}});
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(group,(res&&res.error)||X.saveFail,false);}});
       return;
     }
     var del=e.target.closest('.js-confirm-delete');
-    if(del&&!confirm('Delete this registry and everything on it? This cannot be undone.')){e.preventDefault();}
+    if(del&&!confirm(X.confirmDelete)){e.preventDefault();}
     var rp=e.target.closest('.js-confirm-partner');
-    if(rp&&!confirm('Remove your partner? Their link to this registry will stop working.')){e.preventDefault();}
+    if(rp&&!confirm(X.confirmPartner)){e.preventDefault();}
   });
 
   document.addEventListener('change',function(e){
     var to=e.target.closest('.js-contrib-to');
     if(!to)return;
-    status(to,'Saving...');
+    status(to,X.saving);
     post('/contribution-settings',{toRegistrant:e.target.checked})
-      .then(function(res){status(to,res&&res.ok?'Saved':'Could not save',!(res&&res.ok));});
+      .then(function(res){status(to,res&&res.ok?X.saved:X.saveFail,!(res&&res.ok));});
   });
 
   // Experience ideas (a cooking class, a spa day): a little form right under
@@ -1323,16 +1342,16 @@ function manageScript(): string {
     if(grid&&grid.parentNode)grid.parentNode.insertBefore(panel,grid.nextSibling);
     panel.hidden=false;panel.textContent='';
     var p=document.createElement('p');p.className='item-meta';
-    p.textContent='Add \u201c'+chip.dataset.title+'\u201d to your list. Guests book it themselves and tap \u201cI bought this\u201d so nobody doubles up.';
+    p.textContent=fmt(X.expText,{name:chip.dataset.title});
     panel.appendChild(p);
     var f=document.createElement('form');f.className='idea-add js-idea-add';f.noValidate=true;
-    ideaField(f,'title','Name','text',chip.dataset.title);
-    ideaField(f,'url','Link to book it (optional)','url','','e.g. a gift card page on the venue\u2019s site');
-    ideaField(f,'price','Price (optional)','text','','e.g. 120');
-    ideaField(f,'note','Note for guests (optional)','text','','e.g. any weekend in June');
+    ideaField(f,'title',X.name,'text',chip.dataset.title);
+    ideaField(f,'url',X.expLink,'url','',X.expLinkPh);
+    ideaField(f,'price',X.expPrice,'text','',X.expPricePh);
+    ideaField(f,'note',X.notePh,'text','',X.expNotePh);
     var row=document.createElement('div');row.className='row';
-    var add=document.createElement('button');add.className='btn sm';add.type='submit';add.textContent='Add to registry';
-    var cancel=document.createElement('button');cancel.className='btn sm ghost js-idea-cancel';cancel.type='button';cancel.textContent='Cancel';
+    var add=document.createElement('button');add.className='btn sm';add.type='submit';add.textContent=X.add;
+    var cancel=document.createElement('button');cancel.className='btn sm ghost js-idea-cancel';cancel.type='button';cancel.textContent=X.cancel;
     var st=document.createElement('span');st.className='js-status item-meta';st.setAttribute('role','status');
     row.appendChild(add);row.appendChild(cancel);row.appendChild(st);f.appendChild(row);
     panel.appendChild(f);
@@ -1353,7 +1372,7 @@ function manageScript(): string {
       ff.querySelector('[name=title]').value=ideaFund.dataset.title;
       try{ff.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){}
       ff.querySelector('[name=goal]').focus({preventScroll:true});
-      status(ff,'Set a goal for \u201c'+ideaFund.dataset.title+'\u201d, then tap Add fund.');
+      status(ff,fmt(X.fundIdea,{name:ideaFund.dataset.title}));
       return;
     }
     var chip=e.target.closest('.js-cat');
@@ -1366,7 +1385,7 @@ function manageScript(): string {
       // didn't carry an item the click appeared to do nothing.
       var grid=chip.closest('.cat-grid');
       if(grid&&grid.parentNode){grid.parentNode.insertBefore(panel,grid.nextSibling);}
-      panel.hidden=false;panel.textContent='Checking '+cfg.shopName+'...';
+      panel.hidden=false;panel.textContent=fmt(X.checking,{shop:cfg.shopName});
       var reveal=function(){try{panel.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}};
       reveal();
       // Shopify's predictive search is loose on purpose (prefix and typo
@@ -1392,7 +1411,7 @@ function manageScript(): string {
           panel.textContent='';
           if(hits.length){
             var fp=document.createElement('p');fp.className='item-meta';
-            fp.textContent=(hits.length===1?'Found at ':'Found '+hits.length+' at ')+cfg.shopName+':';
+            fp.textContent=hits.length===1?fmt(X.found1,{shop:cfg.shopName}):fmt(X.foundN,{n:hits.length,shop:cfg.shopName});
             panel.appendChild(fp);
             var fr=document.createElement('div');fr.className='cat-grid';
             hits.forEach(function(prod){
@@ -1400,13 +1419,13 @@ function manageScript(): string {
             });
             panel.appendChild(fr);
             var fh=document.createElement('p');fh.className='hint';
-            fh.textContent='Open one and use its \u201cAdd to registry\u201d button.';
+            fh.textContent=X.openOne;
             panel.appendChild(fh);
             reveal();
             return;
           }
           var p=document.createElement('p');p.className='item-meta';
-          p.textContent='No match for \u201c'+term+'\u201d at '+cfg.shopName+'. Look for it at:';
+          p.textContent=fmt(X.noMatch,{term:term,shop:cfg.shopName});
           panel.appendChild(p);
           var row=document.createElement('div');row.className='cat-grid';
           (cfg.retailers||[]).forEach(function(r){
@@ -1417,11 +1436,11 @@ function manageScript(): string {
           panel.appendChild(row);
           if(cfg.affiliateBase){
             var d=document.createElement('p');d.className='hint';
-            d.textContent='Links to these stores may earn Giftpin a small commission or fee. It never changes the price.';
+            d.textContent=X.commission;
             panel.appendChild(d);
           }
           var h=document.createElement('p');h.className='hint';
-          h.textContent='Found one? Paste its link under \u201cFrom anywhere else\u201d below'+(cfg.extension?', or use the Giftpin browser extension.':'.');
+          h.textContent=cfg.extension?X.pasteHintExt:X.pasteHint;
           panel.appendChild(h);
           reveal();
         })
@@ -1430,9 +1449,9 @@ function manageScript(): string {
     }
     var off=e.target.closest('.js-group-off');
     if(off){
-      var gf=off.closest('.js-group');status(gf,'Saving...');
+      var gf=off.closest('.js-group');status(gf,X.saving);
       post('/item-fund',{itemId:off.dataset.item,goal:null})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(gf,(res&&res.error)||'Could not save',false);}});
+        .then(function(res){if(res&&res.ok){location.reload();}else{status(gf,(res&&res.error)||X.saveFail,false);}});
       return;
     }
     var mp=e.target.closest('.js-match-preview');
@@ -1446,45 +1465,45 @@ function manageScript(): string {
     if(mk){
       mk.disabled=true;
       post('/item-match',{itemId:dlg.dataset.item,action:'keep'}).then(function(res){
-        if(res&&res.ok){location.reload();}else{mdMessage((res&&res.error)||'Could not do that');mk.disabled=false;}
+        if(res&&res.ok){location.reload();}else{mdMessage((res&&res.error)||X.couldNot);mk.disabled=false;}
       });
       return;
     }
     var sw=e.target.closest('.js-md-swap');
     if(sw){
       if(!sw.dataset.armed){
-        dlg.querySelectorAll('.js-md-swap').forEach(function(b){delete b.dataset.armed;b.textContent='Use this instead';});
+        dlg.querySelectorAll('.js-md-swap').forEach(function(b){delete b.dataset.armed;b.textContent=X.useThis;});
         dlg.querySelectorAll('.md-warn').forEach(function(n){n.remove();});
-        sw.dataset.armed='1';sw.textContent='Confirm swap';
+        sw.dataset.armed='1';sw.textContent=X.confirmSwap;
         var warn=document.createElement('p');warn.className='hint md-warn';
-        warn.textContent='This replaces \u201c'+(dlg.dataset.orig||'your item')+'\u201d on your registry. Guests will buy it through the store.';
+        warn.textContent=fmt(X.swapWarn,{orig:dlg.dataset.orig||X.yourItem});
         sw.closest('.md-card').appendChild(warn);
         return;
       }
       sw.disabled=true;
       post('/item-match',{itemId:dlg.dataset.item,action:'swap',productGid:sw.dataset.gid}).then(function(res){
         if(res&&res.ok){location.reload();}
-        else{mdMessage((res&&res.error)||'Could not swap');sw.disabled=false;}
+        else{mdMessage((res&&res.error)||X.swapFail);sw.disabled=false;}
       });
       return;
     }
     var match=e.target.closest('.js-match');
     if(match){
-      if(match.dataset.action==='swap'&&!confirm('Replace your item with this one from the store? Guests will be able to buy it in one tap.'))return;
+      if(match.dataset.action==='swap'&&!confirm(X.confirmReplace))return;
       match.disabled=true;
       post('/item-match',{itemId:match.dataset.item,action:match.dataset.action}).then(function(res){
         if(res&&res.ok){location.reload();}
-        else{alert((res&&res.error)||'Could not do that');match.disabled=false;}
+        else{alert((res&&res.error)||X.couldNot);match.disabled=false;}
       });
       return;
     }
     var remove=e.target.closest('.js-remove');
     if(remove){
-      if(!confirm('Remove this item?'))return;
+      if(!confirm(X.confirmRemove))return;
       remove.disabled=true;
       post('/remove-item',{itemId:remove.dataset.item}).then(function(res){
         if(res&&res.ok){location.reload();}
-        else{status(remove.closest('.js-item'),(res&&res.error)||'Could not remove',false);remove.disabled=false;}
+        else{status(remove.closest('.js-item'),(res&&res.error)||X.removeFail,false);remove.disabled=false;}
       });
       return;
     }
@@ -1492,7 +1511,7 @@ function manageScript(): string {
     if(copy){
       var field=document.querySelector('.js-manage-link');
       field.select();
-      var done=function(){status(copy.parentNode.parentNode,'Copied');};
+      var done=function(){status(copy.parentNode.parentNode,X.copied);};
       if(navigator.clipboard){navigator.clipboard.writeText(field.value).then(done,function(){document.execCommand('copy');done();});}
       else{document.execCommand('copy');done();}
       return;
@@ -1522,7 +1541,7 @@ function manageScript(): string {
     }
     var shareCopy=e.target.closest('.js-share-copy');
     if(shareCopy){
-      copyLink(shareCopy.dataset.url,function(){shareCopy.textContent='Link copied';});
+      copyLink(shareCopy.dataset.url,function(){shareCopy.textContent=X.linkCopied;});
     }
   });
   // Swap the SVG download for a 1024px PNG, which more apps accept. If the
@@ -1544,8 +1563,8 @@ function manageScript(): string {
     var ok=false;
     try{var t=document.createElement('textarea');t.value=link;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');document.body.removeChild(t);}catch(_){ok=false;}
     if(ok){done();return;}
-    if(navigator.clipboard){navigator.clipboard.writeText(link).then(done,function(){prompt('Copy this link:',link);});}
-    else{prompt('Copy this link:',link);}
+    if(navigator.clipboard){navigator.clipboard.writeText(link).then(done,function(){prompt(X.copyPrompt,link);});}
+    else{prompt(X.copyPrompt,link);}
   }
 })();`.trim();
 }
