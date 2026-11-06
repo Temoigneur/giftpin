@@ -162,4 +162,13 @@ export function formatCurrency(
   return new Intl.NumberFormat(intlTag(locale), { style: "currency", currency, ...options }).format(amount);
 }
 
+/** A country's name in the active language (falls back to the English label we hold). */
+export function countryName(code: string, fallback: string, locale: Locale = currentLocale()): string {
+  try {
+    return new Intl.DisplayNames([intlTag(locale)], { type: "region" }).of(code) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export const __testables = { DICTIONARIES };

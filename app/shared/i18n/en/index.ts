@@ -1,6 +1,7 @@
 import { enEmail } from "./email";
 import { enCommon } from "./common";
 import { enGuest } from "./guest";
+import { enCreate } from "./create";
 
 export const en = {
   "noun.registry": "registry",
@@ -8,6 +9,7 @@ export const en = {
   ...enEmail,
   ...enCommon,
   ...enGuest,
+  ...enCreate,
 } as const;
 
 /** Every language file must supply exactly these keys (checked by tsc and a test). */

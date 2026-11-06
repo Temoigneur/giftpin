@@ -9,6 +9,8 @@ import {
   type ProxyContext,
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
+import { withLocale } from "../lib/i18n.server";
+import { currentLocale } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
@@ -146,6 +148,17 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   if (!shop) return new Response("Not found", { status: 404 });
 
   const settings = settingsFor(shop);
+  // Everything below renders in the store's chosen language (see
+  // app/lib/i18n.server.ts for why this is per request and not a global).
+  return withLocale(settings.language, () => routeProxyRequest(request, ctx, shop, settings));
+}
+
+async function routeProxyRequest(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+): Promise<Response> {
   const brand: Brand = {
     shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
     accentColor: settings.accentColor,
@@ -329,7 +342,7 @@ async function registryPage(
   // be one render, not 80 — and the version in the key means a purchase
   // invalidates it the instant it lands.
   const html = await cached(
-    registryCacheKey(registry.id, registry.version, registry.privacy === "password" ? "pw" : "page"),
+    registryCacheKey(registry.id, registry.version, `${registry.privacy === "password" ? "pw" : "page"}:${currentLocale()}`),
     60,
     async () =>
       buildRegistryHtml(
