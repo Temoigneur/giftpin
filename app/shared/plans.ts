@@ -44,8 +44,9 @@ export const FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS = 365;
 export const FOUNDING_OFFER_SHORTENED_AT = new Date("2026-11-03T05:00:00Z");
 
 /**
- * Stores Ben emailed on 30 Oct 2026 with the old "free for a year" offer
- * (/mnt/project-files/marketing/founding-10-outreach.md). Ben's call, 5 Nov
+ * Stores Ben emailed with the old "free for a year" offer: the 9 from 30 Oct
+ * 2026 (/mnt/project-files/marketing/founding-10-outreach.md) and a second
+ * batch of 10 added 6 Nov 2026. Ben's call, 5 Nov
  * 2026: they keep the year whenever they install, as long as they get one of
  * the founding spots. Matched on the store's primary domain (its own web
  * address, not the .myshopify.com one), with any "www." dropped.
@@ -60,6 +61,17 @@ export const FOUNDING_YEAR_PROMISED_DOMAINS: readonly string[] = [
   "thecuisinet.com",
   "absolutelyfab.ca",
   "thecooksedge.com",
+  // Second batch, added 6 Nov 2026 at Ben's word.
+  "fieldcompany.com",
+  "foundationgoods.com",
+  "vagabondhouse.com",
+  "vertigohome.us",
+  "anastasiohome.com",
+  "figanddove.com",
+  "kingshomestead.com",
+  "pureboutique.ca",
+  "simplyorganicbamboo.com",
+  "tenthousandvillages.com",
 ];
 
 /** Whether a store with this primary domain was emailed the free-year offer. */

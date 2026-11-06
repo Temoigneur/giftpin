@@ -33,6 +33,9 @@ describe("free year promised to the stores emailed on 30 Oct 2026", () => {
     expect(foundingTrialDays(after, "bergodesigns.ca")).toBe(365);
     expect(foundingTrialDays(after, "www.TheCooksEdge.com")).toBe(365);
     expect(wasPromisedFoundingYear("kitchengear.ca.")).toBe(true);
+    expect(foundingTrialDays(after, "www.fieldcompany.com")).toBe(365);
+    expect(foundingTrialDays(after, "tenthousandvillages.com")).toBe(365);
+    expect(foundingTrialDays(after, "vertigohome.us")).toBe(365);
   });
 
   it("gives everyone else 180 days, and doesn't count Treasure Island Toys (never emailed)", () => {
