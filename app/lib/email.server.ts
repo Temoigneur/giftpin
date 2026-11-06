@@ -3,6 +3,7 @@ import { t, tn, tNoun, type MessageKey } from "../shared/i18n";
 import { withLocale } from "./i18n.server";
 import db from "../db.server";
 import { settingsFor } from "../models/shop.server";
+import { readManageToken } from "../models/registry.server";
 
 /**
  * Transactional email.
@@ -324,19 +325,30 @@ export async function sendEmail(
 }
 
 /**
- * The language an email goes out in: the store's, found from the store address
- * every link in it starts with (absoluteProxyUrl builds them all from the shop
- * domain). Looked up when the job runs, so a language the merchant just
- * switched to applies to mail still waiting in the queue. Anything unexpected
- * is English.
+ * The language an email goes out in. A registry's own language if its link
+ * names one (guest links end /r/<slug>, owner links carry a manage token),
+ * otherwise the store's, found from the store address every link in it starts
+ * with (absoluteProxyUrl builds them all from the shop domain). Looked up when
+ * the job runs, so a language just switched to applies to mail still waiting
+ * in the queue. Anything unexpected is English.
  */
 async function localeForMail(data: Record<string, unknown>): Promise<string> {
   const link = [data.url, data.confirmUrl].find((v) => typeof v === "string") as string | undefined;
   if (!link) return "en";
   try {
-    const domain = new URL(link).hostname;
-    const shop = await db.shop.findUnique({ where: { domain }, select: { settings: true } });
-    return shop ? settingsFor(shop).language : "en";
+    const url = new URL(link);
+    const shop = await db.shop.findUnique({ where: { domain: url.hostname }, select: { id: true, settings: true } });
+    if (!shop) return "en";
+    const slug = url.pathname.match(/\/r\/([^/]+)/)?.[1];
+    const registryId = readManageToken(url.searchParams.get("t"));
+    if (slug || registryId) {
+      const registry = await db.registry.findFirst({
+        where: slug ? { shopId: shop.id, slug } : { shopId: shop.id, id: registryId! },
+        select: { language: true },
+      });
+      if (registry?.language) return registry.language;
+    }
+    return settingsFor(shop).language;
   } catch {
     return "en";
   }

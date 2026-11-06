@@ -271,4 +271,6 @@ export const esManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.msg": "Mensaje (opcional)",
   "manage.gc.add": "Añadir al carrito",
   "manage.gc.hint": "Pagas en la caja de {shop} y la tarjeta regalo se gasta aquí. Si prefieres enviarla tú, deja la casilla sin marcar y la tarjeta te llegará a ti. Shopify no envía tarjetas regalo a otra persona cuando pagas con Shop Pay, así que usa el botón normal de pago para eso.",
+  "manage.lang.label": "Idioma de esta lista",
+  "manage.lang.hint": "Los invitados ven la página de la lista, y los correos de la lista se envían, en este idioma. Los nombres y notas que escribas se quedan como los escribiste.",
 };

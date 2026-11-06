@@ -1,6 +1,6 @@
 import type { PageBranding } from "../../shared/branding";
 import { layout, escapeHtml, escapeAttr, tx, jsStr } from "./layout";
-import { countryName, formatLongDate, t, th } from "../../shared/i18n";
+import { countryName, formatLongDate, t, th, toLocale, LOCALES, LOCALE_NAMES } from "../../shared/i18n";
 import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion, eventTypeLabel } from "../../shared/settings";
 import { ACCOUNT_STORAGE_KEY, REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { occasionTemplate } from "../../shared/registry-ideas";
@@ -21,6 +21,8 @@ export interface CreatePageData {
   branding?: PageBranding | null;
   actionUrl: string;
   enabledEventTypes: string[];
+  /** The store's language when registrants may pick their own; null hides the picker. */
+  languageChoice?: string | null;
   /** Registry perks (Pro), already cleaned. See app/shared/perks.ts. */
   perks?: string[];
   error?: string | null;
@@ -34,6 +36,16 @@ export function renderPerks(shopName: string, perks: string[] | undefined): stri
   <p style="margin:0 0 6px"><strong>${tx(t("create.perks", { shop: shopName }))}</strong></p>
   <ul style="margin:0;padding-left:20px">${perks.map((p) => `<li>${escapeHtml(p)}</li>`).join("")}</ul>
 </div>`;
+}
+
+/** Language picker for the create and manage pages (shown only when the store allows a choice). */
+export function renderLanguagePicker(id: string, selected: string): string {
+  const current = toLocale(selected);
+  return `<label for="${id}">${tx(t("manage.lang.label"))}</label>
+  <select id="${id}" name="language">
+    ${LOCALES.map((code) => `<option value="${code}"${code === current ? " selected" : ""}>${escapeHtml(LOCALE_NAMES[code])}</option>`).join("")}
+  </select>
+  <p class="hint">${tx(t("manage.lang.hint"))}</p>`;
 }
 
 export function renderCreatePage(data: CreatePageData): string {
@@ -98,7 +110,11 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
   </select>
   <p class="hint">${tx(t("create.countryHint"))}</p>
   </div>
-
+${data.languageChoice ? `
+  <div>
+  ${renderLanguagePicker("c-language", v.language || data.languageChoice)}
+  </div>
+` : ""}
   <div class="full">
   <label for="c-msg">${tx(t("create.note"))}</label>
   <textarea id="c-msg" name="message" maxlength="2000" placeholder="${escapeAttr(t("create.notePh", { example: initial.note }))}">${escapeHtml(v.message)}</textarea>

@@ -271,4 +271,6 @@ export const deManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.msg": "Nachricht (optional)",
   "manage.gc.add": "In den Warenkorb",
   "manage.gc.hint": "Du zahlst an der Kasse von {shop}, und die Geschenkkarte wird hier eingelöst. Wenn du sie lieber selbst weitergibst, lass das Kästchen frei, dann kommt die Karte zu dir. Shopify sendet Geschenkkarten bei Zahlung mit Shop Pay nicht an andere, nutze dafür also den normalen Button zur Kasse.",
+  "manage.lang.label": "Sprache dieser Liste",
+  "manage.lang.hint": "Gäste sehen die Listenseite, und E-Mails zur Liste werden in dieser Sprache versendet. Namen und Notizen, die du eingibst, bleiben so, wie du sie geschrieben hast.",
 };

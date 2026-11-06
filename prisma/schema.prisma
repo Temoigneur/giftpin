@@ -119,6 +119,12 @@ model Registry {
   // (US | CA | GB | AU). Null = the default, US.
   country String?
 
+  // Language this registry's page and emails are shown in (en | fr | es | de |
+  // pt-BR). Null = follow the store's language setting, so every registry made
+  // before this column existed, and every registry whose owner didn't choose,
+  // is unchanged.
+  language String?
+
   privacy      RegistryPrivacy @default(unlisted)
   indexable    Boolean         @default(false) // opt-in; see §8 privacy
   passwordHash String?

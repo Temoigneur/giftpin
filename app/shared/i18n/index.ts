@@ -61,6 +61,16 @@ export function toLocale(value: unknown): Locale {
   return "en";
 }
 
+/**
+ * The language to store on a registry from what the form sent: null (follow
+ * the store) when the store doesn't allow a choice, the value isn't one of
+ * ours, or it is simply the store's own language.
+ */
+export function registryLanguageFrom(value: unknown, storeLanguage: string, allowed: boolean): Locale | null {
+  if (!allowed || !isLocale(value)) return null;
+  return value === toLocale(storeLanguage) ? null : value;
+}
+
 let source: () => Locale | undefined = () => undefined;
 
 /** Called once by app/lib/i18n.server.ts. */
