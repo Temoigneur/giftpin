@@ -16,6 +16,13 @@
  * network's URL shape, so whichever network Ben signs up with, wiring it in
  * is a one-line env var, not a code change.
  *
+ * 6 Nov 2026: Sovrn Commerce approved Giftpin (incl. links shown on merchant
+ * storefront domains, after Ben described that setup to them) for Open
+ * Auction / CPC (their "CRTB", now called Link Optimization). The value is
+ * "https://redirect.viglink.com/?key=<site API key>&u=", key from Sovrn
+ * Commerce → Settings → giftpin.app row → key icon. CPC pays per click, so
+ * the disclosure copy says "links ... may earn", not "buying ... may earn".
+ *
  * Until that env var is set (no network signed up yet as of 20 Sep 2026),
  * `wrapAffiliateLink` is a no-op and every outbound link is untouched — so
  * this ships now without waiting on Ben's account signups, and turns on the

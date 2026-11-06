@@ -227,10 +227,14 @@ const HTML = `<!doctype html>
   <section id="sharing">
     <h2><span class="num">06</span>Sharing &amp; affiliate links</h2>
     <p>Giftpin does not sell personal data. Some outbound links to other
-      retailers may carry a standard affiliate parameter: if a guest buys
-      through that link, the retailer may pay Giftpin a small referral
-      commission. This never changes the price the guest pays, is never
-      billed to the merchant, and is disclosed on the registry page itself.
+      retailers pass through an affiliate network's redirect (currently
+      Sovrn Commerce) before reaching the retailer. That network may set its
+      own cookies and see standard request details (such as IP address and
+      browser) to track the referral, under its own privacy policy. When a
+      guest clicks or buys through such a link, Giftpin may be paid a small
+      referral fee or commission. This never changes the price the guest
+      pays, is never billed to the merchant, and is disclosed on the
+      registry page itself.
       Beyond that referral relationship (standard to how affiliate links
       work everywhere), Giftpin does not share registry or guest data with
       third parties except service providers needed to run the app

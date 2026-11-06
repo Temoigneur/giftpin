@@ -24,7 +24,7 @@ export const BILLING_FAQ: QA[] = [
   },
   {
     q: "How is the Free plan paid for?",
-    a: "<p>When a guest buys a registry item from another website, Giftpin may earn a small affiliate commission from that retailer. It never changes the guest's price, it's disclosed on the registry page, and it never applies to purchases from your own store.</p>",
+    a: "<p>When a guest clicks through to or buys a registry item from another website, Giftpin may earn a small affiliate commission or referral fee. It never changes the guest's price, it's disclosed on the registry page, and it never applies to purchases from your own store.</p>",
   },
   {
     q: "Does Giftpin take a cut of my sales?",

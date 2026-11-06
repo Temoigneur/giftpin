@@ -491,7 +491,7 @@ function renderDuplicateNotice(data: RegistryPageData): string {
   if (data.progress.externalItems === 0) return "";
   return `<div class="note">
   <p style="margin:0"><strong>Buying something from another store?</strong> Tap &ldquo;I bought this&rdquo; when you're done so nobody buys it twice. We hold it for you in the meantime.</p>
-  <p class="disclosure" style="margin:6px 0 0">Buying from another store through a link here may earn Giftpin a small commission — it never changes what you pay, and never applies to this store's own products. It helps us keep improving Giftpin.</p>
+  <p class="disclosure" style="margin:6px 0 0">Links to other stores here may earn Giftpin a small commission or fee — it never changes what you pay, and never applies to this store's own products. It helps us keep improving Giftpin.</p>
 </div>`;
 }
 

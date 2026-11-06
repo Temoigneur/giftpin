@@ -1417,7 +1417,7 @@ function manageScript(): string {
           panel.appendChild(row);
           if(cfg.affiliateBase){
             var d=document.createElement('p');d.className='hint';
-            d.textContent='Buying through these links may earn Giftpin a small commission. It never changes the price.';
+            d.textContent='Links to these stores may earn Giftpin a small commission or fee. It never changes the price.';
             panel.appendChild(d);
           }
           var h=document.createElement('p');h.className='hint';
