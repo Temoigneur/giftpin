@@ -446,5 +446,18 @@
     function labelKey(_key, fallback) {
       return fallback;
     }
+
+    // Arrived from a Saved items row ("Add to registry" link in
+    // giftpin-saved.js): open the add flow straight away, then drop the
+    // parameter so a refresh or a shared link doesn't re-trigger it.
+    try {
+      var landing = new URL(window.location.href);
+      if (landing.searchParams.get("giftpin_add") === "1") {
+        landing.searchParams.delete("giftpin_add");
+        window.history.replaceState(null, "", landing.pathname + landing.search + landing.hash);
+        if (root.scrollIntoView) root.scrollIntoView({ block: "center" });
+        openBtn.click();
+      }
+    } catch (_) {}
   }
 })();

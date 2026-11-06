@@ -22,3 +22,12 @@ describe("Save for later (heart button)", () => {
     }
   });
 });
+
+describe("Saved items → Add to registry", () => {
+  it("links to the product with the same parameter the button script reads", () => {
+    const saved = readFileSync("extensions/registry-button/assets/giftpin-saved.js", "utf8");
+    const button = readFileSync("extensions/registry-button/assets/giftpin.js", "utf8");
+    expect(saved).toContain("?giftpin_add=1");
+    expect(button).toContain('get("giftpin_add") === "1"');
+  });
+});
