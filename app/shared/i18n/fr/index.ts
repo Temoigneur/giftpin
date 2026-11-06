@@ -5,6 +5,7 @@ import { frGuest } from "./guest";
 import { frCreate } from "./create";
 import { frServer } from "./server";
 import { frManage } from "./manage";
+import { frAdmin } from "./admin";
 
 export const fr: Messages = {
   "noun.registry": "liste de cadeaux",
@@ -15,4 +16,5 @@ export const fr: Messages = {
   ...frCreate,
   ...frServer,
   ...frManage,
+  ...frAdmin,
 };

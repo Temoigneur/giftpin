@@ -11,6 +11,9 @@ import {
   listPromotions,
   type PromotionChange,
 } from "../lib/promotions.server";
+import { t as translate } from "../shared/i18n";
+import { adminLocale } from "../lib/admin-locale.server";
+import { useAdminT, type AdminT } from "../lib/use-admin-t";
 import {
   MAX_PROMOTIONS,
   MAX_PROMOTION_COLLECTIONS,
@@ -20,9 +23,8 @@ import {
   PROMOTION_MIN_QUANTITY_MAX,
   PROMOTION_PERCENT_RANGE,
   PROMOTION_TITLE_MAX,
-  describeScope,
-  describeValue,
   parsePromotionForm,
+  type PromotionConfig,
   type PromotionSummary,
 } from "../shared/promotions";
 
@@ -50,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   } catch (err) {
     console.error("[promotions] list:", (err as Error).message);
-    loadError = "Couldn't load your promotions from Shopify just now. Refresh to try again.";
+    loadError = translate("admin.promo.loadErr", undefined, adminLocale(request));
   }
 
   return {
@@ -73,16 +75,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const graphql = (q: string, o?: { variables?: Record<string, unknown> }) => admin.graphql(q, o);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
+  const locale = adminLocale(request);
+  const say = (key: Parameters<typeof translate>[0], vars?: Record<string, string | number>) => translate(key, vars, locale);
 
   if (intent === "create") {
-    if (!isPro(shop)) return { ok: false, error: "Registry promotions are part of Giftpin Pro." };
+    if (!isPro(shop)) return { ok: false, error: say("admin.promo.errPro") };
     if (settings.promotionIds.length >= MAX_PROMOTIONS) {
-      return { ok: false, error: `You can have up to ${MAX_PROMOTIONS} promotions. Delete an old one first.` };
+      return { ok: false, error: say("admin.promo.errMax", { max: MAX_PROMOTIONS }) };
     }
     const parsed = parsePromotionForm(form);
     if (!parsed.ok) return { ok: false, error: parsed.error };
     const created = await createPromotion(graphql, parsed.draft);
-    if (!created.ok) return { ok: false, error: `Shopify said: ${created.reason}` };
+    if (!created.ok) return { ok: false, error: say("admin.promo.errShopify", { reason: created.reason }) };
     await updateSettings(session.shop, { promotionIds: [...settings.promotionIds, created.id] });
     return { ok: true, created: true };
   }
@@ -91,45 +95,60 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (change === "activate" || change === "deactivate" || change === "delete") {
     const id = String(form.get("id") ?? "");
     // Only ever touch discounts Giftpin made.
-    if (!settings.promotionIds.includes(id)) return { ok: false, error: "That promotion wasn't found." };
+    if (!settings.promotionIds.includes(id)) return { ok: false, error: say("admin.promo.errNotFound") };
     if (change === "activate" && !isPro(shop)) {
-      return { ok: false, error: "Registry promotions are part of Giftpin Pro." };
+      return { ok: false, error: say("admin.promo.errPro") };
     }
     const result = await changePromotion(graphql, id, change);
-    if (!result.ok) return { ok: false, error: `Shopify said: ${result.reason}` };
+    if (!result.ok) return { ok: false, error: say("admin.promo.errShopify", { reason: result.reason }) };
     if (change === "delete") {
       await updateSettings(session.shop, { promotionIds: settings.promotionIds.filter((p) => p !== id) });
     }
     return { ok: true };
   }
 
-  return { ok: false, error: "Unknown action." };
+  return { ok: false, error: say("admin.promo.errUnknown") };
 };
 
-const STATUS: Record<string, { label: string; tone: "success" | "info" | "neutral" | "warning" }> = {
-  ACTIVE: { label: "Active", tone: "success" },
-  SCHEDULED: { label: "Scheduled", tone: "info" },
-  EXPIRED: { label: "Ended", tone: "neutral" },
+const STATUS: Record<string, { key: "admin.promo.stActive" | "admin.promo.stScheduled" | "admin.promo.stEnded"; tone: "success" | "info" | "neutral" }> = {
+  ACTIVE: { key: "admin.promo.stActive", tone: "success" },
+  SCHEDULED: { key: "admin.promo.stScheduled", tone: "info" },
+  EXPIRED: { key: "admin.promo.stEnded", tone: "neutral" },
 };
 
-function dateLabel(iso: string | null): string {
+const numberLocale = (t: AdminT) => (t.locale === "en" ? "en-CA" : t.intl);
+
+function dateLabel(t: AdminT, iso: string | null): string {
   if (!iso) return "";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(iso));
+  return new Intl.DateTimeFormat(numberLocale(t), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(iso));
+}
+
+/** "15% off" / "$5.00 off each", in the merchant's language (shared describeValue is English only). */
+function describeValueFor(t: AdminT, config: PromotionConfig, currency: string): string {
+  if (config.valueType === "percentage") return t("admin.promo.valuePct", { n: config.amount });
+  const amount = new Intl.NumberFormat(numberLocale(t), { style: "currency", currency }).format(config.amount);
+  return t("admin.promo.valueFixed", { amount });
+}
+
+function describeScopeFor(t: AdminT, config: PromotionConfig): string {
+  if (config.allProducts) return t("admin.promo.scopeAll");
+  const parts: string[] = [];
+  if (config.productIds.length) parts.push(t.n("admin.promo.scopeProducts", config.productIds.length));
+  if (config.collectionIds.length) parts.push(t.n("admin.promo.scopeCollections", config.collectionIds.length));
+  return parts.join(", ");
 }
 
 export default function Promotions() {
   const { pro, promotions, loadError, completionDiscount } = useLoaderData<typeof loader>();
+  const t = useAdminT();
 
   return (
-    <s-page heading="Registry promotions">
+    <s-page heading={t("admin.promo.page")}>
       {!pro && (
-        <s-banner tone="info" heading="Registry promotions are part of Giftpin Pro">
-          <s-paragraph>
-            Run sales and coupons that only apply to gifts bought from a registry, so guests get a reason to buy
-            from your list instead of somewhere else.
-          </s-paragraph>
+        <s-banner tone="info" heading={t("admin.promo.lockedHead")}>
+          <s-paragraph>{t("admin.promo.lockedText")}</s-paragraph>
           <s-button slot="secondary-actions" href="/app/billing">
-            See Pro
+            {t("admin.set.seePro")}
           </s-button>
         </s-banner>
       )}
@@ -142,39 +161,25 @@ export default function Promotions() {
       <PromotionList promotions={promotions} />
       <NewPromotion />
 
-      <s-section slot="aside" heading="How it works">
+      <s-section slot="aside" heading={t("admin.promo.how")}>
+        <s-paragraph>{t("admin.promo.how1")}</s-paragraph>
+        <s-paragraph>{t("admin.promo.how2")}</s-paragraph>
         <s-paragraph>
-          A promotion only applies to gifts added to the cart from a registry page. The same product bought the
-          usual way stays full price. Guests see the discount at checkout, including with Shop Pay.
+          <s-text color="subdued">{t("admin.promo.how3")}</s-text>
         </s-paragraph>
         <s-paragraph>
-          Running promotions are advertised for you: a banner at the top of each registry, a &ldquo;Registry
-          price&rdquo; line on discounted gifts, and a line on the registrant&apos;s own page. A coupon&apos;s code is
-          shown there too, so guests know to use it.
-        </s-paragraph>
-        <s-paragraph>
-          <s-text color="subdued">
-            Anyone can make a registry and buy from it, so a registry price is about as open as a public coupon.
-            Pick an amount you&apos;re happy to give anyone who goes to that trouble. Gift cards (cash funds and
-            group gifts) are never discounted.
-          </s-text>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text color="subdued">
-            Promotions also show in Shopify&apos;s Discounts page, starting with &ldquo;Giftpin:&rdquo;. If you
-            leave Pro, they&apos;re paused, not deleted.
-          </s-text>
+          <s-text color="subdued">{t("admin.promo.how4")}</s-text>
         </s-paragraph>
       </s-section>
 
-      <s-section slot="aside" heading="After the event">
+      <s-section slot="aside" heading={t("admin.promo.after")}>
         <s-paragraph>
           {completionDiscount.enabled
-            ? `Registrants get ${completionDiscount.percent}% off your products still on their list after the event, for ${completionDiscount.days} days.`
-            : "Give registrants a one-time code for your products still on their list after the event. It's off right now."}
+            ? t("admin.promo.afterOn", { pct: completionDiscount.percent, days: completionDiscount.days })
+            : t("admin.promo.afterOff")}
         </s-paragraph>
         <s-button href="/app/settings" variant="secondary">
-          {completionDiscount.enabled ? "Change in Settings" : "Turn on in Settings"}
+          {completionDiscount.enabled ? t("admin.promo.change") : t("admin.promo.turnOn")}
         </s-button>
       </s-section>
     </s-page>
@@ -183,16 +188,17 @@ export default function Promotions() {
 
 function PromotionList({ promotions }: { promotions: PromotionSummary[] }) {
   const { currency } = useLoaderData<typeof loader>();
+  const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const busyId = fetcher.state !== "idle" ? String(fetcher.formData?.get("id") ?? "") : "";
 
   const post = (intent: PromotionChange, id: string) => {
-    if (intent === "delete" && !window.confirm("Delete this promotion? This can't be undone.")) return;
+    if (intent === "delete" && !window.confirm(t("admin.promo.confirmDelete"))) return;
     fetcher.submit({ intent, id }, { method: "post" });
   };
 
   return (
-    <s-section heading="Your promotions">
+    <s-section heading={t("admin.promo.mine")}>
       {fetcher.data && !fetcher.data.ok && "error" in fetcher.data && (
         <s-banner tone="critical">
           <s-paragraph>{fetcher.data.error}</s-paragraph>
@@ -200,21 +206,23 @@ function PromotionList({ promotions }: { promotions: PromotionSummary[] }) {
       )}
       {promotions.length === 0 ? (
         <s-paragraph>
-          <s-text color="subdued">No promotions yet. Create one below.</s-text>
+          <s-text color="subdued">{t("admin.promo.none")}</s-text>
         </s-paragraph>
       ) : (
         <s-table>
           <s-table-header-row>
-            <s-table-header>Promotion</s-table-header>
-            <s-table-header>Deal</s-table-header>
-            <s-table-header>Dates</s-table-header>
-            <s-table-header>Status</s-table-header>
-            <s-table-header>Uses</s-table-header>
-            <s-table-header>Actions</s-table-header>
+            <s-table-header>{t("admin.promo.colPromotion")}</s-table-header>
+            <s-table-header>{t("admin.promo.colDeal")}</s-table-header>
+            <s-table-header>{t("admin.promo.colDates")}</s-table-header>
+            <s-table-header>{t("admin.promo.colStatus")}</s-table-header>
+            <s-table-header>{t("admin.promo.colUses")}</s-table-header>
+            <s-table-header>{t("admin.promo.colActions")}</s-table-header>
           </s-table-header-row>
           <s-table-body>
             {promotions.map((promotion) => {
-              const status = STATUS[promotion.status] ?? { label: "Paused", tone: "warning" as const };
+              const status = STATUS[promotion.status]
+                ? { label: t(STATUS[promotion.status].key), tone: STATUS[promotion.status].tone }
+                : { label: t("admin.promo.stPaused"), tone: "warning" as const };
               const busy = busyId === promotion.id;
               return (
                 <s-table-row key={promotion.id}>
@@ -222,26 +230,27 @@ function PromotionList({ promotions }: { promotions: PromotionSummary[] }) {
                     <s-stack direction="block" gap="small-200">
                       <s-text>{promotion.title}</s-text>
                       <s-text color="subdued">
-                        {promotion.kind === "coupon" ? `Coupon code ${promotion.code ?? ""}` : "Automatic sale"}
+                        {promotion.kind === "coupon" ? t("admin.promo.couponCode", { code: promotion.code ?? "" }) : t("admin.promo.autoSale")}
                       </s-text>
                     </s-stack>
                   </s-table-cell>
                   <s-table-cell>
                     {promotion.config ? (
                       <s-stack direction="block" gap="small-200">
-                        <s-text>{describeValue(promotion.config, currency)}</s-text>
+                        <s-text>{describeValueFor(t, promotion.config, currency)}</s-text>
                         <s-text color="subdued">
-                          {describeScope(promotion.config)}
-                          {promotion.config.minQuantity > 1 ? `, ${promotion.config.minQuantity}+ registry gifts` : ""}
+                          {describeScopeFor(t, promotion.config)}
+                          {promotion.config.minQuantity > 1 ? t("admin.promo.minGifts", { n: promotion.config.minQuantity }) : ""}
                         </s-text>
                       </s-stack>
                     ) : (
-                      <s-text color="subdued">Settings missing</s-text>
+                      <s-text color="subdued">{t("admin.promo.missing")}</s-text>
                     )}
                   </s-table-cell>
                   <s-table-cell>
-                    {dateLabel(promotion.startsAt)}
-                    {promotion.endsAt ? ` to ${dateLabel(promotion.endsAt)}` : ", no end date"}
+                    {promotion.endsAt
+                      ? t("admin.promo.datesRange", { from: dateLabel(t, promotion.startsAt), to: dateLabel(t, promotion.endsAt) })
+                      : t("admin.promo.datesOpen", { from: dateLabel(t, promotion.startsAt) })}
                   </s-table-cell>
                   <s-table-cell>
                     <s-badge tone={status.tone}>{status.label}</s-badge>
@@ -255,7 +264,7 @@ function PromotionList({ promotions }: { promotions: PromotionSummary[] }) {
                           onClick={() => post("deactivate", promotion.id)}
                           {...(busy ? { loading: true } : {})}
                         >
-                          Pause
+                          {t("admin.promo.pause")}
                         </s-button>
                       ) : promotion.status !== "EXPIRED" ? (
                         <s-button
@@ -263,11 +272,11 @@ function PromotionList({ promotions }: { promotions: PromotionSummary[] }) {
                           onClick={() => post("activate", promotion.id)}
                           {...(busy ? { loading: true } : {})}
                         >
-                          Resume
+                          {t("admin.promo.resume")}
                         </s-button>
                       ) : null}
                       <s-button variant="tertiary" tone="critical" onClick={() => post("delete", promotion.id)}>
-                        Delete
+                        {t("admin.promo.delete")}
                       </s-button>
                     </s-stack>
                   </s-table-cell>
@@ -288,6 +297,7 @@ interface Picked {
 
 function NewPromotion() {
   const { pro, currency } = useLoaderData<typeof loader>();
+  const t = useAdminT();
   const shopify = useAppBridge();
   const fetcher = useFetcher<typeof action>();
   const [kind, setKind] = useState<"sale" | "coupon">("sale");
@@ -314,7 +324,7 @@ function NewPromotion() {
   const error = fetcher.data && !fetcher.data.ok && "error" in fetcher.data ? fetcher.data.error : null;
 
   return (
-    <s-section heading="New promotion">
+    <s-section heading={t("admin.promo.new")}>
       <fetcher.Form method="post">
         <input type="hidden" name="intent" value="create" />
         <input type="hidden" name="productIds" value={JSON.stringify(products.map((p) => p.id))} />
@@ -329,30 +339,30 @@ function NewPromotion() {
         <input type="hidden" name="appliesTo" value={appliesTo} />
         <s-stack direction="block" gap="base">
           <s-choice-list
-            label="Type"
+            label={t("admin.promo.type")}
             values={[kind]}
             onChange={(event) => {
               const [selected] = event.currentTarget.values ?? [];
               if (selected === "sale" || selected === "coupon") setKind(selected);
             }}
           >
-            <s-choice value="sale">Registry sale: applies automatically to registry gifts</s-choice>
-            <s-choice value="coupon">Registry coupon: guests enter a code you share</s-choice>
+            <s-choice value="sale">{t("admin.promo.typeSale")}</s-choice>
+            <s-choice value="coupon">{t("admin.promo.typeCoupon")}</s-choice>
           </s-choice-list>
 
           {kind === "coupon" && (
             <s-stack direction="block" gap="small-100">
               <s-text-field
                 name="code"
-                label="Coupon code"
+                label={t("admin.promo.code")}
                 placeholder="REGISTRY15"
-                details="Letters, numbers, - and _. Only works on gifts bought from a registry."
+                details={t("admin.promo.codeDetails")}
                 maxLength={40}
               />
               <s-number-field
                 name="usageLimit"
-                label="Total uses allowed"
-                details="Leave at 0 for no limit."
+                label={t("admin.promo.usage")}
+                details={t("admin.promo.usageDetails")}
                 value="0"
                 min={0}
               />
@@ -361,55 +371,55 @@ function NewPromotion() {
 
           <s-text-field
             name="title"
-            label="Name"
-            details="For you. Also shown in Shopify's Discounts page."
-            placeholder={kind === "coupon" ? "Registry coupon" : "Registry sale"}
+            label={t("admin.promo.name")}
+            details={t("admin.promo.nameDetails")}
+            placeholder={kind === "coupon" ? t("admin.promo.namePhCoupon") : t("admin.promo.namePhSale")}
             maxLength={PROMOTION_TITLE_MAX}
           />
 
           <s-choice-list
-            label="Discount"
+            label={t("admin.promo.discount")}
             values={[valueType]}
             onChange={(event) => {
               const [selected] = event.currentTarget.values ?? [];
               if (selected === "percentage" || selected === "fixed") setValueType(selected);
             }}
           >
-            <s-choice value="percentage">Percent off</s-choice>
-            <s-choice value="fixed">{`Amount off each item (${currency})`}</s-choice>
+            <s-choice value="percentage">{t("admin.promo.pct")}</s-choice>
+            <s-choice value="fixed">{t("admin.promo.fixed", { currency })}</s-choice>
           </s-choice-list>
           {valueType === "percentage" ? (
             <s-number-field
               name="amount"
-              label="Percent off"
+              label={t("admin.promo.pct")}
               value="10"
               min={PROMOTION_PERCENT_RANGE.min}
               max={PROMOTION_PERCENT_RANGE.max}
               suffix="%"
             />
           ) : (
-            <s-number-field name="amount" label="Amount off each item" value="5" min={0.01} max={PROMOTION_FIXED_MAX} step={0.01} />
+            <s-number-field name="amount" label={t("admin.promo.fixedLabel")} value="5" min={0.01} max={PROMOTION_FIXED_MAX} step={0.01} />
           )}
 
           <s-choice-list
-            label="Applies to"
+            label={t("admin.promo.appliesTo")}
             values={[appliesTo]}
             onChange={(event) => {
               const [selected] = event.currentTarget.values ?? [];
               if (selected === "selected" || selected === "all") setAppliesTo(selected);
             }}
           >
-            <s-choice value="selected">Specific products or collections</s-choice>
-            <s-choice value="all">All products, when bought from a registry</s-choice>
+            <s-choice value="selected">{t("admin.promo.selected")}</s-choice>
+            <s-choice value="all">{t("admin.promo.all")}</s-choice>
           </s-choice-list>
           {appliesTo === "selected" && (
             <s-stack direction="block" gap="small-100">
               <s-stack direction="inline" gap="base">
                 <s-button variant="secondary" onClick={() => pick("product")}>
-                  {products.length ? `Products (${products.length})` : "Choose products"}
+                  {products.length ? t("admin.promo.productsN", { n: products.length }) : t("admin.promo.chooseProducts")}
                 </s-button>
                 <s-button variant="secondary" onClick={() => pick("collection")}>
-                  {collections.length ? `Collections (${collections.length})` : "Choose collections"}
+                  {collections.length ? t("admin.promo.collectionsN", { n: collections.length }) : t("admin.promo.chooseCollections")}
                 </s-button>
               </s-stack>
               {(products.length > 0 || collections.length > 0) && (
@@ -420,30 +430,30 @@ function NewPromotion() {
 
           <s-number-field
             name="minQuantity"
-            label="Registry gifts needed in the cart"
-            details="1 means every registry gift. Set it higher for a 'buy 3 gifts, save more' deal."
+            label={t("admin.promo.minQty")}
+            details={t("admin.promo.minQtyDetails")}
             value="1"
             min={1}
             max={PROMOTION_MIN_QUANTITY_MAX}
           />
 
           <s-stack direction="inline" gap="base">
-            <s-date-field name="startsAt" label="Starts" details="Leave empty to start now." />
-            <s-date-field name="endsAt" label="Ends" details="Optional." />
+            <s-date-field name="startsAt" label={t("admin.promo.starts")} details={t("admin.promo.startsDetails")} />
+            <s-date-field name="endsAt" label={t("admin.promo.ends")} details={t("admin.promo.endsDetails")} />
           </s-stack>
 
           <s-text-field
             name="message"
-            label="What guests see at checkout"
-            details="Leave empty to show the deal, like 'Registry price: 20% off'."
-            placeholder={kind === "coupon" ? "Registry coupon: 15% off" : "Registry price: 15% off"}
+            label={t("admin.promo.message")}
+            details={t("admin.promo.messageDetails")}
+            placeholder={kind === "coupon" ? t("admin.promo.msgPhCoupon") : t("admin.promo.msgPhSale")}
             maxLength={PROMOTION_MESSAGE_MAX}
           />
 
           <s-checkbox
             name="combines"
-            label="Can be combined with your other product and order discounts"
-            details="Off by default, so a registry gift never gets two discounts at once."
+            label={t("admin.promo.combines")}
+            details={t("admin.promo.combinesDetails")}
           />
 
           {error && (
@@ -453,13 +463,13 @@ function NewPromotion() {
           )}
           {fetcher.data?.ok && "created" in fetcher.data && (
             <s-banner tone="success">
-              <s-paragraph>Promotion created. It&apos;s in the list above.</s-paragraph>
+              <s-paragraph>{t("admin.promo.created")}</s-paragraph>
             </s-banner>
           )}
 
           <s-stack direction="inline" gap="base">
             <s-button type="submit" {...(saving ? { loading: true } : {})} {...(!pro ? { disabled: true } : {})}>
-              Create promotion
+              {t("admin.promo.createBtn")}
             </s-button>
           </s-stack>
         </s-stack>

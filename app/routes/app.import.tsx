@@ -6,6 +6,9 @@ import { authenticate } from "../shopify.server";
 import { requireShop } from "../models/shop.server";
 import { previewImport, runImport } from "../models/import.server";
 import { FIELD_LABELS, IMPORT_MAX_ROWS } from "../shared/registry-import";
+import { t as translate } from "../shared/i18n";
+import { adminLocale } from "../lib/admin-locale.server";
+import { useAdminT } from "../lib/use-admin-t";
 
 /** CSVs bigger than this are refused before parsing; IMPORT_MAX_ROWS rows fit well under it. */
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -19,9 +22,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
+  const locale = adminLocale(request);
   const csv = String(form.get("csv") ?? "");
-  if (!csv.trim()) return { kind: "error" as const, message: "Choose a CSV file first." };
-  if (csv.length > MAX_BYTES) return { kind: "error" as const, message: "That file is too big. Split it into smaller files." };
+  if (!csv.trim()) return { kind: "error" as const, message: translate("admin.imp.errChoose", undefined, locale) };
+  if (csv.length > MAX_BYTES) return { kind: "error" as const, message: translate("admin.imp.errBig", undefined, locale) };
 
   const options = {
     recentOnly: form.get("recentOnly") === "on",
@@ -34,11 +38,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { kind: "preview" as const, ...(await previewImport(shop, csv, options)) };
   } catch (err) {
     console.error("[import]", err);
-    return { kind: "error" as const, message: "Something went wrong reading your products from Shopify. Try again in a moment." };
+    return { kind: "error" as const, message: translate("admin.imp.errShopify", undefined, locale) };
   }
 };
 
 export default function ImportRegistries() {
+  const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const [csv, setCsv] = useState("");
   const [fileName, setFileName] = useState("");
@@ -54,29 +59,21 @@ export default function ImportRegistries() {
     );
 
   return (
-    <s-page heading="Import registries">
+    <s-page heading={t("admin.imp.page")}>
       <s-link slot="breadcrumb-actions" href="/app/registries">
-        Registries
+        {t("admin.nav.registries")}
       </s-link>
 
-      <s-section heading="Bring registries from another app">
+      <s-section heading={t("admin.imp.head")}>
+        <s-paragraph>{t("admin.imp.intro")}</s-paragraph>
         <s-paragraph>
-          Export your registries from your old registry app as a CSV, with one row per item. Giftpin
-          matches each item to your products by SKU or barcode, and keeps what&apos;s already been
-          bought so nobody gives the same gift twice.
-        </s-paragraph>
-        <s-paragraph>
-          <s-text color="subdued">
-            Columns we look for: registry name, occasion, event date, registrant name, registrant email
-            (required), SKU or barcode, quantity wanted and quantity bought. Column names don&apos;t have to
-            match exactly. Up to {IMPORT_MAX_ROWS} rows per file.
-          </s-text>
+          <s-text color="subdued">{t("admin.imp.cols", { max: IMPORT_MAX_ROWS })}</s-text>
         </s-paragraph>
 
         <input
           type="file"
           accept=".csv,text/csv"
-          aria-label="CSV file"
+          aria-label={t("admin.imp.fileLabel")}
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
             if (!file) return;
@@ -86,13 +83,13 @@ export default function ImportRegistries() {
         />
 
         <s-checkbox
-          label="Skip registries whose event was more than a year ago"
+          label={t("admin.imp.recentOnly")}
           {...(recentOnly ? { checked: true } : {})}
           onChange={(event) => setRecentOnly(event.currentTarget.checked)}
         />
         <s-checkbox
-          label="Email each registrant a private link to their registry"
-          details="Only if your customers expect to hear from you about the move. Without this, they can get their link any time from “Email me my link” on the registry pages."
+          label={t("admin.imp.email")}
+          details={t("admin.imp.emailDetails")}
           {...(emailRegistrants ? { checked: true } : {})}
           onChange={(event) => setEmailRegistrants(event.currentTarget.checked)}
         />
@@ -103,7 +100,7 @@ export default function ImportRegistries() {
             {...(!csv ? { disabled: true } : {})}
             {...(busy ? { loading: true } : {})}
           >
-            Check {fileName || "file"}
+            {t("admin.imp.check", { file: fileName || t("admin.imp.fileWord") })}
           </s-button>
         </s-stack>
       </s-section>
@@ -117,7 +114,7 @@ export default function ImportRegistries() {
       )}
 
       {(data?.kind === "preview" || data?.kind === "done") && (
-        <s-section heading={data.kind === "done" ? "Imported" : "What this file will do"}>
+        <s-section heading={data.kind === "done" ? t("admin.imp.done") : t("admin.imp.preview")}>
           {data.error ? (
             <s-banner tone="critical">
               <s-paragraph>{data.error}</s-paragraph>
@@ -127,38 +124,34 @@ export default function ImportRegistries() {
               {data.kind === "done" ? (
                 <s-banner tone="success">
                   <s-paragraph>
-                    Created {data.created} {data.created === 1 ? "registry" : "registries"} with {data.items}{" "}
-                    {data.items === 1 ? "item" : "items"}.
-                    {data.emailed ? ` Emailed ${data.emailed} registrants their link.` : ""}
+                    {t("admin.imp.created", { registries: t.n("admin.imp.reg", data.created), items: t.n("admin.imp.item", data.items) })}
+                    {data.emailed ? ` ${t("admin.imp.emailed", { n: data.emailed })}` : ""}
                   </s-paragraph>
                 </s-banner>
               ) : (
                 <s-paragraph>
-                  {data.registries} {data.registries === 1 ? "registry" : "registries"} with {data.items} matched{" "}
-                  {data.items === 1 ? "item" : "items"}.
+                  {t("admin.imp.previewLine", { registries: t.n("admin.imp.reg", data.registries), items: t.n("admin.imp.item", data.items) })}
                 </s-paragraph>
               )}
               {data.skippedExisting > 0 && (
-                <s-paragraph>
-                  {data.skippedExisting} already in Giftpin (same email and registry name), so they&apos;re skipped.
-                </s-paragraph>
+                <s-paragraph>{t("admin.imp.skipExisting", { n: data.skippedExisting })}</s-paragraph>
               )}
               {data.skippedOld > 0 && (
-                <s-paragraph>{data.skippedOld} with an event more than a year ago are skipped.</s-paragraph>
+                <s-paragraph>{t("admin.imp.skipOld", { n: data.skippedOld })}</s-paragraph>
               )}
               <s-paragraph>
                 <s-text color="subdued">
-                  Columns used:{" "}
-                  {Object.entries(data.columns)
-                    .map(([field, header]) => `${FIELD_LABELS[field as keyof typeof FIELD_LABELS]} ← “${header}”`)
-                    .join(", ")}
+                  {t("admin.imp.colsUsed", {
+                    list: Object.entries(data.columns)
+                      .map(([field, header]) => `${FIELD_LABELS[field as keyof typeof FIELD_LABELS]} ← “${header}”`)
+                      .join(", "),
+                  })}
                 </s-text>
               </s-paragraph>
               {data.unmatched.length > 0 && (
                 <s-banner tone="warning">
                   <s-paragraph>
-                    {data.unmatched.length} {data.unmatched.length === 1 ? "item doesn't" : "items don't"} match a
-                    product in your store by SKU or barcode{data.kind === "done" ? " and weren't added" : " and won't be added"}:
+                    {t.n(data.kind === "done" ? "admin.imp.unmatchedDone" : "admin.imp.unmatchedPreview", data.unmatched.length)}
                   </s-paragraph>
                   <s-unordered-list>
                     {data.unmatched.slice(0, 20).map((u, i) => (
@@ -181,7 +174,7 @@ export default function ImportRegistries() {
               {data.kind === "preview" && data.registries > 0 && (
                 <s-stack direction="inline" gap="base">
                   <s-button variant="primary" onClick={() => submit("import")} {...(busy ? { loading: true } : {})}>
-                    Import {data.registries} {data.registries === 1 ? "registry" : "registries"}
+                    {t("admin.imp.importN", { registries: t.n("admin.imp.reg", data.registries) })}
                   </s-button>
                 </s-stack>
               )}

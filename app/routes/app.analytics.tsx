@@ -13,8 +13,8 @@ import {
 } from "../models/analytics.server";
 import { exportUrl } from "../models/export.server";
 import { giftCardSalesSummary } from "../models/gift-card-sale.server";
-import { eventTypeLabel } from "../shared/settings";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
+import { useAdminT, type AdminT } from "../lib/use-admin-t";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -33,42 +33,47 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return { locked: false as const, report, sales, giftCards, salesCsvUrl: exportUrl(shop.id, "sales") };
 };
 
-const RANGE_LABELS: Record<number, string> = { 30: "Last 30 days", 90: "Last 90 days", 365: "Last 12 months" };
+const RANGE_KEYS: Record<number, "admin.an.range30" | "admin.an.range90" | "admin.ov.last12"> = {
+  30: "admin.an.range30",
+  90: "admin.an.range90",
+  365: "admin.ov.last12",
+};
 
-function money(amount: number, currency: string): string {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+/** English keeps the Canadian number and date style the admin always used. */
+const numberLocale = (t: AdminT) => (t.locale === "en" ? "en-CA" : t.intl);
+
+function money(t: AdminT, amount: number, currency: string): string {
+  return new Intl.NumberFormat(numberLocale(t), { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 }
 
-function money2(amount: number, currency: string): string {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
+function money2(t: AdminT, amount: number, currency: string): string {
+  return new Intl.NumberFormat(numberLocale(t), { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
 }
 
-function change(current: number, previous: number): string {
-  if (previous === 0) return current === 0 ? "No change" : "New this period";
+function change(t: AdminT, current: number, previous: number): string {
+  if (previous === 0) return current === 0 ? t("admin.an.changeNone") : t("admin.an.changeNew");
   const pct = Math.round(((current - previous) / previous) * 100);
-  if (pct === 0) return "No change";
-  return `${pct > 0 ? "+" : ""}${pct}% vs previous period`;
+  if (pct === 0) return t("admin.an.changeNone");
+  return t("admin.an.changePct", { pct: `${pct > 0 ? "+" : ""}${pct}` });
 }
 
-function bucketLabel(iso: string, granularity: Granularity): string {
+function bucketLabel(t: AdminT, iso: string, granularity: Granularity): string {
   const d = new Date(iso);
-  if (granularity === "month") return d.toLocaleDateString("en-CA", { month: "short", year: "2-digit", timeZone: "UTC" });
-  return d.toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" });
+  if (granularity === "month") return d.toLocaleDateString(numberLocale(t), { month: "short", year: "2-digit", timeZone: "UTC" });
+  return d.toLocaleDateString(numberLocale(t), { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 export default function Analytics() {
   const data = useLoaderData<typeof loader>();
+  const t = useAdminT();
   const [searchParams, setSearchParams] = useSearchParams();
 
   if (data.locked) {
     return (
-      <s-page heading="Analytics">
-        <s-section heading="Analytics is part of Pro">
-          <s-paragraph>
-            See how your registries are growing: registries created, items added, and gifts bought, week by
-            week, with how much of it came through your store.
-          </s-paragraph>
-          <s-button href="/app/billing">See Pro</s-button>
+      <s-page heading={t("admin.an.page")}>
+        <s-section heading={t("admin.an.lockedHead")}>
+          <s-paragraph>{t("admin.an.lockedText")}</s-paragraph>
+          <s-button href="/app/billing">{t("admin.set.seePro")}</s-button>
         </s-section>
       </s-page>
     );
@@ -80,10 +85,10 @@ export default function Analytics() {
   const range = String(report.range);
 
   return (
-    <s-page heading="Analytics">
+    <s-page heading={t("admin.an.page")}>
       <s-section>
         <s-stack direction="inline" gap="base">
-          {Object.entries(RANGE_LABELS).map(([value, label]) => (
+          {Object.entries(RANGE_KEYS).map(([value, key]) => (
             <s-button
               key={value}
               variant={value === range ? "primary" : "secondary"}
@@ -93,80 +98,80 @@ export default function Analytics() {
                 setSearchParams(next);
               }}
             >
-              {label}
+              {t(key)}
             </s-button>
           ))}
         </s-stack>
       </s-section>
 
-      <s-section heading={RANGE_LABELS[report.range]}>
+      <s-section heading={t(RANGE_KEYS[report.range])}>
         <s-stack direction="inline" gap="large">
-          <Stat label="Registries created" value={String(totals.registriesCreated)} note={change(totals.registriesCreated, previous.registriesCreated)} />
-          <Stat label="Items added" value={String(totals.itemsAdded)} note={change(totals.itemsAdded, previous.itemsAdded)} />
-          <Stat label="Gifts credited" value={String(totals.giftsCredited)} note={change(totals.giftsCredited, previous.giftsCredited)} />
-          <Stat label="Registry revenue" value={money(totals.revenue, report.currency)} note={change(totals.revenue, previous.revenue)} />
-          <Stat label="New customers" value={String(totals.newCustomers)} note={change(totals.newCustomers, previous.newCustomers)} />
+          <Stat label={t("admin.an.registriesCreated")} value={String(totals.registriesCreated)} note={change(t, totals.registriesCreated, previous.registriesCreated)} />
+          <Stat label={t("admin.an.itemsAdded")} value={String(totals.itemsAdded)} note={change(t, totals.itemsAdded, previous.itemsAdded)} />
+          <Stat label={t("admin.an.giftsCredited")} value={String(totals.giftsCredited)} note={change(t, totals.giftsCredited, previous.giftsCredited)} />
+          <Stat label={t("admin.ov.revenue")} value={money(t, totals.revenue, report.currency)} note={change(t, totals.revenue, previous.revenue)} />
+          <Stat label={t("admin.ov.newCustomers")} value={String(totals.newCustomers)} note={change(t, totals.newCustomers, previous.newCustomers)} />
         </s-stack>
       </s-section>
 
-      <SalesReport sales={sales} currency={report.currency} csvUrl={salesCsvUrl} />
+      <SalesReport t={t} sales={sales} currency={report.currency} csvUrl={salesCsvUrl} />
 
-      <s-section heading="Registries created">
-        <BarChart series={report.series} metric="registries" granularity={report.granularity} />
+      <s-section heading={t("admin.an.registriesCreated")}>
+        <BarChart t={t} series={report.series} metric="registries" granularity={report.granularity} />
       </s-section>
 
-      <s-section heading="Items added">
+      <s-section heading={t("admin.an.itemsAdded")}>
         <s-stack direction="block" gap="base">
-          <BarChart series={report.series} metric="items" granularity={report.granularity} />
+          <BarChart t={t} series={report.series} metric="items" granularity={report.granularity} />
           {totals.itemsAdded > 0 && (
             <s-paragraph>
               <s-text color="subdued">
-                {internalShare}% of items added were your products ({totals.itemsAddedInternal} of {totals.itemsAdded}).
+                {t("admin.an.internalShare", { pct: internalShare, internal: totals.itemsAddedInternal, total: totals.itemsAdded })}
               </s-text>
             </s-paragraph>
           )}
         </s-stack>
       </s-section>
 
-      <s-section heading="Gifts credited">
-        <BarChart series={report.series} metric="gifts" granularity={report.granularity} />
+      <s-section heading={t("admin.an.giftsCredited")}>
+        <BarChart t={t} series={report.series} metric="gifts" granularity={report.granularity} />
       </s-section>
 
-      <s-section slot="aside" heading="Where gifts were bought">
+      <s-section slot="aside" heading={t("admin.an.whereHead")}>
         <s-unordered-list>
-          <s-list-item>Your store: {report.giftsBySource.store}</s-list-item>
-          <s-list-item>Other stores (guest confirmed): {report.giftsBySource.elsewhere}</s-list-item>
-          <s-list-item>Marked by the registrant: {report.giftsBySource.markedByRegistrant}</s-list-item>
+          <s-list-item>{t("admin.an.srcStore", { n: report.giftsBySource.store })}</s-list-item>
+          <s-list-item>{t("admin.an.srcElsewhere", { n: report.giftsBySource.elsewhere })}</s-list-item>
+          <s-list-item>{t("admin.an.srcMarked", { n: report.giftsBySource.markedByRegistrant })}</s-list-item>
         </s-unordered-list>
         <s-paragraph>
-          <s-text color="subdued">Refunded and cancelled purchases are not counted.</s-text>
+          <s-text color="subdued">{t("admin.an.notCounted")}</s-text>
         </s-paragraph>
       </s-section>
 
-      <s-section slot="aside" heading="Gift cards sold through giftpin.app">
+      <s-section slot="aside" heading={t("admin.an.gcHead")}>
         <s-paragraph>
-          {giftCards.count} {giftCards.count === 1 ? "gift card" : "gift cards"}, {money2(giftCards.total, giftCards.currency)}
+          {t("admin.an.gcLine", { count: t.n("admin.an.gc", giftCards.count), total: money2(t, giftCards.total, giftCards.currency) })}
+        </s-paragraph>
+        <s-paragraph>
+          <s-text color="subdued">{t("admin.an.gcFrom")}</s-text>
         </s-paragraph>
         <s-paragraph>
           <s-text color="subdued">
-            From your listing at giftpin.app/gift-cards and the gift card link on your registry pages. Turn it on in
-            Settings. Refunded cards are not counted.
-          </s-text>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text color="subdued">
-            Giftpin fee charged: {money2(giftCards.feesCharged, "USD")} ({GIFT_CARD_FEE_PERCENT}% of each card, billed by Shopify
-            {" "}after a {GIFT_CARD_FEE_HOLD_DAYS}-day refund window, and never during your free trial).
+            {t("admin.an.gcFee", {
+              fee: money2(t, giftCards.feesCharged, "USD"),
+              pct: GIFT_CARD_FEE_PERCENT,
+              days: GIFT_CARD_FEE_HOLD_DAYS,
+            })}
           </s-text>
         </s-paragraph>
       </s-section>
 
       {report.registriesByEventType.length > 0 && (
-        <s-section slot="aside" heading="Registries by occasion">
+        <s-section slot="aside" heading={t("admin.an.byOccasion")}>
           <s-unordered-list>
             {report.registriesByEventType.map((entry) => (
               <s-list-item key={entry.eventType}>
-                {eventTypeLabel(entry.eventType)}: {entry.count}
+                {t.event(entry.eventType)}: {entry.count}
               </s-list-item>
             ))}
           </s-unordered-list>
@@ -175,7 +180,7 @@ export default function Analytics() {
 
       <s-section slot="aside">
         <s-paragraph>
-          <s-text color="subdued">Days are counted in UTC.</s-text>
+          <s-text color="subdued">{t("admin.an.utc")}</s-text>
         </s-paragraph>
       </s-section>
     </s-page>
@@ -188,38 +193,33 @@ export default function Analytics() {
  * their accountant or compares with Shopify's own, so it shouldn't move when
  * the chart range does.
  */
-function SalesReport({ sales, currency, csvUrl }: { sales: MonthlySales[]; currency: string; csvUrl: string }) {
+function SalesReport({ t, sales, currency, csvUrl }: { t: AdminT; sales: MonthlySales[]; currency: string; csvUrl: string }) {
   const rows = [...sales].reverse();
   const total = sales.reduce(
     (t, m) => ({ revenue: t.revenue + m.revenue, orders: t.orders + m.orders, newCustomers: t.newCustomers + m.newCustomers }),
     { revenue: 0, orders: 0, newCustomers: 0 },
   );
-  const cents = (n: number) =>
-    new Intl.NumberFormat("en-CA", { style: "currency", currency, minimumFractionDigits: 2 }).format(n);
+  const cents = (n: number) => money2(t, n, currency);
 
   return (
-    <s-section heading="Registry sales by month">
+    <s-section heading={t("admin.an.salesHead")}>
       <s-stack direction="block" gap="base">
         <s-paragraph>
-          <s-text color="subdued">
-            Orders in your store that included a registry gift. Revenue is the registry gifts at the
-            price on the order, before order discounts, so the average is registry spend per order.
-            Refunded and cancelled gifts are left out.
-          </s-text>
+          <s-text color="subdued">{t("admin.an.salesText")}</s-text>
         </s-paragraph>
         <s-table>
           <s-table-header-row>
-            <s-table-header>Month</s-table-header>
-            <s-table-header format="currency">Revenue</s-table-header>
-            <s-table-header format="numeric">Orders</s-table-header>
-            <s-table-header format="numeric">New customers</s-table-header>
-            <s-table-header format="currency">Average order</s-table-header>
+            <s-table-header>{t("admin.an.colMonth")}</s-table-header>
+            <s-table-header format="currency">{t("admin.an.colRevenue")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.colOrders")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.colNewCust")}</s-table-header>
+            <s-table-header format="currency">{t("admin.an.colAvg")}</s-table-header>
           </s-table-header-row>
           <s-table-body>
             {rows.map((m) => (
               <s-table-row key={m.month}>
                 <s-table-cell>
-                  {new Date(m.month).toLocaleDateString("en-CA", { month: "long", year: "numeric", timeZone: "UTC" })}
+                  {new Date(m.month).toLocaleDateString(numberLocale(t), { month: "long", year: "numeric", timeZone: "UTC" })}
                 </s-table-cell>
                 <s-table-cell>{cents(m.revenue)}</s-table-cell>
                 <s-table-cell>{m.orders}</s-table-cell>
@@ -229,7 +229,7 @@ function SalesReport({ sales, currency, csvUrl }: { sales: MonthlySales[]; curre
             ))}
             <s-table-row>
               <s-table-cell>
-                <s-text type="strong">12 months</s-text>
+                <s-text type="strong">{t("admin.an.total12")}</s-text>
               </s-table-cell>
               <s-table-cell>
                 <s-text type="strong">{cents(total.revenue)}</s-text>
@@ -248,7 +248,7 @@ function SalesReport({ sales, currency, csvUrl }: { sales: MonthlySales[]; curre
         </s-table>
         <s-stack direction="inline" gap="base">
           <s-button href={csvUrl} target="_blank" variant="secondary" icon="download">
-            Download CSV
+            {t("admin.an.csv")}
           </s-button>
         </s-stack>
       </s-stack>
@@ -273,10 +273,12 @@ function Stat({ label, value, note }: { label: string; value: string; note: stri
  * screen readers.
  */
 function BarChart({
+  t,
   series,
   metric,
   granularity,
 }: {
+  t: AdminT;
   series: AnalyticsBucket[];
   metric: "registries" | "items" | "gifts";
   granularity: Granularity;
@@ -297,7 +299,7 @@ function BarChart({
   if (total === 0) {
     return (
       <s-paragraph>
-        <s-text color="subdued">None in this period yet.</s-text>
+        <s-text color="subdued">{t("admin.an.none")}</s-text>
       </s-paragraph>
     );
   }
@@ -307,7 +309,11 @@ function BarChart({
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       role="img"
-      aria-label={`${total} ${metric} in this period, at most ${max} in a single ${granularity}.`}
+      aria-label={t("admin.an.chartAria", {
+        total,
+        max,
+        unit: t(granularity === "day" ? "admin.an.unitDay" : granularity === "week" ? "admin.an.unitWeek" : "admin.an.unitMonth"),
+      })}
       style={{ display: "block", maxWidth: "100%" }}
     >
       <line x1={0} x2={width} y1={plot} y2={plot} stroke="#d4d4d4" strokeWidth={1} />
@@ -315,7 +321,7 @@ function BarChart({
         const value = bucket[metric];
         const h = (value / max) * (plot - 4);
         const x = i * slot + (slot - barWidth) / 2;
-        const label = bucketLabel(bucket.start, granularity);
+        const label = bucketLabel(t, bucket.start, granularity);
         return (
           <g key={bucket.start}>
             <rect x={x} y={plot - h} width={barWidth} height={h} rx={2} fill="#2c6ecb">
