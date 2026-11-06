@@ -416,6 +416,12 @@ describe("owner shortcut on the guest page (24 Sep 2026)", () => {
     expect(html).toMatch(/id="registro-owner"><a href="[^"]*\/manage"/);
     expect(html).toContain("registry_1"); // registryId in the config the script compares against
   });
+
+  it("relabels the owner link when this device has the owner's saved link", () => {
+    // Otherwise "Sign in or get your private edit link" opening the manage
+    // page with no sign-in looks like a hole (Ben, 6 Nov 2026).
+    expect(page([item()])).toContain("Manage it (saved on this device)");
+  });
 });
 
 describe("category-level store link (guest view)", () => {
