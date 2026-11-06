@@ -4,8 +4,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isPro, requireShop } from "../models/shop.server";
 import { exportUrl } from "../models/export.server";
-import { eventTypeLabel } from "../shared/settings";
 import { listRegistries } from "../models/dashboard.server";
+import { useAdminT } from "../lib/use-admin-t";
 
 const PAGE_SIZE = 25;
 
@@ -26,26 +26,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Registries() {
   const { registries, total, page, shopDomain, exports } = useLoaderData<typeof loader>();
+  const t = useAdminT();
   const [, setSearchParams] = useSearchParams();
 
   const lastPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
   return (
-    <s-page heading="Registries">
+    <s-page heading={t("admin.reg.page")}>
       <s-button slot="secondary-actions" href="/app/import">
-        Import registries
+        {t("admin.reg.import")}
       </s-button>
       <s-section>
         {registries.length === 0 ? (
-          <s-paragraph>No registries yet.</s-paragraph>
+          <s-paragraph>{t("admin.reg.none")}</s-paragraph>
         ) : (
           <s-table>
             <s-table-header-row>
-              <s-table-header>Registry</s-table-header>
-              <s-table-header>Occasion</s-table-header>
-              <s-table-header>Date</s-table-header>
-              <s-table-header>Items</s-table-header>
-              <s-table-header>Progress</s-table-header>
+              <s-table-header>{t("admin.reg.colRegistry")}</s-table-header>
+              <s-table-header>{t("admin.reg.colOccasion")}</s-table-header>
+              <s-table-header>{t("admin.reg.colDate")}</s-table-header>
+              <s-table-header>{t("admin.reg.colItems")}</s-table-header>
+              <s-table-header>{t("admin.reg.colProgress")}</s-table-header>
               <s-table-header></s-table-header>
             </s-table-header-row>
             <s-table-body>
@@ -57,10 +58,10 @@ export default function Registries() {
                       <s-text color="subdued">{registry.names}</s-text>
                     </s-stack>
                   </s-table-cell>
-                  <s-table-cell>{eventTypeLabel(registry.eventType)}</s-table-cell>
+                  <s-table-cell>{t.event(registry.eventType)}</s-table-cell>
                   <s-table-cell>
                     {registry.eventDate
-                      ? new Date(registry.eventDate).toLocaleDateString("en-CA", { timeZone: "UTC" })
+                      ? new Date(registry.eventDate).toLocaleDateString(t.locale === "en" ? "en-CA" : t.intl, { timeZone: "UTC" })
                       : "—"}
                   </s-table-cell>
                   <s-table-cell>
@@ -69,9 +70,9 @@ export default function Registries() {
                       what lets a merchant spot "this couple wants six things I
                       don't stock" and do something about it.
                     */}
-                    {registry.internalCount} yours
+                    {t("admin.reg.yours", { n: registry.internalCount })}
                     {registry.itemCount > registry.internalCount
-                      ? ` · ${registry.itemCount - registry.internalCount} elsewhere`
+                      ? ` · ${t("admin.reg.elsewhere", { n: registry.itemCount - registry.internalCount })}`
                       : ""}
                   </s-table-cell>
                   <s-table-cell>
@@ -82,7 +83,7 @@ export default function Registries() {
                       href={`https://${shopDomain}/apps/registry/r/${registry.slug}`}
                       target="_blank"
                     >
-                      View
+                      {t("admin.reg.view")}
                     </s-link>
                   </s-table-cell>
                 </s-table-row>
@@ -100,44 +101,39 @@ export default function Registries() {
               {...(page === 0 ? { disabled: true } : {})}
               onClick={() => setSearchParams({ page: String(page - 1) })}
             >
-              Previous
+              {t("admin.reg.prev")}
             </s-button>
-            <s-text>
-              Page {page + 1} of {lastPage + 1}
-            </s-text>
+            <s-text>{t("admin.reg.pageOf", { page: page + 1, total: lastPage + 1 })}</s-text>
             <s-button
               variant="secondary"
               {...(page >= lastPage ? { disabled: true } : {})}
               onClick={() => setSearchParams({ page: String(page + 1) })}
             >
-              Next
+              {t("admin.reg.next")}
             </s-button>
           </s-stack>
         </s-section>
       )}
 
-      <s-section heading="Export">
+      <s-section heading={t("admin.reg.export")}>
         {exports ? (
           <s-stack direction="block" gap="base">
             <s-paragraph>
-              <s-text color="subdued">
-                Registries include registrant names and emails, for mail-outs. Purchases include every
-                gift credited, with order numbers and amounts, for your accounting.
-              </s-text>
+              <s-text color="subdued">{t("admin.reg.exportText")}</s-text>
             </s-paragraph>
             <s-stack direction="inline" gap="base">
               <s-button href={exports.registries} target="_blank" variant="secondary" icon="download">
-                Registries CSV
+                {t("admin.reg.csvRegs")}
               </s-button>
               <s-button href={exports.purchases} target="_blank" variant="secondary" icon="download">
-                Purchases CSV
+                {t("admin.reg.csvPurch")}
               </s-button>
             </s-stack>
           </s-stack>
         ) : (
           <s-stack direction="block" gap="base">
-            <s-paragraph>With Pro, export your registries and purchases as CSV for mail-outs and accounting.</s-paragraph>
-            <s-button href="/app/billing">See Pro</s-button>
+            <s-paragraph>{t("admin.reg.exportFree")}</s-paragraph>
+            <s-button href="/app/billing">{t("admin.set.seePro")}</s-button>
           </s-stack>
         )}
       </s-section>

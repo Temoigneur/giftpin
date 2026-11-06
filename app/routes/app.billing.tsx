@@ -4,7 +4,10 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
 import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
 import { FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS, GIFT_CARD_FEE_CAP, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS, foundingTrialDays } from "../shared/plans";
-import { PRO_SUPPORT_PROMISE, SUPPORT_EMAIL, supportMailto } from "../shared/support";
+import { SUPPORT_EMAIL, supportMailto } from "../shared/support";
+import { t as translate } from "../shared/i18n";
+import { adminLocale } from "../lib/admin-locale.server";
+import { useAdminT, type AdminT } from "../lib/use-admin-t";
 
 /**
  * Merchant-facing upgrade/cancel page. Pricing (Free unlimited + Pro
@@ -69,10 +72,26 @@ async function primaryDomainHost(admin: { graphql: (query: string) => Promise<Re
   }
 }
 
-/** "a year" or "6 months"; just "year" after "your first" or "free". */
-function foundingPeriod(trialDays: number, afterFirst = false): string {
-  if (trialDays >= FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS) return afterFirst ? "year" : "a year";
-  return "6 months";
+/** "a year" or "6 months", in the merchant's language. */
+function foundingPeriod(t: AdminT, trialDays: number): string {
+  return trialDays >= FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS ? t("admin.bill.periodYearA") : t("admin.bill.period6m");
+}
+
+/** What Pro adds, one bullet per feature. The same list shows on Pro and on Free. */
+function ProFeatures({ t }: { t: AdminT }) {
+  return (
+    <s-unordered-list>
+      <s-list-item>{t("admin.bill.f.analytics")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.report")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.branding")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.csv")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.discount")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.emails")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.inStore")}</s-list-item>
+      <s-list-item>{t("admin.bill.f.giftCards", { pct: GIFT_CARD_FEE_PERCENT })}</s-list-item>
+      <s-list-item>{t("admin.bill.f.support", { promise: t("admin.bill.promise").toLowerCase() })}</s-list-item>
+    </s-unordered-list>
+  );
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -109,108 +128,88 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { ok: true };
   }
 
-  return { ok: false, error: "Unknown action" };
+  return { ok: false, error: translate("admin.bill.unknownAction", undefined, adminLocale(request)) };
 };
 
 export default function Billing() {
   const { plan, price, isTest, liveSubscriptionName, shopDomain, founding } =
     useLoaderData<typeof loader>();
+  const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const busy = fetcher.state !== "idle";
   const isPro = plan === "pro";
 
   return (
-    <s-page heading="Plan">
-      <s-section heading={isPro ? "You're on Pro" : "Free"}>
+    <s-page heading={t("admin.bill.page")}>
+      <s-section heading={isPro ? t("admin.bill.onPro") : t("admin.bill.free")}>
         {isPro ? (
           <s-stack direction="block" gap="base">
             <s-paragraph>
-              ${price}/mo{liveSubscriptionName ? ` — ${liveSubscriptionName}` : ""}.
+              {t("admin.bill.priceMo", { price })}
+              {liveSubscriptionName ? ` — ${liveSubscriptionName}` : ""}.
             </s-paragraph>
             <s-unordered-list>
-              <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
-              <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
-              <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
-              <s-list-item>CSV export of registries and purchases</s-list-item>
-              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
-              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
-              <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
-              <s-list-item>Your gift cards on giftpin.app and registry pages: shoppers buy them at your own checkout ({GIFT_CARD_FEE_PERCENT}% fee per card sold this way, none during your free trial)</s-list-item>
-              <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
+              <ProFeatures t={t} />
             </s-unordered-list>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="cancel" />
               <s-button type="submit" variant="secondary" {...(busy ? { loading: true } : {})}>
-                Cancel Pro
+                {t("admin.bill.cancel")}
               </s-button>
             </fetcher.Form>
           </s-stack>
         ) : (
           <s-stack direction="block" gap="base">
-            <s-paragraph>
-              Unlimited registries, funded by the disclosed affiliate commission on external-store
-              purchases — never billed to you.
-            </s-paragraph>
+            <s-paragraph>{t("admin.bill.freeText")}</s-paragraph>
             {founding && (
               <s-banner
                 tone="success"
-                heading={`Founding store offer: Pro free for ${foundingPeriod(founding.trialDays)}`}
+                heading={t("admin.bill.foundingHead", { period: foundingPeriod(t, founding.trialDays) })}
               >
                 <s-paragraph>
-                  You&apos;re one of the first stores to install Giftpin, so Pro is free for your first{" "}
-                  {foundingPeriod(founding.trialDays, true)} ({founding.trialDays} days). Shopify
-                  will ask you to approve it. After that it&apos;s ${price}/mo unless you cancel, and
-                  you can cancel any time before then at no charge.
+                  {t("admin.bill.foundingText", {
+                    period: foundingPeriod(t, founding.trialDays),
+                    days: founding.trialDays,
+                    price,
+                  })}
                 </s-paragraph>
               </s-banner>
             )}
-            <s-paragraph>Pro (${price}/mo) adds:</s-paragraph>
+            <s-paragraph>{t("admin.bill.proAdds", { price })}</s-paragraph>
             <s-unordered-list>
-              <s-list-item>Analytics: registries created, items added and gifts bought over time</s-list-item>
-              <s-list-item>Registry sales report: revenue, orders, new customers and average order by month</s-list-item>
-              <s-list-item>Your logo, colours and font on registry pages, with the &quot;Powered by Giftpin&quot; credit removed</s-list-item>
-              <s-list-item>CSV export of registries and purchases</s-list-item>
-              <s-list-item>Completion discount: after the event, a one-time code for your products still on the registrant&apos;s list</s-list-item>
-              <s-list-item>Automatic emails: a reminder to guests before the event, a &quot;most items gone&quot; alert and a thank-you reminder</s-list-item>
-              <s-list-item>In-store mode: staff find or start a registry from Shopify POS or the admin</s-list-item>
-              <s-list-item>Your gift cards on giftpin.app and registry pages: shoppers buy them at your own checkout ({GIFT_CARD_FEE_PERCENT}% fee per card sold this way, none during your free trial)</s-list-item>
-              <s-list-item>Priority support: {PRO_SUPPORT_PROMISE.toLowerCase()}</s-list-item>
+              <ProFeatures t={t} />
             </s-unordered-list>
-            <s-banner tone="info" heading={`About the "app spending limit" Shopify shows when you approve`}>
+            <s-banner tone="info" heading={t("admin.bill.limitHead")}>
               <s-paragraph>
-                That limit is only for the {GIFT_CARD_FEE_PERCENT}% fee on gift cards sold through
-                your giftpin.app gift card listing. It is the most we can charge in 30 days
-                (${GIFT_CARD_FEE_CAP} USD). If you sell no gift cards this way, or never turn the
-                listing on, you pay nothing extra. No fee during your free trial. Nothing else
-                is ever billed through it.
+                {t("admin.bill.limitText", { pct: GIFT_CARD_FEE_PERCENT, cap: GIFT_CARD_FEE_CAP })}
               </s-paragraph>
             </s-banner>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="upgrade" />
               <s-button type="submit" {...(busy ? { loading: true } : {})}>
                 {founding
-                  ? `Start my free ${foundingPeriod(founding.trialDays, true)} of Pro`
-                  : `Upgrade to Pro — $${price}/mo`}
+                  ? t("admin.bill.startFree", { period: foundingPeriod(t, founding.trialDays) })
+                  : t("admin.bill.upgrade", { price })}
               </s-button>
             </fetcher.Form>
           </s-stack>
         )}
         {isTest && (
           <s-paragraph>
-            <s-text color="subdued">Test mode — no card will actually be charged.</s-text>
+            <s-text color="subdued">{t("admin.bill.testMode")}</s-text>
           </s-paragraph>
         )}
       </s-section>
 
-      <s-section heading={isPro ? "Priority support" : "Support"}>
+      <s-section heading={isPro ? t("admin.bill.supportPro") : t("admin.bill.support")}>
         <s-stack direction="block" gap="base">
           <s-paragraph>
             {isPro
-              ? `Email ${SUPPORT_EMAIL} from the button below and your message is marked Pro. ${PRO_SUPPORT_PROMISE}.`
-              : `Email ${SUPPORT_EMAIL} and we'll get back to you. Pro includes priority support: ${PRO_SUPPORT_PROMISE.toLowerCase()}.`}
+              ? t("admin.bill.supportProText", { email: SUPPORT_EMAIL, promise: t("admin.bill.promise") })
+              : t("admin.bill.supportText", { email: SUPPORT_EMAIL, promise: t("admin.bill.promise").toLowerCase() })}
           </s-paragraph>
           <s-button href={supportMailto(shopDomain, isPro)} target="_blank" variant="secondary">
-            Email support
+            {t("admin.bill.emailSupport")}
           </s-button>
         </s-stack>
       </s-section>

@@ -4,6 +4,7 @@ import { enGuest } from "./guest";
 import { enCreate } from "./create";
 import { enServer } from "./server";
 import { enManage } from "./manage";
+import { enAdmin } from "./admin";
 
 export const en = {
   "noun.registry": "registry",
@@ -14,6 +15,7 @@ export const en = {
   ...enCreate,
   ...enServer,
   ...enManage,
+  ...enAdmin,
 } as const;
 
 /** Every language file must supply exactly these keys (checked by tsc and a test). */

@@ -5,6 +5,8 @@ import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
 import { upsertShop } from "../models/shop.server";
+import { adminLocale } from "../lib/admin-locale.server";
+import { useAdminT } from "../lib/use-admin-t";
 
 const SHOP_QUERY = `#graphql
   query giftpinShopInfo {
@@ -53,22 +55,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   await upsertShop(session.shop, { name, currency, moneyFormat, country, devStore });
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", locale: adminLocale(request) };
 };
 
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
+  const t = useAdminT();
 
   return (
     <AppProvider embedded apiKey={apiKey}>
       <s-app-nav>
-        <s-link href="/app">Overview</s-link>
-        <s-link href="/app/registries">Registries</s-link>
-        <s-link href="/app/promotions">Promotions</s-link>
-        <s-link href="/app/analytics">Analytics</s-link>
-        <s-link href="/app/in-store">In-store</s-link>
-        <s-link href="/app/settings">Settings</s-link>
-        <s-link href="/app/billing">Plan</s-link>
+        <s-link href="/app">{t("admin.nav.overview")}</s-link>
+        <s-link href="/app/registries">{t("admin.nav.registries")}</s-link>
+        <s-link href="/app/promotions">{t("admin.nav.promotions")}</s-link>
+        <s-link href="/app/analytics">{t("admin.nav.analytics")}</s-link>
+        <s-link href="/app/in-store">{t("admin.nav.inStore")}</s-link>
+        <s-link href="/app/settings">{t("admin.nav.settings")}</s-link>
+        <s-link href="/app/billing">{t("admin.nav.plan")}</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>

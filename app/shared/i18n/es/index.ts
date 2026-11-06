@@ -5,6 +5,7 @@ import { esGuest } from "./guest";
 import { esCreate } from "./create";
 import { esServer } from "./server";
 import { esManage } from "./manage";
+import { esAdmin } from "./admin";
 
 export const es: Messages = {
   "noun.registry": "lista de regalos",
@@ -15,4 +16,5 @@ export const es: Messages = {
   ...esCreate,
   ...esServer,
   ...esManage,
+  ...esAdmin,
 };

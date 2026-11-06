@@ -21,7 +21,9 @@ import {
   contrastRatio,
 } from "../shared/branding";
 import { listGiftCardProducts } from "../lib/contribution-product.server";
-import { LOCALES, LOCALE_NAMES, toLocale } from "../shared/i18n";
+import { LOCALES, LOCALE_NAMES, t, toLocale, type MessageKey } from "../shared/i18n";
+import { adminLocale } from "../lib/admin-locale.server";
+import { splitAtLink, useAdminT } from "../lib/use-admin-t";
 import { PERKS_MAX_LENGTH, PERKS_MAX_LINES, cleanPerks } from "../shared/perks";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT } from "../shared/plans";
 import { GIFT_CARD_BLURB_MAX, MAX_LISTED_GIFT_CARD, cleanGiftCardBlurb, listedGiftCardAmounts } from "../shared/gift-card-listing";
@@ -55,6 +57,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
+  const locale = adminLocale(request);
 
   // Separate form so saving it can't clobber (or be clobbered by) the rest.
   if (form.get("intent") === "contributions") {
@@ -74,9 +77,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await updateSettings(session.shop, { contributionProduct: picked, giftCardListing });
     const warnings: string[] = [];
     if (giftCardListing.enabled && listedGiftCardAmounts(picked).length === 0) {
-      warnings.push(
-        `To list your gift cards on giftpin.app, pick a gift card with at least one amount of ${MAX_LISTED_GIFT_CARD} or less.`,
-      );
+      warnings.push(t("admin.set.warnGc", { max: MAX_LISTED_GIFT_CARD }, locale));
     }
     return { ok: true, warnings };
   }
@@ -148,14 +149,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const warnings: string[] = [];
   if ("logoUrl" in branding && String(form.get("logoUrl") ?? "").trim() && !branding.logoUrl) {
-    warnings.push("The logo link wasn't saved: it needs to be a full https:// image link.");
+    warnings.push(t("admin.set.warnLogo", undefined, locale));
   }
   if ("backgroundColor" in branding && (branding.backgroundColor || branding.textColor)) {
     const ratio = contrastRatio(branding.backgroundColor || DEFAULT_BACKGROUND, branding.textColor || DEFAULT_TEXT);
     if (ratio < 4.5) {
-      warnings.push(
-        `Your text and background colours are hard to read together (contrast ${ratio.toFixed(1)}:1; aim for at least 4.5:1).`,
-      );
+      warnings.push(t("admin.set.warnContrast", { ratio: ratio.toFixed(1) }, locale));
     }
   }
 
@@ -170,12 +169,15 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 
 export default function Settings() {
   const { settings, pro, giftCards, shopDomain, cacheBust } = useLoaderData<typeof loader>();
+  const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const runFetcher = useFetcher<typeof action>();
   const giftFetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
   const [soldOutItems, setSoldOutItems] = useState(settings.soldOutItems);
 
+  const perksUpgrade = splitAtLink(t, "admin.set.perksUpgrade");
+  const afterUpgrade = splitAtLink(t, "admin.set.afterUpgrade");
   const saving = fetcher.state !== "idle";
   const formRef = useRef<HTMLFormElement>(null);
   const shopify = useAppBridge();
@@ -184,12 +186,12 @@ export default function Settings() {
   // with a toast wherever the merchant pressed it.
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.ok) {
-      shopify.toast.show("Settings saved");
+      shopify.toast.show(t("admin.set.toast"));
     }
-  }, [fetcher.state, fetcher.data, shopify]);
+  }, [fetcher.state, fetcher.data, shopify, t]);
 
   return (
-    <s-page heading="Settings">
+    <s-page heading={t("admin.set.page")}>
       {/* Page header, top right. Saves everything down to "Automatic emails";
           group gifts and funds keep their own Save below. */}
       <s-button
@@ -198,7 +200,7 @@ export default function Settings() {
         onClick={() => formRef.current?.requestSubmit()}
         {...(saving ? { loading: true } : {})}
       >
-        Save
+        {t("admin.set.save")}
       </s-button>
       {fetcher.data?.warnings?.map((warning) => (
         <s-banner key={warning} tone="warning">
@@ -206,9 +208,9 @@ export default function Settings() {
         </s-banner>
       ))}
       <fetcher.Form method="post" ref={formRef}>
-        <s-section heading="Occasions">
+        <s-section heading={t("admin.set.occasions")}>
           <s-paragraph>
-            <s-text color="subdued">Which kinds of registry customers can create.</s-text>
+            <s-text color="subdued">{t("admin.set.occasionsHint")}</s-text>
           </s-paragraph>
           <s-stack direction="block" gap="small-100">
             {EVENT_TYPES.map((type) => (
@@ -216,31 +218,18 @@ export default function Settings() {
                 key={type.value}
                 name="eventTypes"
                 value={type.value}
-                label={type.label}
-                {...(type.value === "wishlist"
-                  ? {
-                      details:
-                        "A shareable list with no event date, such as a holiday wish list. Family marks what they bought, so nobody doubles up. Off until you switch it on.",
-                    }
-                  : {})}
+                label={t(`event.${type.value}` as MessageKey)}
+                {...(type.value === "wishlist" ? { details: t("admin.set.wishlistHint") } : {})}
                 {...(settings.eventTypes.includes(type.value) ? { checked: true } : {})}
               />
             ))}
           </s-stack>
         </s-section>
 
-        <s-section heading="Items from other stores">
+        <s-section heading={t("admin.set.ext")}>
+          <s-paragraph>{t("admin.set.extText")}</s-paragraph>
           <s-paragraph>
-            Customers register where they can put everything in one list. Allowing items from
-            elsewhere is usually what makes a couple choose your registry as their main one &mdash;
-            and your products stay at the top of it.
-          </s-paragraph>
-          <s-paragraph>
-            <s-text color="subdued">
-              Items from other stores are links, not purchases. Guests buy them at that retailer and
-              tell us, so nobody buys the same gift twice. Giftpin may earn a small commission on
-              some of those clicks, which never changes the guest&apos;s price.
-            </s-text>
+            <s-text color="subdued">{t("admin.set.extNote")}</s-text>
           </s-paragraph>
 
           <s-stack direction="block" gap="small-100">
@@ -254,16 +243,16 @@ export default function Settings() {
                 if (selected) setExternalItems(selected as typeof externalItems);
               }}
             >
-              <s-choice value="on">Allow (recommended)</s-choice>
-              <s-choice value="capped">Allow, but keep my products in the majority</s-choice>
-              <s-choice value="off">My products only</s-choice>
+              <s-choice value="on">{t("admin.set.extOn")}</s-choice>
+              <s-choice value="capped">{t("admin.set.extCapped")}</s-choice>
+              <s-choice value="off">{t("admin.set.extOff")}</s-choice>
             </s-choice-list>
           </s-stack>
 
           {externalItems === "capped" && (
             <s-number-field
               name="externalItemsCapPercent"
-              label="Maximum share of items from other stores (%)"
+              label={t("admin.set.extCap")}
               value={String(settings.externalItemsCapPercent)}
               min={10}
               max={95}
@@ -272,20 +261,14 @@ export default function Settings() {
 
           {externalItems === "off" && (
             <s-banner tone="warning">
-              <s-paragraph>
-                Customers who need something you don&apos;t stock will build their list somewhere
-                else entirely &mdash; and you get none of it rather than most of it.
-              </s-paragraph>
+              <s-paragraph>{t("admin.set.extWarn")}</s-paragraph>
             </s-banner>
           )}
         </s-section>
 
-        <s-section heading="Sold-out products">
+        <s-section heading={t("admin.set.soldOut")}>
           <s-paragraph>
-            <s-text color="subdued">
-              When one of your products on a registry sells out. It always stays on the registry, so
-              it comes back by itself when you restock.
-            </s-text>
+            <s-text color="subdued">{t("admin.set.soldOutText")}</s-text>
           </s-paragraph>
           <s-choice-list
             name="soldOutItems"
@@ -295,43 +278,41 @@ export default function Settings() {
               if (selected === "show" || selected === "hide") setSoldOutItems(selected);
             }}
           >
-            <s-choice value="show">Show it as sold out (guests can&apos;t add it to their cart)</s-choice>
-            <s-choice value="hide">Hide it from guests until it&apos;s back in stock</s-choice>
+            <s-choice value="show">{t("admin.set.soldOutShow")}</s-choice>
+            <s-choice value="hide">{t("admin.set.soldOutHide")}</s-choice>
           </s-choice-list>
         </s-section>
 
-        <s-section heading="Registry perks (Pro)">
+        <s-section heading={t("admin.set.perks")}>
           <s-paragraph>
-            <s-text color="subdued">
-              What you offer people who register with you, like free gift wrapping or a gift when the
-              registry reaches a total. Shown to registrants when they start a registry and on their own
-              registry page, not to guests. One perk per line, up to {PERKS_MAX_LINES}.
-            </s-text>
+            <s-text color="subdued">{t("admin.set.perksText", { n: PERKS_MAX_LINES })}</s-text>
           </s-paragraph>
           {!pro && (
             <s-banner tone="info">
               <s-paragraph>
-                Perks show on Giftpin Pro. <s-link href="/app/billing">Upgrade</s-link> to turn them on.
+                {perksUpgrade[0]}
+                <s-link href="/app/billing">{t("admin.set.upgrade")}</s-link>
+                {perksUpgrade[1]}
               </s-paragraph>
             </s-banner>
           )}
           <s-text-area
             name="registryPerks"
-            label="Your perks"
+            label={t("admin.set.perksLabel")}
             value={settings.registryPerks}
             rows={4}
             maxLength={PERKS_MAX_LENGTH}
-            placeholder={"Free gift wrapping on every registry gift\nA free gift when your registry reaches $500"}
-            details="If the after-event discount below is on, it's listed for you."
+            placeholder={t("admin.set.perksPh")}
+            details={t("admin.set.perksDetails")}
           />
         </s-section>
 
-        <s-section heading="Appearance">
+        <s-section heading={t("admin.set.appearance")}>
           <s-select
             name="language"
-            label="Registry page language"
+            label={t("admin.set.langLabel")}
             value={settings.language}
-            details="The language guests see on registry pages and in registry emails. The text you type, like registry names and product titles, is shown as entered."
+            details={t("admin.set.langDetails")}
           >
             {LOCALES.map((code) => (
               <s-option key={code} value={code}>
@@ -341,54 +322,51 @@ export default function Settings() {
           </s-select>
           <s-checkbox
             name="registryLanguageChoice"
-            label="Let registrants choose a language for their own registry"
-            details="Adds a language picker to the create and manage pages, so a registrant can show their registry and its emails in another language. Off, every registry follows the language above."
+            label={t("admin.set.langChoice")}
+            details={t("admin.set.langChoiceDetails")}
             {...(settings.registryLanguageChoice ? { checked: true } : {})}
           />
           <s-text-field
             name="buttonLabel"
-            label="Button label"
+            label={t("admin.set.buttonLabel")}
             value={settings.buttonLabel}
             maxLength={40}
           />
           <s-text-field
             name="accentColor"
-            label="Accent colour"
+            label={t("admin.set.accent")}
             value={settings.accentColor}
-            details="Hex, e.g. #1a1a1a. Used for buttons on the registry page."
+            details={t("admin.set.accentDetails")}
           />
         </s-section>
 
-        <s-section heading="Your branding">
+        <s-section heading={t("admin.set.branding")}>
           {pro ? (
             <s-stack direction="block" gap="base">
               <s-paragraph>
-                <s-text color="subdued">
-                  Shown on every registry page, with the &quot;Powered by Giftpin&quot; credit removed.
-                  Changes can take a minute to appear on pages guests already have open.
-                </s-text>
+                <s-text color="subdued">{t("admin.set.brandingText")}</s-text>
               </s-paragraph>
               <s-url-field
                 name="logoUrl"
-                label="Logo image link"
+                label={t("admin.set.logo")}
                 value={settings.logoUrl}
-                details="An https:// link to your logo, e.g. from Content → Files in your Shopify admin. Shown at the top of the page, linking to your store."
+                details={t("admin.set.logoDetails")}
               />
               <s-text-field
                 name="backgroundColor"
-                label="Page background colour"
+                label={t("admin.set.bg")}
                 value={settings.backgroundColor}
                 placeholder={DEFAULT_BACKGROUND}
-                details="Hex, e.g. #fbf7f2. Leave empty for the default, which follows the guest's light or dark mode."
+                details={t("admin.set.bgDetails")}
               />
               <s-text-field
                 name="textColor"
-                label="Text colour"
+                label={t("admin.set.text")}
                 value={settings.textColor}
                 placeholder={DEFAULT_TEXT}
-                details="Hex, e.g. #2b2b2b."
+                details={t("admin.set.textDetails")}
               />
-              <s-select name="fontFamily" label="Font" value={settings.fontFamily}>
+              <s-select name="fontFamily" label={t("admin.set.font")} value={settings.fontFamily}>
                 {BRAND_FONTS.map((font) => (
                   <s-option key={font.value} value={font.value}>
                     {font.label}
@@ -396,84 +374,82 @@ export default function Settings() {
                 ))}
               </s-select>
               <s-paragraph>
-                <s-text color="subdued">Fonts other than the first two load from Google Fonts.</s-text>
+                <s-text color="subdued">{t("admin.set.fontNote")}</s-text>
               </s-paragraph>
             </s-stack>
           ) : (
             <s-stack direction="block" gap="base">
-              <s-paragraph>
-                With Pro, registry pages use your logo, colours and font, and the &quot;Powered by
-                Giftpin&quot; credit is removed.
-              </s-paragraph>
-              <s-button href="/app/billing">See Pro</s-button>
+              <s-paragraph>{t("admin.set.brandingFree")}</s-paragraph>
+              <s-button href="/app/billing">{t("admin.set.seePro")}</s-button>
             </s-stack>
           )}
         </s-section>
 
-        <s-section heading="Privacy">
+        <s-section heading={t("admin.set.privacy")}>
           <s-checkbox
             name="hideBuyerUntilEvent"
-            label="Hide who gave what until the event date"
-            details="Registrants still see that something was bought, just not by whom."
+            label={t("admin.set.hideBuyer")}
+            details={t("admin.set.hideBuyerDetails")}
             {...(settings.hideBuyerUntilEvent ? { checked: true } : {})}
           />
           <s-checkbox
             name="findARegistryEnabled"
-            label="Enable the public find-a-registry page"
-            details="Lets guests search by name. Only registries whose owners opt in are listed, and no personal details are ever shown. The Registry links theme block's “Find a gift registry” link opens this page."
+            label={t("admin.set.find")}
+            details={t("admin.set.findDetails")}
             {...(settings.findARegistryEnabled ? { checked: true } : {})}
           />
         </s-section>
 
-        <s-section heading="After the event (Pro)">
+        <s-section heading={t("admin.set.after")}>
           {!pro && (
             <s-banner tone="info">
               <s-paragraph>
-                These run on Giftpin Pro. <s-link href="/app/billing">Upgrade</s-link> to turn
-                them on.
+                {afterUpgrade[0]}
+                <s-link href="/app/billing">{t("admin.set.upgrade")}</s-link>
+                {afterUpgrade[1]}
               </s-paragraph>
             </s-banner>
           )}
           <s-checkbox
             name="completionDiscountEnabled"
-            label="Give registrants a discount on what's left on their list"
-            details="A few days after the event, the registrant gets a one-time code for your products still on their registry. Nothing is created for items from other stores."
+            label={t("admin.set.discount")}
+            details={t("admin.set.discountDetails")}
             {...(settings.completionDiscountEnabled ? { checked: true } : {})}
           />
           <s-number-field
             name="completionDiscountPercent"
-            label="Discount (%)"
+            label={t("admin.set.discountPct")}
             value={String(settings.completionDiscountPercent)}
             min={COMPLETION_DISCOUNT_PERCENT_RANGE.min}
             max={COMPLETION_DISCOUNT_PERCENT_RANGE.max}
           />
           <s-number-field
             name="completionDiscountValidDays"
-            label="Code works for (days)"
+            label={t("admin.set.discountDays")}
             value={String(settings.completionDiscountValidDays)}
             min={COMPLETION_DISCOUNT_DAYS_RANGE.min}
             max={COMPLETION_DISCOUNT_DAYS_RANGE.max}
           />
         </s-section>
 
-        <s-section heading="Automatic emails (Pro)">
+        <s-section heading={t("admin.set.emails")}>
           <s-stack direction="block" gap="small-100">
             <s-checkbox
               name="guestEventReminderEmails"
-              label="Remind guests two weeks before the event"
-              details="Guests can ask for a reminder on the registry page. The registrant also gets a nudge to share their link again."
+              label={t("admin.set.guestRemind")}
+              details={t("admin.set.guestRemindDetails")}
               {...(settings.guestEventReminderEmails ? { checked: true } : {})}
             />
             <s-checkbox
               name="mostGoneAlertEmails"
-              label="Tell registrants when most of their list is bought"
-              details="Sent once, when three quarters of the items are taken care of, so they can add more."
+              label={t("admin.set.mostGone")}
+              details={t("admin.set.mostGoneDetails")}
               {...(settings.mostGoneAlertEmails ? { checked: true } : {})}
             />
             <s-checkbox
               name="thankYouReminderEmails"
-              label="Send registrants a thank-you note reminder"
-              details="A few days after the event, with a list of who gave what."
+              label={t("admin.set.thanks")}
+              details={t("admin.set.thanksDetails")}
               {...(settings.thankYouReminderEmails ? { checked: true } : {})}
             />
           </s-stack>
@@ -482,9 +458,9 @@ export default function Settings() {
         <s-section>
           <s-stack direction="inline" gap="base">
             <s-button type="submit" {...(saving ? { loading: true } : {})}>
-              Save
+              {t("admin.set.save")}
             </s-button>
-            {fetcher.data?.ok && <s-text>Saved</s-text>}
+            {fetcher.data?.ok && <s-text>{t("admin.set.saved")}</s-text>}
           </s-stack>
           {fetcher.data?.warnings?.map((warning) => (
             <s-banner key={warning} tone="warning">
@@ -496,39 +472,27 @@ export default function Settings() {
 
       <giftFetcher.Form method="post">
         <input type="hidden" name="intent" value="contributions" />
-        <s-section heading="Group gifts and funds">
-          <s-paragraph>
-            Guests can chip in toward a big item or a cash fund, like a honeymoon, by buying one
-            of your gift cards. Every chip-in is a sale in your store, and the gift card gets
-            spent here.
-          </s-paragraph>
+        <s-section heading={t("admin.set.funds")}>
+          <s-paragraph>{t("admin.set.fundsText")}</s-paragraph>
           {!pro && (
             <s-banner tone="info">
-              <s-paragraph>This is part of Giftpin Pro.</s-paragraph>
+              <s-paragraph>{t("admin.set.fundsPro")}</s-paragraph>
             </s-banner>
           )}
           <s-banner tone="warning">
-            <s-paragraph>
-              Shopify only emails a gift card once its order is fulfilled. In Settings &rarr; General
-              &rarr; Order processing, choose &ldquo;Automatically fulfill only the gift cards&rdquo;
-              (or fulfill everything automatically), or chip-in gift cards won&rsquo;t arrive until you
-              fulfill each order yourself.
-            </s-paragraph>
+            <s-paragraph>{t("admin.set.fundsFulfil")}</s-paragraph>
           </s-banner>
           {giftCards.length === 0 ? (
             <s-paragraph>
-              <s-text color="subdued">
-                First go to Products &rarr; Gift cards &rarr; Add a gift card product, with a few amounts such as
-                $25, $50 and $100. Then come back here and pick it.
-              </s-text>
+              <s-text color="subdued">{t("admin.set.fundsFirst")}</s-text>
             </s-paragraph>
           ) : (
             <s-select
               name="contributionProduct"
-              label="Gift card guests chip in with"
+              label={t("admin.set.fundsPick")}
               value={settings.contributionProduct?.productGid ?? ""}
             >
-              <s-option value="">Off</s-option>
+              <s-option value="">{t("admin.set.off")}</s-option>
               {giftCards.map((card) => (
                 <s-option key={card.productGid} value={card.productGid}>
                   {card.title} ({card.variants.map((v) => v.amount).join(", ")})
@@ -536,35 +500,29 @@ export default function Settings() {
               ))}
             </s-select>
           )}
-          <s-heading>Sell gift cards on giftpin.app</s-heading>
-          <s-paragraph>
-            List your store at giftpin.app/gift-cards, and add a &ldquo;Buy a gift card&rdquo; link to your
-            registry pages. Shoppers pick an amount and buy your gift card at your own checkout, so the money
-            and any unspent balance stay with you. Uses the gift card above, in amounts up to{" "}
-            {MAX_LISTED_GIFT_CARD}.
-          </s-paragraph>
+          <s-heading>{t("admin.set.sell")}</s-heading>
+          <s-paragraph>{t("admin.set.sellText", { max: MAX_LISTED_GIFT_CARD })}</s-paragraph>
           <s-paragraph>
             <s-text color="subdued">
-              Giftpin charges {GIFT_CARD_FEE_PERCENT}% of each gift card sold this way, on your Shopify bill, after a{" "}
-              {GIFT_CARD_FEE_HOLD_DAYS}-day refund window. No fee during your free trial.
+              {t("admin.set.sellFee", { pct: GIFT_CARD_FEE_PERCENT, days: GIFT_CARD_FEE_HOLD_DAYS })}
             </s-text>
           </s-paragraph>
           <s-checkbox
             name="giftCardListingEnabled"
-            label="List my gift cards on giftpin.app"
+            label={t("admin.set.listMine")}
             {...(settings.giftCardListing.enabled ? { checked: true } : {})}
           />
           <s-text-field
             name="giftCardBlurb"
-            label="One line about your store"
-            details="Shown under your store name on giftpin.app."
+            label={t("admin.set.blurb")}
+            details={t("admin.set.blurbDetails")}
             maxLength={GIFT_CARD_BLURB_MAX}
             value={settings.giftCardListing.blurb}
           />
           {settings.giftCardListing.enabled && pro && (
             <s-paragraph>
               <s-text color="subdued">
-                Your gift card page:{" "}
+                {t("admin.set.gcPage")}{" "}
                 <s-link href={`https://${shopDomain}/apps/registry/gift-card?cb=${cacheBust}`} target="_blank">
                   /apps/registry/gift-card
                 </s-link>
@@ -573,9 +531,9 @@ export default function Settings() {
           )}
           <s-stack direction="inline" gap="base">
             <s-button type="submit" {...(giftFetcher.state !== "idle" ? { loading: true } : {})}>
-              Save
+              {t("admin.set.save")}
             </s-button>
-            {giftFetcher.data?.ok && <s-text>Saved</s-text>}
+            {giftFetcher.data?.ok && <s-text>{t("admin.set.saved")}</s-text>}
           </s-stack>
           {giftFetcher.data?.warnings?.map((warning) => (
             <s-banner key={warning} tone="warning">
@@ -588,19 +546,16 @@ export default function Settings() {
       {pro && (
         <runFetcher.Form method="post">
           <input type="hidden" name="intent" value="run-automations" />
-          <s-section heading="Run the after-event emails and discounts now">
+          <s-section heading={t("admin.set.run")}>
             <s-paragraph>
-              <s-text color="subdued">
-                They run on their own once a day, along with gift card fees. This runs them now for your store,
-                which is handy for checking your settings. Nothing is sent or charged twice.
-              </s-text>
+              <s-text color="subdued">{t("admin.set.runText")}</s-text>
             </s-paragraph>
             <s-stack direction="inline" gap="base">
               <s-button type="submit" variant="secondary" {...(runFetcher.state !== "idle" ? { loading: true } : {})}>
-                Run now
+                {t("admin.set.runNow")}
               </s-button>
               {runFetcher.data && "ran" in runFetcher.data && runFetcher.data.ran && (
-                <s-text>Started. Emails and codes arrive within a minute.</s-text>
+                <s-text>{t("admin.set.runStarted")}</s-text>
               )}
             </s-stack>
           </s-section>
