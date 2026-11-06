@@ -9,6 +9,8 @@ import {
   type ProxyContext,
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
+import { withLocale } from "../lib/i18n.server";
+import { currentLocale, t } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
@@ -146,6 +148,17 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   if (!shop) return new Response("Not found", { status: 404 });
 
   const settings = settingsFor(shop);
+  // Everything below renders in the store's chosen language (see
+  // app/lib/i18n.server.ts for why this is per request and not a global).
+  return withLocale(settings.language, () => routeProxyRequest(request, ctx, shop, settings));
+}
+
+async function routeProxyRequest(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+): Promise<Response> {
   const brand: Brand = {
     shopName: shop.name ?? ctx.shop.replace(".myshopify.com", ""),
     accentColor: settings.accentColor,
@@ -227,8 +240,8 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
 
       default:
         return page(
-          renderSimplePage(brand, "Page not found", "That link doesn't lead anywhere.", {
-            label: "Start a registry",
+          renderSimplePage(brand, t("server.p.notFound.t"), t("server.p.notFound.m"), {
+            label: t("server.p.start"),
             href: ctx.pathPrefix,
           }),
           404,
@@ -237,7 +250,7 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   } catch (err) {
     console.error("[proxy]", err);
     return page(
-      renderSimplePage(brand, "Something went wrong", "Please try again in a moment."),
+      renderSimplePage(brand, t("server.p.wrong.t"), t("server.p.wrong.m")),
       500,
     );
   }
@@ -305,12 +318,12 @@ async function registryPage(
   brand: Brand,
   slug: string | undefined,
 ): Promise<Response> {
-  if (!slug) return page(renderSimplePage(brand, "Page not found", "That link is incomplete."), 404);
+  if (!slug) return page(renderSimplePage(brand, t("server.p.notFound.t"), t("server.p.incomplete")), 404);
 
   const registry = await findBySlug(ctx.shop, slug);
   if (!registry) {
     return page(
-      renderSimplePage(brand, "Registry not found", "This registry may have been deleted, or the link is wrong."),
+      renderSimplePage(brand, t("server.p.regNotFound.t"), t("server.p.regNotFound.m")),
       404,
     );
   }
@@ -329,7 +342,7 @@ async function registryPage(
   // be one render, not 80 — and the version in the key means a purchase
   // invalidates it the instant it lands.
   const html = await cached(
-    registryCacheKey(registry.id, registry.version, registry.privacy === "password" ? "pw" : "page"),
+    registryCacheKey(registry.id, registry.version, `${registry.privacy === "password" ? "pw" : "page"}:${currentLocale()}`),
     60,
     async () =>
       buildRegistryHtml(
@@ -503,11 +516,11 @@ async function managePage(
     return page(
       renderSimplePage(
         brand,
-        token ? "This link has expired" : "Open your private manage link",
+        token ? t("server.p.expired.t") : t("server.p.private.t"),
         token
-          ? "For your privacy, management links expire. Ask for a new one and we'll email it to you."
-          : "Registries are edited from a private link sent to your email. Sign in to your store account, or ask us to email you a new link.",
-        { label: "Email me a new link", href: ctx.pathPrefix },
+          ? t("server.p.expired.m")
+          : t("server.p.private.m"),
+        { label: t("server.p.newLink"), href: ctx.pathPrefix },
       ),
       403,
     );
@@ -598,17 +611,17 @@ async function findPage(
   brand: Brand,
   settings: ShopSettings,
 ): Promise<Response> {
-  // The theme's "Registry links" block shows a "Find a gift registry" link by
+  // The theme's "Registry links" block shows a t("server.p.find.t") link by
   // default, and the theme can't see this setting, so a store that hasn't
-  // turned the search on used to send that link to "Page not found" (Ben, 29
+  // turned the search on used to send that link to t("server.p.notFound.t") (Ben, 29
   // Oct 2026). Tell the guest what to do instead of showing a dead end.
   if (!settings.findARegistryEnabled) {
     return page(
       renderSimplePage(
         brand,
-        "Find a gift registry",
-        `${brand.shopName} doesn't have a public registry search. Ask the person you're shopping for to send you their registry link.`,
-        { label: "Start your own registry", href: ctx.pathPrefix },
+        t("server.p.find.t"),
+        t("server.p.find.m", { shop: brand.shopName }),
+        { label: t("server.p.startOwn"), href: ctx.pathPrefix },
       ),
     );
   }
@@ -762,7 +775,7 @@ async function accountLinkAction(ctx: ProxyContext, shop: ShopRecord, brand: Bra
       const registries = await findByEmail(shop.id, profile.email);
       await sendAccountEmail(ctx, shop, profile.email, registries.map((r) => r.title));
     }
-    return page(renderSimplePage(brand, "Check your email", "We've sent the link to all your registries to your email."));
+    return page(renderSimplePage(brand, t("server.p.check.t"), t("server.p.check.m2")));
   }
   const registry = await requireManage(ctx);
   if (registry) {
@@ -777,31 +790,31 @@ async function accountLinkAction(ctx: ProxyContext, shop: ShopRecord, brand: Bra
     }
   }
   return page(
-    renderSimplePage(brand, "Check your email", "We've sent a link to all your registries to the email on this registry."),
+    renderSimplePage(brand, t("server.p.check.t"), t("server.p.check.m3")),
   );
 }
 
 async function confirmPage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   const claimId = readClaimToken(ctx.query.get("c"));
   if (!claimId) {
-    return page(renderSimplePage(brand, "That link has expired", "No harm done — the item went back on the registry."), 410);
+    return page(renderSimplePage(brand, t("server.p.claimExpired.t"), t("server.p.claimExpired.m")), 410);
   }
   await confirmClaim(claimId);
   return page(
-    renderSimplePage(brand, "Thank you", "We've marked it as bought so nobody else buys the same thing."),
+    renderSimplePage(brand, t("server.p.thanks.t"), t("server.p.thanks.m")),
   );
 }
 
 async function releasePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   const claimId = readClaimToken(ctx.query.get("c"));
   if (claimId) await releaseClaim(claimId);
-  return page(renderSimplePage(brand, "Put back on the list", "Thanks for letting us know."));
+  return page(renderSimplePage(brand, t("server.p.back.t"), t("server.p.back.m")));
 }
 
 async function unsubscribePage(ctx: ProxyContext, brand: Brand): Promise<Response> {
   const reminderId = readGuestUnsubscribeToken(ctx.query.get("u"));
   if (reminderId) await removeGuestReminder(reminderId);
-  return page(renderSimplePage(brand, "You're unsubscribed", "We won't send you any more reminders about this registry."));
+  return page(renderSimplePage(brand, t("server.p.unsub.t"), t("server.p.unsub.m")));
 }
 
 /** Small feature, disproportionate emotional value. Gets talked about. */
@@ -948,7 +961,7 @@ async function createRegistryAction(
         actionUrl: ctx.pathPrefix,
         enabledEventTypes: settings.eventTypes,
         perks: perksFor(shop, settings, await shopDeals(shop, settings)),
-        error: "Please fill in your name, a registry name and a valid email address.",
+        error: t("server.createInvalid"),
         values,
       }),
       400,
@@ -1011,8 +1024,8 @@ async function resendAction(
   return page(
     renderSimplePage(
       brand,
-      "Check your email",
-      "If that address has a registry with us, its link is on the way.",
+      t("server.p.check.t"),
+      t("server.p.check.m1"),
     ),
   );
 }
@@ -1041,7 +1054,7 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
   });
 
   if (!item || !item.variantGid?.endsWith(`/${variantId}`)) {
-    return json({ ok: false, error: "That item is no longer on this registry" }, 404);
+    return json({ ok: false, error: t("server.itemGone") }, 404);
   }
   const names = item.registry.registrants.map((r) => firstNameOnly(r.name)).filter(Boolean).join(" & ");
   void bumpStat(item.registry.shopId, STAT_METRICS.cartAdd, { registryId: item.registryId, count: qty });
@@ -1081,7 +1094,7 @@ function giftCardPage(ctx: ProxyContext, shop: ShopRecord, settings: ShopSetting
   });
   if (!live) {
     return page(
-      renderSimplePage(brand, "Gift cards aren't available here", "This store isn't selling gift cards through Giftpin right now."),
+      renderSimplePage(brand, t("server.p.noGc.t"), t("server.p.noGc.m")),
       404,
     );
   }
@@ -1115,7 +1128,7 @@ async function contributeAction(
   settings: ShopSettings,
 ): Promise<Response> {
   if (!contributionsAvailable(shop, settings)) {
-    return json({ ok: false, error: "Chipping in isn't available right now" }, 404);
+    return json({ ok: false, error: t("server.chipUnavail") }, 404);
   }
 
   const body = await readJson(request);
@@ -1123,16 +1136,16 @@ async function contributeAction(
   const variantId = String(body.variantId ?? "");
 
   const variant = settings.contributionProduct!.variants.find((v) => v.id === variantId);
-  if (!variant) return json({ ok: false, error: "Please pick an amount" }, 400);
+  if (!variant) return json({ ok: false, error: t("server.pickAmount") }, 400);
 
   const item = await db.registryItem.findFirst({
     where: { id: itemId, fundGoal: { not: null }, registry: { shopId: shop.id, status: "active" } },
     include: { registry: { include: { registrants: { orderBy: { createdAt: "asc" } } } } },
   });
-  if (!item) return json({ ok: false, error: "That item is no longer on this registry" }, 404);
+  if (!item) return json({ ok: false, error: t("server.itemGone") }, 404);
 
   if (fundState(item.fundGoal, item.fundedAmount)?.complete) {
-    return json({ ok: false, error: "This has already been fully funded" }, 409);
+    return json({ ok: false, error: t("server.fullyFunded") }, 409);
   }
 
   let recipient: Record<string, string> | null = null;
@@ -1164,12 +1177,12 @@ async function contributeAction(
 
 async function addFundAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
-  if (!isPro(shop)) return json({ ok: false, error: "Funds aren't available at this store" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: t("server.fundsUnavail") }, 403);
 
   const body = await readJson(request);
   const goal = parseFundGoal(body.goal);
-  if (!goal) return json({ ok: false, error: "Please enter a goal amount" }, 400);
+  if (!goal) return json({ ok: false, error: t("server.goalAmount") }, 400);
 
   try {
     await addFundItem({
@@ -1189,17 +1202,17 @@ async function addFundAction(request: Request, ctx: ProxyContext, shop: ShopReco
 /** Group gifting on/off for one of the store's own items. */
 async function itemFundAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const itemId = String(body.itemId ?? "");
   const turningOn = body.goal !== null && body.goal !== undefined && body.goal !== "";
   // Switching OFF stays allowed after a downgrade, so nobody is stuck.
   if (turningOn && !isPro(shop)) {
-    return json({ ok: false, error: "Group gifts aren't available at this store" }, 403);
+    return json({ ok: false, error: t("server.groupUnavail") }, 403);
   }
   const goal = turningOn ? parseFundGoal(body.goal) : null;
-  if (turningOn && !goal) return json({ ok: false, error: "Please enter a goal amount" }, 400);
+  if (turningOn && !goal) return json({ ok: false, error: t("server.goalAmount") }, 400);
 
   try {
     await setItemFundGoal(itemId, registry.id, goal);
@@ -1212,7 +1225,7 @@ async function itemFundAction(request: Request, ctx: ProxyContext, shop: ShopRec
 
 async function contributionSettingsAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   await updateRegistry(registry.id, { contributionsToRegistrant: body.toRegistrant === true });
@@ -1254,10 +1267,10 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
     where: { id: itemId, registry: { shop: { domain: ctx.shop } } },
     include: { claims: { where: { releasedAt: null } } },
   });
-  if (!item) return json({ ok: false, error: "Item not found" }, 404);
+  if (!item) return json({ ok: false, error: t("server.itemNotFound") }, 404);
 
   if (item.sourceType === "fund") {
-    return json({ ok: false, error: "This item is tracked automatically" }, 400);
+    return json({ ok: false, error: t("server.autoTracked") }, 400);
   }
 
   const details = {
@@ -1267,7 +1280,7 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
 
   if (item.sourceType === "internal") {
     const purchase = await confirmBoughtElsewhere(item.id, details);
-    if (!purchase) return json({ ok: false, error: "This item is already taken care of" }, 409);
+    if (!purchase) return json({ ok: false, error: t("server.alreadyHandled") }, 409);
     return json({ ok: true, undoToken: mintUndoToken(purchase.id) });
   }
 
@@ -1281,7 +1294,7 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
 
   // No hold in flight — the guest bought it without clicking through.
   const claim = await placeClaim(item.id, item.registryId, fingerprint);
-  if (!claim) return json({ ok: false, error: "This item is already taken care of" }, 409);
+  if (!claim) return json({ ok: false, error: t("server.alreadyHandled") }, 409);
   const purchase = await confirmClaim(claim.claimId, details);
   return json({ ok: true, undoToken: purchase ? mintUndoToken(purchase.id) : null });
 }
@@ -1290,7 +1303,7 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
 async function undoBoughtAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const body = await readJson(request);
   const purchaseId = readUndoToken(typeof body.token === "string" ? body.token : null);
-  if (!purchaseId) return json({ ok: false, error: "This can no longer be undone" }, 400);
+  if (!purchaseId) return json({ ok: false, error: t("server.noUndo") }, 400);
 
   // Scope to this shop, the same as every other guest action.
   const purchase = await db.purchase.findFirst({
@@ -1298,14 +1311,14 @@ async function undoBoughtAction(request: Request, ctx: ProxyContext): Promise<Re
     select: { id: true },
   });
   if (!purchase || !(await undoGuestPurchase(purchase.id))) {
-    return json({ ok: false, error: "This can no longer be undone" }, 409);
+    return json({ ok: false, error: t("server.noUndo") }, 409);
   }
   return json({ ok: true });
 }
 
 async function addExternalAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
 
@@ -1319,7 +1332,7 @@ async function addExternalAction(request: Request, ctx: ProxyContext): Promise<R
     console.error("[add-external]", err);
     // Never a dead end: offer the manual path instead of a shrug.
     return json(
-      { ok: false, error: "We couldn't read that page. You can add the item by hand instead." },
+      { ok: false, error: t("server.pageRead") },
       502,
     );
   }
@@ -1335,7 +1348,7 @@ async function addExternalAction(request: Request, ctx: ProxyContext): Promise<R
  */
 async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   let link: Awaited<ReturnType<typeof previewUrl>>;
@@ -1368,18 +1381,18 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
  */
 async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const title = String(body.title ?? "").trim().slice(0, 300);
-  if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
+  if (!title) return json({ ok: false, error: t("server.itemName") }, 400);
 
   // Required: a pasted item from a site that blocks our read has nothing else
   // telling guests what it costs (Ben, 25 Sep 2026).
   const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
-  if (!rawPrice) return json({ ok: false, error: "Please add the price, so guests know what it costs" }, 400);
+  if (!rawPrice) return json({ ok: false, error: t("server.itemPrice") }, 400);
   const price = normalizePrice(rawPrice);
-  if (price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+  if (price === null) return json({ ok: false, error: t("server.priceBad") }, 400);
 
   const match = await previewStoreMatch(shop.domain, shop.currency, title);
 
@@ -1395,7 +1408,7 @@ async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopReco
       storeMatch: match ? storeMatchFields(match.match, keepMatch(match.preview.title, body) ? "kept" : "suggested") : null,
     });
     if (result.duplicate) {
-      return json({ ok: false, error: "That link is already on your list. Change its quantity below." }, 409);
+      return json({ ok: false, error: t("server.linkDup") }, 409);
     }
     return json({ ok: true, itemId: result.item.id });
   } catch (err) {
@@ -1432,7 +1445,7 @@ async function addFromStoreAction(
 
   const registry = await authorizeManage(registryId, token, ctx.loggedInCustomerId);
   if (!registry || registry.shopId !== shop.id) {
-    return json({ ok: false, error: "Not authorised" }, 403);
+    return json({ ok: false, error: t("server.notAuth") }, 403);
   }
 
   // The registrant confirmed, in the button's duplicate-quantity prompt, an
@@ -1441,7 +1454,7 @@ async function addFromStoreAction(
   // manage-token authorisation as a normal add, just a different write.
   if (typeof body.itemId === "string" && body.confirmQty !== undefined) {
     const item = registry.items.find((i) => i.id === body.itemId);
-    if (!item) return json({ ok: false, error: "Item not found" }, 404);
+    if (!item) return json({ ok: false, error: t("server.itemNotFound") }, 404);
 
     const desiredQty = clampInt(body.confirmQty, 1, 99);
     if (desiredQty < item.purchasedQty) {
@@ -1455,7 +1468,7 @@ async function addFromStoreAction(
   const variantId = String(body.variantId ?? "");
   const productId = String(body.productId ?? "");
   if (!/^\d+$/.test(variantId) || !/^\d+$/.test(productId)) {
-    return json({ ok: false, error: "Missing product details" }, 400);
+    return json({ ok: false, error: t("server.missingProduct") }, 400);
   }
 
   const result = await addInternalItem({
@@ -1485,8 +1498,8 @@ async function addFromStoreAction(
  */
 async function scanLookupAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
-  if (!isPro(shop)) return json({ ok: false, error: "Scanning isn't available in this store" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: t("server.scanUnavail") }, 403);
 
   const body = await readJson(request);
   try {
@@ -1504,18 +1517,18 @@ async function scanLookupAction(request: Request, ctx: ProxyContext, shop: ShopR
     });
   } catch (err) {
     console.error("[scan] lookup failed:", (err as Error).message);
-    return json({ ok: false, error: "Couldn't look that up. Try again in a moment." }, 502);
+    return json({ ok: false, error: t("server.lookupFail") }, 502);
   }
 }
 
 async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
-  if (!isPro(shop)) return json({ ok: false, error: "Scanning isn't available in this store" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
+  if (!isPro(shop)) return json({ ok: false, error: t("server.scanUnavail") }, 403);
 
   const body = await readJson(request);
   const variantId = String(body.variantId ?? "");
-  if (!/^\d+$/.test(variantId)) return json({ ok: false, error: "Missing product details" }, 400);
+  if (!/^\d+$/.test(variantId)) return json({ ok: false, error: t("server.missingProduct") }, 400);
   const variantGid = `gid://shopify/ProductVariant/${variantId}`;
 
   // Already on the list: only a deliberate "add one more" changes the count,
@@ -1535,9 +1548,9 @@ async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopReco
     variant = await getVariant(ctx.shop, variantGid);
   } catch (err) {
     console.error("[scan] variant lookup failed:", (err as Error).message);
-    return json({ ok: false, error: "Couldn't add that. Try again in a moment." }, 502);
+    return json({ ok: false, error: t("server.addFail") }, 502);
   }
-  if (!variant) return json({ ok: false, error: "That product isn't available in the store" }, 404);
+  if (!variant) return json({ ok: false, error: t("server.productNotInStore") }, 404);
 
   const result = await addInternalItem({
     registryId: registry.id,
@@ -1560,7 +1573,7 @@ async function extVerifyAction(ctx: ProxyContext, shop: ShopRecord): Promise<Res
   const registry = registryId ? await authorizeManage(registryId, token, null) : null;
 
   if (!registry || registry.shopId !== shop.id) {
-    return json({ ok: false, error: "This link has expired or isn't valid. Ask for a new one from your registry." }, 401);
+    return json({ ok: false, error: t("server.linkExpiredAsk") }, 401);
   }
 
   return json({ ok: true, title: registry.title });
@@ -1586,11 +1599,11 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
   const body = await readJson(request);
   const token = typeof body.token === "string" ? body.token : null;
   const registryId = token ? readTokenRegistryId(token) : null;
-  if (!registryId) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registryId) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const registry = await authorizeManage(registryId, token, null);
   if (!registry || registry.shopId !== shop.id) {
-    return json({ ok: false, error: "Not authorised" }, 403);
+    return json({ ok: false, error: t("server.notAuth") }, 403);
   }
 
   // Confirming an explicit total for something the extension already found
@@ -1598,7 +1611,7 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
   // button's duplicate prompt.
   if (typeof body.itemId === "string" && body.confirmQty !== undefined) {
     const item = registry.items.find((i) => i.id === body.itemId);
-    if (!item) return json({ ok: false, error: "Item not found" }, 404);
+    if (!item) return json({ ok: false, error: t("server.itemNotFound") }, 404);
 
     const desiredQty = clampInt(body.confirmQty, 1, 99);
     if (desiredQty < item.purchasedQty) {
@@ -1610,7 +1623,7 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
   }
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
-  if (!title) return json({ ok: false, error: "Couldn't find a product name on that page" }, 400);
+  if (!title) return json({ ok: false, error: t("server.noProductName") }, 400);
 
   const rawUrl = typeof body.url === "string" ? body.url : "";
   let canonicalUrl: string | null = null;
@@ -1659,16 +1672,16 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
  */
 async function addManualAction(request: Request, ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const title = String(body.title ?? "").trim();
-  if (!title) return json({ ok: false, error: "Please give the item a name" }, 400);
+  if (!title) return json({ ok: false, error: t("server.itemName") }, 400);
 
   // Optional here, but a typed "$120" must not reach the database as text.
   const rawPrice = typeof body.price === "string" ? body.price.trim() : "";
   const price = rawPrice ? normalizePrice(rawPrice) : null;
-  if (rawPrice && price === null) return json({ ok: false, error: "That price doesn't look right" }, 400);
+  if (rawPrice && price === null) return json({ ok: false, error: t("server.priceBad") }, 400);
 
   try {
     await addNamedItem({
@@ -1693,14 +1706,14 @@ async function addManualAction(request: Request, ctx: ProxyContext, shop: ShopRe
 
 async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const itemId = String(body.itemId ?? "");
   const desiredQty = clampInt(body.desiredQty, 1, 99);
 
   const item = registry.items.find((i) => i.id === itemId);
-  if (!item) return json({ ok: false, error: "Item not found" }, 404);
+  if (!item) return json({ ok: false, error: t("server.itemNotFound") }, 404);
   if (desiredQty < item.purchasedQty) {
     return json(
       { ok: false, error: `${item.purchasedQty} have already been bought` },
@@ -1723,12 +1736,12 @@ async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Re
 
 async function itemMatchAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const action = String(body.action ?? "");
   if (action !== "keep" && action !== "dismiss" && action !== "swap") {
-    return json({ ok: false, error: "Unknown action" }, 400);
+    return json({ ok: false, error: t("server.unknownAction") }, 400);
   }
 
   try {
@@ -1750,7 +1763,7 @@ async function itemMatchAction(request: Request, ctx: ProxyContext): Promise<Res
 /** POST .../match-preview?t=<token> — what the "similar item" popup shows. Read-only. */
 async function matchPreviewAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   try {
@@ -1759,13 +1772,13 @@ async function matchPreviewAction(request: Request, ctx: ProxyContext): Promise<
   } catch (err) {
     if (err instanceof ItemError) return json({ ok: false, error: err.message }, 400);
     console.error("[proxy] match-preview failed:", (err as Error).message);
-    return json({ ok: false, error: "Couldn't load the store's products right now" }, 502);
+    return json({ ok: false, error: t("server.storeProductsFail") }, 502);
   }
 }
 
 async function removeItemAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
-  if (!registry) return json({ ok: false, error: "Not authorised" }, 403);
+  if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   try {
@@ -1885,7 +1898,7 @@ async function partnerRemoveAction(ctx: ProxyContext, brand: Brand): Promise<Res
   await logEvent(registry.id, "partner_removed", {});
   // The partner removed themselves, so their link no longer opens the page.
   if (readManageGrant(ctx.query.get("t"))?.partnerId) {
-    return page(renderSimplePage(brand, "You've left this registry", "Your link to manage it no longer works."));
+    return page(renderSimplePage(brand, t("server.p.left.t"), t("server.p.left.m")));
   }
   return redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: "partner-removed" }) + "#partner");
 }
@@ -1898,14 +1911,14 @@ async function remindAction(request: Request, ctx: ProxyContext, shop: ShopRecor
   const body = await readJson(request);
   const email = String(body.email ?? "").trim();
   const registryId = String(body.registryId ?? "");
-  if (!isEmail(email)) return json({ ok: false, error: "Please enter a valid email address." }, 400);
+  if (!isEmail(email)) return json({ ok: false, error: t("server.emailBad") }, 400);
 
   const registry = await db.registry.findFirst({
     where: { id: registryId, shopId: shop.id, status: "active" },
     select: { id: true, eventDate: true },
   });
   if (!registry || !offersGuestReminder(shop, registry.eventDate)) {
-    return json({ ok: false, error: "Reminders aren't available for this registry." }, 404);
+    return json({ ok: false, error: t("server.remindersUnavail") }, 404);
   }
 
   await addGuestReminder(registry.id, email);
@@ -1921,8 +1934,8 @@ async function deleteAction(request: Request, ctx: ProxyContext, brand: Brand): 
   return page(
     renderSimplePage(
       brand,
-      "Your registry has been deleted",
-      "Everything on it is gone, including the record of who bought what.",
+      t("server.p.deleted.t"),
+      t("server.p.deleted.m"),
     ),
   );
 }

@@ -113,7 +113,8 @@ describe("registry page rendering", () => {
   it("gives internal items an in-cart state and an already-bought option", () => {
     const html = page([item()]);
     // The in-cart block is built by the script once the line is in the cart.
-    expect(html).toContain('<strong>In your cart</strong> <a class="btn sm" href="/cart">');
+    expect(html).toContain('cartIn:"In your cart"');
+    expect(html).toContain(`'<strong>'+M.cartIn+'</strong> <a class="btn sm" href="/cart">'+M.checkout+'</a>`);
     expect(html).toContain('class="btn sm js-add-btn" type="submit">Add to cart</button>');
     expect(html).toContain('class="linkish js-bought" data-item="item_1" data-store="1"');
     expect(html).toContain("Already bought it?");
@@ -479,7 +480,8 @@ describe("group gifts and cash funds (SPIKE-C.md)", () => {
     expect(html).toContain('value="7002"');
     expect(html).toContain("/contribute");
     // After a chip-in, the guest needs a way to the cart: the page has none of its own.
-    expect(html).toContain("Added to cart <a class=\"btn sm\" href=\"/cart\">Check out");
+    expect(html).toContain('ok:"Added to cart"');
+    expect(html).toContain(`X.ok+' <a class="btn sm" href="/cart">'+X.out+'</a>`);
     // A fund is not bought elsewhere: no claim or "I bought this".
     expect(html).not.toContain('data-item="fund_1" type="button">I bought this');
   });
@@ -547,7 +549,8 @@ describe("guest's ship-to-registrant choice (asked on every add, 2 Nov 2026)", (
     expect(html).not.toContain("js-ship-line");
     expect(html).not.toContain("Gifts ship to");
     expect(html).toContain("if(window.rgShipShow)rgShipShow(p);");
-    expect(html).toContain('<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button></span>');
+    expect(html).toContain('<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">\'+S.chg+\'</button></span>');
+    expect(html).toContain('chg:"Change"');
   });
 
   it("asks on every add, and keeps this registry's cart lines on one address", () => {
@@ -641,7 +644,8 @@ describe("registry note to guests", () => {
 describe("registry page in-cart state", () => {
   it("offers Cancel next to Check out, removing only this gift's registry lines", () => {
     const html = page([item()]);
-    expect(html).toContain('Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>');
+    expect(html).toContain('checkout:"Check out →"');
+    expect(html).toContain(`</a> <button type="button" class="btn sm ghost js-uncart">'+M.cancel+'</button>`);
     // Only lines carrying our _rg token for this variant are zeroed, via the
     // storefront's own cart API, so a guest's other cart items are untouched.
     expect(html).toContain("l.properties._rg&&l.variant_id==f.dataset.variant)u[l.key]=0");

@@ -15,6 +15,7 @@
  */
 
 import { brandFont, type PageBranding } from "../../shared/branding";
+import { currentLocale, formatCurrency, t, th, type MessageKey } from "../../shared/i18n";
 
 export function escapeHtml(value: string | null | undefined): string {
   if (value === null || value === undefined) return "";
@@ -22,6 +23,15 @@ export function escapeHtml(value: string | null | undefined): string {
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
+}
+
+/**
+ * For translated text dropped into an element body. Leaves quotes alone, which
+ * only matter inside an attribute (use escapeAttr there), so an apostrophe in
+ * "doesn't" stays one byte.
+ */
+export function tx(value: string): string {
+  return value.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
 }
 
 export function escapeAttr(value: string | null | undefined): string {
@@ -34,6 +44,11 @@ export function jsonForScript(value: unknown): string {
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
     .replace(/&/g, "\\u0026");
+}
+
+/** A translated message as a JSON string literal, for building inline `<script>` code. */
+export function jsStr(key: MessageKey, vars?: Record<string, string | number>): string {
+  return jsonForScript(t(key, vars));
 }
 
 export interface LayoutOptions {
@@ -58,6 +73,12 @@ export interface LayoutOptions {
    * app/proxy/router.server.ts.
    */
   branding?: PageBranding | null;
+  /**
+   * Leave out the styles only the create, manage and account pages use (the
+   * ideas box, store-match dialog, category picker). The guest registry page
+   * sets this: every byte it ships counts against its 50KB budget.
+   */
+  lean?: boolean;
 }
 
 export function layout(options: LayoutOptions, body: string): string {
@@ -67,7 +88,7 @@ export function layout(options: LayoutOptions, body: string): string {
   const font = brandFont(branding?.font);
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${currentLocale()}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -81,7 +102,7 @@ ${
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${font.google}&display=swap">`
     : ""
 }
-<style>${baseStyles(accent)}${branding ? brandStyles(branding) : ""}</style>
+<style>${baseStyles(accent)}${options.lean ? "" : MANAGE_ONLY_STYLES}${branding ? brandStyles(branding) : ""}</style>
 ${options.head ?? ""}
 </head>
 <body class="${escapeAttr(options.bodyClass ?? "")}">
@@ -94,8 +115,8 @@ ${
 ${body}
 </div>
 <footer class="foot">
-  <p>Registry by <a href="/"><strong>${escapeHtml(options.shopName)}</strong></a></p>
-  ${hidePoweredBy ? "" : `<p class="powered-by">Powered by <a href="https://giftpin.app/?utm_source=registry&amp;utm_medium=powered_by" target="_blank" rel="noopener nofollow">Giftpin</a></p>`}
+  <p>${th("guest.layout.byHtml", { shop: options.shopName })}</p>
+  ${hidePoweredBy ? "" : `<p class="powered-by">${t("guest.layout.poweredHtml", { href: "https://giftpin.app/?utm_source=registry&amp;utm_medium=powered_by" })}</p>`}
 </footer>
 </body>
 </html>`;
@@ -222,50 +243,16 @@ details.note summary{cursor:pointer;list-style:none;font-size:15px}
 details.note summary::-webkit-details-marker{width:0;height:0;opacity:0;margin:0}
 details.note summary::before{content:'+  ';color:var(--accent);font-weight:700}
 details.note [open]>summary::before,details.note[open]>summary::before{content:'–  '}
-details.ideas{background:var(--card);background:color-mix(in srgb,var(--accent) 7%,var(--card));border-color:color-mix(in srgb,var(--accent) 22%,var(--line));padding:16px 18px}
-details.ideas>summary{display:flex;align-items:center;gap:14px}
-details.note.ideas>summary::before,details.note.ideas[open]>summary::before{content:none}
-details.ideas[open]>summary{padding-bottom:4px}
-.ideas-icon{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
-.ideas-text{flex:1;min-width:0}
-.ideas-q{display:block;font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.005em}
-.ideas-t{display:block;font-size:14px;color:var(--muted);margin-top:1px}
-.ideas-cta{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
-.ideas-cta svg{transition:transform .2s}
-details.ideas[open] .ideas-cta svg{transform:rotate(180deg)}
-details.ideas[open] .ideas-cta-open,details.ideas:not([open]) .ideas-cta-close{display:none}
-details.ideas>summary:hover .ideas-cta{filter:brightness(1.08)}
-details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
-@media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
-.cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .owner-link{margin:28px 0 0;font-size:14px}.owner-link a{text-decoration:none}
 .owner-link.big{font-size:clamp(13px,3.3vw,24px);line-height:1.25}
 .match{margin:6px 0 8px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
 .store-link{font-size:13px}
 .match-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink);padding:16px 18px}
 .match-dialog::backdrop{background:rgba(0,0,0,.45)}
-.md-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.md-head h2{margin:0;font-size:18px}
-.md-head .dismiss{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;padding:4px}
-.md-card{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
-.md-card{flex-wrap:wrap}
-.md-info{flex:1;min-width:0}
-.paste-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
-.paste-grid .md-card{border-top:0}
 label.check{display:flex;gap:8px;align-items:center;font-weight:500;margin:8px 0 0}
 label.check input{width:auto;margin:0}
-.md-warn{flex-basis:100%;margin:0}
-.md-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .cat-group{margin:26px 0 0}
 .cat-head{font-size:18px;margin:0 0 10px}
-.cat-select{min-width:0;max-width:100%;width:auto}
-.cat-room{border-top:1px solid var(--line);padding:8px 0 2px;margin-top:6px}
-.cat-room summary{font-weight:600;font-size:14px}
-.cat-room[open]{padding-bottom:8px}
-.cat-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 4px}
-.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
-.cat-chip{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;text-decoration:none;color:var(--ink)}
-a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
 .update-banner:not([hidden]){display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin:0 0 16px;font-size:14px}
 .update-banner span{flex:1}
 .update-banner .dismiss{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
@@ -289,14 +276,48 @@ h1{font-size:30px}
 `;
 }
 
+/** Styles for the ideas box, store-match dialog and category picker: not on the guest page. */
+const MANAGE_ONLY_STYLES = `
+details.ideas{background:var(--card);background:color-mix(in srgb,var(--accent) 7%,var(--card));border-color:color-mix(in srgb,var(--accent) 22%,var(--line));padding:16px 18px}
+details.ideas>summary{display:flex;align-items:center;gap:14px}
+details.note.ideas>summary::before,details.note.ideas[open]>summary::before{content:none}
+details.ideas[open]>summary{padding-bottom:4px}
+.ideas-icon{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.ideas-text{flex:1;min-width:0}
+.ideas-q{display:block;font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.005em}
+.ideas-t{display:block;font-size:14px;color:var(--muted);margin-top:1px}
+.ideas-cta{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.ideas-cta svg{transition:transform .2s}
+details.ideas[open] .ideas-cta svg{transform:rotate(180deg)}
+details.ideas[open] .ideas-cta-open,details.ideas:not([open]) .ideas-cta-close{display:none}
+details.ideas>summary:hover .ideas-cta{filter:brightness(1.08)}
+details.ideas>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+@media (max-width:420px){.ideas-cta-label{display:none}.ideas-cta{padding:10px}}
+.cat-fallback{margin:12px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
+.md-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.md-head h2{margin:0;font-size:18px}
+.md-head .dismiss{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;padding:4px}
+.md-card{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.md-card{flex-wrap:wrap}
+.md-info{flex:1;min-width:0}
+.paste-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
+.paste-grid .md-card{border-top:0}
+.md-warn{flex-basis:100%;margin:0}
+.md-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.cat-select{min-width:0;max-width:100%;width:auto}
+.cat-room{border-top:1px solid var(--line);padding:8px 0 2px;margin-top:6px}
+.cat-room summary{font-weight:600;font-size:14px}
+.cat-room[open]{padding-bottom:8px}
+.cat-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 4px}
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
+.cat-chip{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;text-decoration:none;color:var(--ink)}
+a.cat-chip:hover,a.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
+`;
+
 export function formatMoney(amount: number, currency: string | null): string {
   if (!Number.isFinite(amount) || amount <= 0) return "";
   try {
-    return new Intl.NumberFormat("en-CA", {
-      style: "currency",
-      currency: currency || "CAD",
-      minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    }).format(amount);
+    return formatCurrency(amount, currency || "CAD", { minimumFractionDigits: amount % 1 === 0 ? 0 : 2 });
   } catch {
     return `$${amount.toFixed(2)}`;
   }

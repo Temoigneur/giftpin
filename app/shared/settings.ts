@@ -8,6 +8,7 @@
  * behind it. Everything with a Prisma dependency stays in models/shop.server.ts.
  */
 
+import { t, hasMessage } from "./i18n";
 import type { ContributionProduct } from "./contributions";
 import { GIFT_CARD_LISTING_DEFAULTS, type GiftCardListing } from "./gift-card-listing";
 
@@ -26,6 +27,12 @@ export interface ShopSettings {
   externalItems: "off" | "on" | "capped";
   /** When externalItems is "capped", the maximum share of items that may be external. */
   externalItemsCapPercent: number;
+  /**
+   * Language of the guest, create and manage pages and the emails (see
+   * app/shared/i18n). One language per store for now; "en" for every store that
+   * hasn't picked one.
+   */
+  language: string;
   /** Merchant branding for the guest page. */
   accentColor: string;
   buttonLabel: string;
@@ -162,6 +169,7 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   eventTypesKnown: EVENT_TYPES.map((t) => t.value),
   externalItems: "on",
   externalItemsCapPercent: 60,
+  language: "en",
   accentColor: "#1a1a1a",
   buttonLabel: "Add to registry",
   findARegistryEnabled: true,
@@ -207,6 +215,8 @@ export function mergeSettings(stored: Partial<ShopSettings>): ShopSettings {
   };
 }
 
+/** An occasion's name in the active language ("Registry" if it isn't one we know). */
 export function eventTypeLabel(value: string): string {
-  return EVENT_TYPES.find((t) => t.value === value)?.label ?? "Registry";
+  const key = `event.${value}`;
+  return hasMessage(key) ? t(key as never) : t("event.fallback");
 }

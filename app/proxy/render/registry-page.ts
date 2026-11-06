@@ -1,6 +1,7 @@
 import type { PageBranding } from "../../shared/branding";
-import { storeMatchHref, layout, escapeHtml, escapeAttr, formatMoney, jsonForScript } from "./layout";
-import { GIFT_CATEGORIES, isGiftCategory } from "../../shared/gift-categories";
+import { storeMatchHref, layout, tx, escapeHtml, escapeAttr, formatMoney, jsonForScript, jsStr } from "./layout";
+import { formatLongDate, t, th, tNoun } from "../../shared/i18n";
+import { GIFT_CATEGORIES, giftCategoryLabel, isGiftCategory } from "../../shared/gift-categories";
 import type { DisplayItem } from "../../models/item.server";
 import type { RegistryProgress } from "../../models/registry.server";
 import { wrapAffiliateLink } from "../../lib/affiliate";
@@ -112,21 +113,22 @@ export interface RegistryPageData {
  */
 function renderShipChoice(data: RegistryPageData): string {
   if (!data.shipToRegistrant || !data.items.some((i) => i.sourceType === "internal")) return "";
-  const who = data.registrantNames || "the registrant";
+  const who = data.registrantNames || t("guest.ship.fallbackWho");
   return `<style>.js-ship{margin:0}.js-ship .linkish{display:inline;margin:0;padding:0 2px;font-size:inherit}</style>
 <dialog class="match-dialog js-ship-dialog" aria-labelledby="ship-q" data-who="${escapeAttr(who)}" data-key="rg_ship_${escapeAttr(data.registryId)}" data-label="${escapeAttr(shipToValue(data.registrantNames))}">
-  <h2 id="ship-q" style="margin-top:0">Where should your gift go?</h2>
-  <p class="hint">Their address stays private. Checkout still asks for yours; we swap in theirs after you order, as long as you're in the same state or province. Each order ships to one place, so this also applies to their other gifts in your cart. To send gifts to different places, check out separately.</p>
-  <p style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0"><button type="button" class="btn" value="1">Ship to ${escapeHtml(who)}</button><button type="button" class="btn ghost" value="0">Send to me</button></p>
+  <h2 id="ship-q" style="margin-top:0">${tx(t("guest.ship.title"))}</h2>
+  <p class="hint">${tx(t("guest.ship.hint"))}</p>
+  <p style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0"><button type="button" class="btn" value="1">${tx(t("guest.ship.toThem", { who }))}</button><button type="button" class="btn ghost" value="0">${tx(t("guest.ship.toMe"))}</button></p>
 </dialog>
 <script>(function(){
+  var S={to:${jsStr("guest.ship.shipsTo")},you:${jsStr("guest.ship.shipsToYou")},chg:${jsStr("guest.ship.change")},ask:${jsStr("guest.ship.confirm")},ok:${jsStr("guest.ship.cartUpdated")},bad:${jsStr("guest.ship.cartFailed")}};
   var dlg=document.querySelector('.js-ship-dialog'),st;
   var KEY=dlg.dataset.key,who=dlg.dataset.who,mem=null,pending=null;
   function get(){try{var v=localStorage.getItem(KEY);if(v==='1'||v==='0')return v==='1';}catch(_){}return mem;}
   function set(on){mem=on;try{localStorage.setItem(KEY,on?'1':'0');}catch(_){}show();}
-  function show(p){if(p&&p.insertAdjacentHTML)p.insertAdjacentHTML('beforeend','<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">Change</button></span>');var on=get();document.querySelectorAll('.js-ship').forEach(function(x){x.hidden=on===null;x.firstChild.textContent=on?'Ships to '+who+'.':'Ships to you.'})}
+  function show(p){if(p&&p.insertAdjacentHTML)p.insertAdjacentHTML('beforeend','<span class="hint js-ship" hidden><span></span> <button type="button" class="linkish js-ship-change">'+S.chg+'</button></span>');var on=get();document.querySelectorAll('.js-ship').forEach(function(x){x.hidden=on===null;x.firstChild.textContent=on?S.to.replace('{who}',who):S.you})}
   window.rgShipShow=show;
-  function ask(cb){if(typeof dlg.showModal==='function'){pending=cb;dlg.showModal();}else cb(confirm('Ship to '+who+'? Cancel to send it to you.'));}
+  function ask(cb){if(typeof dlg.showModal==='function'){pending=cb;dlg.showModal();}else cb(confirm(S.ask.replace('{who}',who)));}
   window.rgShip=function(cb,f){st=f;ask(function(v){if(v===null)return cb(v);set(v);update(v).then(function(){cb(v)})});};
   dlg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var cb=pending;pending=null;dlg.close();if(cb)cb(b.value==='1');});
   dlg.addEventListener('close',function(){var cb=pending;pending=null;if(cb)cb(null);});
@@ -139,8 +141,8 @@ function renderShipChoice(data: RegistryPageData): string {
         var props={};Object.keys(l.properties).forEach(function(k){props[k]=l.properties[k]});
         if(on){props._rg_ship='1';props['${SHIP_TO_LABEL}']=dlg.dataset.label;}else{delete props._rg_ship;delete props['${SHIP_TO_LABEL}'];}
         return fetch('/cart/change.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:l.key,quantity:l.quantity,properties:props})}).then(function(r){if(!r.ok)throw new Error();});
-      })},Promise.resolve()).then(function(){msg(lines.length?'Your cart is updated.':'');});
-    }).catch(function(){msg("Couldn't update your cart. Remove the item and add it again.");});
+      })},Promise.resolve()).then(function(){msg(lines.length?S.ok:'');});
+    }).catch(function(){msg(S.bad);});
   }
 })();</script>`;
 }
@@ -177,10 +179,10 @@ export function renderRegistryPage(data: RegistryPageData): string {
 
   // "wish list" for the date-less Wish list occasion, otherwise "registry".
   const noun = listNoun(data.eventType);
-  const ogDescription = noun === "registry" ? `${data.eventLabel} registry at ${data.shopName}` : `${data.eventLabel} at ${data.shopName}`;
+  const ogDescription = tNoun("guest.og", data.eventType, { event: data.eventLabel, shop: data.shopName });
 
   const dateLine = data.eventDate
-    ? new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UTC" }).format(data.eventDate)
+    ? formatLongDate(data.eventDate)
     : null;
 
   const head = `
@@ -204,8 +206,8 @@ ${data.message ? noteStyles(data.artBaseUrl) : ""}`;
   ${data.message ? `<p class="vow">${escapeHtml(data.message)}</p>` : ""}
   <div id="registro-progress">${
     progress.totalItems
-      ? `<div class="progress" role="img" aria-label="${pct}% of gifts claimed"><i style="width:${pct}%"></i></div>
-         <p class="sub">${progress.fulfilledItems} of ${progress.totalItems} gifts taken care of</p>`
+      ? `<div class="progress" role="img" aria-label="${escapeAttr(t("guest.progress.aria", { pct }))}"><i style="width:${pct}%"></i></div>
+         <p class="sub">${tx(t("guest.progress.text", { done: progress.fulfilledItems, total: progress.totalItems }))}</p>`
       : ""
   }</div>
 </header>
@@ -213,9 +215,9 @@ ${data.message ? noteStyles(data.artBaseUrl) : ""}`;
 ${renderShare(data)}
 
 <div id="registro-refresh" class="update-banner" hidden role="status">
-  <span>This ${noun} has been updated.</span>
-  <button type="button" class="btn sm" id="registro-refresh-btn">Refresh</button>
-  <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="Dismiss">&times;</button>
+  <span>${tx(tNoun("guest.updated", data.eventType))}</span>
+  <button type="button" class="btn sm" id="registro-refresh-btn">${tx(t("guest.refresh"))}</button>
+  <button type="button" class="dismiss" id="registro-dismiss-btn" aria-label="${escapeAttr(t("guest.dismiss"))}">&times;</button>
 </div>
 
 ${renderShipChoice(data)}
@@ -223,7 +225,7 @@ ${renderPromoBanner(data)}
 ${renderListTools(data)}
 <div id="registro-items">${
   data.items.length === 0
-    ? `<div class="empty"><p>This ${noun} doesn't have any items yet.</p><p>Check back soon.</p></div>`
+    ? `<div class="empty"><p>${tx(tNoun("guest.empty", data.eventType))}</p><p>${tx(t("guest.empty.checkBack"))}</p></div>`
     : renderItemGroups(data)
 }</div>
 
@@ -231,11 +233,10 @@ ${renderDuplicateNotice(data)}
 
 ${data.offerReminder ? renderReminderSignup() : ""}
 
-${data.giftCardUrl ? `<p class="owner-link big">Rather give a gift card? Buy a <a href="${escapeAttr(data.giftCardUrl)}"><u>${escapeHtml(data.shopName)} gift card</u></a></p>` : ""}
+${data.giftCardUrl ? `<p class="owner-link big">${th("guest.giftCardHtml", { shop: data.shopName }, { href: escapeAttr(data.giftCardUrl) })}</p>` : ""}
 
-<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">Your ${noun}? <u>Sign in or get your private edit link</u></a></p>
+<p class="owner-link big" id="registro-owner"><a href="${escapeAttr(data.actionUrl.replace(/\/+$/, "") + "/manage")}">${tNoun("guest.owner", data.eventType)}</a></p>
 
-<!-- config must precede the client script: it reads it synchronously on load -->
 <script id="registro-config" type="application/json">${jsonForScript({
     actionUrl: data.actionUrl,
     registryId: data.registryId,
@@ -255,6 +256,7 @@ ${data.giftCardUrl ? `<p class="owner-link big">Rather give a gift card? Buy a <
       branding: data.branding,
       head,
       hidePoweredBy: data.hidePoweredBy,
+      lean: true,
     },
     body,
   );
@@ -279,7 +281,7 @@ function renderItemGroups(data: RegistryPageData): string {
   return GIFT_CATEGORIES.map((cat) => {
     const inGroup = data.items.filter((i) => (isGiftCategory(i.category) ? i.category : "misc") === cat.value);
     if (inGroup.length === 0) return "";
-    return `<section class="cat-group"><h2 class="cat-head">${escapeHtml(cat.label)}</h2>${list(inGroup)}</section>`;
+    return `<section class="cat-group"><h2 class="cat-head">${escapeHtml(giftCategoryLabel(cat.value))}</h2>${list(inGroup)}</section>`;
   })
     .filter(Boolean)
     .join("\n");
@@ -303,7 +305,7 @@ function renderPromoBanner(data: RegistryPageData): string {
 function renderListTools(data: RegistryPageData): string {
   if (data.items.length < LIST_TOOLS_MIN_ITEMS) return "";
   return `<style>#tools:not([hidden]){display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:16px 0 12px}@media (min-width:960px){#tools:not([hidden]){margin-bottom:16px}}#tools select{width:auto}#registro-items [hidden]{display:none}</style>
-<div id="tools" hidden><select aria-label="Sort"><option value="">Suggested order</option><option value="1">Price: low to high</option><option value="-1">Price: high to low</option></select><label class="check"><input type="checkbox"> Only show what's still needed</label></div>`;
+<div id="tools" hidden><select aria-label="${escapeAttr(t("guest.tools.sort"))}"><option value="">${tx(t("guest.tools.suggested"))}</option><option value="1">${tx(t("guest.tools.priceLow"))}</option><option value="-1">${tx(t("guest.tools.priceHigh"))}</option></select><label class="check"><input type="checkbox"> ${tx(t("guest.tools.onlyNeeded"))}</label></div>`;
 }
 
 function renderItem(item: DisplayItem, data: RegistryPageData): string {
@@ -322,23 +324,23 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
 
   const image = item.imageUrl
     ? `<img class="item-img" src="${escapeAttr(item.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
-    : `<div class="item-img ph">No photo</div>`;
+    : `<div class="item-img ph">${tx(t("guest.item.noPhoto"))}</div>`;
 
   // The source badge is how a guest knows, before tapping, whether they're
   // staying on this store or leaving it. Never surprise someone into Amazon.
   const badge = !item.isExternal
     ? ""
     : item.sourceType === "shopify_ext"
-      ? `<span class="src live" title="Price and availability are live">${escapeHtml(item.externalDomain ?? "another store")}</span>`
-      : `<span class="src" title="Price was correct when this was added">${escapeHtml(item.externalDomain ?? "another store")}</span>`;
+      ? `<span class="src live" title="${escapeAttr(t("guest.item.liveTitle"))}">${escapeHtml(item.externalDomain ?? t("guest.item.anotherStore"))}</span>`
+      : `<span class="src" title="${escapeAttr(t("guest.item.addedTitle"))}">${escapeHtml(item.externalDomain ?? t("guest.item.anotherStore"))}</span>`;
 
   const meta: string[] = [];
   if (price && !item.isFund) meta.push(`<span class="price">${price}</span>`);
-  if (item.desiredQty > 1) meta.push(`${item.purchasedQty} of ${item.desiredQty} bought`);
-  if (item.isStale && price) meta.push("price may have changed");
+  if (item.desiredQty > 1) meta.push(tx(t("guest.item.bought", { n: item.purchasedQty, desired: item.desiredQty })));
+  if (item.isStale && price) meta.push(tx(t("guest.item.priceMayChange")));
   const deal = data.itemDeals?.[item.id];
   if (deal && !item.fulfilled) meta.push(`<b class="deal">${escapeHtml(deal)}</b>`);
-  if (item.availability === "out_of_stock" && item.isExternal) meta.push("out of stock");
+  if (item.availability === "out_of_stock" && item.isExternal) meta.push(tx(t("guest.item.outOfStock")));
 
   // For the list tools. "Still needed" errs toward hiding: an item whose last
   // one someone may be buying counts as taken (CLAUDE.md hard rule 5).
@@ -362,8 +364,8 @@ function renderStoreLink(item: DisplayItem, data: RegistryPageData): string {
   if (item.storeMatch?.status !== "kept") return "";
   const label =
     item.storeMatch.kind === "product"
-      ? `Similar item at ${escapeHtml(data.shopName)}`
-      : `More ${escapeHtml(item.storeMatch.title)} at ${escapeHtml(data.shopName)}`;
+      ? tx(t("guest.storeLink.product", { shop: data.shopName }))
+      : tx(t("guest.storeLink.search", { title: item.storeMatch.title, shop: data.shopName }));
   return `<p class="item-meta"><a class="store-link" href="${escapeAttr(storeMatchHref(item.storeMatch))}">${label} &rarr;</a></p>`;
 }
 
@@ -374,15 +376,15 @@ function renderItemAction(
   held: boolean,
 ): string {
   if (item.fulfilled) {
-    return `<p class="item-meta"><strong>Already taken care of</strong></p>`;
+    return `<p class="item-meta"><strong>${tx(t("guest.item.taken"))}</strong></p>`;
   }
 
   if (held && remaining === 0) {
-    return `<p class="item-meta"><strong>Someone may be buying this.</strong> It'll come back if they don't.</p>`;
+    return `<p class="item-meta">${t("guest.item.someoneBuyingHtml")}</p>`;
   }
 
   const heldNotice = held
-    ? `<p class="item-meta">Someone may be buying one of these.</p>`
+    ? `<p class="item-meta">${tx(t("guest.item.someoneBuyingOne"))}</p>`
     : "";
 
   const chipIn = renderChipIn(item, data);
@@ -390,9 +392,9 @@ function renderItemAction(
 
   // --- Internal but sold out: no Add to cart that Shopify would refuse ----
   if (isSoldOutStoreItem(item)) {
-    return `${heldNotice}<p class="item-meta"><strong>Sold out right now.</strong> Check back soon.</p>
+    return `${heldNotice}<p class="item-meta">${t("guest.item.soldOutHtml")}</p>
 <div class="row">
-  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">${tx(t("guest.item.alreadyBought"))}</button>
   <span class="js-status item-meta" role="status"></span>
 </div>${chipIn}`;
   }
@@ -402,10 +404,10 @@ function renderItemAction(
     const variantId = item.variantGid.split("/").pop() ?? "";
     const max = Math.max(1, remaining);
     return `${heldNotice}<form class="row js-add" data-item="${escapeAttr(item.id)}" data-variant="${escapeAttr(variantId)}">
-  ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">Quantity</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
-  <button class="btn sm js-add-btn" type="submit">Add to cart</button>
+  ${max > 1 ? `<label class="sr" for="q-${escapeAttr(item.id)}">${tx(t("guest.item.quantity"))}</label><input class="qty" id="q-${escapeAttr(item.id)}" type="number" name="qty" value="1" min="1" max="${max}" inputmode="numeric">` : ""}
+  <button class="btn sm js-add-btn" type="submit">${tx(t("guest.item.addToCart"))}</button>
   <span class="js-status item-meta" role="status"></span>
-  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">Already bought it?</button>
+  <button class="linkish js-bought" data-item="${escapeAttr(item.id)}" data-store="1" type="button">${tx(t("guest.item.alreadyBought"))}</button>
 </form>${chipIn}`;
   }
 
@@ -424,15 +426,15 @@ function renderItemAction(
     return `${heldNotice}<div class="row">
   <a class="btn sm ghost js-claim" href="${escapeAttr(href)}"
      data-item="${escapeAttr(item.id)}" target="_blank" rel="noopener noreferrer nofollow">
-    Buy at ${escapeHtml(item.externalDomain ?? "the store")} &rarr;
+    ${tx(t("guest.item.buyAt", { domain: item.externalDomain ?? t("guest.item.theStore") }))}
   </a>
-  <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">I bought this</button>
+  <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">${tx(t("guest.item.iBought"))}</button>
   <span class="js-status item-meta" role="status"></span>
 </div>`;
   }
 
   return `<div class="row">
-  <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">I bought this</button>
+  <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">${tx(t("guest.item.iBought"))}</button>
   <span class="js-status item-meta" role="status"></span>
 </div>`;
 }
@@ -443,8 +445,8 @@ function renderFundProgress(item: DisplayItem, data: RegistryPageData): string {
   const currency = item.currency ?? data.currency;
   const funded = formatMoney(item.fund.funded, currency);
   const goal = formatMoney(item.fund.goal, currency);
-  const line = funded ? `${funded} of ${goal} raised` : `Goal ${goal}. Be the first to chip in.`;
-  return `<div class="progress" role="img" aria-label="${item.fund.percent}% funded"><i style="width:${item.fund.percent}%"></i></div>
+  const line = escapeHtml(funded ? t("guest.fund.raised", { funded, goal }) : t("guest.fund.first", { goal }));
+  return `<div class="progress" role="img" aria-label="${escapeAttr(t("guest.fund.aria", { pct: item.fund.percent }))}"><i style="width:${item.fund.percent}%"></i></div>
     <p class="item-meta">${line}</p>`;
 }
 
@@ -462,17 +464,15 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
     .map((v) => `<option value="${escapeAttr(v.id)}">${formatMoney(v.amount, currency) || escapeHtml(String(v.amount))}</option>`)
     .join("");
   const id = escapeAttr(item.id);
-  const delivery = setup.toRegistrant
-    ? "You'll buy a store gift card, and it's emailed straight to the couple. Use the Check out button, not Shop Pay: Shop Pay emails the card to you instead."
-    : "You'll buy a store gift card. It's emailed to you, so you can pass it on or print it into a card.";
+  const delivery = t(setup.toRegistrant ? "guest.chip.toRegistrant" : "guest.chip.toGuest");
 
   return `<form class="js-chip chip" data-item="${id}">
-  <p class="item-meta">${item.isFund ? "" : "<strong>Or chip in with others.</strong> "}${escapeHtml(delivery)}</p>
+  <p class="item-meta">${item.isFund ? "" : `<strong>${tx(t("guest.chip.orChipIn"))}</strong> `}${escapeHtml(delivery)}</p>
   <div class="row">
-    <label class="sr" for="c-${id}">Amount</label>
+    <label class="sr" for="c-${id}">${tx(t("guest.chip.amount"))}</label>
     <select class="qty amt" id="c-${id}" name="variant">${options}</select>
-    ${setup.toRegistrant ? `<label class="sr" for="m-${id}">Message</label><input class="qty msg" id="m-${id}" name="message" maxlength="200" placeholder="Add a message (optional)">` : ""}
-    <button class="btn sm${item.isFund ? "" : " ghost"}" type="submit">Chip in</button>
+    ${setup.toRegistrant ? `<label class="sr" for="m-${id}">${tx(t("guest.chip.message"))}</label><input class="qty msg" id="m-${id}" name="message" maxlength="200" placeholder="${escapeAttr(t("guest.chip.messagePh"))}">` : ""}
+    <button class="btn sm${item.isFund ? "" : " ghost"}" type="submit">${tx(t("guest.chip.button"))}</button>
     <span class="js-status item-meta" role="status"></span>
   </div>
 </form>`;
@@ -485,21 +485,21 @@ function renderChipIn(item: DisplayItem, data: RegistryPageData): string {
  */
 function renderShare(data: RegistryPageData): string {
   const encoded = encodeURIComponent(data.shareUrl);
-  const text = encodeURIComponent(`${data.title} — ${listNoun(data.eventType) === "wish list" ? "wish list" : "gift registry"}`);
+  const text = encodeURIComponent(tNoun("guest.share.text", data.eventType, { title: data.title }));
   return `<div class="share">
-  <button class="btn sm ghost js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">Share</button>
+  <button class="btn sm ghost js-share" type="button" data-url="${escapeAttr(data.shareUrl)}" data-title="${escapeAttr(data.title)}">${tx(t("guest.share.button"))}</button>
   <a class="btn sm ghost" href="https://wa.me/?text=${text}%20${encoded}" target="_blank" rel="noopener">WhatsApp</a>
-  <a class="btn sm ghost" href="sms:?&body=${text}%20${encoded}">Text</a>
-  <a class="btn sm ghost" href="mailto:?subject=${text}&body=${encoded}">Email</a>
+  <a class="btn sm ghost" href="sms:?&body=${text}%20${encoded}">${tx(t("guest.share.sms"))}</a>
+  <a class="btn sm ghost" href="mailto:?subject=${text}&body=${encoded}">${tx(t("guest.share.email"))}</a>
 </div>`;
 }
 
 function renderReminderSignup(): string {
   return `<form class="note js-remind" method="post" hidden>
-  <label for="registro-remind-email"><strong>Want a reminder?</strong> We'll email you once, about two weeks before the event.</label>
+  <label for="registro-remind-email">${t("guest.remind.labelHtml")}</label>
   <div class="row" style="margin-top:8px">
-    <input id="registro-remind-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com" style="flex:1;min-height:44px;padding:0 12px;border:1px solid #ccc;border-radius:8px">
-    <button class="btn sm" type="submit">Remind me</button>
+    <input id="registro-remind-email" type="email" name="email" required autocomplete="email" placeholder="${escapeAttr(t("guest.remind.placeholder"))}" style="flex:1;min-height:44px;padding:0 12px;border:1px solid #ccc;border-radius:8px">
+    <button class="btn sm" type="submit">${tx(t("guest.remind.button"))}</button>
   </div>
   <span class="js-status item-meta" role="status"></span>
 </form>`;
@@ -508,8 +508,8 @@ function renderReminderSignup(): string {
 function renderDuplicateNotice(data: RegistryPageData): string {
   if (data.progress.externalItems === 0) return "";
   return `<div class="note">
-  <p style="margin:0"><strong>Buying something from another store?</strong> Tap &ldquo;I bought this&rdquo; when you're done so nobody buys it twice. We hold it for you in the meantime.</p>
-  <p class="disclosure" style="margin:6px 0 0">Links to other stores here may earn Giftpin a small commission or fee — it never changes what you pay, and never applies to this store's own products. It helps us keep improving Giftpin.</p>
+  <p style="margin:0">${t("guest.dup.leadHtml")}</p>
+  <p class="disclosure" style="margin:6px 0 0">${tx(t("guest.dup.disclosure"))}</p>
 </div>`;
 }
 
@@ -528,18 +528,19 @@ function renderChipInAssets(data: RegistryPageData): string {
   return `<style>.qty.amt{width:auto}.qty.msg{width:auto;flex:1 1 160px}.chip{margin-top:10px}</style>
 <script>(function(){
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
+  var X={add:${jsStr("guest.adding")},bad:${jsStr("guest.couldNotAdd")},ok:${jsStr("guest.chip.added")},out:${jsStr("guest.cart.checkout")}};
   function status(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
   document.addEventListener('submit',function(e){
     var form=e.target.closest('.js-chip');if(!form)return;e.preventDefault();
-    var btn=form.querySelector('button');btn.disabled=true;status(form,'Adding...');
+    var btn=form.querySelector('button');btn.disabled=true;status(form,X.add);
     var msg=form.querySelector('[name=message]');
     fetch(cfg.actionUrl+'/contribute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({itemId:form.dataset.item,variantId:form.querySelector('[name=variant]').value,message:msg?msg.value:''})})
       .then(function(r){return r.json()})
       .then(function(res){
-        if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
+        if(!res||!res.ok){throw new Error(res&&res.error||X.bad);}
         return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(res.payload)});
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});var s=form.querySelector('.js-status');if(s){s.style.color='';s.innerHTML='Added to cart <a class="btn sm" href="/cart">Check out &rarr;</a>';}btn.disabled=false;})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||X.bad)});var s=form.querySelector('.js-status');if(s){s.style.color='';s.innerHTML=X.ok+' <a class="btn sm" href="/cart">'+X.out+'</a>';}btn.disabled=false;})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
   });
 })();</script>`;
@@ -551,6 +552,7 @@ function clientScript(): string {
   return `
 (function(){
   var cfg=JSON.parse(document.getElementById('registro-config').textContent);
+  var M={manage:${jsStr("guest.owner.manage")},cartIn:${jsStr("guest.cart.in")},checkout:${jsStr("guest.cart.checkout")},cancel:${jsStr("guest.cart.cancel")},allTaken:${jsStr("guest.tools.allTaken")},undoNote:${jsStr("guest.undo.note")},undo:${jsStr("guest.undo.button")},undoing:${jsStr("guest.undo.undoing")},undoBad:${jsStr("guest.undo.error")},saving:${jsStr("guest.saving")},saveBad:${jsStr("guest.couldNotSave")},remindOk:${jsStr("guest.remind.done")},adding:${jsStr("guest.adding")},addBad:${jsStr("guest.couldNotAdd")},sure:${jsStr("guest.bought.confirm")},copied:${jsStr("guest.share.copied")},copy:${jsStr("guest.share.copyPrompt")}};
   // Remember this registry so the store's cart page can link back to it (the
   // Registry links theme block reads giftpin_last; see registry-links.liquid).
   try{localStorage.setItem('giftpin_last',JSON.stringify({u:location.pathname,t:document.querySelector('h1').textContent}))}catch(_){}
@@ -564,7 +566,7 @@ function clientScript(): string {
     var owned=JSON.parse(localStorage.getItem('${REGISTRIES_STORAGE_KEY}')||localStorage.getItem('${LEGACY_REGISTRIES_STORAGE_KEY}')||'[]');
     var mine=Array.isArray(owned)&&owned.filter(function(r){return r&&r.id===cfg.registryId&&r.token})[0];
     var ownerEl=document.getElementById('registro-owner');
-    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);ownerEl.querySelector('u').textContent='Manage it (saved on this device)';}
+    if(mine&&ownerEl){ownerEl.querySelector('a').href=cfg.actionUrl.replace(/[/]+$/,'')+'/manage?t='+encodeURIComponent(mine.token);ownerEl.querySelector('u').textContent=M.manage;}
   }catch(_){}
 
   // Store items: once a line for this variant is in the guest's cart, swap
@@ -577,7 +579,7 @@ function clientScript(): string {
     if(b)b.hidden=true;if(q)q.hidden=true;
     if(!form.querySelector('.js-incart')){
       var p=document.createElement('p');p.className='js-incart incart';
-      p.innerHTML='<strong>In your cart</strong> <a class="btn sm" href="/cart">Check out &rarr;</a> <button type="button" class="btn sm ghost js-uncart">Cancel</button>';
+      p.innerHTML='<strong>'+M.cartIn+'</strong> <a class="btn sm" href="/cart">'+M.checkout+'</a> <button type="button" class="btn sm ghost js-uncart">'+M.cancel+'</button>';
       if(b)b.parentNode.insertBefore(p,b);else form.appendChild(p);
       if(window.rgShipShow)rgShipShow(p);
     }
@@ -617,7 +619,7 @@ function clientScript(): string {
       lis.forEach(function(li){var c=li.classList;ul.appendChild(li);li.hidden=need&&(c.contains('done')||c.contains('taken'));k+=!li.hidden;});
       if(ul.parentNode.className=='cat-group')ul.parentNode.hidden=!k;n+=k;
     });
-    if(!e){e=document.createElement('p');e.id='none';e.className='empty';e.textContent='Everything on this list has been taken care of.';box.appendChild(e);}
+    if(!e){e=document.createElement('p');e.id='none';e.className='empty';e.textContent=M.allTaken;box.appendChild(e);}
     e.hidden=n>0;
   }
   if(tools){tools.hidden=false;tools.onchange=applyView;}
@@ -637,8 +639,8 @@ function clientScript(): string {
       var li=document.querySelector('#registro-items li[data-item="'+id+'"]');
       if(!li||li.querySelector('.js-undo'))return;
       var p=document.createElement('p');p.className='item-meta undo';
-      p.appendChild(document.createTextNode('You marked this as bought. '));
-      var b=document.createElement('button');b.type='button';b.className='linkish js-undo';b.dataset.item=id;b.textContent='Undo';
+      p.appendChild(document.createTextNode(M.undoNote));
+      var b=document.createElement('button');b.type='button';b.className='linkish js-undo';b.dataset.item=id;b.textContent=M.undo;
       p.appendChild(b);li.appendChild(p);
     });
     if(changed)writeUndo(m);
@@ -651,10 +653,10 @@ function clientScript(): string {
   document.addEventListener('submit',function(e){
     var remind=e.target.closest('.js-remind');
     if(remind){
-      e.preventDefault();var rb=remind.querySelector('button');rb.disabled=true;status(remind,'Saving...');
+      e.preventDefault();var rb=remind.querySelector('button');rb.disabled=true;status(remind,M.saving);
       post('/remind',{registryId:cfg.registryId,email:remind.querySelector('[name=email]').value})
-        .then(function(res){if(res&&res.ok){status(remind,"Done. We'll email you before the event.");}else{status(remind,(res&&res.error)||'Could not save',false);rb.disabled=false;}})
-        .catch(function(){status(remind,'Could not save',false);rb.disabled=false;});
+        .then(function(res){if(res&&res.ok){status(remind,M.remindOk);}else{status(remind,(res&&res.error)||M.saveBad,false);rb.disabled=false;}})
+        .catch(function(){status(remind,M.saveBad,false);rb.disabled=false;});
       return;
     }
     var form=e.target.closest('.js-add');if(!form)return;e.preventDefault();
@@ -663,15 +665,15 @@ function clientScript(): string {
     // Ask where it ships first, on every add (see renderShipChoice).
     (window.rgShip||function(cb){cb(false)})(function(ship){
     if(ship===null){btn.disabled=false;return;}
-    status(form,'Adding...');
+    status(form,M.adding);
     post('/cart-add',{itemId:form.dataset.item,variantId:form.dataset.variant,qty:qtyEl?Number(qtyEl.value):1,shipToRegistrant:ship})
       .then(function(res){
-        if(!res||!res.ok){throw new Error(res&&res.error||'Could not add that');}
+        if(!res||!res.ok){throw new Error(res&&res.error||M.addBad);}
         // Hand the signed properties to Shopify's own cart endpoint. The token
         // travels on the cart LINE, which is what survives Shop Pay.
         return pj('/cart/add.js',res.payload);
       })
-      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||'Could not add that')});status(form,'');btn.disabled=false;markInCart(form);})
+      .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.description||M.addBad)});status(form,'');btn.disabled=false;markInCart(form);})
       .catch(function(err){status(form,err.message,false);btn.disabled=false;});
     },form);
   });
@@ -686,31 +688,31 @@ function clientScript(): string {
     }
     var bought=e.target.closest('.js-bought');
     if(bought){
-      if(bought.dataset.store&&!confirm("Mark this as bought? Only do this if you got it some other way, like in the shop. Orders placed here are counted automatically."))return;
-      bought.disabled=true;status(bought,'Saving...');
+      if(bought.dataset.store&&!confirm(M.sure))return;
+      bought.disabled=true;status(bought,M.saving);
       post('/bought',{itemId:bought.dataset.item}).then(function(res){
-        if(res&&res.ok){if(res.undoToken)saveUndo(bought.dataset.item,res.undoToken);location.reload();}else{status(bought,(res&&res.error)||'Could not save',false);bought.disabled=false;}
-      }).catch(function(){status(bought,'Could not save',false);bought.disabled=false;});
+        if(res&&res.ok){if(res.undoToken)saveUndo(bought.dataset.item,res.undoToken);location.reload();}else{status(bought,(res&&res.error)||M.saveBad,false);bought.disabled=false;}
+      }).catch(function(){status(bought,M.saveBad,false);bought.disabled=false;});
       return;
     }
     var undo=e.target.closest('.js-undo');
     if(undo){
       var u=readUndo()[undo.dataset.item];if(!u)return;
-      undo.disabled=true;undo.textContent='Undoing...';
+      undo.disabled=true;undo.textContent=M.undoing;
       post('/undo-bought',{token:u.t}).then(function(res){
         dropUndo(undo.dataset.item);
-        if(res&&res.ok){location.reload();}else{undo.parentNode.textContent=(res&&res.error)||'Could not undo';}
-      }).catch(function(){undo.disabled=false;undo.textContent='Undo';});
+        if(res&&res.ok){location.reload();}else{undo.parentNode.textContent=(res&&res.error)||M.undoBad;}
+      }).catch(function(){undo.disabled=false;undo.textContent=M.undo;});
       return;
     }
     var share=e.target.closest('.js-share');
     if(share){
-      var d=share.dataset,copy=function(){copyLink(d.url,function(){share.textContent='Link copied';});};
+      var d=share.dataset,copy=function(){copyLink(d.url,function(){share.textContent=M.copied;});};
       if(navigator.share&&matchMedia('(hover:none) and (pointer:coarse)').matches){try{navigator.share({title:d.title,url:d.url}).catch(function(e){if(!e||e.name!=='AbortError')copy();});}catch(_){copy();}}
       else copy();
     }
   });
-  function copyLink(l,done){var ok=false;try{var t=document.createElement('textarea');t.value=l;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove();}catch(_){}if(ok)return done();if(navigator.clipboard)navigator.clipboard.writeText(l).then(done,function(){prompt('Copy this link:',l);});else prompt('Copy this link:',l);}
+  function copyLink(l,done){var ok=false;try{var t=document.createElement('textarea');t.value=l;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove();}catch(_){}if(ok)return done();if(navigator.clipboard)navigator.clipboard.writeText(l).then(done,function(){prompt(M.copy,l);});else prompt(M.copy,l);}
 
   // "New gift added" banner. The page is server-cached and correctly
   // invalidated the instant a write lands, so a newly-added item is already

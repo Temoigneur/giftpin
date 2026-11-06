@@ -1,5 +1,6 @@
 import type { PageBranding } from "../../shared/branding";
-import { layout, escapeHtml, escapeAttr } from "./layout";
+import { layout, escapeHtml, escapeAttr, tx, jsStr } from "./layout";
+import { countryName, formatLongDate, t, th } from "../../shared/i18n";
 import { EVENT_TYPES, OPT_IN_EVENT_TYPES, isDatelessOccasion, eventTypeLabel } from "../../shared/settings";
 import { ACCOUNT_STORAGE_KEY, REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { occasionTemplate } from "../../shared/registry-ideas";
@@ -30,7 +31,7 @@ export interface CreatePageData {
 export function renderPerks(shopName: string, perks: string[] | undefined): string {
   if (!perks || perks.length === 0) return "";
   return `<div class="note perks">
-  <p style="margin:0 0 6px"><strong>Perks when you register with ${escapeHtml(shopName)}</strong></p>
+  <p style="margin:0 0 6px"><strong>${tx(t("create.perks", { shop: shopName }))}</strong></p>
   <ul style="margin:0;padding-left:20px">${perks.map((p) => `<li>${escapeHtml(p)}</li>`).join("")}</ul>
 </div>`;
 }
@@ -46,8 +47,8 @@ export function renderCreatePage(data: CreatePageData): string {
   const initial = occasionTemplate(initialType);
 
   const body = `
-<h1>Start a registry</h1>
-<p class="sub">Tell your guests what you'd love. They buy it, you get one list.</p>
+<h1>${tx(t("create.title"))}</h1>
+<p class="sub">${tx(t("create.sub"))}</p>
 
 ${renderPerks(data.shopName, data.perks)}
 
@@ -56,67 +57,67 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 <form method="post" action="${escapeAttr(data.actionUrl)}/create" class="note">
 <div class="fields">
   <div>
-  <label for="c-event">What's the occasion?</label>
+  <label for="c-event">${tx(t("create.occasion"))}</label>
   <select id="c-event" name="eventType" required>
     ${types
       .map((t) => {
         const tpl = occasionTemplate(t.value);
-        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${v.eventType === t.value ? " selected" : ""}>${escapeHtml(t.label)}</option>`;
+        return `<option value="${escapeAttr(t.value)}" data-title="${escapeAttr(tpl.title)}" data-note="${escapeAttr(tpl.note)}"${isDatelessOccasion(t.value) ? " data-nodate" : ""}${v.eventType === t.value ? " selected" : ""}>${escapeHtml(eventTypeLabel(t.value))}</option>`;
       })
       .join("")}
   </select>
   </div>
 
   <div>
-  <label for="c-title">Registry name</label>
+  <label for="c-title">${tx(t("create.name"))}</label>
   <input id="c-title" type="text" name="title" maxlength="200" required
          placeholder="${escapeAttr(initial.title)}" value="${escapeAttr(v.title)}">
   </div>
 
   <div id="c-date-field"${isDatelessOccasion(initialType) ? " hidden" : ""}>
-  <label for="c-date">When is it?</label>
+  <label for="c-date">${tx(t("create.when"))}</label>
   <input id="c-date" type="date" name="eventDate" value="${escapeAttr(v.eventDate)}">
-  <p class="hint">Optional. We'll remind you to share your link as it gets closer.</p>
+  <p class="hint">${tx(t("create.whenHint"))}</p>
   </div>
 
   <div>
-  <label for="c-name">Your name</label>
+  <label for="c-name">${tx(t("create.yourName"))}</label>
   <input id="c-name" type="text" name="registrantName" maxlength="120" required value="${escapeAttr(v.registrantName)}">
   </div>
 
   <div>
-  <label for="c-email">Your email</label>
+  <label for="c-email">${tx(t("create.yourEmail"))}</label>
   <input id="c-email" type="email" name="registrantEmail" required value="${escapeAttr(v.registrantEmail)}">
-  <p class="hint">We email you a private link to manage your registry, and tell you when someone buys something. Your email is never shown to guests.</p>
+  <p class="hint">${tx(t("create.emailHint"))}</p>
   </div>
 
   <div>
-  <label for="c-country">Where will your guests shop?</label>
+  <label for="c-country">${tx(t("create.country"))}</label>
   <select id="c-country" name="country">
-    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(c.label)}</option>`).join("")}
+    ${COUNTRIES.map((c) => `<option value="${escapeAttr(c.code)}"${(v.country || DEFAULT_COUNTRY) === c.code ? " selected" : ""}>${escapeHtml(countryName(c.code, c.label))}</option>`).join("")}
   </select>
-  <p class="hint">When this store doesn't carry something, we'll suggest that country's other big stores.</p>
+  <p class="hint">${tx(t("create.countryHint"))}</p>
   </div>
 
   <div class="full">
-  <label for="c-msg">A note for your guests</label>
-  <textarea id="c-msg" name="message" maxlength="2000" placeholder="Optional. For example: ${escapeAttr(initial.note)}">${escapeHtml(v.message)}</textarea>
+  <label for="c-msg">${tx(t("create.note"))}</label>
+  <textarea id="c-msg" name="message" maxlength="2000" placeholder="${escapeAttr(t("create.notePh", { example: initial.note }))}">${escapeHtml(v.message)}</textarea>
   </div>
 </div>
 
   <div class="row" style="margin-top:20px">
-    <button class="btn block" type="submit">Create my registry</button>
+    <button class="btn block" type="submit">${tx(t("create.submit"))}</button>
   </div>
 </form>
-<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder='Optional. For example: '+o.dataset.note;var d=document.getElementById('c-date-field');d.hidden='nodate' in o.dataset;if(d.hidden)document.getElementById('c-date').value='';});})();</script>
+<script>(function(){var s=document.getElementById('c-event'),t=document.getElementById('c-title'),m=document.getElementById('c-msg');if(!s)return;s.addEventListener('change',function(){var o=s.options[s.selectedIndex];t.placeholder=o.dataset.title;m.placeholder=${jsStr("create.notePh")}.replace('{example}',o.dataset.note);var d=document.getElementById('c-date-field');d.hidden='nodate' in o.dataset;if(d.hidden)document.getElementById('c-date').value='';});})();</script>
 
 <div class="note">
-  <p style="margin:0"><strong>Already have one?</strong> We'll email you a link to all your registries here.</p>
+  <p style="margin:0">${t("create.alreadyHtml")}</p>
   <form method="post" action="${escapeAttr(data.actionUrl)}/resend" style="margin-top:10px">
-    <label class="sr" for="c-resend">Your email</label>
-    <input id="c-resend" type="email" name="email" placeholder="Your email" required>
+    <label class="sr" for="c-resend">${tx(t("create.yourEmail"))}</label>
+    <input id="c-resend" type="email" name="email" placeholder="${escapeAttr(t("create.yourEmail"))}" required>
     <div class="row" style="margin-top:10px">
-      <button class="btn sm ghost" type="submit">Email me my registries</button>
+      <button class="btn sm ghost" type="submit">${tx(t("create.resendButton"))}</button>
     </div>
   </form>
 </div>
@@ -124,7 +125,7 @@ ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
 
   return layout(
     {
-      title: `Start a registry — ${data.shopName}`,
+      title: t("create.pageTitle", { shop: data.shopName }),
       accentColor: data.accentColor,
       indexable: false,
       shopName: data.shopName,
@@ -158,14 +159,14 @@ export function renderPasswordPage(data: {
   error?: string | null;
 }): string {
   return layout(
-    { title: "This registry is private", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
-    `<h1>This registry is private</h1>
-     <p class="sub">Enter the password the couple shared with you.</p>
+    { title: t("pw.title"), accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `<h1>${tx(t("pw.title"))}</h1>
+     <p class="sub">${tx(t("pw.sub"))}</p>
      ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
      <form method="post" action="${escapeAttr(data.actionUrl)}/r/${escapeAttr(data.slug)}" class="note">
-       <label for="pw">Password</label>
+       <label for="pw">${tx(t("pw.label"))}</label>
        <input id="pw" type="password" name="password" required autocomplete="off">
-       <div class="row" style="margin-top:16px"><button class="btn" type="submit">Open registry</button></div>
+       <div class="row" style="margin-top:16px"><button class="btn" type="submit">${tx(t("pw.button"))}</button></div>
      </form>`,
   );
 }
@@ -184,23 +185,23 @@ export function renderFindPage(data: {
   // date and names impossible to miss and say so when results look alike.
   const lookalikes = hasLookalikes(data.results);
   const body = `
-<h1>Find a registry</h1>
-<p class="sub">Search by the name of the person or couple you're shopping for.</p>
+<h1>${tx(t("find.title"))}</h1>
+<p class="sub">${tx(t("find.sub"))}</p>
 
 <form method="get" action="${escapeAttr(data.actionUrl)}/find" class="note">
-  <label class="sr" for="q">Name</label>
-  <input id="q" type="text" name="q" value="${escapeAttr(data.query)}" placeholder="e.g. Sam and Alex" required>
-  <div class="row" style="margin-top:12px"><button class="btn sm" type="submit">Search</button></div>
+  <label class="sr" for="q">${tx(t("find.name"))}</label>
+  <input id="q" type="text" name="q" value="${escapeAttr(data.query)}" placeholder="${escapeAttr(t("find.placeholder"))}" required>
+  <div class="row" style="margin-top:12px"><button class="btn sm" type="submit">${tx(t("find.search"))}</button></div>
 </form>
 
 ${
   !data.searched
     ? ""
     : data.results.length === 0
-      ? `<div class="empty"><p>No registries match that name.</p><p class="hint">Only registries whose owners chose to be listed appear here. If you have a direct link, use that instead.</p></div>`
+      ? `<div class="empty"><p>${tx(t("find.none"))}</p><p class="hint">${tx(t("find.noneHint"))}</p></div>`
       : `${
           lookalikes
-            ? `<div class="note" role="status"><strong>More than one registry matches.</strong> Check the names and date before you choose, so your gift goes to the right people.</div>`
+            ? `<div class="note" role="status">${t("find.lookalikeHtml")}</div>`
             : ""
         }<ul class="items">${data.results
           .map(
@@ -211,8 +212,8 @@ ${
     ${r.names ? `<p class="item-meta">${escapeHtml(r.names)}</p>` : ""}
     <p class="item-meta">${escapeHtml(r.eventLabel)} &middot; ${
       r.eventDate
-        ? `<strong>${new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UTC" }).format(r.eventDate)}</strong>`
-        : "No date set"
+        ? `<strong>${formatLongDate(r.eventDate)}</strong>`
+        : tx(t("find.noDate"))
     }</p>
   </div>
 </li>`,
@@ -226,8 +227,8 @@ ${
   // couple's name lands here, not on a page listing someone's email address.
   return layout(
     {
-      title: `Find a registry — ${data.shopName}`,
-      description: `Search gift registries at ${data.shopName}.`,
+      title: t("find.pageTitle", { shop: data.shopName }),
+      description: t("find.description", { shop: data.shopName }),
       accentColor: data.accentColor,
       indexable: true,
       shopName: data.shopName,
@@ -259,13 +260,13 @@ export function renderRegistryChooser(
   registries: { title: string; href: string }[],
 ): string {
   return layout(
-    { title: "Your registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
-    `<h1>Your registries</h1>
-     <p class="sub">Choose one to manage.</p>
+    { title: t("chooser.title"), accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `<h1>${tx(t("chooser.title"))}</h1>
+     <p class="sub">${tx(t("chooser.sub"))}</p>
      <ul class="items">${registries
        .map(
          (r) =>
-           `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Manage</a></p></div></li>`,
+           `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">${tx(t("chooser.manage"))}</a></p></div></li>`,
        )
        .join("")}</ul>`,
   );
@@ -295,7 +296,7 @@ export interface AccountPageData extends PageBrand {
 
 function formatEventDate(date: Date | null): string {
   if (!date) return "";
-  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return formatLongDate(date);
 }
 
 /** Every registry one person holds at this store, from their emailed My registries link. */
@@ -303,23 +304,23 @@ export function renderAccountPage(data: AccountPageData): string {
   const list = data.registries.length
     ? `<ul class="items">${data.registries
         .map((r) => {
-          const meta = [eventTypeLabel(r.eventType), formatEventDate(r.eventDate), r.partner ? "You're a partner" : ""]
+          const meta = [eventTypeLabel(r.eventType), formatEventDate(r.eventDate), r.partner ? t("account.partner") : ""]
             .filter(Boolean)
             .join(" · ");
-          return `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p class="item-meta">${escapeHtml(meta)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">Open</a></p></div></li>`;
+          return `<li class="item" style="grid-template-columns:1fr"><div><p class="item-title">${escapeHtml(r.title)}</p><p class="item-meta">${escapeHtml(meta)}</p><p><a class="btn sm" href="${escapeAttr(r.href)}">${tx(t("account.open"))}</a></p></div></li>`;
         })
         .join("")}</ul>`
     : data.accountToken
-      ? `<p>There are no registries with this email yet.</p>`
-      : `<p>No registries are linked to your store account yet.</p>`;
+      ? `<p>${tx(t("account.noneEmail"))}</p>`
+      : `<p>${tx(t("account.noneStore"))}</p>`;
   const root = data.actionUrl.replace(/\/+$/, "");
   // Store-account sign-in only: the list holds just the registries started
   // while signed in, so offer the email link for the rest.
   const storeAccountOnly = data.accountToken
     ? ""
     : `${followSavedLink(root)}
-     <h2>Don't see one?</h2>
-     <p>Registries you started without signing in are kept under your email instead.</p>
+     <h2>${tx(t("account.dontSee"))}</h2>
+     <p>${tx(t("account.keptUnderEmail"))}</p>
      ${emailLinkForm(root, data.manageToken ?? null)}`;
 
   // Remember the account link on this browser (the manage page's "My
@@ -332,15 +333,15 @@ export function renderAccountPage(data: AccountPageData): string {
     : "";
 
   return layout(
-    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
-    `<h1>My registries</h1>
-     <p class="sub">${data.accountToken ? `Everything you've started at ${escapeHtml(data.shopName)} with this email.` : `Registries linked to your ${escapeHtml(data.shopName)} account.`} Pick one to open it.</p>
+    { title: t("account.title"), accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `<h1>${tx(t("account.title"))}</h1>
+     <p class="sub">${tx(t(data.accountToken ? "account.sub.email" : "account.sub.store", { shop: data.shopName }))}</p>
      ${list}
-     <p style="margin-top:24px"><a class="btn" href="${escapeAttr(data.createHref)}">Start another registry</a></p>
-     <p class="hint">A new registry made with the same email shows up here on its own. Keep this page's link to yourself: anyone who has it can edit these registries.</p>
+     <p style="margin-top:24px"><a class="btn" href="${escapeAttr(data.createHref)}">${tx(t("account.startAnother"))}</a></p>
+     <p class="hint">${tx(t("account.hint"))}</p>
      ${remember}
      ${storeAccountOnly}
-     ${data.accountToken ? `<form method="post" action="${escapeAttr(root)}/account-link?a=${encodeURIComponent(data.accountToken)}" style="margin-top:12px"><button class="btn sm ghost" type="submit">Email me this link</button></form>` : ""}`,
+     ${data.accountToken ? `<form method="post" action="${escapeAttr(root)}/account-link?a=${encodeURIComponent(data.accountToken)}" style="margin-top:12px"><button class="btn sm ghost" type="submit">${tx(t("account.emailThisLink"))}</button></form>` : ""}`,
   );
 }
 
@@ -353,10 +354,10 @@ export function renderAccountPage(data: AccountPageData): string {
  */
 export function renderAccountSignInPage(data: PageBrand & { actionUrl: string; manageToken: string | null; expired: boolean }): string {
   return layout(
-    { title: "My registries", accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    { title: t("account.title"), accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
     `${data.expired ? forgetSavedLink() : followSavedLink(data.actionUrl)}
-     <h1>My registries</h1>
-     <p class="sub">${data.expired ? "That link has expired. " : ""}See every registry you've started here with one email. For your privacy, we send the link to your inbox.</p>
+     <h1>${tx(t("account.title"))}</h1>
+     <p class="sub">${data.expired ? tx(t("account.expired")) : ""}${tx(t("account.signInSub"))}</p>
      ${emailLinkForm(data.actionUrl, data.manageToken)}`,
   );
 }
@@ -368,13 +369,13 @@ export function renderAccountSignInPage(data: PageBrand & { actionUrl: string; m
 function emailLinkForm(actionUrl: string, manageToken: string | null): string {
   return manageToken
     ? `<form method="post" action="${escapeAttr(actionUrl)}/account-link?t=${encodeURIComponent(manageToken)}" class="note">
-         <p style="margin:0 0 10px">We'll email a link to all your registries to the address on this one.</p>
-         <button class="btn" type="submit">Email me the link</button>
+         <p style="margin:0 0 10px">${tx(t("account.oneClick"))}</p>
+         <button class="btn" type="submit">${tx(t("account.emailLink"))}</button>
        </form>`
     : `<form method="post" action="${escapeAttr(actionUrl)}/resend" class="note">
-         <label for="a-email">Your email</label>
+         <label for="a-email">${tx(t("create.yourEmail"))}</label>
          <input id="a-email" type="email" name="email" required>
-         <div class="row" style="margin-top:16px"><button class="btn" type="submit">Email me my registries</button></div>
+         <div class="row" style="margin-top:16px"><button class="btn" type="submit">${tx(t("create.resendButton"))}</button></div>
        </form>`;
 }
 
