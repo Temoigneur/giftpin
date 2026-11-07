@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { Form, useFetcher, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { isPro, requireShop } from "../models/shop.server";
+import { isPro, requireShop, settingsFor } from "../models/shop.server";
 import {
   createRegistryInStore,
   registryForStaff,
@@ -39,7 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
-  if (!isPro(shop)) return { ok: false as const, error: translate("admin.ins.errPro", undefined, adminLocale(request)) };
+  if (!isPro(shop)) return { ok: false as const, error: translate("admin.ins.errPro", undefined, adminLocale(request, settingsFor(shop).language)) };
 
   const form = await request.formData();
   return createRegistryInStore(shop, Object.fromEntries(form), "admin");

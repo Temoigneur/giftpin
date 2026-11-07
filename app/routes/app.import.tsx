@@ -3,7 +3,7 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { requireShop } from "../models/shop.server";
+import { requireShop, settingsFor } from "../models/shop.server";
 import { previewImport, runImport } from "../models/import.server";
 import { FIELD_LABELS, IMPORT_MAX_ROWS } from "../shared/registry-import";
 import { t as translate } from "../shared/i18n";
@@ -22,7 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
-  const locale = adminLocale(request);
+  const locale = adminLocale(request, settingsFor(shop).language);
   const csv = String(form.get("csv") ?? "");
   if (!csv.trim()) return { kind: "error" as const, message: translate("admin.imp.errChoose", undefined, locale) };
   if (csv.length > MAX_BYTES) return { kind: "error" as const, message: translate("admin.imp.errBig", undefined, locale) };

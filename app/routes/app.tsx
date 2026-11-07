@@ -4,7 +4,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
-import { upsertShop } from "../models/shop.server";
+import { settingsFor, updateSettings, upsertShop } from "../models/shop.server";
+import { languageForCountry } from "../lib/store-language.server";
 import { adminLocale } from "../lib/admin-locale.server";
 import { useAdminT } from "../lib/use-admin-t";
 
@@ -53,9 +54,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("[app] could not read shop info:", (err as Error).message);
   }
 
-  await upsertShop(session.shop, { name, currency, moneyFormat, country, devStore });
+  let shop = await upsertShop(session.shop, { name, currency, moneyFormat, country, devStore });
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "", locale: adminLocale(request) };
+  // First open: no language has ever been saved, so start in the store's likely
+  // language. Once Settings has been saved the key exists and this never runs.
+  const saved = (shop.settings ?? {}) as { language?: string };
+  if (saved.language === undefined) {
+    const guess = languageForCountry(shop.country);
+    if (guess) shop = await updateSettings(session.shop, { language: guess });
+  }
+
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    locale: adminLocale(request, settingsFor(shop).language),
+  };
 };
 
 export default function App() {
