@@ -26,6 +26,8 @@ export type Chrome = {
   guides: string;
   company: string;
   setup: string;
+  /** Short top-bar label for /setup (the footer uses the longer `setup`). */
+  setupNav: string;
   creating: string;
   app: string;
   wedding: string;
@@ -59,6 +61,7 @@ export const CHROME: Record<Locale, Chrome> = {
     guides: "Guides",
     company: "Company",
     setup: "Setup guide",
+    setupNav: "Setup",
     creating: "Creating a registry",
     app: "Gift registry app",
     wedding: "Universal wedding registry",
@@ -90,6 +93,7 @@ export const CHROME: Record<Locale, Chrome> = {
     guides: "Guides",
     company: "Entreprise",
     setup: "Guide d'installation",
+    setupNav: "Installation",
     creating: "Créer une liste",
     app: "Application de liste de cadeaux",
     wedding: "Liste de mariage universelle",
@@ -121,6 +125,7 @@ export const CHROME: Record<Locale, Chrome> = {
     guides: "Guías",
     company: "Empresa",
     setup: "Guía de configuración",
+    setupNav: "Configuración",
     creating: "Crear una lista",
     app: "Aplicación de lista de regalos",
     wedding: "Lista de bodas universal",
@@ -152,6 +157,7 @@ export const CHROME: Record<Locale, Chrome> = {
     guides: "Anleitungen",
     company: "Unternehmen",
     setup: "Einrichtungsanleitung",
+    setupNav: "Einrichtung",
     creating: "Eine Liste erstellen",
     app: "Geschenklisten-App",
     wedding: "Universelle Hochzeitsliste",
@@ -183,6 +189,7 @@ export const CHROME: Record<Locale, Chrome> = {
     guides: "Guias",
     company: "Empresa",
     setup: "Guia de configuração",
+    setupNav: "Configuração",
     creating: "Criar uma lista",
     app: "Aplicativo de lista de presentes",
     wedding: "Lista de casamento universal",

@@ -86,7 +86,7 @@ export function htmlResponse(html: string): Response {
   });
 }
 
-type NavKey = "home" | "features" | "pricing" | "faq" | "guides";
+type NavKey = "home" | "features" | "pricing" | "setup" | "faq" | "guides";
 
 export function sitePage(opts: {
   path: string;
@@ -115,6 +115,7 @@ export function sitePage(opts: {
   const links = [
     link("features", "/features", ch.features),
     link("pricing", "/pricing", ch.pricing),
+    link("setup", "/setup", ch.setupNav),
     link("faq", "/faq", ch.faq),
     `<a href="/${q}#demo">${ch.demo}</a>`,
   ].join("");
@@ -399,7 +400,9 @@ p{margin:0}
 .menu nav{position:absolute; left:0; right:0; top:68px; background:var(--band); border-bottom:1px solid var(--band-line); padding:12px 16px 20px; display:grid; gap:4px}
 .menu nav a:not(.btn){color:var(--band-ink); text-decoration:none; font-weight:600; font-size:18px; padding:12px 4px; border-bottom:1px solid var(--band-line)}
 .menu nav .btn{margin-top:14px}
-@media (max-width:860px){.site-top .links, .hide-sm, .bar>.lang-menu{display:none} .menu{display:block}}
+@media (max-width:1240px){.site-top .links{gap:20px}}
+/* Five top-bar links in the longer languages (es, pt-BR) need about 1060px. */
+@media (max-width:1060px){.site-top .links, .hide-sm, .bar>.lang-menu{display:none} .menu{display:block}}
 
 /* dark hero band */
 .hero{position:relative; background:var(--band); color:var(--band-ink); overflow:hidden; isolation:isolate}
