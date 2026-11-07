@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { LOCALES } from "../../shared/i18n";
-import { SITE_COPY } from "../site-copy";
+import { LANDING_COPY, SITE_COPY } from "../site-copy";
 import { loader as homeLoader } from "../../routes/_index";
 import { loader as featuresLoader } from "../../routes/features";
 import { loader as pricingLoader } from "../../routes/pricing";
 import { loader as faqLoader } from "../../routes/faq";
+import { loader as weddingLoader } from "../../routes/wedding-registry";
+import { loader as compareLoader } from "../../routes/compare";
+import { loader as appLoader } from "../../routes/gift-registry-app";
+import { loader as babyLoader } from "../../routes/baby-registry";
+import { loader as homeGoodsLoader } from "../../routes/home-goods-registry";
+import { loader as holidayLoader } from "../../routes/holiday-wish-lists";
+import { loader as giftCardsLoader } from "../../routes/gift-cards";
 import { PRO_PLAN_PRICE, PRO_TRIAL_DAYS } from "../../shared/plans";
 
 const OTHERS = LOCALES.filter((l) => l !== "en");
@@ -18,11 +25,12 @@ function leaves(v: unknown, path = ""): [string, string][] {
 const marks = (s: string) => [...s.matchAll(/\{\w+\}/g)].map((m) => m[0]).sort().join();
 const tags = (s: string) => [...s.matchAll(/<[^>]+>/g)].map((m) => m[0]).join("");
 
-const en = new Map(leaves(SITE_COPY.en));
+const COPIES = { site: SITE_COPY, landing: LANDING_COPY } as const;
+const en = new Map([...leaves(SITE_COPY.en, "site"), ...leaves(LANDING_COPY.en, "landing")]);
 
 describe("site copy translations", () => {
   for (const locale of OTHERS) {
-    const other = new Map(leaves(SITE_COPY[locale]));
+    const other = new Map([...leaves(COPIES.site[locale], "site"), ...leaves(COPIES.landing[locale], "landing")]);
 
     it(`${locale} has exactly the English keys, list lengths included`, () => {
       expect([...other.keys()]).toEqual([...en.keys()]);
@@ -53,6 +61,13 @@ describe("translated pages", () => {
     ["/features", featuresLoader as never],
     ["/pricing", pricingLoader as never],
     ["/faq", faqLoader as never],
+    ["/wedding-registry", weddingLoader as never],
+    ["/compare", compareLoader as never],
+    ["/gift-registry-app", appLoader as never],
+    ["/baby-registry", babyLoader as never],
+    ["/home-goods-registry", homeGoodsLoader as never],
+    ["/holiday-wish-lists", holidayLoader as never],
+    ["/gift-cards", giftCardsLoader as never],
   ];
   for (const [path, loader] of pages) {
     for (const locale of OTHERS) {
@@ -61,11 +76,12 @@ describe("translated pages", () => {
         const html = await (await loader({ request, params: {}, context: {} } as never)).text();
         expect(html).toContain(`<html lang="${locale}">`);
         expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}?lang=${locale}">`);
-        expect(html).not.toMatch(/\{(pro|price|trial|days|fee|slots|n|appStore)\}/);
+        expect(html).not.toMatch(/\{(pro|price|trial|days|fee|slots|n|max|appStore)\}/);
         expect(html).not.toContain("undefined");
         if (path === "/pricing") expect(html).toContain(`$${PRO_PLAN_PRICE.toFixed(2)}`);
         // The English page must not leak into the translation.
         expect(html).not.toContain("Everything a registry needs");
+        expect(html).not.toContain("Questions merchants ask");
       });
     }
   }

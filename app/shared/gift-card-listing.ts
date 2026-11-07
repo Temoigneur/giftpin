@@ -72,10 +72,10 @@ export function giftCardSource(raw: unknown): GiftCardSource {
 }
 
 /** English country name for a directory heading, or null when unknown. */
-export function countryName(code: string | null | undefined): string | null {
+export function countryName(code: string | null | undefined, locale = "en"): string | null {
   if (!code || !/^[A-Z]{2}$/.test(code)) return null;
   try {
-    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? null;
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? null;
   } catch {
     return null;
   }

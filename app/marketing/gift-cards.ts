@@ -1,6 +1,7 @@
-import { esc, icon, sitePage } from "./layout";
-import { PRO_NAME } from "./plans-copy";
-import { GIFT_CARD_FEE_PERCENT } from "../shared/plans";
+import type { Locale } from "../shared/i18n";
+import { esc, icon, localeMeta, siteLocale, sitePage } from "./layout";
+import { siteVars } from "./plans-copy";
+import { LANDING_COPY, fill } from "./site-copy";
 import { countryName, formatGiftCardAmount, MAX_LISTED_GIFT_CARD } from "../shared/gift-card-listing";
 
 /**
@@ -25,22 +26,7 @@ export interface DirectoryStore {
   amounts: { amount: number }[];
 }
 
-export const GIFT_CARD_FAQ = [
-  {
-    q: "Who sells the gift card?",
-    a: "The store does. You pay at that store's own checkout, and the store emails the gift card. It can only be spent at that store.",
-  },
-  {
-    q: "Can I send it straight to someone?",
-    a: "Yes. Tick \"Email it straight to someone\" and add their email. Use the store's regular Check out button for that, because Shopify sends the card to the buyer when you pay with Shop Pay.",
-  },
-  {
-    q: "How do I list my store here?",
-    a: `Install Giftpin on your Shopify store, add a gift card product, and in Giftpin Settings tick "List my gift cards on giftpin.app". It's part of ${PRO_NAME}, with a ${GIFT_CARD_FEE_PERCENT}% fee on gift cards sold this way (none during your free trial). The money and any unspent balance stay with you.`,
-  },
-];
-
-function storeCard(store: DirectoryStore): string {
+function storeCard(store: DirectoryStore, buy: string): string {
   const href = `https://${store.domain}/apps/registry/gift-card?src=directory`;
   const amounts = store.amounts.map((a) => formatGiftCardAmount(a.amount, store.currency)).join(" · ");
   return `<div class="card gc-store rise">
@@ -48,7 +34,7 @@ function storeCard(store: DirectoryStore): string {
   <h3>${esc(store.name)}</h3>
   ${store.blurb ? `<p>${esc(store.blurb)}</p>` : ""}
   <p class="gc-amounts">${esc(amounts)}</p>
-  <a class="btn dark" href="${esc(href)}" rel="noopener">Buy a gift card</a>
+  <a class="btn dark" href="${esc(href)}" rel="noopener">${esc(buy)}</a>
 </div>`;
 }
 
@@ -57,33 +43,37 @@ function storeCard(store: DirectoryStore): string {
  * each. A store whose country isn't known yet (it fills in the next time the
  * merchant opens Giftpin) goes under "Other countries", last.
  */
-export function groupByCountry(stores: DirectoryStore[]): { heading: string; stores: DirectoryStore[] }[] {
+export function groupByCountry(stores: DirectoryStore[], locale: Locale = "en"): { heading: string; stores: DirectoryStore[] }[] {
+  const other = LANDING_COPY[locale].giftCards.otherCountries;
   const groups = new Map<string, DirectoryStore[]>();
   for (const store of stores) {
-    const heading = countryName(store.country) ?? "Other countries";
+    const heading = countryName(store.country, locale) ?? other;
     groups.set(heading, [...(groups.get(heading) ?? []), store]);
   }
   return [...groups.entries()]
-    .sort(([a], [b]) => (a === "Other countries" ? 1 : b === "Other countries" ? -1 : a.localeCompare(b)))
-    .map(([heading, list]) => ({ heading, stores: [...list].sort((x, y) => x.name.localeCompare(y.name)) }));
+    .sort(([a], [b]) => (a === other ? 1 : b === other ? -1 : a.localeCompare(b, locale)))
+    .map(([heading, list]) => ({ heading, stores: [...list].sort((x, y) => x.name.localeCompare(y.name, locale)) }));
 }
 
 export function giftCardsHtml(stores: DirectoryStore[]): string {
+  const loc = siteLocale();
+  const k = LANDING_COPY[loc].giftCards;
+  const vars = siteVars(loc);
   const list = stores.length
-    ? groupByCountry(stores)
+    ? groupByCountry(stores, loc)
         .map(
           (group) =>
-            `<h2 class="gc-country rise">${esc(group.heading)}</h2><div class="grid-3">${group.stores.map(storeCard).join("")}</div>`,
+            `<h2 class="gc-country rise">${esc(group.heading)}</h2><div class="grid-3">${group.stores.map((st) => storeCard(st, k.buy)).join("")}</div>`,
         )
         .join("")
-    : `<div class="card gc-empty rise"><h3>No stores listed yet</h3><p>Check back soon. Run a Shopify store? You could be the first.</p></div>`;
+    : `<div class="card gc-empty rise"><h3>${esc(k.emptyH)}</h3><p>${esc(k.emptyP)}</p></div>`;
 
   const body = `
 <section class="hero page-hero">
   <div class="wrap">
-    <p class="eyebrow">${icon("gift")} Gift cards</p>
-    <h1>Gift cards from<br><span class="grad-text">independent stores.</span></h1>
-    <p class="lede">Pick a store, choose an amount up to ${formatGiftCardAmount(MAX_LISTED_GIFT_CARD, "USD")}, and pay at the store's own checkout. The store emails the gift card, to you or straight to the person you're giving it to.</p>
+    <p class="eyebrow">${icon("gift")} ${esc(k.eyebrow)}</p>
+    <h1>${k.h1a}<br><span class="grad-text">${k.h1b}</span></h1>
+    <p class="lede">${esc(fill(k.lede, { max: formatGiftCardAmount(MAX_LISTED_GIFT_CARD, "USD") }))}</p>
   </div>
 </section>
 <section class="sec">
@@ -91,9 +81,9 @@ export function giftCardsHtml(stores: DirectoryStore[]): string {
 </section>
 <section class="sec tint">
   <div class="wrap">
-    <div class="sec-head rise"><h2>Questions</h2></div>
-    <div class="qa">${GIFT_CARD_FAQ.map((i) => `<details class="rise"><summary>${esc(i.q)}</summary><p>${esc(i.a)}</p></details>`).join("")}</div>
-    <p class="gc-merchant rise">Run a Shopify store? <a href="/setup#gift-cards">See how to list your gift cards</a>.</p>
+    <div class="sec-head rise"><h2>${esc(k.questions)}</h2></div>
+    <div class="qa">${k.faq.map((i) => `<details class="rise"><summary>${esc(fill(i.q, vars))}</summary><p>${esc(fill(i.a, vars))}</p></details>`).join("")}</div>
+    <p class="gc-merchant rise">${loc === "en" ? k.merchantLine : k.merchantLine.replace('href="/setup#gift-cards"', `href="/setup?lang=${loc}#gift-cards"`)}</p>
   </div>
 </section>
 `;
@@ -101,10 +91,10 @@ export function giftCardsHtml(stores: DirectoryStore[]): string {
   return sitePage({
     path: "/gift-cards",
     nav: "guides",
-    title: "Gift cards from independent Shopify stores | Giftpin",
-    description:
-      "Buy a gift card from an independent store that uses Giftpin. Pick an amount, pay at the store's own checkout, and send the card by email.",
+    title: k.title,
+    description: k.description,
     body,
+    ...localeMeta("/gift-cards"),
     css: `
 .gc-store{display:flex; flex-direction:column; gap:10px}
 .gc-store .btn{margin-top:auto; align-self:flex-start}
