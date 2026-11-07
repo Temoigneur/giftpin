@@ -7,6 +7,7 @@ import { GIFT_CATEGORIES, giftCategoryLabel } from "../../shared/gift-categories
 import { ideaGuideFor, type GiftIdeaItem } from "../../shared/registry-ideas";
 import { IDEA_MATCH_JS } from "../../shared/idea-match";
 import { ideaAliases } from "../../shared/idea-aliases";
+import { ideaText } from "../../shared/idea-copy";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
@@ -496,12 +497,12 @@ function renderIdeaGuide(data: ManagePageData): string {
     const subcats = cat.subcategories
       .map((sub) => {
         const items = sub.items.map(renderCategoryItem).join("");
-        return `<p class="cat-sub">${escapeHtml(sub.label)}</p><div class="cat-grid">${items}</div>`;
+        return `<p class="cat-sub">${escapeHtml(ideaText(sub.label))}</p><div class="cat-grid">${items}</div>`;
       })
       .join("\n");
 
     return `<details class="cat-room">
-  <summary>${escapeHtml(cat.label)}</summary>
+  <summary>${escapeHtml(ideaText(cat.label))}</summary>
   ${subcats}
 </details>`;
   }).join("\n");
@@ -513,25 +514,31 @@ function renderIdeaGuide(data: ManagePageData): string {
   return `<details class="note ideas">
   <summary>
     <span class="ideas-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg></span>
-    <span class="ideas-text"><span class="ideas-q">${T("manage.ideas.q")}</span><span class="ideas-t">${escapeHtml(guide.title)}</span></span>
+    <span class="ideas-text"><span class="ideas-q">${T("manage.ideas.q")}</span><span class="ideas-t">${escapeHtml(ideaText(guide.title))}</span></span>
     <span class="ideas-cta"><span class="ideas-cta-label"><span class="ideas-cta-open">${T("manage.ideas.open")}</span><span class="ideas-cta-close">${T("manage.ideas.close")}</span></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
   </summary>
-  <p class="hint" style="margin:10px 0">${escapeHtml(guide.intro)} ${how.join(" ")}</p>
+  <p class="hint" style="margin:10px 0">${escapeHtml(ideaText(guide.intro))} ${how.join(" ")}</p>
   ${groups}
   <div class="cat-fallback" id="cat-fallback" hidden role="status"></div>
 </details>`;
 }
 
 function renderCategoryItem(item: GiftIdeaItem): string {
+  const name = ideaText(item.name);
   if (item.kind) {
     const cls = item.kind === "fund" ? "js-idea-fund" : "js-idea-exp";
-    return `<button class="cat-chip ${cls}" type="button" data-title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</button>`;
+    return `<button class="cat-chip ${cls}" type="button" data-title="${escapeAttr(name)}">${escapeHtml(name)}</button>`;
   }
-  const term = item.searchTerm ?? item.name;
+  // The store is searched in the page's language. The English term and its
+  // aliases ride along as extra names, so a store with an English catalogue
+  // still matches.
+  const english = item.searchTerm ?? item.name;
+  const translated = name !== item.name;
+  const term = translated ? name : english;
+  const aliases = [...(translated ? [english] : []), ...ideaAliases(english)];
   const href = `/search?q=${encodeURIComponent(term)}&type=product`;
-  const aliases = ideaAliases(term);
   const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
-  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(item.name)}</a>`;
+  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(name)}</a>`;
 }
 
 function renderManageItem(item: DisplayItem, data: ManagePageData): string {
