@@ -132,3 +132,18 @@ describe("kids' ideas (30 Oct 2026)", () => {
     expect(find("picture books")).toEqual([]);
   });
 });
+
+describe("gpIdeaMatch with non-Latin scripts", () => {
+  it("matches Chinese and Japanese terms inside unspaced titles", () => {
+    const products = [{ title: "不锈钢汤锅 24cm" }, { title: "ステンレス鍋 24cm" }, { title: "木制托盘" }];
+    expect(titles("汤锅", products)).toEqual(["不锈钢汤锅 24cm"]);
+    expect(titles("ステンレス鍋", products)).toEqual(["ステンレス鍋 24cm"]);
+    expect(titles("煎锅", products)).toEqual([]);
+  });
+
+  it("matches whole Devanagari words", () => {
+    const products = [{ title: "स्टील कड़ाही सेट" }, { title: "चाय का कप" }];
+    expect(titles("कड़ाही", products)).toEqual(["स्टील कड़ाही सेट"]);
+    expect(titles("तवा", products)).toEqual([]);
+  });
+});

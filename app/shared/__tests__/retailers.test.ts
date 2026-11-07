@@ -93,12 +93,12 @@ describe("country choice in the pages", () => {
 });
 
 describe("13 countries, stores by kind of product", () => {
-  it("offers the 13 countries, each named in all five languages", () => {
+  it("offers the 13 countries, each named in every language", () => {
     expect(COUNTRIES.map((c) => c.code)).toEqual(["US", "CA", "GB", "IE", "AU", "NZ", "DE", "AT", "FR", "ES", "PT", "MX", "BR"]);
     for (const c of COUNTRIES) {
       for (const l of LOCALES) {
         const name = countryName(c.code, c.label, l);
-        expect(name.length, `${c.code} ${l}`).toBeGreaterThan(2);
+        expect(name.length, `${c.code} ${l}`).toBeGreaterThanOrEqual(2);
         expect(name, `${c.code} ${l} is a code`).not.toBe(c.code);
       }
     }

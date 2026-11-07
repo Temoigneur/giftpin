@@ -70,6 +70,10 @@ describe("guide pages in each language", () => {
     es: "Dónde están los botones Guardar",
     de: "Wo die Speichern-Buttons sind",
     "pt-BR": "Onde ficam os botões Salvar",
+    hi: "सेव बटन कहाँ हैं",
+    "zh-CN": "保存按钮在哪里",
+    "zh-TW": "儲存按鈕在哪裡",
+    ja: "保存ボタンの場所",
   };
 
   for (const locale of LOCALES) {
@@ -81,7 +85,7 @@ describe("guide pages in each language", () => {
       expect(html).not.toContain("{{");
       expect(html).not.toContain("undefined");
       // The label comes from the app's own dictionary for that language.
-      expect(html).toContain("<b>" + { en: "Save", fr: "Enregistrer", es: "Guardar", de: "Speichern", "pt-BR": "Salvar" }[locale] + "</b>");
+      expect(html).toContain("<b>" + { en: "Save", fr: "Enregistrer", es: "Guardar", de: "Speichern", "pt-BR": "Salvar", hi: "सेव करें", "zh-CN": "保存", "zh-TW": "儲存", ja: "保存" }[locale] + "</b>");
       // Screenshots are shared, with the right-language alt text.
       expect(html).toContain("/guides/m1-overview.png");
     });
@@ -138,11 +142,11 @@ describe("language choice that follows the visitor", () => {
   it("the language menu lists every language with a flag, and each link works without JavaScript", async () => {
     const { html } = await get(setupLoader, "/setup", { cookie: "giftpin-lang=fr" });
     expect(html).toContain('class="lang-menu"');
-    for (const [l, name] of [["en", "English"], ["fr", "Français"], ["es", "Español"], ["de", "Deutsch"], ["pt-BR", "Português (Brasil)"]]) {
+    for (const [l, name] of [["en", "English"], ["fr", "Français"], ["es", "Español"], ["de", "Deutsch"], ["pt-BR", "Português (Brasil)"], ["hi", "हिन्दी"], ["zh-CN", "简体中文"], ["zh-TW", "繁體中文"], ["ja", "日本語"]]) {
       expect(html).toContain(`href="/setup?lang=${l}"`);
       expect(html).toContain(`<span>${name}</span>`);
     }
-    expect(html.match(/class="flag"/g)?.length).toBeGreaterThanOrEqual(10);
+    expect(html.match(/class="flag"/g)?.length).toBeGreaterThanOrEqual(18);
     expect(html).toContain('aria-current="true"');
   });
 

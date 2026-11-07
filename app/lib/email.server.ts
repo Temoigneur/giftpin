@@ -64,7 +64,7 @@ function shell(heading: string, body: string, cta?: { label: string; url: string
   const button = cta
     ? `<p style="margin:28px 0"><a href="${escapeAttr(cta.url)}" style="background:#1a1a1a;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600">${escapeHtml(cta.label)}</a></p>`
     : "";
-  return `<!doctype html><html><body style="margin:0;background:#f6f6f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a1a">
+  return `<!doctype html><html><body style="margin:0;background:#f6f6f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Hiragino Sans','Yu Gothic UI','PingFang SC','PingFang TC','Microsoft YaHei','Microsoft JhengHei','Nirmala UI','Noto Sans Devanagari',sans-serif;color:#1a1a1a">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px">
 <h1 style="font-size:20px;margin:0 0 16px">${escapeHtml(heading)}</h1>
 <div style="font-size:15px;line-height:1.6;color:#3d3d3d">${body}</div>

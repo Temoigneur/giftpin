@@ -3,8 +3,12 @@ import { de } from "./de";
 import { es } from "./es";
 import { fr } from "./fr";
 import { ptBR } from "./pt-BR";
+import { hi } from "./hi";
+import { zhCN } from "./zh-CN";
+import { zhTW } from "./zh-TW";
+import { ja } from "./ja";
 
-const IDEA_COPY: Record<Exclude<Locale, "en">, Record<string, string>> = { fr, es, de, "pt-BR": ptBR };
+const IDEA_COPY: Record<Exclude<Locale, "en">, Record<string, string>> = { fr, es, de, "pt-BR": ptBR, hi, "zh-CN": zhCN, "zh-TW": zhTW, ja };
 
 /**
  * An ideas-guide string (group, subgroup, item, title or intro) in the page's
