@@ -22,24 +22,28 @@
   misread for shoppers who don't read English as a first language.
 {% endcomment %}
 
+{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank -%}{%- assign lbl_heading = 'registry_links.heading' | t -%}{%- endif -%}
+{%- assign lbl_create_label = block.settings.create_label -%}{%- if lbl_create_label == blank -%}{%- assign lbl_create_label = 'registry_links.create' | t -%}{%- endif -%}
+{%- assign lbl_find_label = block.settings.find_label -%}{%- if lbl_find_label == blank -%}{%- assign lbl_find_label = 'registry_links.find' | t -%}{%- endif -%}
+{%- assign lbl_manage_label = block.settings.manage_label -%}{%- if lbl_manage_label == blank -%}{%- assign lbl_manage_label = 'registry_links.manage' | t -%}{%- endif -%}
+{%- assign lbl_cart_return_label = block.settings.cart_return_label -%}{%- if lbl_cart_return_label == blank -%}{%- assign lbl_cart_return_label = 'registry_links.cart_return' | t -%}{%- endif -%}
+
 {%- assign base = block.settings.proxy_path | default: '/apps/registry' -%}
 {%- assign size = block.settings.text_size | default: 18 -%}
 
 <nav
   class="giftpin-links giftpin-links--{{ block.id }} giftpin-links--{{ block.settings.style | default: 'buttons' }}"
-  aria-label="{{ block.settings.heading | default: 'Gift registry' | escape }}"
+  aria-label="{{ lbl_heading | escape }}"
   {{ block.shopify_attributes }}
 >
-  {%- if block.settings.heading != blank -%}
-    <p class="giftpin-links__heading">{{ block.settings.heading | escape }}</p>
-  {%- endif -%}
+  <p class="giftpin-links__heading">{{ lbl_heading | escape }}</p>
   <ul class="giftpin-links__list">
-    <li><a href="{{ base }}">{{ block.settings.create_label | default: 'Create a gift registry' | escape }}</a></li>
+    <li><a href="{{ base }}">{{ lbl_create_label | escape }}</a></li>
     {%- if block.settings.show_find -%}
-      <li><a href="{{ base }}/find">{{ block.settings.find_label | default: 'Find a gift registry' | escape }}</a></li>
+      <li><a href="{{ base }}/find">{{ lbl_find_label | escape }}</a></li>
     {%- endif -%}
     {%- if block.settings.show_manage -%}
-      <li><a href="{{ base }}/manage">{{ block.settings.manage_label | default: 'Manage my gift registry' | escape }}</a></li>
+      <li><a href="{{ base }}/manage">{{ lbl_manage_label | escape }}</a></li>
     {%- endif -%}
   </ul>
 </nav>
@@ -50,7 +54,7 @@
     var r;
     try { r = JSON.parse(localStorage.getItem('giftpin_last') || 'null'); } catch (e) {}
     if (!r || typeof r.u !== 'string' || r.u.indexOf({{ base | append: '/' | json }}) !== 0) return;
-    var text = {{ block.settings.cart_return_label | default: 'Return to registry' | json }};
+    var text = {{ lbl_cart_return_label | json }};
     function link() {
       var p = document.createElement('p');
       p.className = 'giftpin-return';
@@ -122,14 +126,14 @@
   "name": "Registry links",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Heading", "default": "Gift registry" },
-    { "type": "text", "id": "create_label", "label": "Create link text", "default": "Create a gift registry" },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Leave blank to use the shopper's language." },
+    { "type": "text", "id": "create_label", "label": "Create link text", "info": "Leave blank to use the shopper's language." },
     { "type": "checkbox", "id": "show_find", "label": "Show the find-a-registry link", "default": true, "info": "Uses “Enable the public find-a-registry page” in Giftpin → Settings → Privacy (on by default). If a store turns it off, the link tells guests to ask for the registry link." },
-    { "type": "text", "id": "find_label", "label": "Find link text", "default": "Find a gift registry" },
+    { "type": "text", "id": "find_label", "label": "Find link text", "info": "Leave blank to use the shopper's language." },
     { "type": "checkbox", "id": "show_manage", "label": "Show the manage-my-registry link", "default": true },
-    { "type": "text", "id": "manage_label", "label": "Manage link text", "default": "Manage my gift registry" },
+    { "type": "text", "id": "manage_label", "label": "Manage link text", "info": "Leave blank to use the shopper's language." },
     { "type": "checkbox", "id": "show_cart_return", "label": "Show “Return to registry” on the cart page", "default": true, "info": "Links back to the last registry the shopper opened on this device." },
-    { "type": "text", "id": "cart_return_label", "label": "Return link text", "default": "Return to registry" },
+    { "type": "text", "id": "cart_return_label", "label": "Return link text", "info": "Leave blank to use the shopper's language." },
     {
       "type": "select",
       "id": "style",

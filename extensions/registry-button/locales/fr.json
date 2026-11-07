@@ -1,0 +1,45 @@
+{
+  "add_to_registry": {
+    "label": "Ajouter à la liste",
+    "adding": "Ajout...",
+    "added": "Ajouté à votre liste",
+    "choose": "Choisir une liste",
+    "create": "Créer une liste",
+    "error": "Impossible d'ajouter cet article. Veuillez réessayer.",
+    "no_registry": "Vous devez d'abord créer une liste.",
+    "which": "Quelle liste ?",
+    "store_option": "Ma liste {{ shop }}",
+    "babylist_option": "Ma liste Babylist",
+    "babylist_error": "Impossible d'ouvrir Babylist. Veuillez réessayer.",
+    "other_option": "Autre liste (copier le lien)",
+    "link_copied": "Lien du produit copié. Dans votre autre liste, collez-le là où un lien est demandé, ou utilisez le bouton propre à ce site, comme Add to Zola.",
+    "added_short": "Ajouté",
+    "back": "Retour à votre liste",
+    "updating": "Mise à jour...",
+    "updated": "Liste mise à jour",
+    "update_error": "Impossible de mettre à jour. Veuillez réessayer.",
+    "quantity": "Quantité",
+    "total_quantity": "Quantité totale souhaitée",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "dup_message": "Déjà sur cette liste : vous en souhaitez actuellement {{ qty }}. Combien au total ?",
+    "dup_short": "Cet article figure déjà sur la liste ({{ qty }} souhaité). Ouvrez la liste pour modifier la quantité.",
+    "copy_prompt": "Copiez ce lien :"
+  },
+  "save_for_later": {
+    "error": "Impossible d'enregistrer sur ce navigateur.",
+    "remove": "Retirer",
+    "add_to_registry": "Ajouter à la liste",
+    "label": "Enregistrer pour plus tard",
+    "saved": "Enregistré",
+    "heading": "Enregistrés pour plus tard",
+    "empty": "Rien d'enregistré pour le moment. Touchez le cœur sur un produit pour le garder ici."
+  },
+  "registry_links": {
+    "heading": "Liste de cadeaux",
+    "create": "Créer une liste de cadeaux",
+    "find": "Trouver une liste de cadeaux",
+    "manage": "Gérer ma liste de cadeaux",
+    "cart_return": "Retour à la liste"
+  }
+}

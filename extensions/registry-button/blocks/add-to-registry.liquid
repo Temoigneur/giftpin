@@ -9,6 +9,8 @@
   framework on a storefront that isn't ours to slow down.
 {% endcomment %}
 
+{%- assign lbl_button_label = block.settings.button_label -%}{%- if lbl_button_label == blank -%}{%- assign lbl_button_label = 'add_to_registry.label' | t -%}{%- endif -%}
+
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 {%- assign offers_choice = false -%}
 {%- if block.settings.offer_babylist or block.settings.offer_other_registry -%}
@@ -25,6 +27,17 @@
   data-price="{{ current_variant.price | divided_by: 100.0 }}"
   data-currency="{{ cart.currency.iso_code }}"
   data-proxy="{{ block.settings.proxy_path | default: '/apps/registry' }}"
+  data-label-adding="{{ 'add_to_registry.adding' | t | escape }}"
+  data-label-added="{{ 'add_to_registry.added' | t | escape }}"
+  data-label-added-short="{{ 'add_to_registry.added_short' | t | escape }}"
+  data-label-error="{{ 'add_to_registry.error' | t | escape }}"
+  data-label-back="{{ 'add_to_registry.back' | t | escape }}"
+  data-label-updating="{{ 'add_to_registry.updating' | t | escape }}"
+  data-label-updated="{{ 'add_to_registry.updated' | t | escape }}"
+  data-label-update-error="{{ 'add_to_registry.update_error' | t | escape }}"
+  data-label-dup-message="{{ 'add_to_registry.dup_message' | t: qty: '{qty}' | escape }}"
+  data-label-dup-short="{{ 'add_to_registry.dup_short' | t: qty: '{qty}' | escape }}"
+  data-label-copy-prompt="{{ 'add_to_registry.copy_prompt' | t | escape }}"
   data-customer-id="{{ customer.id }}"
   {%- if offers_choice %}
     data-offers-choice="1"
@@ -50,7 +63,7 @@
         <path d="M3.5 12.5h13v4h-13z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
       </svg>
     {%- endif -%}
-    <span data-giftpin-label>{{ block.settings.button_label | default: 'Add to registry' }}</span>
+    <span data-giftpin-label>{{ lbl_button_label }}</span>
   </button>
 
   <p class="giftpin-deal" data-giftpin-deal hidden></p>
@@ -141,10 +154,10 @@
         max="20"
         value="1"
         data-giftpin-qty
-        aria-label="Quantity"
+        aria-label="{{ 'add_to_registry.quantity' | t | escape }}"
       >
       <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-confirm>
-        {{ block.settings.button_label | default: 'Add to registry' }}
+        {{ lbl_button_label }}
       </button>
     </div>
   </div>
@@ -164,13 +177,13 @@
         min="1"
         max="99"
         data-giftpin-dup-qty
-        aria-label="Total quantity wanted"
+        aria-label="{{ 'add_to_registry.total_quantity' | t | escape }}"
       >
       <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-confirm>
-        Update
+        {{ 'add_to_registry.update' | t }}
       </button>
       <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-cancel>
-        Never mind
+        {{ 'add_to_registry.cancel' | t }}
       </button>
     </div>
   </div>
@@ -194,7 +207,7 @@
       "type": "text",
       "id": "button_label",
       "label": "Button label",
-      "default": "Add to registry"
+      "info": "Leave blank to show “Add to registry” in the language your shopper is browsing in."
     },
     {
       "type": "checkbox",

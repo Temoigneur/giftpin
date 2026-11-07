@@ -1,0 +1,45 @@
+{
+  "add_to_registry": {
+    "label": "Adicionar à lista",
+    "adding": "Adicionando...",
+    "added": "Adicionado à sua lista",
+    "choose": "Escolha uma lista",
+    "create": "Criar uma lista",
+    "error": "Não foi possível adicionar. Tente novamente.",
+    "no_registry": "Você precisa criar uma lista primeiro.",
+    "which": "Qual lista?",
+    "store_option": "Minha lista da {{ shop }}",
+    "babylist_option": "Minha lista da Babylist",
+    "babylist_error": "Não foi possível abrir a Babylist. Tente novamente.",
+    "other_option": "Outra lista (copiar link)",
+    "link_copied": "Link do produto copiado. Na sua outra lista, cole onde ele pedir um link, ou use o botão do próprio site, como Add to Zola.",
+    "added_short": "Adicionado",
+    "back": "Voltar para sua lista",
+    "updating": "Atualizando...",
+    "updated": "Lista atualizada",
+    "update_error": "Não foi possível atualizar. Tente novamente.",
+    "quantity": "Quantidade",
+    "total_quantity": "Quantidade total desejada",
+    "update": "Atualizar",
+    "cancel": "Cancelar",
+    "dup_message": "Já está nesta lista: você quer {{ qty }} no momento. Quantos no total?",
+    "dup_short": "Este item já está na lista (quer {{ qty }}). Abra a lista para alterar a quantidade.",
+    "copy_prompt": "Copie este link:"
+  },
+  "save_for_later": {
+    "error": "Não foi possível salvar neste navegador.",
+    "remove": "Remover",
+    "add_to_registry": "Adicionar à lista",
+    "label": "Salvar para depois",
+    "saved": "Salvo",
+    "heading": "Salvos para depois",
+    "empty": "Nada salvo ainda. Toque no coração de um produto para guardá-lo aqui."
+  },
+  "registry_links": {
+    "heading": "Lista de presentes",
+    "create": "Criar uma lista de presentes",
+    "find": "Encontrar uma lista de presentes",
+    "manage": "Gerenciar minha lista de presentes",
+    "cart_return": "Voltar para a lista"
+  }
+}
