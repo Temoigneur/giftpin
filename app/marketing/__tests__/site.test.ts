@@ -62,6 +62,16 @@ describe("marketing site", () => {
     expect(html).toContain(`<link rel="canonical" href="https://giftpin.app${path}">`);
   });
 
+  it("puts Setup in the top bar (desktop and phone menu) in every language, marked current on /setup", async () => {
+    const top = (html: string) => html.slice(html.indexOf('<header class="site-top">'), html.indexOf("</header>"));
+    const en = top(await page("/features"));
+    expect(en.match(/<a href="\/setup">Setup<\/a>/g)).toHaveLength(2);
+    expect(top(await page("/setup"))).toContain('<a href="/setup" aria-current="page">Setup</a>');
+    for (const [lang, label] of [["fr", "Installation"], ["es", "Configuración"], ["de", "Einrichtung"], ["pt-BR", "Configuração"]]) {
+      expect(top(await page("/pricing", { query: `?lang=${lang}` }))).toContain(`<a href="/setup?lang=${lang}">${label}</a>`);
+    }
+  });
+
   it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup"])("%s loads nothing from Skimlinks and doesn't mention it", async (path) => {
     const html = await page(path);
     expect(html.toLowerCase()).not.toContain("skim");

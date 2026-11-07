@@ -209,7 +209,7 @@ ${kind === "setup" ? finalCta(copy.ui.finalCta) : ""}
 `;
   return sitePage({
     path,
-    nav: "guides",
+    nav: kind === "setup" ? "setup" : "guides",
     title: doc.metaTitle,
     description: doc.description,
     body,
