@@ -95,6 +95,8 @@ export const esManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.State": "Estado",
   "manage.region.Province": "Provincia",
   "manage.region.Territory": "Territorio",
+  "manage.region.County": "Condado",
+  "manage.region.Region": "Región",
   "manage.ideas.how1": "Toca un artículo para buscarlo en la tienda de {shop}.",
   "manage.ideas.how2": "Toca una experiencia para añadirla a tu lista, con un enlace para reservarla si tienes uno.",
   "manage.ideas.how3": "Toca un fondo para crearlo abajo.",
