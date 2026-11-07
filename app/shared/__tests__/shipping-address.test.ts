@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseShippingAddressForm, toMailingAddressInput } from "../shipping-address";
+import { parseShippingAddressForm, toMailingAddressInput, SHIPPING_COUNTRIES } from "../shipping-address";
+import { COUNTRIES } from "../retailers";
 
 function form(values: Record<string, string>) {
   const data = new FormData();
@@ -53,7 +54,17 @@ describe("parseShippingAddressForm", () => {
   });
 
   it("rejects a country the form doesn't offer", () => {
-    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "FR" }))).toEqual({ error: "country" });
+    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "JP" }))).toEqual({ error: "country" });
+  });
+
+  it("offers the same 13 countries as the registry country list", () => {
+    expect(SHIPPING_COUNTRIES.map((c) => c.code).sort()).toEqual(COUNTRIES.map((c) => c.code).sort());
+  });
+
+  it("needs no region for France but does for Spain", () => {
+    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "FR", provinceCode: "", zip: "75001" }))).toHaveProperty("address");
+    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "ES", provinceCode: "", zip: "08001" }))).toEqual({ error: "region" });
+    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "ES", provinceCode: "B", zip: "08001" }))).toHaveProperty("address");
   });
 });
 

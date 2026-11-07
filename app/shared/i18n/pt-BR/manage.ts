@@ -95,6 +95,8 @@ export const ptBRManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.State": "Estado",
   "manage.region.Province": "Província",
   "manage.region.Territory": "Território",
+  "manage.region.County": "Condado",
+  "manage.region.Region": "Região",
   "manage.ideas.how1": "Toque em um item para buscá-lo na loja de {shop}.",
   "manage.ideas.how2": "Toque em uma experiência para adicioná-la à sua lista, com um link de reserva se tiver.",
   "manage.ideas.how3": "Toque em um fundo para criá-lo abaixo.",

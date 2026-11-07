@@ -93,6 +93,8 @@ export const enManage = {
   "manage.region.State": "State",
   "manage.region.Province": "Province",
   "manage.region.Territory": "Territory",
+  "manage.region.County": "County",
+  "manage.region.Region": "Region",
   "manage.ideas.how1": "Tap an item to search {shop}'s store.",
   "manage.ideas.how2": "Tap an experience to add it to your list, with a link to book it if you have one.",
   "manage.ideas.how3": "Tap a fund to set one up below.",
