@@ -57,7 +57,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const shop = await requireShop(session.shop);
   const form = await request.formData();
-  const locale = adminLocale(request);
+  const locale = adminLocale(request, settingsFor(shop).language);
 
   // Separate form so saving it can't clobber (or be clobbered by) the rest.
   if (form.get("intent") === "contributions") {

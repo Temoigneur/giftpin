@@ -22,7 +22,10 @@ function supported(tag: string): Locale | null {
   return l === "en" ? null : l;
 }
 
-export function adminLocale(request: Request): Locale {
+export function adminLocale(request: Request, storeLanguage?: string | null): Locale {
+  // The store's own language (Settings) wins when it is one we translate; English
+  // there means "no choice made", so the Shopify admin language still applies.
+  if (storeLanguage && storeLanguage !== "en" && isLocale(storeLanguage)) return storeLanguage;
   const url = new URL(request.url);
   const fromParam = supported(url.searchParams.get("locale") ?? "");
   if (fromParam) return fromParam;

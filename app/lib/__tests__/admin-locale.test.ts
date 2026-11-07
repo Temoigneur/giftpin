@@ -32,3 +32,13 @@ describe("adminLocale", () => {
     expect(adminLocale(req("https://x.test/app?locale=xx"))).toBe("en");
   });
 });
+
+describe("adminLocale with a store language", () => {
+  it("uses the store's language over Shopify's and the browser's", () => {
+    expect(adminLocale(req("https://x.test/app?locale=fr", "es"), "de")).toBe("de");
+  });
+
+  it("treats English as no choice, so the Shopify admin language still applies", () => {
+    expect(adminLocale(req("https://x.test/app?locale=fr"), "en")).toBe("fr");
+  });
+});

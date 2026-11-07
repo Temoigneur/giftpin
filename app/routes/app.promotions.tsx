@@ -52,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   } catch (err) {
     console.error("[promotions] list:", (err as Error).message);
-    loadError = translate("admin.promo.loadErr", undefined, adminLocale(request));
+    loadError = translate("admin.promo.loadErr", undefined, adminLocale(request, settingsFor(shop).language));
   }
 
   return {
@@ -75,7 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const graphql = (q: string, o?: { variables?: Record<string, unknown> }) => admin.graphql(q, o);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
-  const locale = adminLocale(request);
+  const locale = adminLocale(request, settingsFor(shop).language);
   const say = (key: Parameters<typeof translate>[0], vars?: Record<string, string | number>) => translate(key, vars, locale);
 
   if (intent === "create") {
