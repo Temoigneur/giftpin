@@ -80,7 +80,6 @@ const DATA: Record<string, Shelves> = {
     toys: [
       ["Target", "https://www.target.com/s?searchTerm={q}"],
       ["Walmart", "https://www.walmart.com/search?q={q}"],
-      ["Barnes & Noble", "https://www.barnesandnoble.com/s/{q}"],
       ["Kohl's", "https://www.kohls.com/search.jsp?search={q}"],
       ["Etsy", "https://www.etsy.com/search?q={q}"],
       shop("com"),
@@ -96,7 +95,6 @@ const DATA: Record<string, Shelves> = {
     pets: [
       ["Chewy", "https://www.chewy.com/s?query={q}"],
       ["Petco", "https://www.petco.com/shop/en/petcostore/s/{q}"],
-      ["PetSmart", "https://www.petsmart.com/search/?q={q}"],
       ["Target", "https://www.target.com/s?searchTerm={q}"],
       ["Walmart", "https://www.walmart.com/search?q={q}"],
       shop("com"),
@@ -145,7 +143,6 @@ const DATA: Record<string, Shelves> = {
     pets: [
       ["Walmart", "https://www.walmart.ca/en/search?q={q}"],
       ["Canadian Tire", "https://www.canadiantire.ca/en/search-results.html?q={q}"],
-      ["Petsmart", "https://www.petsmart.ca/search/?q={q}"],
       ["Well.ca", "https://well.ca/searchresult.html?keyword={q}"],
       shop("ca"),
     ],
@@ -199,14 +196,12 @@ const DATA: Record<string, Shelves> = {
       ["B&Q", "https://www.diy.com/search?term={q}"],
       ["Argos", "https://www.argos.co.uk/search/{q}/"],
       ["Wickes", "https://www.wickes.co.uk/search?text={q}"],
-      ["Dunelm", "https://www.dunelm.com/search?searchTerm={q}"],
       shop("co.uk"),
     ],
   },
   IE: {
     home: [
       ["Argos", "https://www.argos.ie/search/{q}/"],
-      ["Dunnes Stores", "https://www.dunnesstores.com/search?q={q}"],
       ["Brown Thomas", "https://www.brownthomas.com/search/?q={q}"],
       ["IKEA", "https://www.ikea.com/ie/en/search/?q={q}"],
       ["Harvey Norman", "https://www.harveynorman.ie/catalogsearch/result/?q={q}"],
@@ -214,7 +209,6 @@ const DATA: Record<string, Shelves> = {
     ],
     baby: [
       ["Argos", "https://www.argos.ie/search/{q}/"],
-      ["Dunnes Stores", "https://www.dunnesstores.com/search?q={q}"],
       ["Smyths Toys", "https://www.smythstoys.com/ie/en-ie/search/?text={q}"],
       ["IKEA", "https://www.ikea.com/ie/en/search/?q={q}"],
       shop("ie"),
@@ -222,8 +216,6 @@ const DATA: Record<string, Shelves> = {
     toys: [
       ["Smyths Toys", "https://www.smythstoys.com/ie/en-ie/search/?text={q}"],
       ["Argos", "https://www.argos.ie/search/{q}/"],
-      ["Dunnes Stores", "https://www.dunnesstores.com/search?q={q}"],
-      ["Easons", "https://www.easons.com/catalogsearch/result/?q={q}"],
       shop("ie"),
     ],
     tech: [
@@ -237,13 +229,10 @@ const DATA: Record<string, Shelves> = {
       ["Maxi Zoo", "https://www.maxizoo.ie/search/?q={q}"],
       ["Zooplus", "https://www.zooplus.ie/shop/search?q={q}"],
       ["Argos", "https://www.argos.ie/search/{q}/"],
-      ["Dunnes Stores", "https://www.dunnesstores.com/search?q={q}"],
       shop("ie"),
     ],
     garden: [
-      ["Woodies", "https://www.woodies.ie/search?q={q}"],
       ["Argos", "https://www.argos.ie/search/{q}/"],
-      ["Dunnes Stores", "https://www.dunnesstores.com/search?q={q}"],
       ["IKEA", "https://www.ikea.com/ie/en/search/?q={q}"],
       shop("ie"),
     ],
@@ -281,7 +270,6 @@ const DATA: Record<string, Shelves> = {
       shop("com.au"),
     ],
     pets: [
-      ["Petbarn", "https://www.petbarn.com.au/search?q={q}"],
       ["Pet Circle", "https://www.petcircle.com.au/search?q={q}"],
       ["Kmart", "https://www.kmart.com.au/search/?searchTerm={q}"],
       ["Big W", "https://www.bigw.com.au/search?q={q}"],
@@ -320,7 +308,6 @@ const DATA: Record<string, Shelves> = {
     ],
     tech: [
       ["Noel Leeming", "https://www.noelleeming.co.nz/search?q={q}"],
-      ["Harvey Norman", "https://www.harveynorman.co.nz/catalogsearch/result/?q={q}"],
       ["The Warehouse", "https://www.thewarehouse.co.nz/search?q={q}"],
       ["JB Hi-Fi", "https://www.jbhifi.co.nz/search?query={q}"],
       shop("co.nz"),
@@ -344,7 +331,6 @@ const DATA: Record<string, Shelves> = {
     home: [
       ["Otto", "https://www.otto.de/suche/{q}/"],
       ["IKEA", "https://www.ikea.com/de/de/search/?q={q}"],
-      ["home24", "https://www.home24.de/suche/?q={q}"],
       ["Kaufland", "https://www.kaufland.de/s/?search_value={q}"],
       ["Etsy", "https://www.etsy.com/de/search?q={q}"],
       shop("de"),
@@ -399,13 +385,11 @@ const DATA: Record<string, Shelves> = {
     ],
     baby: [
       ["dm", "https://www.dm.at/search?query={q}"],
-      ["Müller", "https://www.mueller.at/suche/?q={q}"],
       ["IKEA", "https://www.ikea.com/at/de/search/?q={q}"],
       ["XXXLutz", "https://www.xxxlutz.at/search?q={q}"],
       shop("at"),
     ],
     toys: [
-      ["Müller", "https://www.mueller.at/suche/?q={q}"],
       ["Thalia", "https://www.thalia.at/suche?sq={q}"],
       ["Smyths Toys", "https://www.smythstoys.com/at/de-at/search/?text={q}"],
       ["MediaMarkt", "https://www.mediamarkt.at/de/search.html?query={q}"],
@@ -433,7 +417,6 @@ const DATA: Record<string, Shelves> = {
   },
   FR: {
     home: [
-      ["Maisons du Monde", "https://www.maisonsdumonde.com/FR/fr/search?q={q}"],
       ["La Redoute", "https://www.laredoute.fr/psrch/psrch.aspx?kwd={q}"],
       ["IKEA", "https://www.ikea.com/fr/fr/search/?q={q}"],
       ["Cdiscount", "https://www.cdiscount.com/search/10/{q}.html"],
@@ -441,7 +424,6 @@ const DATA: Record<string, Shelves> = {
       shop("fr"),
     ],
     baby: [
-      ["Aubert", "https://www.aubert.com/catalogsearch/result/?q={q}"],
       ["La Redoute", "https://www.laredoute.fr/psrch/psrch.aspx?kwd={q}"],
       ["Cdiscount", "https://www.cdiscount.com/search/10/{q}.html"],
       ["Auchan", "https://www.auchan.fr/recherche?text={q}"],
@@ -450,7 +432,6 @@ const DATA: Record<string, Shelves> = {
     ],
     toys: [
       ["La Grande Récré", "https://www.lagranderecre.fr/catalogsearch/result/?q={q}"],
-      ["JouéClub", "https://www.joueclub.fr/catalogsearch/result/?q={q}"],
       ["Fnac", "https://www.fnac.com/SearchResult/ResultList.aspx?Search={q}"],
       ["Cdiscount", "https://www.cdiscount.com/search/10/{q}.html"],
       shop("fr"),
@@ -472,7 +453,6 @@ const DATA: Record<string, Shelves> = {
     garden: [
       ["Leroy Merlin", "https://www.leroymerlin.fr/produits/?q={q}"],
       ["Castorama", "https://www.castorama.fr/search?term={q}"],
-      ["Truffaut", "https://www.truffaut.com/search?q={q}"],
       ["Cdiscount", "https://www.cdiscount.com/search/10/{q}.html"],
       ["IKEA", "https://www.ikea.com/fr/fr/search/?q={q}"],
       shop("fr"),
@@ -482,14 +462,12 @@ const DATA: Record<string, Shelves> = {
     home: [
       ["El Corte Inglés", "https://www.elcorteingles.es/search-nwx/?s={q}"],
       ["IKEA", "https://www.ikea.com/es/es/search/?q={q}"],
-      ["Maisons du Monde", "https://www.maisonsdumonde.com/ES/es/search?q={q}"],
       ["Carrefour", "https://www.carrefour.es/?q={q}"],
       ["Etsy", "https://www.etsy.com/es/search?q={q}"],
       shop("es"),
     ],
     baby: [
       ["El Corte Inglés", "https://www.elcorteingles.es/search-nwx/?s={q}"],
-      ["Bebitus", "https://www.bebitus.com/es/search?q={q}"],
       ["Carrefour", "https://www.carrefour.es/?q={q}"],
       ["IKEA", "https://www.ikea.com/es/es/search/?q={q}"],
       shop("es"),
@@ -509,8 +487,6 @@ const DATA: Record<string, Shelves> = {
       shop("es"),
     ],
     pets: [
-      ["Tiendanimal", "https://www.tiendanimal.es/buscar/?q={q}"],
-      ["Kiwoko", "https://www.kiwoko.com/catalogsearch/result/?q={q}"],
       ["Zooplus", "https://www.zooplus.es/shop/search?q={q}"],
       ["Carrefour", "https://www.carrefour.es/?q={q}"],
       shop("es"),
@@ -549,7 +525,6 @@ const DATA: Record<string, Shelves> = {
     tech: [
       ["Worten", "https://www.worten.pt/search?query={q}"],
       ["Fnac", "https://www.fnac.pt/SearchResult/ResultList.aspx?Search={q}"],
-      ["MediaMarkt", "https://www.mediamarkt.pt/pt/search.html?query={q}"],
       ["El Corte Inglés", "https://www.elcorteingles.pt/search-nwx/?s={q}"],
       shop("pt"),
     ],
@@ -616,7 +591,6 @@ const DATA: Record<string, Shelves> = {
       ["Casas Bahia", "https://www.casasbahia.com.br/{q}/b"],
       ["Americanas", "https://www.americanas.com.br/busca/{q}"],
       ["Mercado Livre", "https://lista.mercadolivre.com.br/{q}"],
-      ["Tok&Stok", "https://www.tokstok.com.br/busca?q={q}"],
       shop("com.br"),
     ],
     baby: [
@@ -636,7 +610,6 @@ const DATA: Record<string, Shelves> = {
     tech: [
       ["Magazine Luiza", "https://www.magazineluiza.com.br/busca/{q}/"],
       ["Casas Bahia", "https://www.casasbahia.com.br/{q}/b"],
-      ["Fast Shop", "https://www.fastshop.com.br/web/s/{q}"],
       ["Mercado Livre", "https://lista.mercadolivre.com.br/{q}"],
       shop("com.br"),
     ],
