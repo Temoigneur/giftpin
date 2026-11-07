@@ -14,12 +14,9 @@ import { isLocale, toLocale, type Locale } from "../shared/i18n";
 function supported(tag: string): Locale | null {
   const t = tag.trim();
   if (!t) return null;
-  if (isLocale(t)) return t;
-  const base = t.toLowerCase().split(/[-_]/)[0];
-  if (base === "pt") return "pt-BR";
-  if (base === "en") return "en";
-  const l = toLocale(base);
-  return l === "en" ? null : l;
+  const l = toLocale(t);
+  if (l !== "en") return l;
+  return /^en([-_]|$)/i.test(t) ? "en" : null;
 }
 
 export function adminLocale(request: Request, storeLanguage?: string | null): Locale {

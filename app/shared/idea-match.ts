@@ -29,11 +29,14 @@ export const IDEA_MATCH_JS = String.raw`function gpIdeaMatch(term,products){
   function words(s){
     s=String(s==null?'':s).toLowerCase();
     try{s=s.normalize('NFKD').replace(/[̀-ͯ]/g,'');}catch(_){}
-    var out=[],parts=s.split(/[^a-z0-9]+/);
+    var out=[],parts=s.split(/[^a-z0-9\u0900-\u097f\u3040-\u30ff\u3400-\u9fff]+/);
     for(var i=0;i<parts.length;i++)if(parts[i])out.push(stem(parts[i]));
     return out;
   }
   function has(list,k){
+    // Chinese and Japanese have no spaces between words, so a run of characters in a
+    // title counts if it contains the key as a substring.
+    if(/[\u3040-\u30ff\u3400-\u9fff]/.test(k))return list.join('').indexOf(k)>=0;
     for(var i=0;i<list.length;i++){
       if(list[i]===k)return true;
       if(i+1<list.length&&stem(list[i]+list[i+1])===k)return true;

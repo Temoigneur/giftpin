@@ -23,6 +23,8 @@
  * site's search is known to work and have NOT been checked live (cloud sessions
  * can't reach these sites): run `node scripts/check-retailer-links.mjs` from a
  * normal machine, and fix or drop any that fail (CLAUDE.md hard rule 1).
+ * The IN/CN/TW/JP lists (added 7 Nov 2026) are written from knowledge of each
+ * site's search and are NOT checked live: run `node scripts/check-retailer-links.mjs`.
  * A shelf a country has no list for falls back to its home list.
  */
 
@@ -48,6 +50,10 @@ export const COUNTRIES: { code: string; label: string }[] = [
   { code: "PT", label: "Portugal" },
   { code: "MX", label: "Mexico" },
   { code: "BR", label: "Brazil" },
+  { code: "IN", label: "India" },
+  { code: "CN", label: "China" },
+  { code: "TW", label: "Taiwan" },
+  { code: "JP", label: "Japan" },
 ];
 
 /** The kind of thing an idea is, which decides which stores we suggest. */
@@ -626,6 +632,184 @@ const DATA: Record<string, Shelves> = {
       ["Casas Bahia", "https://www.casasbahia.com.br/{q}/b"],
       ["Mercado Livre", "https://lista.mercadolivre.com.br/{q}"],
       shop("com.br"),
+    ],
+  },
+  IN: {
+    home: [
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      ["Pepperfry", "https://www.pepperfry.com/site_product/search?q={q}"],
+      ["Urban Ladder", "https://www.urbanladder.com/products?q={q}"],
+      ["IKEA", "https://www.ikea.com/in/en/search/?q={q}"],
+      ["Myntra", "https://www.myntra.com/{q}"],
+      shop("co.in"),
+    ],
+    baby: [
+      ["FirstCry", "https://www.firstcry.com/search?q={q}"],
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      ["Nykaa", "https://www.nykaa.com/search/result/?q={q}"],
+      ["Myntra", "https://www.myntra.com/{q}"],
+      shop("co.in"),
+    ],
+    toys: [
+      ["Hamleys", "https://www.hamleys.in/search?q={q}"],
+      ["FirstCry", "https://www.firstcry.com/search?q={q}"],
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      shop("co.in"),
+    ],
+    tech: [
+      ["Croma", "https://www.croma.com/searchB?q={q}"],
+      ["Reliance Digital", "https://www.reliancedigital.in/search?q={q}"],
+      ["Vijay Sales", "https://www.vijaysales.com/search/{q}"],
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      shop("co.in"),
+    ],
+    pets: [
+      ["Supertails", "https://supertails.com/search?q={q}"],
+      ["Heads Up For Tails", "https://headsupfortails.com/search?q={q}"],
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      shop("co.in"),
+    ],
+    garden: [
+      ["Ugaoo", "https://www.ugaoo.com/search?q={q}"],
+      ["Flipkart", "https://www.flipkart.com/search?q={q}"],
+      ["Pepperfry", "https://www.pepperfry.com/site_product/search?q={q}"],
+      ["IKEA", "https://www.ikea.com/in/en/search/?q={q}"],
+      shop("co.in"),
+    ],
+  },
+  CN: {
+    home: [
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Taobao", "https://s.taobao.com/search?q={q}"],
+      ["Pinduoduo", "https://mobile.yangkeduo.com/search_result.html?search_key={q}"],
+      ["Suning", "https://search.suning.com/{q}/"],
+      shop("com.hk"),
+    ],
+    baby: [
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Taobao", "https://s.taobao.com/search?q={q}"],
+      ["Pinduoduo", "https://mobile.yangkeduo.com/search_result.html?search_key={q}"],
+      shop("com.hk"),
+    ],
+    toys: [
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Taobao", "https://s.taobao.com/search?q={q}"],
+      ["Pinduoduo", "https://mobile.yangkeduo.com/search_result.html?search_key={q}"],
+      shop("com.hk"),
+    ],
+    tech: [
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["Suning", "https://search.suning.com/{q}/"],
+      ["Gome", "https://search.gome.com.cn/search?question={q}"],
+      shop("com.hk"),
+    ],
+    pets: [
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Taobao", "https://s.taobao.com/search?q={q}"],
+      ["Pinduoduo", "https://mobile.yangkeduo.com/search_result.html?search_key={q}"],
+      shop("com.hk"),
+    ],
+    garden: [
+      ["JD.com", "https://search.jd.com/Search?keyword={q}"],
+      ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
+      ["Taobao", "https://s.taobao.com/search?q={q}"],
+      ["Pinduoduo", "https://mobile.yangkeduo.com/search_result.html?search_key={q}"],
+      shop("com.hk"),
+    ],
+  },
+  TW: {
+    home: [
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["IKEA", "https://www.ikea.com.tw/zh/search/?q={q}"],
+      ["Costco", "https://www.costco.com.tw/search?text={q}"],
+      shop("com.tw"),
+    ],
+    baby: [
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["Costco", "https://www.costco.com.tw/search?text={q}"],
+      shop("com.tw"),
+    ],
+    toys: [
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["Costco", "https://www.costco.com.tw/search?text={q}"],
+      shop("com.tw"),
+    ],
+    tech: [
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["Costco", "https://www.costco.com.tw/search?text={q}"],
+      shop("com.tw"),
+    ],
+    pets: [
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["Costco", "https://www.costco.com.tw/search?text={q}"],
+      shop("com.tw"),
+    ],
+    garden: [
+      ["momo", "https://www.momoshop.com.tw/search/searchShop.jsp?keyword={q}"],
+      ["PChome 24h", "https://24h.pchome.com.tw/search/?q={q}"],
+      ["Shopee", "https://shopee.tw/search?keyword={q}"],
+      ["IKEA", "https://www.ikea.com.tw/zh/search/?q={q}"],
+      shop("com.tw"),
+    ],
+  },
+  JP: {
+    home: [
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
+      ["Muji", "https://www.muji.com/jp/ja/search?q={q}"],
+      ["Francfranc", "https://www.francfranc.com/search?keyword={q}"],
+      shop("co.jp"),
+    ],
+    baby: [
+      ["Akachan Honpo", "https://www.akachan.jp/search/?q={q}"],
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
+      shop("co.jp"),
+    ],
+    toys: [
+      ["Toys\"R\"Us Japan", "https://www.toysrus.co.jp/search/?q={q}"],
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Akachan Honpo", "https://www.akachan.jp/search/?q={q}"],
+      shop("co.jp"),
+    ],
+    tech: [
+      ["Yodobashi", "https://www.yodobashi.com/?word={q}"],
+      ["Bic Camera", "https://www.biccamera.com/bc/category/?q={q}"],
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      shop("co.jp"),
+    ],
+    pets: [
+      ["Cainz", "https://www.cainz.com/shop/goods/search.aspx?keyword={q}"],
+      ["Kohnan", "https://www.kohnan-eshop.com/shop/goods/search.aspx?keyword={q}"],
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      shop("co.jp"),
+    ],
+    garden: [
+      ["Cainz", "https://www.cainz.com/shop/goods/search.aspx?keyword={q}"],
+      ["Kohnan", "https://www.kohnan-eshop.com/shop/goods/search.aspx?keyword={q}"],
+      ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
+      ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
+      shop("co.jp"),
     ],
   },
 };

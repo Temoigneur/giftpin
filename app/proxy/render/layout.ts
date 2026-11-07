@@ -137,6 +137,13 @@ function safeColor(value: string, fallback = "#1a1a1a"): string {
  * legible whatever the pair is. Every value here was validated on save
  * (cleanHexColor / BRAND_FONTS), and safeColor runs again as a backstop.
  */
+const SCRIPT_FONTS: Partial<Record<string, string>> = {
+  hi: `-apple-system,"Noto Sans Devanagari","Nirmala UI","Kohinoor Devanagari",Mangal,sans-serif`,
+  ja: `-apple-system,"Hiragino Sans","Yu Gothic UI",Meiryo,"Noto Sans JP",sans-serif`,
+  "zh-CN": `-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif`,
+  "zh-TW": `-apple-system,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif`,
+};
+
 function brandStyles(branding: PageBranding): string {
   let css = "";
   if (branding.backgroundColor || branding.textColor) {
@@ -145,6 +152,10 @@ function brandStyles(branding: PageBranding): string {
     const vars = `--bg:${bg};--ink:${ink};--card:color-mix(in srgb,${bg} 93%,${ink});--muted:color-mix(in srgb,${ink} 65%,${bg});--line:color-mix(in srgb,${ink} 18%,${bg});--sh:0 1px 2px rgb(0 0 0/.06),0 6px 16px -6px rgb(0 0 0/.16)`;
     css += `\n:root{${vars}}\n@media (prefers-color-scheme:dark){:root{${vars}}}`;
   }
+  // Scripts the usual font stacks don't reach. Only added for those languages, so the
+  // English page stays inside its size budget.
+  const script = SCRIPT_FONTS[currentLocale()];
+  if (script) css += `\nbody{font-family:${script}}`;
   const font = brandFont(branding.font);
   if (font.value !== "system") css += `\nbody{font-family:${font.stack}}`;
   if (branding.logoUrl) css += `\n.brand-logo{display:block;margin:0 auto 20px;text-align:center}.brand-logo img{max-height:64px;max-width:220px;width:auto;height:auto}`;

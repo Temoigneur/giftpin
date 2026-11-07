@@ -13,6 +13,12 @@ describe("adminLocale", () => {
     expect(adminLocale(req("https://x.test/app?locale=pt-PT"))).toBe("pt-BR");
     expect(adminLocale(req("https://x.test/app?locale=fr-CA"))).toBe("fr");
     expect(adminLocale(req("https://x.test/app?locale=es-MX"))).toBe("es");
+    expect(adminLocale(req("https://x.test/app?locale=zh-CN"))).toBe("zh-CN");
+    expect(adminLocale(req("https://x.test/app?locale=zh-TW"))).toBe("zh-TW");
+    expect(adminLocale(req("https://x.test/app?locale=zh-Hant-HK"))).toBe("zh-TW");
+    expect(adminLocale(req("https://x.test/app?locale=zh"))).toBe("zh-CN");
+    expect(adminLocale(req("https://x.test/app?locale=ja"))).toBe("ja");
+    expect(adminLocale(req("https://x.test/app?locale=hi-IN"))).toBe("hi");
   });
 
   it("falls back to Accept-Language, highest q first", () => {
@@ -20,7 +26,7 @@ describe("adminLocale", () => {
   });
 
   it("skips languages it doesn't have and takes the next supported one", () => {
-    expect(adminLocale(req("https://x.test/app", "ja, es;q=0.8"))).toBe("es");
+    expect(adminLocale(req("https://x.test/app", "ko, es;q=0.8"))).toBe("es");
   });
 
   it("stops at English when it outranks anything supported", () => {

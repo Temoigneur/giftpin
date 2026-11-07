@@ -67,7 +67,7 @@ describe("marketing site", () => {
     const en = top(await page("/features"));
     expect(en.match(/<a href="\/setup">Setup<\/a>/g)).toHaveLength(2);
     expect(top(await page("/setup"))).toContain('<a href="/setup" aria-current="page">Setup</a>');
-    for (const [lang, label] of [["fr", "Installation"], ["es", "Configuración"], ["de", "Einrichtung"], ["pt-BR", "Configuração"]]) {
+    for (const [lang, label] of [["fr", "Installation"], ["es", "Configuración"], ["de", "Einrichtung"], ["pt-BR", "Configuração"], ["hi", "सेटअप"], ["zh-CN", "设置"], ["zh-TW", "設定"], ["ja", "セットアップ"]]) {
       expect(top(await page("/pricing", { query: `?lang=${lang}` }))).toContain(`<a href="/setup?lang=${lang}">${label}</a>`);
     }
   });

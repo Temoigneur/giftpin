@@ -1,0 +1,22 @@
+{
+  "add_to_registry": {
+    "label": "ギフトリストに追加",
+    "adding": "追加中...",
+    "added": "ギフトリストに追加しました",
+    "choose": "ギフトリストを選ぶ",
+    "create": "ギフトリストを作る",
+    "error": "追加できませんでした。もう一度お試しください。",
+    "no_registry": "先にギフトリストを作成してください。",
+    "which": "どのリストに追加しますか？",
+    "store_option": "{{ shop }} の私のリスト",
+    "babylist_option": "Babylist の私のリスト",
+    "babylist_error": "Babylist を開けませんでした。もう一度お試しください。",
+    "other_option": "別のリスト（リンクをコピー）",
+    "link_copied": "商品リンクをコピーしました。別のリストでリンクを求められた場所に貼り付けるか、そのサイト自身のボタン（例：Add to Zola）をお使いください。"
+  },
+  "save_for_later": {
+    "error": "このブラウザーに保存できませんでした。",
+    "remove": "削除",
+    "add_to_registry": "ギフトリストに追加"
+  }
+}

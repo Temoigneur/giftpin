@@ -54,7 +54,7 @@ describe("parseShippingAddressForm", () => {
   });
 
   it("rejects a country the form doesn't offer", () => {
-    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "JP" }))).toEqual({ error: "country" });
+    expect(parseShippingAddressForm(form({ ...VALID, countryCode: "KR" }))).toEqual({ error: "country" });
   });
 
   it("offers the same 13 countries as the registry country list", () => {

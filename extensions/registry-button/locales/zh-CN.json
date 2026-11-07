@@ -1,0 +1,22 @@
+{
+  "add_to_registry": {
+    "label": "加入礼物清单",
+    "adding": "正在加入...",
+    "added": "已加入您的礼物清单",
+    "choose": "选择礼物清单",
+    "create": "创建礼物清单",
+    "error": "无法加入，请重试。",
+    "no_registry": "您需要先创建一个礼物清单。",
+    "which": "加入哪个清单？",
+    "store_option": "我的 {{ shop }} 清单",
+    "babylist_option": "我的 Babylist 清单",
+    "babylist_error": "无法打开 Babylist，请重试。",
+    "other_option": "其他清单（复制链接）",
+    "link_copied": "商品链接已复制。请在您的其他清单中，在要求填写链接的位置粘贴，或使用该网站自己的按钮，例如 Add to Zola。"
+  },
+  "save_for_later": {
+    "error": "无法在此浏览器中保存。",
+    "remove": "移除",
+    "add_to_registry": "加入礼物清单"
+  }
+}

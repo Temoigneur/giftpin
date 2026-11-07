@@ -328,6 +328,13 @@ const CSS = `
 html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
 body{margin:0; background:var(--bg); color:var(--ink); font-family:"Plus Jakarta Sans",-apple-system,"Segoe UI",sans-serif;
   font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden}
+/* Scripts the Latin web fonts don't cover: system fonts, and line breaks that
+   follow each language's rules (CJK has no spaces to break on). */
+:lang(hi) body,:lang(hi) h1,:lang(hi) h2,:lang(hi) h3{font-family:"Noto Sans Devanagari","Nirmala UI","Kohinoor Devanagari","Mangal","Plus Jakarta Sans",sans-serif; line-height:1.7}
+:lang(ja) body,:lang(ja) h1,:lang(ja) h2,:lang(ja) h3{font-family:"Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif; letter-spacing:0; line-break:strict; overflow-wrap:anywhere}
+:lang(zh-CN) body,:lang(zh-CN) h1,:lang(zh-CN) h2,:lang(zh-CN) h3{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif; letter-spacing:0; line-break:strict; overflow-wrap:anywhere}
+:lang(zh-TW) body,:lang(zh-TW) h1,:lang(zh-TW) h2,:lang(zh-TW) h3{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif; letter-spacing:0; line-break:strict; overflow-wrap:anywhere}
+:lang(ja) h1,:lang(ja) h2,:lang(ja) h3,:lang(zh-CN) h1,:lang(zh-CN) h2,:lang(zh-CN) h3,:lang(zh-TW) h1,:lang(zh-TW) h2,:lang(zh-TW) h3{line-height:1.25}
 img{max-width:100%}
 a{color:var(--accent)}
 h1,h2,h3{font-family:"Bricolage Grotesque","Plus Jakarta Sans",sans-serif; letter-spacing:-.02em; line-height:1.08; margin:0}

@@ -9,7 +9,7 @@ import { renderCreatePage } from "../../proxy/render/create-page";
 describe("retailer links by country", () => {
   it("defaults to the United States (.com), not Canada", () => {
     expect(DEFAULT_COUNTRY).toBe("US");
-    for (const c of [undefined, null, "", "zz", "JP"]) {
+    for (const c of [undefined, null, "", "zz", "KR"]) {
       const urls = retailerSearchLinks(c).map((r) => r.url).join(" ");
       expect(urls).toContain("https://www.target.com/s?searchTerm={q}");
       expect(urls).not.toContain(".ca");
@@ -92,13 +92,13 @@ describe("country choice in the pages", () => {
   });
 });
 
-describe("13 countries, stores by kind of product", () => {
-  it("offers the 13 countries, each named in all five languages", () => {
-    expect(COUNTRIES.map((c) => c.code)).toEqual(["US", "CA", "GB", "IE", "AU", "NZ", "DE", "AT", "FR", "ES", "PT", "MX", "BR"]);
+describe("17 countries, stores by kind of product", () => {
+  it("offers the 17 countries, each named in every language", () => {
+    expect(COUNTRIES.map((c) => c.code)).toEqual(["US", "CA", "GB", "IE", "AU", "NZ", "DE", "AT", "FR", "ES", "PT", "MX", "BR", "IN", "CN", "TW", "JP"]);
     for (const c of COUNTRIES) {
       for (const l of LOCALES) {
         const name = countryName(c.code, c.label, l);
-        expect(name.length, `${c.code} ${l}`).toBeGreaterThan(2);
+        expect(name.length, `${c.code} ${l}`).toBeGreaterThanOrEqual(2);
         expect(name, `${c.code} ${l} is a code`).not.toBe(c.code);
       }
     }

@@ -25,10 +25,14 @@ import { fr } from "./fr";
 import { es } from "./es";
 import { de } from "./de";
 import { ptBR } from "./pt-BR";
+import { hi } from "./hi";
+import { zhCN } from "./zh-CN";
+import { zhTW } from "./zh-TW";
+import { ja } from "./ja";
 
 export type MessageKey = keyof Messages;
 
-export const LOCALES = ["en", "fr", "es", "de", "pt-BR"] as const;
+export const LOCALES = ["en", "fr", "es", "de", "pt-BR", "hi", "zh-CN", "zh-TW", "ja"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 /** Each language in its own name, for the Settings picker. */
@@ -38,12 +42,21 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   es: "Español",
   de: "Deutsch",
   "pt-BR": "Português (Brasil)",
+  hi: "हिन्दी",
+  "zh-CN": "简体中文",
+  "zh-TW": "繁體中文",
+  ja: "日本語",
 };
 
-const DICTIONARIES: Record<Locale, Messages> = { en, fr, es, de, "pt-BR": ptBR };
+const DICTIONARIES: Record<Locale, Messages> = { en, fr, es, de, "pt-BR": ptBR, hi, "zh-CN": zhCN, "zh-TW": zhTW, ja };
 
 /** BCP 47 tag for Intl. English keeps the en-CA formats the app always used. */
-const INTL_TAGS: Record<Locale, string> = { en: "en-CA", fr: "fr-CA", es: "es", de: "de-DE", "pt-BR": "pt-BR" };
+const INTL_TAGS: Record<Locale, string> = {
+  en: "en-CA", fr: "fr-CA", es: "es", de: "de-DE", "pt-BR": "pt-BR",
+  // Latin digits (0-9) everywhere: "hi-IN" and "zh-*" default to them, and the
+  // guest pages quote prices and dates a registrant also sees in a Shopify checkout.
+  hi: "hi-IN", "zh-CN": "zh-CN", "zh-TW": "zh-TW", ja: "ja-JP",
+};
 
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
@@ -52,10 +65,12 @@ export function isLocale(value: unknown): value is Locale {
 /** Anything unknown (old settings, a typo, a missing value) is English. */
 export function toLocale(value: unknown): Locale {
   if (isLocale(value)) return value;
-  // "fr-CA", "es-MX", "pt" and friends map to the closest language we have.
+  // "fr-CA", "es-MX", "pt", "zh-Hant-HK" and friends map to the closest language we have.
   if (typeof value === "string") {
-    const base = value.toLowerCase().split(/[-_]/)[0];
+    const [base, ...rest] = value.trim().toLowerCase().split(/[-_]/);
     if (base === "pt") return "pt-BR";
+    // Chinese is two languages here: Traditional (Taiwan, Hong Kong, Macau) or Simplified.
+    if (base === "zh") return rest.some((r) => ["tw", "hk", "mo", "hant"].includes(r)) ? "zh-TW" : "zh-CN";
     if (isLocale(base)) return base;
   }
   return "en";
