@@ -1,0 +1,22 @@
+{
+  "add_to_registry": {
+    "label": "加入禮物清單",
+    "adding": "加入中...",
+    "added": "已加入您的禮物清單",
+    "choose": "選擇禮物清單",
+    "create": "建立禮物清單",
+    "error": "無法加入，請再試一次。",
+    "no_registry": "您需要先建立一份禮物清單。",
+    "which": "加入哪一份清單？",
+    "store_option": "我的 {{ shop }} 清單",
+    "babylist_option": "我的 Babylist 清單",
+    "babylist_error": "無法開啟 Babylist，請再試一次。",
+    "other_option": "其他清單（複製連結）",
+    "link_copied": "商品連結已複製。請在您的其他清單中，於要求輸入連結的地方貼上，或使用該網站自己的按鈕，例如 Add to Zola。"
+  },
+  "save_for_later": {
+    "error": "無法在此瀏覽器中儲存。",
+    "remove": "移除",
+    "add_to_registry": "加入禮物清單"
+  }
+}

@@ -172,7 +172,7 @@ export const zhTWManage: { [K in keyof typeof enManage]: string } = {
   "manage.group.updateGoal": "更新目標",
   "manage.group.update": "更新集體送禮",
   "manage.group.letChip": "開放賓客集資贊助",
-  "manage.group.stop": "停止集資贊助",
+  "manage.group.stop": "停止集資",
   "manage.gift.hidden": "活動前保密",
   "manage.gift.anon": "匿名",
   "manage.gift.from": "來自 {who}",

@@ -12,7 +12,7 @@ export const hiGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.ship.shipsTo": "{who} को भेजा जाएगा।",
   "guest.ship.shipsToYou": "आपको भेजा जाएगा।",
   "guest.ship.change": "बदलें",
-  "guest.ship.confirm": "{who} को भेजें? आपको भेजने के लिए रद्द करें।",
+  "guest.ship.confirm": "{who} को भेजें? रद्द करें तो यह आपको भेजा जाएगा।",
   "guest.ship.cartUpdated": "आपका कार्ट अपडेट हो गया है।",
   "guest.ship.cartFailed": "आपका कार्ट अपडेट नहीं हो पाया। आइटम हटाकर फिर से जोड़ें।",
 

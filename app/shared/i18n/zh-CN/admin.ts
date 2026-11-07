@@ -154,7 +154,7 @@ export const zhCNAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.warnContrast": "您的文字颜色与背景色搭配后难以阅读（对比度 {ratio}:1；建议至少 4.5:1）。",
   "admin.bill.page": "套餐",
   "admin.bill.onPro": "您当前使用 Pro",
-  "admin.bill.free": "Free",
+  "admin.bill.free": "免费",
   "admin.bill.priceMo": "${price}/月",
   "admin.bill.f.analytics": "数据分析：随时间变化的礼物清单创建数、添加商品数和已购礼物数",
   "admin.bill.f.report": "礼物清单销售报告：按月统计收入、订单、新顾客和平均订单金额",

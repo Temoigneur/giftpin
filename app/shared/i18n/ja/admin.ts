@@ -154,7 +154,7 @@ export const jaAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.warnContrast": "文字色と背景色の組み合わせは読みにくいです（コントラスト比{ratio}:1。4.5:1以上が目安です）。",
   "admin.bill.page": "プラン",
   "admin.bill.onPro": "Proをご利用中です",
-  "admin.bill.free": "Free",
+  "admin.bill.free": "無料",
   "admin.bill.priceMo": "${price}/月",
   "admin.bill.f.analytics": "分析：作成されたギフトリスト、追加されたアイテム、購入されたギフトの推移",
   "admin.bill.f.report": "ギフトリストの売上レポート：月ごとの売上、注文数、新規のお客様、平均注文額",
