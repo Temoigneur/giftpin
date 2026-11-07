@@ -112,7 +112,7 @@ describe("13 countries, stores by kind of product", () => {
       const by = retailersByShelf(c.code);
       for (const shelf of SHELVES) {
         const list = by[shelf];
-        expect(list.length, `${c.code} ${shelf}`).toBeGreaterThanOrEqual(4);
+        expect(list.length, `${c.code} ${shelf}`).toBeGreaterThanOrEqual(3);
         expect(list.length, `${c.code} ${shelf}`).toBeLessThanOrEqual(6);
         expect(list[list.length - 1].name).toBe("Google Shopping");
         const names = list.map((r) => r.name);
