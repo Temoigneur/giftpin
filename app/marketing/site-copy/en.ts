@@ -1,0 +1,357 @@
+/**
+ * The words on the giftpin.app home, features, pricing and FAQ pages, in
+ * English. This file is the source of truth: fr.ts, es.ts, de.ts and
+ * pt-BR.ts must have exactly the same shape (TypeScript checks the keys, and
+ * site-copy.test.ts checks array lengths, {placeholders} and HTML tags).
+ *
+ * Strings are trusted HTML unless a comment says "plain" (titles and meta
+ * descriptions, which sitePage() escapes). Write `&amp;` for an ampersand.
+ * Prices, trial lengths, the plan name and the gift card fee never appear as
+ * digits here: they are {placeholders} filled from app/shared/plans.ts, so
+ * the site can't quote a different number from what Shopify charges.
+ * Placeholders: {pro} {price} {trial} {days} {fee} {slots} {n}.
+ * Not a `.server` file (CLAUDE.md hard rule 2).
+ */
+export type Item = { title: string; detail: string };
+export type QA = { q: string; a: string };
+
+export const en = {
+  plans: {
+    trial: "{days}-day free trial",
+    founding:
+      "Founding offer: the first {slots} stores to install from 23 October 2026 get 6 months of {pro} free (a {days}-day trial), then {price}/month unless you cancel. Your Plan page shows if you got a spot.",
+    free: [
+      { title: "Unlimited registries, items and guests", detail: "No caps and no per-registry fees." },
+      { title: "Gifts from your store and any online shop", detail: "Registrants paste a link and Giftpin fills in the photo, name and price." },
+      { title: "Your matching product suggested", detail: "Beside every item added from another shop, when your catalog has a close match." },
+      { title: "Weddings, baby showers, birthdays and more", detail: "You choose which occasions your store offers." },
+      { title: "No duplicate gifts", detail: "Guests reserve a gift, so nothing is bought twice." },
+      { title: "Credited through every checkout", detail: "Including Shop Pay, Apple Pay, Google Pay and the Shop app." },
+      { title: "Gifts ship straight to the registrant", detail: "When they save an address, gifts bought from your store go to them." },
+      { title: "Who-gave-what list for thank-you notes", detail: "Registrants can download it as a spreadsheet." },
+      { title: "Add to the registry they already have", detail: "Your Add to registry button can offer their Babylist registry, or copy the product link for any registry that takes one." },
+      { title: "Theme blocks for your store", detail: "An Add to registry button on product pages, and create, find and manage links anywhere." },
+      { title: "Overview dashboard", detail: "Registries, items and gifts at a glance." },
+      { title: "Sold-out products handled", detail: "Registries check your live stock. Sold-out items show as sold out, or hide until you restock." },
+      { title: "Import registries from another app", detail: "Upload a spreadsheet from your old registry app. Items match your products by SKU or barcode, and gifts already bought stay bought." },
+      { title: "Email support", detail: "" },
+    ] as Item[],
+    pro: [
+      { title: "Registry analytics", detail: "Registries, items and gifts over 30 days, 90 days or 12 months, with revenue, new customers, where gifts were bought and registries by occasion." },
+      { title: "Registry sales report", detail: "Revenue, orders, new customers and average order from registries, month by month." },
+      { title: "Your branding on registry pages", detail: 'Your logo, colours and font, with the "Powered by Giftpin" credit removed.' },
+      { title: "Completion discount", detail: "After the event, the registrant gets a single-use code for your products still on their list. You choose the percentage and how long it lasts." },
+      { title: "Automatic registry emails", detail: "A reminder before the event to guests who opt in, an alert when most items are gone, and a thank-you reminder listing who gave what." },
+      { title: "Your gift cards on giftpin.app", detail: "List your store in the giftpin.app gift card directory and add a gift card link to registry pages. Shoppers buy your gift cards at your own checkout. Giftpin charges {fee}% of each card sold this way, nothing during your free trial." },
+      { title: "In-store barcode scanner", detail: "Registrants shopping in your store scan a product's barcode with their own phone and add it to their registry. No app to install and no extra hardware." },
+      { title: "Registry perks", detail: "Tell registrants what they get for registering with you, like free gift wrapping. Shown when they start a registry and on their own registry page." },
+      { title: "CSV export", detail: "Every registry and purchase, ready for your spreadsheet or email tool." },
+      { title: "Priority email support", detail: "Replies within one business day." },
+    ] as Item[],
+  },
+
+  home: {
+    title: "Giftpin: gift registries with items from any store, for Shopify", // plain
+    description:
+      "Giftpin is the Shopify gift registry that isn't limited to your catalog. Customers add gifts from any store, Giftpin suggests your matching products, and every purchase is credited correctly, even through Shop Pay.", // plain
+    season: "New for the holidays: shareable wish lists, so family doesn't buy duplicates.",
+    seeHow: "See how",
+    eyebrow: "The gift registry app for Shopify",
+    h1a: "One registry.",
+    h1b: "Every store.",
+    h1c: "Your checkout first.",
+    lede: "Your customers put everything they want on one registry, from your shelves and from any shop online. Giftpin puts your matching products right beside the rest. Guests get one link. You get the sale.",
+    watchDemo: "Watch the demo",
+    proofFree: "Free plan with unlimited registries",
+    proofPro: "{pro} {trial}",
+    proofBilled: "Billed through Shopify",
+    proofCanada: "Made in Canada",
+    exampleLabel: "Example registry", // plain
+    regName: "Maya &amp; Theo's Wedding",
+    regSub: "24 gifts from 6 stores",
+    pctGifted: "62% gifted",
+    nLeft: "9 left",
+    standMixer: "Stand mixer",
+    dutchOven: "Cast-iron Dutch oven",
+    linenSet: "Linen bedding set",
+    yourStore: "Your store",
+    anotherShop: "Another shop",
+    giveThis: "Give this",
+    mayBeTaken: "May be taken",
+    gifted: "Gifted",
+    toastPaid: "Paid with Shop Pay",
+    toastCredited: "Credited to Maya &amp; Theo",
+    toastNew: "New gift!",
+    payLine: "Every gift credited to the right registry, however guests pay",
+    payStandard: "Standard checkout",
+
+    merchEyebrow: "Built for merchants",
+    merchH2a: "Other registries send customers elsewhere.",
+    merchH2b: "Giftpin sends them back.",
+    merchLede: "A registry locked to one catalog makes couples and parents look elsewhere for the rest. Giftpin lets them add anything, then looks in your catalog first and puts your product right beside it.",
+    merch1h: "Start from your shelves",
+    merch1p: "Shoppers browse your store from inside their registry, and wedding registries get room-by-room ideas that open a search of your catalog.",
+    merch2h: "Your product appears beside theirs",
+    merch2p: "When someone adds an item from another shop, Giftpin searches your catalog and shows your closest match right next to it.",
+    merch3h: "One tap to switch to yours",
+    merch3p: "They swap in your product, and guests buy it through your checkout. Suggestions are the shopper's choice, and guests only see the ones they keep.",
+    addedElsewhere: "Added from another shop",
+    similarItem: "Similar item in your store",
+    casserole: "Enameled casserole pot",
+    useInstead: "Use this instead",
+    illustration: "Illustration with example products. Giftpin only reads your catalog to find a match; nothing in your store is changed.",
+
+    anyEyebrow: "Already registered somewhere else?",
+    anyH2a: "Your Add to registry button works with",
+    anyH2b: "the registry they already have.",
+    anyLede: "Plenty of shoppers arrive with a registry on Babylist or a wedding site. Instead of losing them, your product page asks <em>Which registry?</em> and sends the gift wherever their list lives.",
+    any1h: "Your store's registry",
+    any1p: "The usual one tap onto a Giftpin registry, credited to you when guests buy.",
+    any2h: "Their Babylist registry",
+    any2p: "Added through Babylist's own add-to-Babylist script, with the size or colour they picked. It only loads when a shopper chooses it.",
+    any3h: "Any registry that takes a link",
+    any3p: "Giftpin copies the product link, with the variant they chose, and tells them where to paste it, or to use that site's own button, like Add to Zola.",
+    yourProductPage: "Your product page",
+    swaddle: "Organic cotton swaddle set",
+    whichRegistry: "Which registry?",
+    choiceMine: "My store registry",
+    choiceBabylist: "My Babylist registry",
+    choiceOther: "Another registry (copy link)",
+    anyFine: "Illustration. Both extra choices are off until you tick them in the button's settings, on Free and {pro}. Giftpin isn't affiliated with Babylist or Zola, and it doesn't track purchases made from registries on other sites.",
+
+    howEyebrow: "How it works",
+    howH2: "Three steps. One link. Zero duplicate toasters.",
+    howLede: "Nothing for guests to sign up for, and nothing for them to install.",
+    how1h: "Start a registry",
+    how1p: "Right from your store. Pick the occasion, name it, done. The registrant gets a private link by email to manage it, no account needed.",
+    how2h: "Add anything",
+    how2p: "Your products with one tap on the Add to registry button, and anything from any other shop by pasting a link. Your closest matches are suggested along the way.",
+    how3h: "Share and celebrate",
+    how3p: "Guests open one page and pick a gift, and it's marked so nobody buys it twice. The registrant hears about every gift and keeps a who-gave-what list.",
+
+    demoEyebrow: "Demo",
+    demoH2: "See Giftpin in action",
+    demoLede: "Watch a registry come together, from the first item to the thank-you list.",
+
+    featEyebrow: "Features",
+    featH2: "Everything a registry needs, on the free plan.",
+    featLede: "Unlimited registries, items and guests. No per-registry fees and no fee on your product sales.",
+    f1h: "Any store, one list",
+    f1p: "Your products, a boutique's candles and a big-box stroller, all on one page. Registrants paste a product link and Giftpin fills in the photo, name and price.",
+    storeHome: "Home goods shop",
+    storeBig: "Big-box retailer",
+    storeBoutique: "Local boutique",
+    storeHandmade: "Handmade marketplace",
+    f2h: "No duplicate gifts",
+    f2p: "The moment a guest goes to buy, the registry shows <em>Someone may be buying this</em>. If they don't, it comes back.",
+    f3h: "Credited through every checkout",
+    f3p: "Shop Pay, Apple Pay, Google Pay and the Shop app skip the cart. Giftpin still credits every gift to the right registry.",
+    f4h: "Ships straight to them",
+    f4p: "When the registrant saves an address, gifts bought from your store go right to their door. Guests never see it.",
+    f5h: "Ideas that fill the list",
+    f5p: "Room-by-room ideas for weddings and an ideas guide for every other occasion, each opening a search of your catalog.",
+    f6h: "Thank-you cards made easy",
+    f6p: "A who-gave-what list the registrant can download as a spreadsheet, so nobody gets missed.",
+    f7h: "Drops into your theme, no code",
+    f7p: "Add Giftpin's blocks in the theme editor: an Add to registry button on product pages, and registry links for anywhere else. Registry pages live on your own domain.",
+    blockAdd: "Add to registry",
+    blockCreate: "Create a gift registry",
+    blockFind: "Find a gift registry",
+    blockManage: "Manage my gift registry",
+    seeEvery: "See every feature",
+
+    occEyebrow: "Occasions",
+    occH2: "Weddings are just the start.",
+    occLede: "{n} occasions ready on day one, each with its own gift ideas guide. You choose which ones your store offers.",
+
+    proH2a: "Turn registries into",
+    proH2b: "repeat revenue.",
+    proLede: "See what registries earn you, make every page look like your store, and let Giftpin follow up with guests and registrants on its own.",
+    perMonth: "/ month",
+    comparePlans: "Compare plans",
+
+    honestEyebrow: "Honest by design",
+    honestH2: "Good for guests. Good for you.",
+    h1h: "No fee on your sales",
+    h1p: "Neither plan takes a cut of your own product sales. Pro is a flat {price} a month, billed through Shopify.",
+    h2h: "Disclosed, never hidden",
+    h2p: "Giftpin may earn a small commission when a guest buys from another website. It's disclosed on the registry page and never changes the guest's price.",
+    h3h: "Your store stays yours",
+    h3p: "Giftpin reads your catalog to suggest products. It never edits your products, prices or inventory.",
+
+    trustEyebrow: "New on the Shopify App Store",
+    trustH2a: "Don't take our word for it.",
+    trustH2b: "Check for yourself.",
+    trustLede: "Giftpin is new, so there aren't many reviews yet. Here's what you can see before you install, and how easy it is to walk away.",
+    t1h: "Reviewed by Shopify",
+    t1p: "Giftpin passed Shopify's app review before it was listed on the <a href=\"{appStore}\">Shopify App Store</a>, and runs on Shopify's own billing.",
+    t2h: "Watch the whole thing first",
+    t2p: "The <a href=\"#demo\">demo video</a> shows a real registry from the first item to the thank-you list. No sign-up needed to watch.",
+    t3h: "Free to try, easy to leave",
+    t3p: "The Free plan has no time limit. {pro} starts with a {trial}, and you cancel from Shopify like any other app.",
+    t4h: "Made in Canada by its founders",
+    t4p: "Giftpin is built by two co-founders, not a faceless agency. When you write in, the people who built it answer.",
+    t5h: "Help setting it up",
+    t5p: "Follow the <a href=\"/setup\">setup guide</a>, or email <a href=\"mailto:support@giftpin.app\">support@giftpin.app</a> and we'll help you get the button on your product pages.",
+    t6h: "Privacy you can read",
+    t6p: "See exactly what Giftpin stores about registrants and guests, and why, in the <a href=\"/privacy\">privacy policy</a>.",
+
+    faqEyebrow: "FAQ",
+    faqH2: "Questions, answered.",
+    faqLede: "Still curious? Email <a href=\"mailto:support@giftpin.app\">support@giftpin.app</a> and a real person will write back.",
+    allQuestions: "All questions",
+    finalCta: "Give your customers the registry they actually want.",
+  },
+
+  features: {
+    title: "Giftpin features: gift registries for Shopify", // plain
+    description:
+      "Everything Giftpin does: registries with gifts from any store, an Add to registry button that also works with Babylist and other registries, your matching products suggested, no duplicate gifts, correct credit through Shop Pay, Apple Pay and Google Pay, and Pro analytics, branding and automatic emails.", // plain
+    eyebrow: "Features",
+    h1a: "Every gift. Every store.",
+    h1b: "One registry.",
+    lede: "Giftpin gives your customers a registry with no walls, gives their guests a page that's easy to shop, and gives you the first look at every gift.",
+    jumpLabel: "Jump to", // plain
+    jumpRegistrants: "For registrants",
+    jumpGuests: "For guests",
+    jumpMerchants: "For your store",
+    regEyebrow: "For registrants",
+    regH2: "The list they actually want.",
+    regLede: "Couples, parents-to-be and birthday people shouldn't have to pick one store. With Giftpin they don't.",
+    guestEyebrow: "For guests",
+    guestH2: "Shopping for them is a pleasure.",
+    guestLede: "One link, no account and no guesswork about what's already been bought.",
+    merchEyebrow: "For your store",
+    merchH2: "Registry traffic is high-intent traffic. Keep it.",
+    merchLede: "Giftpin keeps your products in front of registrants and guests at every step, and gets the hard parts of checkout right.",
+    proH2: "Grow registry revenue on autopilot.",
+    proLede: "Everything in Free, plus insight, your own branding, and follow-ups that bring registrants and guests back. Starts with a {trial}.",
+    proTag: "Pro",
+    comparePlans: "Compare plans",
+    finalCta: "Ready to give your store a registry with no walls?",
+    registrants: [
+      { title: "Add gifts from any store", detail: "Paste a product link from almost any shop online and Giftpin fills in the photo, name and price." },
+      { title: "Browse your store from the registry", detail: "Your catalog is one tap away while they build their list, and your Add to registry button works on every product page." },
+      { title: "Ideas guides", detail: "Room-by-room ideas for weddings, and an ideas guide for every other occasion, from nursery basics to dorm essentials." },
+      { title: "Made for their occasion", detail: "Weddings, baby showers, birthdays, graduations, housewarmings, new pets, fundraisers and more." },
+      { title: "Gifts ship to their door", detail: "They save a shipping address once, and gifts bought from your store go straight to them. Guests never see it." },
+      { title: "Who gave what", detail: "A thank-you list that fills itself in, downloadable as a spreadsheet." },
+      { title: "Hear about every gift", detail: "An email when someone buys something, and a private link to manage the registry. No account or password." },
+      { title: "One link to share", detail: "Works in a text, a group chat, an invitation or a wedding website." },
+      { title: "Room for a personal note", detail: "A message for guests at the top of the registry, and artwork to match the occasion." },
+    ] as Item[],
+    guests: [
+      { title: "One page, every gift", detail: "Everything on the registry in one place, wherever it's sold." },
+      { title: "No double gifts", detail: "The moment someone goes to buy, the registry shows Someone may be buying this. If they don't, it comes back." },
+      { title: "Their favorite way to pay", detail: "Gifts from your store go through your checkout, including Shop Pay, Apple Pay, Google Pay and the Shop app." },
+      { title: "No account needed", detail: "Guests open the link and shop. Nothing to sign up for and nothing to install." },
+      { title: "See what's left at a glance", detail: "A progress bar and clear labels for what's available, possibly taken and already gifted." },
+      { title: "Straight to the right shop", detail: "Gifts from other stores link straight to the original product page." },
+      { title: "No sold-out surprises", detail: "Your products that are sold out are marked before anyone tries to buy them, or hidden until they're back in stock. Your choice." },
+    ] as Item[],
+    merchants: [
+      { title: "Your product, suggested first", detail: "When a registrant adds something from another shop, Giftpin searches your catalog and shows your closest match beside it, one tap to swap." },
+      { title: "Credit that survives express checkout", detail: "Shop Pay, Apple Pay, Google Pay and the Shop app skip the cart. Giftpin still credits every gift to the right registry and item." },
+      { title: "Works with the registry they already have", detail: "Shoppers with a registry elsewhere don't have to leave. Your Add to registry button can ask Which registry? and add the product to their Babylist registry, or copy its link for any registry that takes one, like Zola. Each choice is off until you turn it on." },
+      { title: "Theme blocks, no code", detail: "An Add to registry button for product pages, plus create, find and manage registry links you can place anywhere in the theme editor." },
+      { title: "On your own domain", detail: "Registry pages live on your store's domain and link guests back to your products." },
+      { title: "You choose the occasions", detail: "Turn each occasion on or off for your store in Giftpin's settings." },
+      { title: "Overview dashboard", detail: "Registries, items and gifts at a glance, right in your Shopify admin." },
+      { title: "No fee on your sales", detail: "Free is free. Pro is a flat monthly price. Neither takes a cut of your own product sales. The only fee is {fee}% on gift cards sold through the optional giftpin.app listing." },
+      { title: "Read-only on your catalog", detail: "Giftpin never edits your products, prices or inventory." },
+      { title: "Unlimited everything", detail: "Registries, items and guests, on both plans." },
+      { title: "Bring your registries with you", detail: "Switching from another registry app? Import its spreadsheet. Items match your products by SKU or barcode, and gifts already bought stay bought, so nobody gives the same thing twice." },
+    ] as Item[],
+  },
+
+  pricing: {
+    title: "Giftpin Pricing", // plain
+    description: "Giftpin is free for unlimited gift registries. {pro} is {price}/month with a {trial}, and adds analytics, sales reports, your branding, automatic emails and priority support.", // plain
+    eyebrow: "Pricing",
+    h1a: "Free to start.",
+    h1b: "Pro when you're ready.",
+    lede: "Every store gets unlimited gift registries at no cost. {pro} adds analytics, sales reports, your own branding, automatic emails and priority support.",
+    free: "Free",
+    pro: "Pro",
+    freeFor: "For every store that wants a registry.",
+    proFor: "For stores that want registries to drive revenue.",
+    perMonth: "/ month",
+    noCard: "No card needed.",
+    billedUsd: "Billed in USD through your Shopify invoice.",
+    startTrial: "Start {trial}",
+    everythingFree: "Everything in Free",
+    compareH2: "Compare plans",
+    compareLede: "Both plans include unlimited registries, items and guests, and neither takes a cut of your product sales.",
+    feature: "Feature",
+    registries: "Registries",
+    priceRow: "Price",
+    perMo: "/mo",
+    afterTrial: "after a {days}-day trial",
+    included: "Included",
+    notIncluded: "Not included",
+    faqH2: "Pricing questions",
+    moreQuestions: "More questions",
+    finalCta: "Start free. Upgrade when registries take off.",
+  },
+
+  faq: {
+    title: "Giftpin FAQ", // plain
+    description:
+      "Answers about Giftpin, the Shopify gift registry app: setup, gifts from other stores, duplicate-gift protection, Shop Pay and express checkout, plans, billing and privacy.", // plain
+    topicsLabel: "Topics", // plain
+    eyebrow: "FAQ",
+    h1a: "Questions,",
+    h1b: "answered.",
+    lede: "Can't find what you need? Email <a class=\"light-link\" href=\"mailto:support@giftpin.app\">support@giftpin.app</a> and a real person will write back.",
+    start: {
+      title: "Getting started",
+      items: [
+        { q: "What is Giftpin?", a: "<p>A gift registry app for Shopify stores. Your customers build a registry for a wedding, baby shower, birthday or any other occasion, add gifts from your store and from any other online shop, and share one link with their guests. Giftpin suggests your matching products beside everything added from elsewhere, so your store gets the first look at every gift.</p>" },
+        { q: "How do customers start a registry?", a: "<p>From your store. Giftpin adds theme blocks you place with the theme editor: an <strong>Add to registry</strong> button for product pages, and <strong>Create</strong>, <strong>Find</strong> and <strong>Manage</strong> registry links you can put on any page. The registry pages themselves live on your own store's domain.</p>" },
+        { q: "Can I move my registries from another registry app?", a: "<p>Yes, on both plans. Export your registries from your old app as a spreadsheet (CSV) and upload it in Giftpin under <strong>Registries &rarr; Import registries</strong>. You see what will be imported before anything is created. Items are matched to your products by SKU or barcode, and gifts that were already bought stay marked as bought.</p>" },
+        { q: "Do I need to know how to code?", a: "<p>No. You add Giftpin's blocks in Shopify's theme editor, and everything else is set up from the Giftpin page in your Shopify admin.</p>" },
+        { q: "Which occasions are supported?", a: "<p>Weddings, engagements, bridal and baby showers, baptisms, birthdays, bar and bat mitzvahs, quinceañeras, graduations, off to college, housewarmings, anniversaries, retirements, the holidays, new pets, fundraisers, corporate gifting and anything else. You choose which ones your store offers in Giftpin's settings.</p>" },
+      ] as QA[],
+    },
+    registrants: {
+      title: "Registrants and guests",
+      items: [
+        { q: "Do registrants or guests need an account?", a: "<p>No. The registrant gets a private link by email to manage their registry, and guests just open the shared link.</p>" },
+        { q: "How do gifts from other stores work?", a: "<p>The registrant pastes a product link and Giftpin fills in the photo, name and price from that page. Guests buy those gifts on the original store's website, and Giftpin marks the gift as possibly taken while they do. Nothing from another store is added to your catalog, and you're never asked to fulfil it.</p>" },
+        { q: "What if a shopper already has a registry somewhere else?", a: "<p>Your Add to registry button can still help. In the button's settings in the theme editor, tick <strong>Also offer Babylist</strong>, <strong>Also offer \"Another registry\"</strong>, or both. The button then asks <em>Which registry?</em> Babylist adds the product, with the variant the shopper picked, through Babylist's own add-to-Babylist script. <em>Another registry (copy link)</em> copies the product link so they can paste it into any registry that adds gifts from a link, or use that site's own button, like Add to Zola. Both are free on every plan. Giftpin isn't affiliated with Babylist or Zola, and it doesn't track purchases made from registries on other sites.</p>" },
+        { q: "How does Giftpin stop two guests buying the same gift?", a: "<p>When a guest heads off to buy something, the registry immediately shows <em>Someone may be buying this</em>. If they don't go through with it, the gift becomes available again. For gifts from your store, the registry updates as soon as the order comes in.</p>" },
+        { q: "Can gifts ship straight to the registrant?", a: "<p>Yes, for gifts bought from your store. When the registrant saves a shipping address, Giftpin puts it on the order so the gift goes straight to them. Guests never see the address.</p>" },
+        { q: "Can registrants add gifts while they're in my store?", a: "<p>Yes, with Pro. On their registry page, the registrant taps <strong>Scan a barcode in the store</strong> and points their own phone at a product's barcode. Giftpin finds the product in your catalog and adds it in one tap. They can also type the number under the barcode. Your products need a barcode or SKU filled in in Shopify.</p>" },
+        { q: "How do registrants know who gave what?", a: "<p>Their manage page keeps a who-gave-what list for thank-you notes, and they can download it as a spreadsheet. With Pro, Giftpin also emails them a thank-you reminder after the event.</p>" },
+      ] as QA[],
+    },
+    checkout: {
+      title: "Checkout and attribution",
+      items: [
+        { q: "Does it work with Shop Pay, Apple Pay and Google Pay?", a: "<p>Yes. Getting express checkouts right is the hardest part of a registry app, and it's what Giftpin was built around. Purchases through Shop Pay, Apple Pay, Google Pay, the Shop app and your regular checkout are all credited to the right registry and item.</p>" },
+        { q: "Does Giftpin change anything in my store?", a: "<p>It reads your catalog to suggest matching products and to show your items on registries, and it can add the registrant's address to a registry order. It never edits your products, prices or inventory. If you turn on Pro's completion discount, it also creates the single-use discount codes.</p>" },
+      ] as QA[],
+    },
+    billing: {
+      title: "Plans and billing",
+      items: [
+        { q: "How am I billed for {pro}?", a: "<p>Through Shopify. The {price} monthly charge appears on your regular Shopify invoice, in US dollars. There's no separate card to add.</p>" },
+        { q: "How does the free trial work?", a: "<p>You get {pro} free for {days} days. Cancel before it ends and you won't be charged.</p>" },
+        { q: "Can I cancel or switch back to Free?", a: "<p>Yes, any time, from the Plan page inside the app. Your registries and their items stay exactly as they are.</p>" },
+        { q: "How is the Free plan paid for?", a: "<p>When a guest clicks through to or buys a registry item from another website, Giftpin may earn a small affiliate commission or referral fee. It never changes the guest's price, it's disclosed on the registry page, and it never applies to purchases from your own store.</p>" },
+        { q: "Does Giftpin take a cut of my sales?", a: "<p>Not on your products or registry gifts. Neither plan adds a fee to them. The one exception is optional: if you list your gift cards on giftpin.app with Pro, Giftpin charges {fee}% of each gift card sold through the listing, on your Shopify bill, and nothing during your free trial.</p>" },
+        { q: "What is the giftpin.app gift card directory?", a: "<p>A page at <a href=\"/gift-cards\">giftpin.app/gift-cards</a> where shoppers can buy gift cards from stores that use Giftpin. It's part of Pro. Shoppers pay at your own checkout for your own Shopify gift card, so you keep the money and any unspent balance. Giftpin never sells or holds gift card money. Giftpin charges {fee}% of each gift card sold this way, with no fee during your free trial.</p>" },
+        { q: "Is there a limit on registries or guests?", a: "<p>No. Both plans include unlimited registries, items and guests.</p>" },
+      ] as QA[],
+    },
+    privacy: {
+      title: "Privacy",
+      items: [
+        { q: "What does Giftpin do with customer data?", a: "<p>Only what running the registry needs, such as the registrant's name, email and, if they choose, a shipping address, plus which orders were registry gifts. Email addresses are never shown to guests. The full details are in our <a href=\"/privacy\">privacy policy</a>.</p>" },
+        { q: "Does Giftpin earn a commission on gifts from other stores?", a: "<p>Some links to other stores on a registry may earn Giftpin a small commission, at no extra cost to you. It doesn't change your price.</p>" },
+      ] as QA[],
+    },
+  },
+};
+
+export type SiteCopy = typeof en;

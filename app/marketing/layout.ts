@@ -43,11 +43,27 @@ export function renderFor(request: Request, render: () => string): Response {
 }
 
 /** Primary call to action: the App Store listing once it exists. */
-export function cta(): { href: string; label: string; note: string } {
+export function cta(): { href: string; label: string; note: string; isInstall: boolean } {
   const c = CHROME[activeLocale];
   return APP_STORE_URL
-    ? { href: APP_STORE_URL, label: c.install, note: c.installNote }
-    : { href: EARLY_ACCESS, label: c.early, note: c.earlyNote };
+    ? { href: APP_STORE_URL, label: c.install, note: c.installNote, isInstall: true }
+    : { href: EARLY_ACCESS, label: c.early, note: c.earlyNote, isInstall: false };
+}
+
+/**
+ * The sitePage() options a translated page needs: its language, the
+ * `?lang=` canonical and the hreflang links to every language of the page.
+ */
+export function localeMeta(path: string): { lang: string; query: string; alternates: { lang: string; href: string }[] } {
+  const loc = activeLocale;
+  return {
+    lang: loc,
+    query: loc === "en" ? "" : `?lang=${loc}`,
+    alternates: [
+      ...LOCALES.map((l) => ({ lang: l, href: `${SITE_URL}${path}${l === "en" ? "" : `?lang=${l}`}` })),
+      { lang: "x-default", href: `${SITE_URL}${path}` },
+    ],
+  };
 }
 
 export function esc(s: string): string {
