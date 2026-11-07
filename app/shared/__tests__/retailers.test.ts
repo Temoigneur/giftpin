@@ -1,12 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { retailerSearchLinks, normalizeCountry, COUNTRIES, DEFAULT_COUNTRY } from "../retailers";
+import { retailerSearchLinks, retailersByShelf, shelfForIdea, normalizeCountry, COUNTRIES, DEFAULT_COUNTRY, SHELVES } from "../retailers";
+import { ideaGuideFor } from "../registry-ideas";
+import { EVENT_TYPES } from "../settings";
+import { LOCALES, intlTag, countryName } from "../i18n";
 import { renderManagePage } from "../../proxy/render/manage-page";
 import { renderCreatePage } from "../../proxy/render/create-page";
 
 describe("retailer links by country", () => {
   it("defaults to the United States (.com), not Canada", () => {
     expect(DEFAULT_COUNTRY).toBe("US");
-    for (const c of [undefined, null, "", "zz", "FR"]) {
+    for (const c of [undefined, null, "", "zz", "JP"]) {
       const urls = retailerSearchLinks(c).map((r) => r.url).join(" ");
       expect(urls).toContain("https://www.target.com/s?searchTerm={q}");
       expect(urls).not.toContain(".ca");
@@ -86,5 +89,80 @@ describe("country choice in the pages", () => {
     const html = renderCreatePage({ shopName: "S", accentColor: "#000", actionUrl: "/apps/registry", enabledEventTypes: [] });
     expect(html).toContain('<option value="US" selected>');
     expect(html).toContain('<option value="CA">');
+  });
+});
+
+describe("13 countries, stores by kind of product", () => {
+  it("offers the 13 countries, each named in all five languages", () => {
+    expect(COUNTRIES.map((c) => c.code)).toEqual(["US", "CA", "GB", "IE", "AU", "NZ", "DE", "AT", "FR", "ES", "PT", "MX", "BR"]);
+    for (const c of COUNTRIES) {
+      for (const l of LOCALES) {
+        const name = countryName(c.code, c.label, l);
+        expect(name.length, `${c.code} ${l}`).toBeGreaterThan(2);
+        expect(name, `${c.code} ${l} is a code`).not.toBe(c.code);
+      }
+    }
+    expect(countryName("DE", "Germany", "de")).toBe("Deutschland");
+    expect(countryName("BR", "Brazil", "pt-BR")).toBe("Brasil");
+    expect(intlTag("fr")).toBeTruthy();
+  });
+
+  it("every country has a list for every shelf, with real links ending in a Google Shopping fallback", () => {
+    for (const c of COUNTRIES) {
+      const by = retailersByShelf(c.code);
+      for (const shelf of SHELVES) {
+        const list = by[shelf];
+        expect(list.length, `${c.code} ${shelf}`).toBeGreaterThanOrEqual(4);
+        expect(list.length, `${c.code} ${shelf}`).toBeLessThanOrEqual(6);
+        expect(list[list.length - 1].name).toBe("Google Shopping");
+        const names = list.map((r) => r.name);
+        expect(new Set(names).size, `${c.code} ${shelf} repeats a store`).toBe(names.length);
+        for (const r of list) expect(r.url, `${c.code} ${shelf} ${r.name}`).toMatch(/^https:\/\/[^/]+\/.*\{q\}/);
+      }
+    }
+  });
+
+  it("sends each country to its own market's sites", () => {
+    const host = (c: string, shelf: "home" | "baby" | "toys" | "tech" | "pets" | "garden" = "home") =>
+      retailerSearchLinks(c, shelf).map((r) => new URL(r.url.replace("{q}", "x")).host).join(" ");
+    expect(host("DE")).toContain("otto.de");
+    expect(host("FR", "tech")).toContain("fnac.com");
+    expect(host("BR", "pets")).toContain("petz.com.br");
+    expect(host("MX")).toContain("liverpool.com.mx");
+    expect(host("US", "pets")).toContain("chewy.com");
+    expect(host("AU", "garden")).toContain("bunnings.com.au");
+    expect(host("DE")).not.toMatch(/\.com\.br|\.co\.uk/);
+  });
+
+  it("puts an idea on the right shelf", () => {
+    expect(shelfForIdea("wedding", "Kitchen", "Cookware")).toBe("home");
+    expect(shelfForIdea("wedding", "Tech & entertainment", "Gaming & games")).toBe("tech");
+    expect(shelfForIdea("wedding", "Outdoor & patio", "Grilling")).toBe("garden");
+    expect(shelfForIdea("baby", "Feeding", "Bottles")).toBe("baby");
+    expect(shelfForIdea("new-pet", "Dogs & puppies", "Walks")).toBe("pets");
+    expect(shelfForIdea("birthday", "Kids (4 to 7)", "Outdoor")).toBe("toys");
+    expect(shelfForIdea("holiday", "Little kids (ages 1 to 3)", "Toys")).toBe("toys");
+    expect(shelfForIdea("other", "Whatever", "Else")).toBe("home");
+  });
+
+  it("every idea in every guide lands on a shelf", () => {
+    for (const e of [...EVENT_TYPES.map((x) => x.value), "other"]) {
+      for (const g of ideaGuideFor(e).groups) {
+        for (const sub of g.subcategories) expect(SHELVES).toContain(shelfForIdea(e, g.label, sub.label));
+      }
+    }
+  });
+
+  it("the manage page picks the stores by shelf and country", () => {
+    const html = renderManagePage({
+      registryId: "r", title: "T", message: null, eventType: "wedding", eventDate: null, privacy: "unlisted",
+      country: "DE", items: [], shopName: "Shop", accentColor: "#2f5d50", currency: "EUR",
+      shareUrl: "https://x/r/a", actionUrl: "/apps/registry", token: "tok", manageUrl: "https://x/m",
+      externalItemsAllowed: true, storeSearchUrl: "/collections/all", gifts: [],
+    } as never);
+    expect(html).toContain("otto.de/suche/");
+    expect(html).toContain("mediamarkt.de");
+    expect(html).toContain('data-shelf="tech"');
+    expect(html).toContain('data-shelf="garden"');
   });
 });
