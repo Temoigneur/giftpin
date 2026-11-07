@@ -119,13 +119,13 @@ reading Shopify's docs.
   `docs/shopify-flow.md` for what is unverified. Klaviyo is reached through
   Klaviyo's own Flow "Track an event" action, not a Giftpin integration. A new
   Flow field must be added to both the TOML and the payload, or Flow rejects it.
-- **Retailer links for 13 countries (built 7 Nov 2026, never tested live):**
+- **Retailer links for 17 countries (IN, CN, TW, JP added 7 Nov 2026; the new four are the least certain):**
   `app/shared/retailers.ts` lists stores by country and kind of product. Cloud
   sessions can't reach these sites, so the URLs for every country but US, CA,
   GB and AU came from knowledge of each site's search, not a check. Run
   `node scripts/check-retailer-links.mjs` on a normal machine and fix or drop
   any BROKEN link. BLOCKED means the site refused a script: open it by hand.
-- **Ship-to-registrant in 13 countries (built 7 Nov 2026, not live-tested):** the manage page address form now offers the same 13 countries as the registry country list, with region lists for IE, NZ, ES, MX and BR in `app/shared/shipping-address.ts`. The codes are ISO 3166-2 (Mexico: Shopify-style, from memory), never checked against a live `orderUpdate`. Save a test address in each country on the dev store and confirm the rewrite applies.
+- **Ship-to-registrant in 17 countries (built 7 Nov 2026, not live-tested; IN, CN, JP regions added the same day, Taiwan has none):** the manage page address form now offers the same 13 countries as the registry country list, with region lists for IE, NZ, ES, MX and BR in `app/shared/shipping-address.ts`. The codes are ISO 3166-2 (Mexico: Shopify-style, from memory), never checked against a live `orderUpdate`. Save a test address in each country on the dev store and confirm the rewrite applies.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

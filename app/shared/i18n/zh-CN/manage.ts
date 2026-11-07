@@ -97,6 +97,7 @@ export const zhCNManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.Territory": "领地",
   "manage.region.County": "郡",
   "manage.region.Region": "地区",
+  "manage.region.Prefecture": "都道府县",
   "manage.ideas.how1": "点击一件商品，即可在 {shop} 的店铺中搜索。",
   "manage.ideas.how2": "点击一项体验即可将其添加到清单，如果有预订链接，也可一并附上。",
   "manage.ideas.how3": "点击一项基金，即可在下方进行设置。",

@@ -97,6 +97,7 @@ export const jaManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.Territory": "準州",
   "manage.region.County": "郡",
   "manage.region.Region": "地域",
+  "manage.region.Prefecture": "都道府県",
   "manage.ideas.how1": "商品をタップすると、{shop}のストア内を検索します。",
   "manage.ideas.how2": "体験をタップするとリストに追加されます。予約用のリンクがあれば一緒に追加できます。",
   "manage.ideas.how3": "ファンドをタップすると、下で設定できます。",

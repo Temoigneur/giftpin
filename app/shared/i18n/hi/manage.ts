@@ -97,6 +97,7 @@ export const hiManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.Territory": "क्षेत्र",
   "manage.region.County": "काउंटी",
   "manage.region.Region": "इलाका",
+  "manage.region.Prefecture": "प्रांत",
   "manage.ideas.how1": "{shop} के स्टोर में खोजने के लिए किसी आइटम पर टैप करें।",
   "manage.ideas.how2": "किसी अनुभव को अपनी लिस्ट में जोड़ने के लिए उस पर टैप करें, अगर बुकिंग लिंक है तो वह भी जुड़ जाएगा।",
   "manage.ideas.how3": "फंड बनाने के लिए किसी फंड पर टैप करें, फिर नीचे उसे सेट करें।",

@@ -97,6 +97,7 @@ export const deManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.Territory": "Territorium",
   "manage.region.County": "Grafschaft",
   "manage.region.Region": "Region",
+  "manage.region.Prefecture": "Präfektur",
   "manage.ideas.how1": "Tippe auf einen Artikel, um im Shop von {shop} danach zu suchen.",
   "manage.ideas.how2": "Tippe auf ein Erlebnis, um es deiner Liste hinzuzufügen, mit einem Buchungslink, falls du einen hast.",
   "manage.ideas.how3": "Tippe auf einen Fonds, um unten einen einzurichten.",

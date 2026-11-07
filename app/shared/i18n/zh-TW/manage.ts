@@ -97,6 +97,7 @@ export const zhTWManage: { [K in keyof typeof enManage]: string } = {
   "manage.region.Territory": "領地",
   "manage.region.County": "郡",
   "manage.region.Region": "地區",
+  "manage.region.Prefecture": "都道府縣",
   "manage.ideas.how1": "輕點商品即可搜尋 {shop} 的商店。",
   "manage.ideas.how2": "輕點體驗即可加入您的清單，如果有預約連結也可以一併附上。",
   "manage.ideas.how3": "輕點基金即可在下方設定。",

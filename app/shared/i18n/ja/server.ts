@@ -11,7 +11,7 @@ export const jaServer: { [K in keyof typeof enServer]: string } = {
   "server.groupUnavail": "このストアではみんなでギフトをご利用いただけません",
   "server.itemNotFound": "商品が見つかりません",
   "server.autoTracked": "この商品は自動的に管理されています",
-  "server.alreadyHandled": "この商品はすでに対応済みです",
+  "server.alreadyHandled": "この商品はすでに確保済みです",
   "server.noUndo": "これ以上元に戻すことはできません",
   "server.pageRead": "そのページを読み取れませんでした。代わりに手入力で商品を追加できます。",
   "server.itemName": "商品名を入力してください",

@@ -91,7 +91,7 @@ export const jaAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.perksUpgrade": "特典の表示はGiftpin Proでご利用いただけます。オンにするには{link}してください。",
   "admin.set.upgrade": "アップグレード",
   "admin.set.perksLabel": "特典",
-  "admin.set.perksPh": "ギフトリストのギフトはすべて無料でラッピング\nリストが$500に達したらプレゼント進呈",
+  "admin.set.perksPh": "ギフトリストのギフトはすべて無料でラッピング\nリストが$500に達したらプレゼントをお付けします",
   "admin.set.perksDetails": "下のイベント後の割引がオンの場合、それも自動で一覧に表示されます。",
   "admin.set.appearance": "外観",
   "admin.set.langLabel": "ギフトリストページの言語",
