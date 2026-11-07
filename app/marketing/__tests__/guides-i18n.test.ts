@@ -4,7 +4,7 @@ import type { GuideDoc } from "../guide-copy";
 import { LOCALES, hasMessage, type Locale } from "../../shared/i18n";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
-import { loader as compareLoader } from "../../routes/compare";
+import { renderFor, sitePage } from "../layout";
 import { siteLocaleFromRequest } from "../chrome-copy";
 
 const VARS = new Set(["trialDays", "proName", "price", "feePct", "holdDays"]);
@@ -122,15 +122,16 @@ describe("language choice that follows the visitor", () => {
     expect(siteLocaleFromRequest(req("https://giftpin.app/setup?lang=xx", "giftpin-lang=zz"))).toBe("en");
   });
 
-  it("keeps the language on pages that aren't translated yet, in the header, menu and footer", async () => {
-    const { html } = await get(compareLoader, "/compare", { cookie: "giftpin-lang=de" });
+  it("a page whose body isn't translated keeps the translated frame but says it is English", async () => {
+    // Every giftpin.app page is translated now except the standalone privacy policy, so build a bare page.
+    const request = new Request("https://giftpin.app/x", { headers: { cookie: "giftpin-lang=de" } });
+    const res = renderFor(request, () => sitePage({ path: "/features", nav: "features", title: "T", description: "D", body: "<p>Body</p>" }));
+    const html = await res.text();
     expect(html).toContain("Zum Inhalt springen");
     expect(html).toContain("Preise");
     expect(html).toContain("Datenschutzerklärung");
-    // The body is still English, so the page says so and doesn't claim a language it doesn't have.
     expect(html).toContain('<html lang="en">');
-    expect(html).toContain('<link rel="canonical" href="https://giftpin.app/compare">');
-    // Links carry the language on to the next page, even without the cookie.
+    expect(html).toContain('<link rel="canonical" href="https://giftpin.app/features">');
     expect(html).toContain('href="/pricing?lang=de"');
   });
 
