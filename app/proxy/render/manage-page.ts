@@ -10,7 +10,7 @@ import { ideaAliases } from "../../shared/idea-aliases";
 import { ideaText } from "../../shared/idea-copy";
 import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
-import { COUNTRIES, normalizeCountry, retailerSearchLinks } from "../../shared/retailers";
+import { COUNTRIES, normalizeCountry, retailerSearchLinks, retailersByShelf, shelfForIdea, type Shelf } from "../../shared/retailers";
 import { affiliateEnabled } from "../../lib/affiliate";
 import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 import { renderPerks, renderLanguagePicker } from "./create-page";
@@ -253,6 +253,7 @@ ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
     token: data.token,
     shopName: data.shopName,
     retailers: retailerSearchLinks(data.country),
+    retailersByShelf: retailersByShelf(data.country),
     extension: Boolean(data.chromeExtensionUrl),
     affiliateBase: affiliateEnabled(data.affiliateLinkWrapperBase) ? data.affiliateLinkWrapperBase : null,
     version: data.version ?? null,
@@ -496,7 +497,8 @@ function renderIdeaGuide(data: ManagePageData): string {
   const groups = visible.map((cat) => {
     const subcats = cat.subcategories
       .map((sub) => {
-        const items = sub.items.map(renderCategoryItem).join("");
+        const shelf = shelfForIdea(data.eventType, cat.label, sub.label);
+        const items = sub.items.map((item) => renderCategoryItem(item, shelf)).join("");
         return `<p class="cat-sub">${escapeHtml(ideaText(sub.label))}</p><div class="cat-grid">${items}</div>`;
       })
       .join("\n");
@@ -523,7 +525,7 @@ function renderIdeaGuide(data: ManagePageData): string {
 </details>`;
 }
 
-function renderCategoryItem(item: GiftIdeaItem): string {
+function renderCategoryItem(item: GiftIdeaItem, shelf: Shelf): string {
   const name = ideaText(item.name);
   if (item.kind) {
     const cls = item.kind === "fund" ? "js-idea-fund" : "js-idea-exp";
@@ -538,7 +540,7 @@ function renderCategoryItem(item: GiftIdeaItem): string {
   const aliases = [...(translated ? [english] : []), ...ideaAliases(english)];
   const href = `/search?q=${encodeURIComponent(term)}&type=product`;
   const alias = aliases.length ? ` data-aliases="${escapeAttr(aliases.join("|"))}"` : "";
-  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias}>${escapeHtml(name)}</a>`;
+  return `<a class="cat-chip js-cat" href="${escapeAttr(href)}" data-term="${escapeAttr(term)}"${alias} data-shelf="${shelf}">${escapeHtml(name)}</a>`;
 }
 
 function renderManageItem(item: DisplayItem, data: ManagePageData): string {
@@ -1441,7 +1443,7 @@ function manageScript(): string {
           p.textContent=fmt(X.noMatch,{term:term,shop:cfg.shopName});
           panel.appendChild(p);
           var row=document.createElement('div');row.className='cat-grid';
-          (cfg.retailers||[]).forEach(function(r){
+          ((cfg.retailersByShelf&&cfg.retailersByShelf[chip.dataset.shelf])||cfg.retailers||[]).forEach(function(r){
             var a=document.createElement('a');a.className='cat-chip';a.target='_blank';a.rel='noopener noreferrer';
             var dest=r.url.replace('{q}',encodeURIComponent(term));
             a.href=cfg.affiliateBase?cfg.affiliateBase+encodeURIComponent(dest):dest;a.textContent=r.name;row.appendChild(a);

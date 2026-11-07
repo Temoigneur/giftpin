@@ -119,6 +119,12 @@ reading Shopify's docs.
   `docs/shopify-flow.md` for what is unverified. Klaviyo is reached through
   Klaviyo's own Flow "Track an event" action, not a Giftpin integration. A new
   Flow field must be added to both the TOML and the payload, or Flow rejects it.
+- **Retailer links for 13 countries (built 7 Nov 2026, never tested live):**
+  `app/shared/retailers.ts` lists stores by country and kind of product. Cloud
+  sessions can't reach these sites, so the URLs for every country but US, CA,
+  GB and AU came from knowledge of each site's search, not a check. Run
+  `node scripts/check-retailer-links.mjs` on a normal machine and fix or drop
+  any BROKEN link. BLOCKED means the site refused a script: open it by hand.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).
