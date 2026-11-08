@@ -84,7 +84,7 @@ export const jaManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "名",
   "manage.ship.last": "姓",
   "manage.ship.street": "住所（番地など）",
-  "manage.ship.apt": "アパート、マンション名、部屋番号など",
+  "manage.ship.apt": "建物名、号室など",
   "manage.ship.city": "市区町村",
   "manage.ship.country": "国",
   "manage.ship.choose": "選択…",

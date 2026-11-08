@@ -84,7 +84,7 @@ export const esManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "Nombre",
   "manage.ship.last": "Apellidos",
   "manage.ship.street": "Dirección",
-  "manage.ship.apt": "Piso, puerta, etc.",
+  "manage.ship.apt": "Piso, bloque, portal, etc.",
   "manage.ship.city": "Ciudad",
   "manage.ship.country": "País",
   "manage.ship.choose": "Elegir…",

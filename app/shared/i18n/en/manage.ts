@@ -82,7 +82,7 @@ export const enManage = {
   "manage.ship.first": "First name",
   "manage.ship.last": "Last name",
   "manage.ship.street": "Street address",
-  "manage.ship.apt": "Apartment, suite, etc.",
+  "manage.ship.apt": "Apartment, unit, floor, etc.",
   "manage.ship.city": "City",
   "manage.ship.country": "Country",
   "manage.ship.choose": "Choose…",
