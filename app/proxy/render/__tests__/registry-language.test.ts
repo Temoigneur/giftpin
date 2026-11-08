@@ -18,8 +18,10 @@ describe("registryLanguageFrom", () => {
   it("is null unless the store allows a choice", () => {
     expect(registryLanguageFrom("fr", "en", false)).toBeNull();
   });
-  it("is null for the store's own language, unknown values and blanks", () => {
-    expect(registryLanguageFrom("en", "en", true)).toBeNull();
+  it("keeps the store's own language too, so a later store change can't move it", () => {
+    expect(registryLanguageFrom("en", "en", true)).toBe("en");
+  });
+  it("is null for unknown values and blanks", () => {
     expect(registryLanguageFrom("klingon", "en", true)).toBeNull();
     expect(registryLanguageFrom("", "en", true)).toBeNull();
   });
