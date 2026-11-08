@@ -18,6 +18,8 @@ export const jaCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "ギフトリストを作成する",
   "create.alreadyHtml": "<strong>すでにお持ちですか？</strong>すべてのギフトリストへのリンクをメールでお送りします。",
   "create.resendButton": "ギフトリストをメールで受け取る",
+  "create.resendSent": "メールを送信しました",
+  "create.resendAgain": "もう一度送る",
   "create.pageTitle": "ギフトリストを作成 — {shop}",
 
   "pw.title": "このギフトリストは非公開です",

@@ -18,6 +18,8 @@ export const ptBRCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "Criar minha lista",
   "create.alreadyHtml": "<strong>Já tem uma?</strong> Enviaremos por e-mail um link para todas as suas listas.",
   "create.resendButton": "Enviar minhas listas por e-mail",
+  "create.resendSent": "E-mail enviado",
+  "create.resendAgain": "Enviar de novo",
   "create.pageTitle": "Criar uma lista de presentes — {shop}",
 
   "pw.title": "Esta lista é privada",

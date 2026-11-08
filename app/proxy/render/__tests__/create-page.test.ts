@@ -64,3 +64,23 @@ describe("wish list occasion", () => {
     expect(renderCreatePage({ ...base, enabledEventTypes: ["wishlist"] })).toContain('<div id="c-date-field" hidden>');
   });
 });
+
+/** Ben, 8 Nov 2026: emailing your registries must not leave the filled-in create form. */
+describe("create page: Email me my registries", () => {
+  const base = { shopName: "S", accentColor: "#000", actionUrl: "/apps/registry", enabledEventTypes: ["wedding"] };
+
+  it("keeps the plain form post as a no-JS fallback", () => {
+    const html = renderCreatePage(base);
+    expect(html).toContain('id="c-resend-form" method="post" action="/apps/registry/resend"');
+  });
+
+  it("sends in the background and shows Email sent, then Send again", () => {
+    const html = renderCreatePage(base);
+    expect(html).toContain("e.preventDefault()");
+    expect(html).toContain('"Email sent"');
+    expect(html).toContain('"Send again"');
+    expect(html).toContain('id="c-resend-status"');
+    // falls back to a real post if the background send fails
+    expect(html).toContain("f.submit()");
+  });
+});

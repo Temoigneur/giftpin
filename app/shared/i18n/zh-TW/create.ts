@@ -18,6 +18,8 @@ export const zhTWCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "建立我的清單",
   "create.alreadyHtml": "<strong>已經有清單了嗎？</strong>我們會寄一個連結到您的信箱，裡面有您所有的清單。",
   "create.resendButton": "寄給我我的清單",
+  "create.resendSent": "郵件已寄出",
+  "create.resendAgain": "重新寄送",
   "create.pageTitle": "建立禮物清單 — {shop}",
 
   "pw.title": "這份清單是私人的",

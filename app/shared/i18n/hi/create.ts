@@ -18,6 +18,8 @@ export const hiCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "मेरी रजिस्ट्री बनाएं",
   "create.alreadyHtml": "<strong>पहले से बनी है?</strong> हम आपको आपकी सभी रजिस्ट्री का लिंक ईमेल कर देंगे।",
   "create.resendButton": "मुझे मेरी रजिस्ट्री ईमेल करें",
+  "create.resendSent": "ईमेल भेज दिया गया",
+  "create.resendAgain": "फिर से भेजें",
   "create.pageTitle": "गिफ्ट रजिस्ट्री बनाएं — {shop}",
 
   "pw.title": "यह रजिस्ट्री निजी है",
