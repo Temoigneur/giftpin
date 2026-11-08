@@ -84,6 +84,7 @@ export const deManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "Vorname",
   "manage.ship.last": "Nachname",
   "manage.ship.street": "Straße und Hausnummer",
+  "manage.ship.apt": "Wohnung, Etage usw.",
   "manage.ship.city": "Stadt",
   "manage.ship.country": "Land",
   "manage.ship.choose": "Auswählen…",

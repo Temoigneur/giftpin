@@ -84,6 +84,7 @@ export const zhCNManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "名",
   "manage.ship.last": "姓",
   "manage.ship.street": "街道地址",
+  "manage.ship.apt": "公寓、房间号等",
   "manage.ship.city": "城市",
   "manage.ship.country": "国家/地区",
   "manage.ship.choose": "请选择…",

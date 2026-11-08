@@ -441,19 +441,6 @@ describe("ship-to-registrant form (25 Sep 2026)", () => {
     expect(html).not.toMatch(/id="ship-region-CA" name="provinceCode"[^>]* disabled/);
   });
 
-  it("has no apartment/second address line, and folds an old saved one into the Address line (8 Nov 2026)", () => {
-    const html = page({
-      shipping: {
-        enabled: true,
-        address: { firstName: "Maya", lastName: "Chen", address1: "1 Main St", address2: "Unit 4", city: "Toronto", provinceCode: "ON", countryCode: "CA", zip: "M5V 1A1" },
-      },
-    });
-    expect(html).not.toContain('name="address2"');
-    expect(html).not.toContain("address-line2");
-    expect(html).not.toContain("Apartment");
-    expect(html).toContain('name="address1" autocomplete="address-line1" maxlength="120" value="1 Main St, Unit 4"');
-  });
-
   it("escapes what the registrant typed", () => {
     const html = page({ shipping: { enabled: true, address: { address1: '"><script>x</script>' } } });
     expect(html).not.toContain("<script>x</script>");

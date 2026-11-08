@@ -84,6 +84,7 @@ export const hiManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "पहला नाम",
   "manage.ship.last": "उपनाम",
   "manage.ship.street": "सड़क का पता",
+  "manage.ship.apt": "अपार्टमेंट, सूट आदि",
   "manage.ship.city": "शहर",
   "manage.ship.country": "देश",
   "manage.ship.choose": "चुनें…",
