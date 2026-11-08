@@ -227,7 +227,7 @@
             );
           },
           function (err) {
-            window.prompt("Copy this link:", link);
+            window.prompt(labelKey("copy_prompt", "Copy this link:"), link);
             throw err;
           },
         );
@@ -355,7 +355,7 @@
         showBackLink(result._registryId, result._token);
         if (labelEl) {
           var original = labelEl.textContent;
-          labelEl.textContent = "Added";
+          labelEl.textContent = labelKey("added_short", "Added");
           setTimeout(function () {
             labelEl.textContent = original;
           }, 2500);
@@ -385,8 +385,10 @@
     function showDuplicatePrompt(result) {
       if (!dupPanel || !dupQtyInput) {
         status(
-          "This is already on the registry (want " + (result.currentQty || 1) +
-            "). Open the registry to change the quantity.",
+          labelKey(
+            "dup_short",
+            "This is already on the registry (want {qty}). Open the registry to change the quantity.",
+          ).replace("{qty}", String(result.currentQty || 1)),
         );
         return;
       }
@@ -396,8 +398,10 @@
       pendingDup = { registryId: result._registryId, token: result._token, itemId: result.itemId };
       dupQtyInput.value = String((result.currentQty || 1) + 1);
       if (dupMessageEl) {
-        dupMessageEl.textContent =
-          "Already on this registry — currently want " + (result.currentQty || 1) + ". How many total?";
+        dupMessageEl.textContent = labelKey(
+          "dup_message",
+          "Already on this registry: currently want {qty}. How many total?",
+        ).replace("{qty}", String(result.currentQty || 1));
       }
       dupPanel.hidden = false;
       status("");
@@ -425,12 +429,12 @@
               status(labelKey("updated", "Registry updated"));
               showBackLink(pendingRegistryId, pendingToken);
             } else {
-              status((result && result.error) || labelKey("error", "Couldn't update that."), true);
+              status((result && result.error) || labelKey("update_error", "Couldn't update that."), true);
             }
           })
           .catch(function () {
             dupConfirmBtn.disabled = false;
-            status(labelKey("error", "Couldn't update that. Please try again."), true);
+            status(labelKey("update_error", "Couldn't update that. Please try again."), true);
           });
       });
     }
@@ -443,8 +447,12 @@
       });
     }
 
-    function labelKey(_key, fallback) {
-      return fallback;
+    // Labels come from the block's data-label-* attributes, which Liquid fills
+    // in the storefront's language (locales/*.json). The English fallbacks
+    // only show if an attribute is missing.
+    function labelKey(key, fallback) {
+      var name = "label" + key.replace(/(^|_)([a-z])/g, function (_m, _u, c) { return c.toUpperCase(); });
+      return root.dataset[name] || fallback;
     }
 
     // Arrived from a Saved items row ("Add to registry" link in

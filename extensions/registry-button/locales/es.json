@@ -1,0 +1,45 @@
+{
+  "add_to_registry": {
+    "label": "Añadir a la lista",
+    "adding": "Añadiendo...",
+    "added": "Añadido a tu lista",
+    "choose": "Elige una lista",
+    "create": "Crear una lista",
+    "error": "No se pudo añadir. Inténtalo de nuevo.",
+    "no_registry": "Primero necesitas una lista.",
+    "which": "¿Qué lista?",
+    "store_option": "Mi lista de {{ shop }}",
+    "babylist_option": "Mi lista de Babylist",
+    "babylist_error": "No se pudo abrir Babylist. Inténtalo de nuevo.",
+    "other_option": "Otra lista (copiar enlace)",
+    "link_copied": "Enlace del producto copiado. En tu otra lista, pégalo donde pida un enlace, o usa el botón propio de ese sitio, como Add to Zola.",
+    "added_short": "Añadido",
+    "back": "Volver a tu lista",
+    "updating": "Actualizando...",
+    "updated": "Lista actualizada",
+    "update_error": "No se pudo actualizar. Inténtalo de nuevo.",
+    "quantity": "Cantidad",
+    "total_quantity": "Cantidad total deseada",
+    "update": "Actualizar",
+    "cancel": "Cancelar",
+    "dup_message": "Ya está en esta lista: ahora quieres {{ qty }}. ¿Cuántos en total?",
+    "dup_short": "Ya está en la lista (quieres {{ qty }}). Abre la lista para cambiar la cantidad.",
+    "copy_prompt": "Copia este enlace:"
+  },
+  "save_for_later": {
+    "error": "No se pudo guardar en este navegador.",
+    "remove": "Quitar",
+    "add_to_registry": "Añadir a la lista",
+    "label": "Guardar para después",
+    "saved": "Guardado",
+    "heading": "Guardado para después",
+    "empty": "Todavía no hay nada guardado. Toca el corazón de un producto para conservarlo aquí."
+  },
+  "registry_links": {
+    "heading": "Lista de regalos",
+    "create": "Crear una lista de regalos",
+    "find": "Buscar una lista de regalos",
+    "manage": "Gestionar mi lista de regalos",
+    "cart_return": "Volver a la lista"
+  }
+}

@@ -7,6 +7,9 @@
   registry from the product page as usual.
 {% endcomment %}
 
+{%- assign lbl_save_label = block.settings.save_label -%}{%- if lbl_save_label == blank -%}{%- assign lbl_save_label = 'save_for_later.label' | t -%}{%- endif -%}
+{%- assign lbl_saved_label = block.settings.saved_label -%}{%- if lbl_saved_label == blank -%}{%- assign lbl_saved_label = 'save_for_later.saved' | t -%}{%- endif -%}
+
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 
 <div
@@ -16,8 +19,8 @@
   data-title="{{ product.title | escape }}"
   data-image="{% if product.featured_image %}{{ product.featured_image | image_url: width: 160 }}{% endif %}"
   data-price="{{ current_variant.price | money | escape }}"
-  data-label-save="{{ block.settings.save_label | default: 'Save for later' | escape }}"
-  data-label-saved="{{ block.settings.saved_label | default: 'Saved' | escape }}"
+  data-label-save="{{ lbl_save_label | escape }}"
+  data-label-saved="{{ lbl_saved_label | escape }}"
   data-label-error="{{ 'save_for_later.error' | t | escape }}"
   {{ block.shopify_attributes }}
   style="
@@ -30,7 +33,7 @@
     <svg width="20" height="20" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
       <path d="M10 17s-6.5-4-6.5-8.6C3.5 5.9 5.2 4.5 7 4.5c1.3 0 2.4.7 3 1.8.6-1.1 1.7-1.8 3-1.8 1.8 0 3.5 1.4 3.5 3.9C16.5 13 10 17 10 17Z"/>
     </svg>
-    <span data-giftpin-save-label>{{ block.settings.save_label | default: 'Save for later' }}</span>
+    <span data-giftpin-save-label>{{ lbl_save_label }}</span>
   </button>
   <p class="giftpin-save__status" data-giftpin-save-status role="status" aria-live="polite"></p>
 </div>
@@ -46,8 +49,8 @@
   "stylesheet": "giftpin-saved.css",
   "javascript": "giftpin-saved.js",
   "settings": [
-    { "type": "text", "id": "save_label", "label": "Label", "default": "Save for later" },
-    { "type": "text", "id": "saved_label", "label": "Label once saved", "default": "Saved" },
+    { "type": "text", "id": "save_label", "label": "Label", "info": "Leave blank to use the shopper's language." },
+    { "type": "text", "id": "saved_label", "label": "Label once saved", "info": "Leave blank to use the shopper's language." },
     { "type": "color", "id": "accent_color", "label": "Button colour", "default": "#1a1a1a" },
     {
       "type": "range", "id": "corner_radius", "label": "Corner radius",

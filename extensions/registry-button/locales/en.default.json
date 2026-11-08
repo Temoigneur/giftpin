@@ -12,11 +12,34 @@
     "babylist_option": "My Babylist registry",
     "babylist_error": "Couldn't open Babylist. Please try again.",
     "other_option": "Another registry (copy link)",
-    "link_copied": "Product link copied. In your other registry, paste it where it asks for a link, or use that site's own button, like Add to Zola."
+    "link_copied": "Product link copied. In your other registry, paste it where it asks for a link, or use that site's own button, like Add to Zola.",
+    "added_short": "Added",
+    "back": "Back to your registry",
+    "updating": "Updating...",
+    "updated": "Registry updated",
+    "update_error": "Couldn't update that. Please try again.",
+    "quantity": "Quantity",
+    "total_quantity": "Total quantity wanted",
+    "update": "Update",
+    "cancel": "Never mind",
+    "dup_message": "Already on this registry: currently want {{ qty }}. How many total?",
+    "dup_short": "This is already on the registry (want {{ qty }}). Open the registry to change the quantity.",
+    "copy_prompt": "Copy this link:"
   },
   "save_for_later": {
     "error": "Couldn't save that on this browser.",
     "remove": "Remove",
-    "add_to_registry": "Add to registry"
+    "add_to_registry": "Add to registry",
+    "label": "Save for later",
+    "saved": "Saved",
+    "heading": "Saved for later",
+    "empty": "Nothing saved yet. Tap the heart on a product to keep it here."
+  },
+  "registry_links": {
+    "heading": "Gift registry",
+    "create": "Create a gift registry",
+    "find": "Find a gift registry",
+    "manage": "Manage my gift registry",
+    "cart_return": "Return to registry"
   }
 }

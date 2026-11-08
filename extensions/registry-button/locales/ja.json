@@ -12,11 +12,34 @@
     "babylist_option": "Babylist の私のリスト",
     "babylist_error": "Babylist を開けませんでした。もう一度お試しください。",
     "other_option": "別のリスト（リンクをコピー）",
-    "link_copied": "商品リンクをコピーしました。別のリストでリンクを求められた場所に貼り付けるか、そのサイト自身のボタン（例：Add to Zola）をお使いください。"
+    "link_copied": "商品リンクをコピーしました。別のリストでリンクを求められた場所に貼り付けるか、そのサイト自身のボタン（例：Add to Zola）をお使いください。",
+    "added_short": "追加済み",
+    "back": "ギフトリストに戻る",
+    "updating": "更新中...",
+    "updated": "ギフトリストを更新しました",
+    "update_error": "更新できませんでした。もう一度お試しください。",
+    "quantity": "数量",
+    "total_quantity": "希望する合計数量",
+    "update": "更新",
+    "cancel": "キャンセル",
+    "dup_message": "すでにこのリストにあります。現在の希望数は {{ qty }} 個です。合計でいくつ必要ですか？",
+    "dup_short": "すでにリストに入っています（希望数 {{ qty }} 個）。数量を変更するにはリストを開いてください。",
+    "copy_prompt": "このリンクをコピーしてください："
   },
   "save_for_later": {
     "error": "このブラウザーに保存できませんでした。",
     "remove": "削除",
-    "add_to_registry": "ギフトリストに追加"
+    "add_to_registry": "ギフトリストに追加",
+    "label": "あとで買う",
+    "saved": "保存済み",
+    "heading": "あとで買う",
+    "empty": "まだ何も保存されていません。商品のハートをタップすると、ここに保存されます。"
+  },
+  "registry_links": {
+    "heading": "ギフトリスト",
+    "create": "ギフトリストを作る",
+    "find": "ギフトリストを探す",
+    "manage": "マイギフトリストを管理",
+    "cart_return": "ギフトリストに戻る"
   }
 }

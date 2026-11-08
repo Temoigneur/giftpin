@@ -12,11 +12,34 @@
     "babylist_option": "我的 Babylist 清單",
     "babylist_error": "無法開啟 Babylist，請再試一次。",
     "other_option": "其他清單（複製連結）",
-    "link_copied": "商品連結已複製。請在您的其他清單中，於要求輸入連結的地方貼上，或使用該網站自己的按鈕，例如 Add to Zola。"
+    "link_copied": "商品連結已複製。請在您的其他清單中，於要求輸入連結的地方貼上，或使用該網站自己的按鈕，例如 Add to Zola。",
+    "added_short": "已加入",
+    "back": "返回我的禮物清單",
+    "updating": "更新中...",
+    "updated": "禮物清單已更新",
+    "update_error": "無法更新，請再試一次。",
+    "quantity": "數量",
+    "total_quantity": "希望的總數量",
+    "update": "更新",
+    "cancel": "取消",
+    "dup_message": "此商品已在清單中：目前想要 {{ qty }} 件。總共需要幾件？",
+    "dup_short": "此商品已在清單中（想要 {{ qty }} 件）。請開啟清單修改數量。",
+    "copy_prompt": "複製此連結："
   },
   "save_for_later": {
     "error": "無法在此瀏覽器中儲存。",
     "remove": "移除",
-    "add_to_registry": "加入禮物清單"
+    "add_to_registry": "加入禮物清單",
+    "label": "稍後再買",
+    "saved": "已儲存",
+    "heading": "稍後再買",
+    "empty": "尚未儲存任何商品。點選商品上的愛心即可儲存在這裡。"
+  },
+  "registry_links": {
+    "heading": "禮物清單",
+    "create": "建立禮物清單",
+    "find": "尋找禮物清單",
+    "manage": "管理我的禮物清單",
+    "cart_return": "返回禮物清單"
   }
 }

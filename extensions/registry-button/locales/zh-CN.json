@@ -12,11 +12,34 @@
     "babylist_option": "我的 Babylist 清单",
     "babylist_error": "无法打开 Babylist，请重试。",
     "other_option": "其他清单（复制链接）",
-    "link_copied": "商品链接已复制。请在您的其他清单中，在要求填写链接的位置粘贴，或使用该网站自己的按钮，例如 Add to Zola。"
+    "link_copied": "商品链接已复制。请在您的其他清单中，在要求填写链接的位置粘贴，或使用该网站自己的按钮，例如 Add to Zola。",
+    "added_short": "已添加",
+    "back": "返回我的礼物清单",
+    "updating": "正在更新...",
+    "updated": "礼物清单已更新",
+    "update_error": "无法更新，请重试。",
+    "quantity": "数量",
+    "total_quantity": "希望的总数量",
+    "update": "更新",
+    "cancel": "取消",
+    "dup_message": "此商品已在清单中：目前想要 {{ qty }} 件。一共需要多少件？",
+    "dup_short": "此商品已在清单中（想要 {{ qty }} 件）。请打开清单修改数量。",
+    "copy_prompt": "复制此链接："
   },
   "save_for_later": {
     "error": "无法在此浏览器中保存。",
     "remove": "移除",
-    "add_to_registry": "加入礼物清单"
+    "add_to_registry": "加入礼物清单",
+    "label": "稍后再买",
+    "saved": "已保存",
+    "heading": "稍后再买",
+    "empty": "还没有保存任何商品。点击商品上的心形图标即可保存在这里。"
+  },
+  "registry_links": {
+    "heading": "礼物清单",
+    "create": "创建礼物清单",
+    "find": "查找礼物清单",
+    "manage": "管理我的礼物清单",
+    "cart_return": "返回礼物清单"
   }
 }

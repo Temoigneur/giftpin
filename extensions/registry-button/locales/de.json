@@ -1,0 +1,45 @@
+{
+  "add_to_registry": {
+    "label": "Zur Liste hinzufügen",
+    "adding": "Wird hinzugefügt...",
+    "added": "Zu deiner Liste hinzugefügt",
+    "choose": "Liste auswählen",
+    "create": "Liste erstellen",
+    "error": "Das ließ sich nicht hinzufügen. Bitte versuche es erneut.",
+    "no_registry": "Du brauchst zuerst eine Liste.",
+    "which": "Welche Liste?",
+    "store_option": "Meine {{ shop }}-Liste",
+    "babylist_option": "Meine Babylist-Liste",
+    "babylist_error": "Babylist ließ sich nicht öffnen. Bitte versuche es erneut.",
+    "other_option": "Andere Liste (Link kopieren)",
+    "link_copied": "Produktlink kopiert. Füge ihn in deiner anderen Liste dort ein, wo ein Link verlangt wird, oder nutze den eigenen Button dieser Seite, z. B. Add to Zola.",
+    "added_short": "Hinzugefügt",
+    "back": "Zurück zu deiner Liste",
+    "updating": "Wird aktualisiert...",
+    "updated": "Liste aktualisiert",
+    "update_error": "Das ließ sich nicht aktualisieren. Bitte versuche es erneut.",
+    "quantity": "Menge",
+    "total_quantity": "Gewünschte Gesamtmenge",
+    "update": "Aktualisieren",
+    "cancel": "Abbrechen",
+    "dup_message": "Steht schon auf dieser Liste: aktuell gewünscht {{ qty }}. Wie viele insgesamt?",
+    "dup_short": "Das steht schon auf der Liste (gewünscht: {{ qty }}). Öffne die Liste, um die Menge zu ändern.",
+    "copy_prompt": "Diesen Link kopieren:"
+  },
+  "save_for_later": {
+    "error": "Das ließ sich in diesem Browser nicht speichern.",
+    "remove": "Entfernen",
+    "add_to_registry": "Zur Liste hinzufügen",
+    "label": "Für später merken",
+    "saved": "Gemerkt",
+    "heading": "Für später gemerkt",
+    "empty": "Noch nichts gemerkt. Tippe bei einem Produkt auf das Herz, um es hier aufzubewahren."
+  },
+  "registry_links": {
+    "heading": "Geschenkliste",
+    "create": "Geschenkliste erstellen",
+    "find": "Geschenkliste finden",
+    "manage": "Meine Geschenkliste verwalten",
+    "cart_return": "Zurück zur Liste"
+  }
+}
