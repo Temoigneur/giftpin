@@ -35,8 +35,8 @@
   data-label-updating="{{ 'add_to_registry.updating' | t | escape }}"
   data-label-updated="{{ 'add_to_registry.updated' | t | escape }}"
   data-label-update-error="{{ 'add_to_registry.update_error' | t | escape }}"
-  data-label-dup-message="{{ 'add_to_registry.dup_message' | t: qty: '{qty}' | escape }}"
-  data-label-dup-short="{{ 'add_to_registry.dup_short' | t: qty: '{qty}' | escape }}"
+  data-label-dup-message="{{ 'add_to_registry.dup_message' | t: qty: '__QTY__' | escape }}"
+  data-label-dup-short="{{ 'add_to_registry.dup_short' | t: qty: '__QTY__' | escape }}"
   data-label-copy-prompt="{{ 'add_to_registry.copy_prompt' | t | escape }}"
   data-customer-id="{{ customer.id }}"
   {%- if offers_choice %}
