@@ -4,8 +4,9 @@
   The list lives in the shopper's browser, so it is empty on a new device.
 {% endcomment %}
 
-{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank -%}{%- assign lbl_heading = 'save_for_later.heading' | t -%}{%- endif -%}
-{%- assign lbl_empty_text = block.settings.empty_text -%}{%- if lbl_empty_text == blank -%}{%- assign lbl_empty_text = 'save_for_later.empty' | t -%}{%- endif -%}
+{%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
+{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank or lbl_heading == 'Saved for later' -%}{%- assign lbl_heading = 'save_for_later.heading' | t -%}{%- endif -%}
+{%- assign lbl_empty_text = block.settings.empty_text -%}{%- if lbl_empty_text == blank or lbl_empty_text == 'Nothing saved yet. Tap the heart on a product to keep it here.' -%}{%- assign lbl_empty_text = 'save_for_later.empty' | t -%}{%- endif -%}
 
 <section
   class="giftpin-saved"
