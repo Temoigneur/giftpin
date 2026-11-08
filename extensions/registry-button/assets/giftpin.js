@@ -388,7 +388,7 @@
           labelKey(
             "dup_short",
             "This is already on the registry (want {qty}). Open the registry to change the quantity.",
-          ).replace("{qty}", String(result.currentQty || 1)),
+          ).replace(/__QTY__|\{qty\}/g, String(result.currentQty || 1)),
         );
         return;
       }
@@ -401,7 +401,7 @@
         dupMessageEl.textContent = labelKey(
           "dup_message",
           "Already on this registry: currently want {qty}. How many total?",
-        ).replace("{qty}", String(result.currentQty || 1));
+        ).replace(/__QTY__|\{qty\}/g, String(result.currentQty || 1));
       }
       dupPanel.hidden = false;
       status("");

@@ -23,3 +23,22 @@ describe("theme block locale files", () => {
     });
   }
 });
+
+// Shopify parses blocks with Ruby Liquid, whose tokenizer ends an output tag at
+// the FIRST "}" after "{{". A brace inside a quoted argument, such as
+// `t: qty: '{qty}'`, cuts the tag short and `shopify app deploy` rejects the
+// version ("was not properly terminated"). theme check does not catch this.
+describe("theme block Liquid", () => {
+  const blocksDir = "extensions/registry-button/blocks";
+  for (const f of readdirSync(blocksDir).filter((n) => n.endsWith(".liquid"))) {
+    it(`${f} has no "}" inside a {{ }} output tag`, () => {
+      const src = readFileSync(`${blocksDir}/${f}`, "utf8");
+      const bad: string[] = [];
+      for (let i = src.indexOf("{{"); i !== -1; i = src.indexOf("{{", i + 2)) {
+        const close = src.indexOf("}", i);
+        if (src[close + 1] !== "}") bad.push(src.slice(i, close + 1));
+      }
+      expect(bad).toEqual([]);
+    });
+  }
+});
