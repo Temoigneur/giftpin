@@ -17,6 +17,8 @@ export const enCreate = {
   "create.submit": "Create my registry",
   "create.alreadyHtml": "<strong>Already have one?</strong> We'll email you a link to all your registries here.",
   "create.resendButton": "Email me my registries",
+  "create.resendSent": "Email sent",
+  "create.resendAgain": "Send again",
   "create.pageTitle": "Start a registry — {shop}",
 
   "pw.title": "This registry is private",

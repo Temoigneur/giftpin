@@ -18,6 +18,8 @@ export const esCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "Crear mi lista",
   "create.alreadyHtml": "<strong>¿Ya tienes una?</strong> Te enviaremos por correo un enlace a todas tus listas.",
   "create.resendButton": "Enviarme mis listas por correo",
+  "create.resendSent": "Correo enviado",
+  "create.resendAgain": "Enviar de nuevo",
   "create.pageTitle": "Crear una lista de regalos — {shop}",
 
   "pw.title": "Esta lista es privada",

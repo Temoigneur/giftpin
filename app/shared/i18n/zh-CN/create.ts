@@ -18,6 +18,8 @@ export const zhCNCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "创建我的清单",
   "create.alreadyHtml": "<strong>已经有清单了？</strong>我们会把您所有清单的链接发到您的邮箱。",
   "create.resendButton": "把我的清单发到邮箱",
+  "create.resendSent": "邮件已发送",
+  "create.resendAgain": "重新发送",
   "create.pageTitle": "创建礼物清单 — {shop}",
 
   "pw.title": "这份清单是私密的",

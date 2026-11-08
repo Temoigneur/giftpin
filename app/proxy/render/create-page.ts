@@ -129,14 +129,16 @@ ${data.languageChoice ? `
 
 <div class="note">
   <p style="margin:0">${t("create.alreadyHtml")}</p>
-  <form method="post" action="${escapeAttr(data.actionUrl)}/resend" style="margin-top:10px">
+  <form id="c-resend-form" method="post" action="${escapeAttr(data.actionUrl)}/resend" style="margin-top:10px">
     <label class="sr" for="c-resend">${tx(t("create.yourEmail"))}</label>
     <input id="c-resend" type="email" name="email" placeholder="${escapeAttr(t("create.yourEmail"))}" required>
     <div class="row" style="margin-top:10px">
       <button class="btn sm ghost" type="submit">${tx(t("create.resendButton"))}</button>
     </div>
+    <p id="c-resend-status" class="hint" role="status" aria-live="polite" hidden></p>
   </form>
 </div>
+${resendScript()}
 `;
 
   return layout(
@@ -149,6 +151,19 @@ ${data.languageChoice ? `
     },
     body,
   );
+}
+
+/**
+ * "Email me my registries" sends in the background so the create form above
+ * stays filled in (Ben, 8 Nov 2026: leaving the page made people think their
+ * answers were lost). The button turns into "Email sent", then "Send again"
+ * after 30s or when the address changes. The browser's own `required`/email
+ * checks still run first (submit only fires once they pass), the server's
+ * answer is the same either way, and if the request fails the form posts
+ * the old way so the email still goes out.
+ */
+function resendScript(): string {
+  return `<script>(function(){var f=document.getElementById('c-resend-form');if(!f||!window.fetch||!window.FormData)return;var b=f.querySelector('button'),i=document.getElementById('c-resend'),s=document.getElementById('c-resend-status'),timer;function ready(l){clearTimeout(timer);b.disabled=false;b.textContent=l;}f.addEventListener('submit',function(e){e.preventDefault();if(b.disabled)return;b.disabled=true;s.hidden=true;fetch(f.action,{method:'POST',body:new FormData(f),credentials:'same-origin'}).then(function(r){if(!r.ok)throw r.status;b.textContent='\\u2713 '+${jsStr("create.resendSent")};s.textContent=${jsStr("server.p.check.m1")};s.hidden=false;clearTimeout(timer);timer=setTimeout(function(){ready(${jsStr("create.resendAgain")});},30000);}).catch(function(){b.disabled=false;f.submit();});});i.addEventListener('input',function(){if(b.disabled&&!s.hidden){s.hidden=true;ready(${jsStr("create.resendButton")});}});})();</script>`;
 }
 
 /** Shown after create/resend so we never render an email address back. */

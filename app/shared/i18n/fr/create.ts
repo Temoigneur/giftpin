@@ -18,6 +18,8 @@ export const frCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "Créer ma liste",
   "create.alreadyHtml": "<strong>Vous en avez déjà une ?</strong> Nous vous enverrons par courriel un lien vers toutes vos listes.",
   "create.resendButton": "M'envoyer mes listes par courriel",
+  "create.resendSent": "Courriel envoyé",
+  "create.resendAgain": "Renvoyer",
   "create.pageTitle": "Créer une liste de cadeaux — {shop}",
 
   "pw.title": "Cette liste est privée",

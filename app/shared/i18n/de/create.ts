@@ -18,6 +18,8 @@ export const deCreate: { [K in keyof typeof enCreate]: string } = {
   "create.submit": "Meine Liste anlegen",
   "create.alreadyHtml": "<strong>Schon eine Liste?</strong> Wir schicken Ihnen per E-Mail einen Link zu allen Ihren Listen.",
   "create.resendButton": "Meine Listen per E-Mail senden",
+  "create.resendSent": "E-Mail gesendet",
+  "create.resendAgain": "Erneut senden",
   "create.pageTitle": "Geschenkeliste anlegen – {shop}",
 
   "pw.title": "Diese Liste ist privat",
