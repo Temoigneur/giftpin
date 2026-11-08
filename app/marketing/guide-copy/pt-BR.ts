@@ -134,7 +134,7 @@ export const ptBR: GuideCopy = {
             title: "Combinar a aparência e o idioma com a sua loja",
             items: [
               "Em <b>{{admin.set.appearance}}</b>, defina <b>{{admin.set.buttonLabel}}</b> e <b>{{admin.set.accent}}</b>.",
-              "<b>{{admin.set.langLabel}}</b> escolhe o idioma que os convidados veem nas páginas de lista e nos e-mails: inglês, francês, espanhol, alemão ou português do Brasil. Marque <b>{{admin.set.langChoice}}</b> se quiser que quem cria a lista possa escolher outro idioma para a sua.",
+              "<b>{{admin.set.langLabel}}</b> escolhe o idioma que os convidados veem nas páginas de lista e nos e-mails: inglês, francês, espanhol, alemão ou português do Brasil.",
               "O botão Add to registry e os links de lista têm configurações próprias no editor de temas: texto, ícone, cores, tamanho e espaçamento.",
               "Para que compradores que mantêm a lista em outro lugar também usem o seu botão, marque <b>Also offer Babylist</b> ou <b>Also offer \"Another registry\"</b> (copia o link do produto para sites como a Zola) nas configurações do botão. O botão passa a perguntar em qual lista.",
               "Com o Pro, <b>{{admin.set.branding}}</b> adiciona o seu logotipo (<b>{{admin.set.logo}}</b>), as suas cores e fonte às páginas de lista e remove o crédito Powered by Giftpin.",

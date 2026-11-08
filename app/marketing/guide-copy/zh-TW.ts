@@ -134,7 +134,7 @@ export const zhTW: GuideCopy = {
             title: "配合您商店的外觀與語言",
             items: [
               "在 <b>{{admin.set.appearance}}</b> 底下，設定 <b>{{admin.set.buttonLabel}}</b> 和 <b>{{admin.set.accent}}</b>。",
-              "<b>{{admin.set.langLabel}}</b> 決定賓客在禮物清單頁面和清單電子郵件中看到的語言：英文、法文、西班牙文、德文或巴西葡萄牙文。如果您希望清單主人可以為自己的清單選擇其他語言，請勾選 <b>{{admin.set.langChoice}}</b>。",
+              "<b>{{admin.set.langLabel}}</b> 決定賓客在禮物清單頁面和清單電子郵件中看到的語言：英文、法文、西班牙文、德文或巴西葡萄牙文。",
               "Add to registry 按鈕和禮物清單連結在佈景主題編輯器中有各自的設定：文字、圖示、顏色、大小和間距。",
               "若要讓把清單放在其他地方的顧客也能使用您的按鈕，請在按鈕設定中勾選 <b>Also offer Babylist</b> 或 <b>Also offer \"Another registry\"</b>（為 Zola 等網站複製商品連結）。按鈕之後會詢問要加入哪一份清單。",
               "使用 Pro 時，<b>{{admin.set.branding}}</b> 會將您的標誌（<b>{{admin.set.logo}}</b>）、顏色和字型加到禮物清單頁面，並移除 Powered by Giftpin 的標示。",

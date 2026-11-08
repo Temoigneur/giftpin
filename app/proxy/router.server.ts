@@ -202,7 +202,7 @@ async function routeProxyRequest(
           ...brand,
           actionUrl: ctx.pathPrefix,
           enabledEventTypes: settings.eventTypes,
-          languageChoice: settings.registryLanguageChoice ? settings.language : null,
+          languageChoice: settings.language,
           perks: perksFor(shop, settings, await shopDeals(shop, settings)),
           values: profile ? { registrantName: profile.name, registrantEmail: profile.email } : undefined,
         }));
@@ -588,7 +588,7 @@ async function managePage(
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings, await shopDeals(shop, settings)),
       enabledEventTypes: settings.eventTypes,
-      languageChoice: settings.registryLanguageChoice,
+      languageChoice: true,
       language: registry.language ?? settings.language,
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
@@ -981,7 +981,7 @@ async function createRegistryAction(
         ...brand,
         actionUrl: ctx.pathPrefix,
         enabledEventTypes: settings.eventTypes,
-        languageChoice: settings.registryLanguageChoice ? settings.language : null,
+        languageChoice: settings.language,
         perks: perksFor(shop, settings, await shopDeals(shop, settings)),
         error: t("server.createInvalid"),
         values,
@@ -1000,7 +1000,7 @@ async function createRegistryAction(
     registrantName: values.registrantName.trim(),
     registrantEmail: email,
     country: normalizeCountry(values.country),
-    language: registryLanguageFrom(values.language, settings.language, settings.registryLanguageChoice),
+    language: registryLanguageFrom(values.language, settings.language, true),
   });
   // The first email and the page it lands on are in the language just chosen.
   overrideLocale(registry.language);
@@ -1829,7 +1829,7 @@ async function settingsAction(request: Request, ctx: ProxyContext, settings: Sho
     eventDate: eventDate && !isDatelessOccasion(eventType) ? new Date(`${eventDate}T00:00:00Z`) : null,
     message: String(form.get("message") ?? "").slice(0, 2000) || null,
     country: normalizeCountry(form.get("country")),
-    ...(settings.registryLanguageChoice && form.has("language")
+    ...(form.has("language")
       ? { language: registryLanguageFrom(form.get("language"), settings.language, true) }
       : {}),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",

@@ -116,7 +116,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       Math.max(10, Number(form.get("externalItemsCapPercent") ?? 60)),
     ),
     language: toLocale(form.get("language")),
-    registryLanguageChoice: form.get("registryLanguageChoice") === "on",
     accentColor: /^#[0-9a-fA-F]{6}$/.test(String(form.get("accentColor")))
       ? String(form.get("accentColor"))
       : "#1a1a1a",
@@ -320,12 +319,6 @@ export default function Settings() {
               </s-option>
             ))}
           </s-select>
-          <s-checkbox
-            name="registryLanguageChoice"
-            label={t("admin.set.langChoice")}
-            details={t("admin.set.langChoiceDetails")}
-            {...(settings.registryLanguageChoice ? { checked: true } : {})}
-          />
           <s-text-field
             name="buttonLabel"
             label={t("admin.set.buttonLabel")}
