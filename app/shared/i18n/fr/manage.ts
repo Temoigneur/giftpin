@@ -84,7 +84,7 @@ export const frManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "Prénom",
   "manage.ship.last": "Nom de famille",
   "manage.ship.street": "Adresse",
-  "manage.ship.apt": "Appartement, bureau, etc.",
+  "manage.ship.apt": "Appartement, bâtiment, étage, etc.",
   "manage.ship.city": "Ville",
   "manage.ship.country": "Pays",
   "manage.ship.choose": "Choisir…",
