@@ -7,8 +7,9 @@
   registry from the product page as usual.
 {% endcomment %}
 
-{%- assign lbl_save_label = block.settings.save_label -%}{%- if lbl_save_label == blank -%}{%- assign lbl_save_label = 'save_for_later.label' | t -%}{%- endif -%}
-{%- assign lbl_saved_label = block.settings.saved_label -%}{%- if lbl_saved_label == blank -%}{%- assign lbl_saved_label = 'save_for_later.saved' | t -%}{%- endif -%}
+{%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
+{%- assign lbl_save_label = block.settings.save_label -%}{%- if lbl_save_label == blank or lbl_save_label == 'Save for later' -%}{%- assign lbl_save_label = 'save_for_later.label' | t -%}{%- endif -%}
+{%- assign lbl_saved_label = block.settings.saved_label -%}{%- if lbl_saved_label == blank or lbl_saved_label == 'Saved' -%}{%- assign lbl_saved_label = 'save_for_later.saved' | t -%}{%- endif -%}
 
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 

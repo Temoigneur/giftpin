@@ -9,7 +9,8 @@
   framework on a storefront that isn't ours to slow down.
 {% endcomment %}
 
-{%- assign lbl_button_label = block.settings.button_label -%}{%- if lbl_button_label == blank -%}{%- assign lbl_button_label = 'add_to_registry.label' | t -%}{%- endif -%}
+{%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
+{%- assign lbl_button_label = block.settings.button_label -%}{%- if lbl_button_label == blank or lbl_button_label == 'Add to registry' -%}{%- assign lbl_button_label = 'add_to_registry.label' | t -%}{%- endif -%}
 
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 {%- assign offers_choice = false -%}

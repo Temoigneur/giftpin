@@ -22,11 +22,12 @@
   misread for shoppers who don't read English as a first language.
 {% endcomment %}
 
-{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank -%}{%- assign lbl_heading = 'registry_links.heading' | t -%}{%- endif -%}
-{%- assign lbl_create_label = block.settings.create_label -%}{%- if lbl_create_label == blank -%}{%- assign lbl_create_label = 'registry_links.create' | t -%}{%- endif -%}
-{%- assign lbl_find_label = block.settings.find_label -%}{%- if lbl_find_label == blank -%}{%- assign lbl_find_label = 'registry_links.find' | t -%}{%- endif -%}
-{%- assign lbl_manage_label = block.settings.manage_label -%}{%- if lbl_manage_label == blank -%}{%- assign lbl_manage_label = 'registry_links.manage' | t -%}{%- endif -%}
-{%- assign lbl_cart_return_label = block.settings.cart_return_label -%}{%- if lbl_cart_return_label == blank -%}{%- assign lbl_cart_return_label = 'registry_links.cart_return' | t -%}{%- endif -%}
+{%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
+{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank or lbl_heading == 'Gift registry' -%}{%- assign lbl_heading = 'registry_links.heading' | t -%}{%- endif -%}
+{%- assign lbl_create_label = block.settings.create_label -%}{%- if lbl_create_label == blank or lbl_create_label == 'Create a gift registry' -%}{%- assign lbl_create_label = 'registry_links.create' | t -%}{%- endif -%}
+{%- assign lbl_find_label = block.settings.find_label -%}{%- if lbl_find_label == blank or lbl_find_label == 'Find a gift registry' -%}{%- assign lbl_find_label = 'registry_links.find' | t -%}{%- endif -%}
+{%- assign lbl_manage_label = block.settings.manage_label -%}{%- if lbl_manage_label == blank or lbl_manage_label == 'Manage my gift registry' -%}{%- assign lbl_manage_label = 'registry_links.manage' | t -%}{%- endif -%}
+{%- assign lbl_cart_return_label = block.settings.cart_return_label -%}{%- if lbl_cart_return_label == blank or lbl_cart_return_label == 'Return to registry' -%}{%- assign lbl_cart_return_label = 'registry_links.cart_return' | t -%}{%- endif -%}
 
 {%- assign base = block.settings.proxy_path | default: '/apps/registry' -%}
 {%- assign size = block.settings.text_size | default: 18 -%}
