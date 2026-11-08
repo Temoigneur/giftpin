@@ -25,6 +25,11 @@
  * normal machine, and fix or drop any that fail (CLAUDE.md hard rule 1).
  * The IN/CN/TW/JP lists (added 7 Nov 2026) are written from knowledge of each
  * site's search and are NOT checked live: run `node scripts/check-retailer-links.mjs`.
+ * 8 Nov 2026: Ben's link check found 6 broken. Fixed from the sites' own
+ * indexed search pages (not a live click): Vijay Sales /search-listing?q=,
+ * Yahoo!ショッピング /search/{q}/0/, Akachan Honpo's shop at shop.akachan.jp,
+ * Cainz /search/?q=. Gome dropped (dead TLS cert). Otto kept as /suche/{q}/:
+ * scrapers document that exact format, so its 400 looks like a bot block.
  * A shelf a country has no list for falls back to its home list.
  */
 
@@ -659,7 +664,7 @@ const DATA: Record<string, Shelves> = {
     tech: [
       ["Croma", "https://www.croma.com/searchB?q={q}"],
       ["Reliance Digital", "https://www.reliancedigital.in/search?q={q}"],
-      ["Vijay Sales", "https://www.vijaysales.com/search/{q}"],
+      ["Vijay Sales", "https://www.vijaysales.com/search-listing?q={q}"],
       ["Flipkart", "https://www.flipkart.com/search?q={q}"],
       shop("co.in"),
     ],
@@ -704,7 +709,6 @@ const DATA: Record<string, Shelves> = {
       ["JD.com", "https://search.jd.com/Search?keyword={q}"],
       ["Tmall", "https://list.tmall.com/search_product.htm?q={q}"],
       ["Suning", "https://search.suning.com/{q}/"],
-      ["Gome", "https://search.gome.com.cn/search?question={q}"],
       shop("com.hk"),
     ],
     pets: [
@@ -770,42 +774,42 @@ const DATA: Record<string, Shelves> = {
   JP: {
     home: [
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
-      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search/{q}/0/"],
       ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
       ["Muji", "https://www.muji.com/jp/ja/search?q={q}"],
       ["Francfranc", "https://www.francfranc.com/search?keyword={q}"],
       shop("co.jp"),
     ],
     baby: [
-      ["Akachan Honpo", "https://www.akachan.jp/search/?q={q}"],
+      ["Akachan Honpo", "https://shop.akachan.jp/shop/goods/search.aspx?q={q}&search=x"],
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
-      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search/{q}/0/"],
       ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
       shop("co.jp"),
     ],
     toys: [
       ["Toys\"R\"Us Japan", "https://www.toysrus.co.jp/search/?q={q}"],
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
-      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
-      ["Akachan Honpo", "https://www.akachan.jp/search/?q={q}"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search/{q}/0/"],
+      ["Akachan Honpo", "https://shop.akachan.jp/shop/goods/search.aspx?q={q}&search=x"],
       shop("co.jp"),
     ],
     tech: [
       ["Yodobashi", "https://www.yodobashi.com/?word={q}"],
       ["Bic Camera", "https://www.biccamera.com/bc/category/?q={q}"],
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
-      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search/{q}/0/"],
       shop("co.jp"),
     ],
     pets: [
-      ["Cainz", "https://www.cainz.com/shop/goods/search.aspx?keyword={q}"],
+      ["Cainz", "https://www.cainz.com/search/?q={q}"],
       ["Kohnan", "https://www.kohnan-eshop.com/shop/goods/search.aspx?keyword={q}"],
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
-      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search?p={q}"],
+      ["Yahoo!ショッピング", "https://shopping.yahoo.co.jp/search/{q}/0/"],
       shop("co.jp"),
     ],
     garden: [
-      ["Cainz", "https://www.cainz.com/shop/goods/search.aspx?keyword={q}"],
+      ["Cainz", "https://www.cainz.com/search/?q={q}"],
       ["Kohnan", "https://www.kohnan-eshop.com/shop/goods/search.aspx?keyword={q}"],
       ["Nitori", "https://www.nitori-net.jp/store/ja/ec/search?q={q}"],
       ["Rakuten Ichiba", "https://search.rakuten.co.jp/search/mall/{q}/"],
