@@ -78,12 +78,13 @@ export function toLocale(value: unknown): Locale {
 
 /**
  * The language to store on a registry from what the form sent: null (follow
- * the store) when the store doesn't allow a choice, the value isn't one of
- * ours, or it is simply the store's own language.
+ * the store) when the store doesn't allow a choice or the value isn't one of
+ * ours. A language the registrant picked is always stored, even when it is
+ * the store's own today, so changing the store's language later can't move it.
  */
-export function registryLanguageFrom(value: unknown, storeLanguage: string, allowed: boolean): Locale | null {
+export function registryLanguageFrom(value: unknown, _storeLanguage: string, allowed: boolean): Locale | null {
   if (!allowed || !isLocale(value)) return null;
-  return value === toLocale(storeLanguage) ? null : value;
+  return value;
 }
 
 let source: () => Locale | undefined = () => undefined;

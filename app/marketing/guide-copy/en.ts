@@ -133,7 +133,7 @@ export const en: GuideCopy = {
             title: "Match your store's look and language",
             items: [
               "Under <b>{{admin.set.appearance}}</b>, set the <b>{{admin.set.buttonLabel}}</b> and <b>{{admin.set.accent}}</b>.",
-              "<b>{{admin.set.langLabel}}</b> picks the language guests see on registry pages and in registry emails: English, French, Spanish, German or Brazilian Portuguese. Tick <b>{{admin.set.langChoice}}</b> if you'd like registrants to choose a different one for their own registry.",
+              "<b>{{admin.set.langLabel}}</b> picks the language guests see on registry pages and in registry emails: English, French, Spanish, German or Brazilian Portuguese.",
               "The Add to registry button and registry links have their own settings in the theme editor: label, icon, colours, size and spacing.",
               "To let shoppers who keep their registry somewhere else use your button too, tick <b>Also offer Babylist</b> or <b>Also offer \"Another registry\"</b> (copies the product link for sites like Zola) in the button's settings. The button then asks which registry.",
               "With Pro, <b>{{admin.set.branding}}</b> adds your logo (<b>{{admin.set.logo}}</b>), colours and font to registry pages and removes the Powered by Giftpin credit.",

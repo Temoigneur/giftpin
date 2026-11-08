@@ -134,7 +134,7 @@ export const de: GuideCopy = {
             title: "Aussehen und Sprache an Ihren Shop anpassen",
             items: [
               "Legen Sie unter <b>{{admin.set.appearance}}</b> <b>{{admin.set.buttonLabel}}</b> und <b>{{admin.set.accent}}</b> fest.",
-              "<b>{{admin.set.langLabel}}</b> bestimmt die Sprache, die Gäste auf Listenseiten und in E-Mails sehen: Englisch, Französisch, Spanisch, Deutsch oder brasilianisches Portugiesisch. Markieren Sie <b>{{admin.set.langChoice}}</b>, wenn Listenersteller für ihre eigene Liste eine andere wählen dürfen.",
+              "<b>{{admin.set.langLabel}}</b> bestimmt die Sprache, die Gäste auf Listenseiten und in E-Mails sehen: Englisch, Französisch, Spanisch, Deutsch oder brasilianisches Portugiesisch.",
               "Der Add-to-registry-Button und die Listen-Links haben im Theme-Editor eigene Einstellungen: Beschriftung, Symbol, Farben, Größe und Abstände.",
               "Damit auch Käufer, die ihre Liste woanders führen, Ihren Button nutzen können, markieren Sie in den Button-Einstellungen <b>Also offer Babylist</b> oder <b>Also offer \"Another registry\"</b> (kopiert den Produktlink für Seiten wie Zola). Der Button fragt dann, welche Liste gemeint ist.",
               "Mit Pro fügt <b>{{admin.set.branding}}</b> Ihr Logo (<b>{{admin.set.logo}}</b>), Ihre Farben und Schrift zu den Listenseiten hinzu und entfernt den Hinweis Powered by Giftpin.",

@@ -96,8 +96,6 @@ export const zhTWAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "外觀",
   "admin.set.langLabel": "禮物清單頁面語言",
   "admin.set.langDetails": "賓客在禮物清單頁面與清單電子郵件中看到的語言。您輸入的文字（例如清單名稱與商品標題）會依原樣顯示。",
-  "admin.set.langChoice": "讓清單主人為自己的禮物清單選擇語言",
-  "admin.set.langChoiceDetails": "在建立與管理頁面加入語言選擇器，讓清單主人能以其他語言顯示禮物清單及其電子郵件。關閉時，所有禮物清單都使用上方設定的語言。",
   "admin.set.buttonLabel": "按鈕文字",
   "admin.set.accent": "強調色",
   "admin.set.accentDetails": "十六進位色碼，例如 #1a1a1a。用於禮物清單頁面的按鈕。",

@@ -33,12 +33,6 @@ export interface ShopSettings {
    * hasn't picked one.
    */
   language: string;
-  /**
-   * Let a registrant pick a different language for their own registry (create
-   * and manage pages). Off by default so the form doesn't change for stores
-   * that sell in one language.
-   */
-  registryLanguageChoice: boolean;
   /** Merchant branding for the guest page. */
   accentColor: string;
   buttonLabel: string;
@@ -176,7 +170,6 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   externalItems: "on",
   externalItemsCapPercent: 60,
   language: "en",
-  registryLanguageChoice: false,
   accentColor: "#1a1a1a",
   buttonLabel: "Add to registry",
   findARegistryEnabled: true,

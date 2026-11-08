@@ -134,7 +134,7 @@ export const zhCN: GuideCopy = {
             title: "让外观和语言与您的店铺相配",
             items: [
               "在 <b>{{admin.set.appearance}}</b> 下，设置 <b>{{admin.set.buttonLabel}}</b> 和 <b>{{admin.set.accent}}</b>。",
-              "<b>{{admin.set.langLabel}}</b> 决定宾客在礼物清单页面和清单邮件中看到的语言：英语、法语、西班牙语、德语或巴西葡萄牙语。如果您希望清单主人为自己的清单选择其他语言，请勾选 <b>{{admin.set.langChoice}}</b>。",
+              "<b>{{admin.set.langLabel}}</b> 决定宾客在礼物清单页面和清单邮件中看到的语言：英语、法语、西班牙语、德语或巴西葡萄牙语。",
               "Add to registry 按钮和清单链接在主题编辑器中有各自的设置：文字、图标、颜色、大小和间距。",
               "如果想让把清单放在别处的顾客也能使用您的按钮，请在按钮设置中勾选 <b>Also offer Babylist</b> 或 <b>Also offer \"Another registry\"</b>（为 Zola 之类的网站复制商品链接）。这样按钮会询问要加入哪份清单。",
               "使用 Pro 时，<b>{{admin.set.branding}}</b> 会把您的徽标（<b>{{admin.set.logo}}</b>）、颜色和字体应用到礼物清单页面，并去掉 Powered by Giftpin 标识。",

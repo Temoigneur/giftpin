@@ -134,7 +134,7 @@ export const fr: GuideCopy = {
             title: "Adapter l'apparence et la langue à votre boutique",
             items: [
               "Sous <b>{{admin.set.appearance}}</b>, définissez <b>{{admin.set.buttonLabel}}</b> et <b>{{admin.set.accent}}</b>.",
-              "<b>{{admin.set.langLabel}}</b> choisit la langue que voient les invités sur les pages de liste et dans les courriels : anglais, français, espagnol, allemand ou portugais du Brésil. Cochez <b>{{admin.set.langChoice}}</b> si vous voulez que les inscrits puissent en choisir une autre pour leur propre liste.",
+              "<b>{{admin.set.langLabel}}</b> choisit la langue que voient les invités sur les pages de liste et dans les courriels : anglais, français, espagnol, allemand ou portugais du Brésil.",
               "Le bouton Add to registry et les liens de liste ont leurs propres réglages dans l'éditeur de thème : texte, icône, couleurs, taille et espacement.",
               "Pour permettre aux clients qui gardent leur liste ailleurs d'utiliser aussi votre bouton, cochez <b>Also offer Babylist</b> ou <b>Also offer \"Another registry\"</b> (copie le lien du produit pour des sites comme Zola) dans les réglages du bouton. Le bouton demande alors dans quelle liste ajouter.",
               "Avec Pro, <b>{{admin.set.branding}}</b> ajoute votre logo (<b>{{admin.set.logo}}</b>), vos couleurs et votre police aux pages de liste et retire la mention Powered by Giftpin.",

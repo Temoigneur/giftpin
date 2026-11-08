@@ -134,7 +134,7 @@ export const ja: GuideCopy = {
             title: "ストアの見た目と言語に合わせる",
             items: [
               "<b>{{admin.set.appearance}}</b> で、<b>{{admin.set.buttonLabel}}</b> と <b>{{admin.set.accent}}</b> を設定します。",
-              "<b>{{admin.set.langLabel}}</b> では、ギフトリストのページとメールでゲストに表示する言語（英語、フランス語、スペイン語、ドイツ語、ブラジルポルトガル語）を選びます。リストの作成者が自分のギフトリストで別の言語を選べるようにするには、<b>{{admin.set.langChoice}}</b> にチェックを入れてください。",
+              "<b>{{admin.set.langLabel}}</b> では、ギフトリストのページとメールでゲストに表示する言語（英語、フランス語、スペイン語、ドイツ語、ブラジルポルトガル語）を選びます。",
               "Add to registry ボタンとギフトリストのリンクには、テーマエディタに専用の設定（ラベル、アイコン、色、サイズ、余白）があります。",
               "ほかの場所でギフトリストを作っているお客様にもボタンを使ってもらうには、ボタンの設定で <b>Also offer Babylist</b> または <b>Also offer \"Another registry\"</b>（Zolaなどのサイト向けに商品リンクをコピー）にチェックを入れます。すると、ボタンがどのリストに追加するかを尋ねます。",
               "Proでは、<b>{{admin.set.branding}}</b> でロゴ（<b>{{admin.set.logo}}</b>）、色、フォントをギフトリストのページに追加でき、Powered by Giftpin の表記もなくせます。",
