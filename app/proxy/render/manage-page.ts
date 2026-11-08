@@ -413,7 +413,13 @@ function renderShipping(data: ManagePageData, setup = false): string {
   const shipping = data.shipping ?? { enabled: false, address: null };
   // The setup dialog has its own copy of this form; ids must stay unique.
   const id = setup ? "setup-ship" : "ship";
-  const a = shipping.address ?? {};
+  const a: Record<string, string> = { ...(shipping.address ?? {}) };
+  // There is no second address line any more (Ben, 8 Nov 2026: "Apartment,
+  // suite, etc." read as asking which room gifts go to). An address saved
+  // before then keeps its address2 and still ships with it until re-saved;
+  // showing it inside the Address line means the next save folds it into
+  // address1 instead of silently dropping it.
+  if (a.address2) a.address1 = [a.address1, a.address2].filter(Boolean).join(", ");
   const country = a.countryCode || a.countryCodeV2 || normalizeCountry(data.country);
   const flash = shipping.flash;
   const input = (name: string, label: string, autocomplete: string, optional = false, type = "text") => `
@@ -431,7 +437,6 @@ function renderShipping(data: ManagePageData, setup = false): string {
       <div>${input("lastName", T("manage.ship.last"), "family-name")}</div>
     </div>
     ${input("address1", T("manage.ship.street"), "address-line1")}
-    ${input("address2", T("manage.ship.apt"), "address-line2", true)}
     ${input("city", T("manage.ship.city"), "address-level2")}
     <label for="${id}-country">${T("manage.ship.country")}</label>
     <select id="${id}-country" name="countryCode" class="js-ship-country" autocomplete="country">

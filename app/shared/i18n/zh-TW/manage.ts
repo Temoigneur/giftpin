@@ -84,7 +84,6 @@ export const zhTWManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "名字",
   "manage.ship.last": "姓氏",
   "manage.ship.street": "街道地址",
-  "manage.ship.apt": "公寓、樓層、房號等",
   "manage.ship.city": "城市",
   "manage.ship.country": "國家",
   "manage.ship.choose": "請選擇…",

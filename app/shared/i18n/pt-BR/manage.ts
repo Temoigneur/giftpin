@@ -84,7 +84,6 @@ export const ptBRManage: { [K in keyof typeof enManage]: string } = {
   "manage.ship.first": "Nome",
   "manage.ship.last": "Sobrenome",
   "manage.ship.street": "Endereço",
-  "manage.ship.apt": "Apartamento, sala etc.",
   "manage.ship.city": "Cidade",
   "manage.ship.country": "País",
   "manage.ship.choose": "Escolher…",
