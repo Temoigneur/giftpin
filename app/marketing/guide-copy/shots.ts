@@ -155,5 +155,47 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「總覽」頁面上的「將 Giftpin 加入佈景主題」卡片，商品頁按鈕、清單連結和愛心按鈕以紅框標示",
       "ja": "概要ページの「テーマにGiftpinを追加」カード。商品ページ用ボタン、リストのリンク、ハートのボタンが赤い枠で示されている"
     }
+  },
+  "settingsSaveTop": {
+    "src": "/guides/m4-settings-save-top.png",
+    "alt": {
+      "en": "The top of Giftpin's Settings page with the Save button at the top right boxed in red and numbered 1",
+      "fr": "Le haut de la page Réglages de Giftpin, bouton Enregistrer en haut à droite encadré en rouge et numéroté 1",
+      "es": "La parte superior de la página de Ajustes de Giftpin, con el botón Guardar arriba a la derecha enmarcado en rojo y numerado 1",
+      "de": "Der obere Teil der Giftpin-Einstellungen, der Speichern-Button oben rechts rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O topo da página de Configurações do Giftpin, com o botão Salvar no canto superior direito destacado em vermelho e numerado 1",
+      "hi": "Giftpin की सेटिंग पेज का ऊपरी हिस्सा, ऊपर दाईं ओर सेव बटन लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Giftpin 设置页面顶部，右上角的“保存”按钮用红框标出并编号为 1",
+      "zh-TW": "Giftpin 設定頁面頂部，右上角的「儲存」按鈕以紅框標示並編號 1",
+      "ja": "Giftpinの設定ページの上部。右上の「保存」ボタンが赤い枠と番号1で示されている"
+    }
+  },
+  "settingsSaveBottom": {
+    "src": "/guides/m4-settings-save-bottom.png",
+    "alt": {
+      "en": "The Automatic emails section with the lower Save button under it boxed in red and numbered 2",
+      "fr": "La section Courriels automatiques avec le bouton Enregistrer du bas encadré en rouge et numéroté 2",
+      "es": "La sección de correos automáticos con el botón Guardar inferior enmarcado en rojo y numerado 2",
+      "de": "Der Bereich Automatische E-Mails mit dem unteren Speichern-Button, rot umrandet und mit 2 nummeriert",
+      "pt-BR": "A seção de e-mails automáticos com o botão Salvar inferior destacado em vermelho e numerado 2",
+      "hi": "स्वचालित ईमेल सेक्शन और उसके नीचे का सेव बटन, लाल बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "“自动邮件”部分，下方的“保存”按钮用红框标出并编号为 2",
+      "zh-TW": "「自動電子郵件」區塊，下方的「儲存」按鈕以紅框標示並編號 2",
+      "ja": "「自動メール」セクション。その下の「保存」ボタンが赤い枠と番号2で示されている"
+    }
+  },
+  "settingsSaveFunds": {
+    "src": "/guides/m4-settings-save-funds.png",
+    "alt": {
+      "en": "The Group gifts and funds section with its own Save button boxed in red and numbered 3",
+      "fr": "La section Cadeaux de groupe et cagnottes avec son propre bouton Enregistrer encadré en rouge et numéroté 3",
+      "es": "La sección de regalos grupales y fondos con su propio botón Guardar enmarcado en rojo y numerado 3",
+      "de": "Der Bereich Gruppengeschenke und Fonds mit eigenem Speichern-Button, rot umrandet und mit 3 nummeriert",
+      "pt-BR": "A seção de presentes em grupo e vaquinhas com seu próprio botão Salvar destacado em vermelho e numerado 3",
+      "hi": "समूह गिफ्ट और फंड सेक्शन, अपने अलग सेव बटन के साथ, लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "“集体礼物和基金”部分，自带的“保存”按钮用红框标出并编号为 3",
+      "zh-TW": "「集體禮物與基金」區塊，專屬的「儲存」按鈕以紅框標示並編號 3",
+      "ja": "「グループギフトと資金」セクション。専用の「保存」ボタンが赤い枠と番号3で示されている"
+    }
   }
 };

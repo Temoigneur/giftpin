@@ -48,7 +48,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     }),
   });
   const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
-  const saveWithShots = withShot(save, 0, ["themeSave"]);
+  const saveWithShots = withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]);
   const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveWithShots] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({
     ...raw.setup,
