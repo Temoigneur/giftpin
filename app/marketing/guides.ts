@@ -191,30 +191,41 @@ function guideSteps(list: Step[], english: Step[], locale: Locale): string {
     .join("")}</div>`;
 }
 
-function guideHtml(kind: "setup" | "registry", locale: Locale): string {
+type GuideKind = "setup" | "customize" | "pro" | "registry" | "guest";
+const GUIDE_PAGES: Record<GuideKind, { path: string; nav: "setup" | "guides"; icon: string; cta: boolean }> = {
+  setup: { path: "/setup", nav: "setup", icon: "list", cta: true },
+  customize: { path: "/setup/customize", nav: "setup", icon: "puzzle", cta: true },
+  pro: { path: "/setup/pro", nav: "setup", icon: "star", cta: true },
+  registry: { path: "/registry-guide", nav: "guides", icon: "gift", cta: false },
+  guest: { path: "/guest-guide", nav: "guides", icon: "heart", cta: false },
+};
+
+function guideHtml(kind: GuideKind, locale: Locale): string {
   const copy = GUIDE_COPY[locale];
   const eng = GUIDE_COPY.en;
   const doc = copy[kind];
   const engDoc = eng[kind];
-  const path = kind === "setup" ? "/setup" : "/registry-guide";
-  const notes = [copy.ui.shotsNote, kind === "setup" ? copy.ui.shopifyNote : ""].filter(Boolean);
+  const page = GUIDE_PAGES[kind];
+  const path = page.path;
+  const merchant = page.nav === "setup";
+  const notes = [copy.ui.shotsNote, merchant ? copy.ui.shopifyNote : ""].filter(Boolean);
   const body = `
-${hero(`${icon(kind === "setup" ? "list" : "gift")} ${esc(doc.eyebrow)}`, doc.h1, doc.lede)}
+${hero(`${icon(page.icon)} ${esc(doc.eyebrow)}`, doc.h1, doc.lede)}
 ${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
 ${doc.sections
   .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale), sec.tint))
   .join("\n")}
-${section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint)}
-${kind === "setup" ? finalCta(copy.ui.finalCta) : ""}
+${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint) : ""}
+${page.cta ? finalCta(copy.ui.finalCta) : ""}
 `;
   return sitePage({
     path,
-    nav: kind === "setup" ? "setup" : "guides",
+    nav: page.nav,
     title: doc.metaTitle,
     description: doc.description,
     body,
     css: CSS,
-    jsonLd: [faqLd(doc.faq)],
+    jsonLd: doc.faq.length ? [faqLd(doc.faq)] : [],
     lang: locale,
     query: locale === "en" ? "" : `?lang=${locale}`,
     alternates: [
@@ -224,14 +235,29 @@ ${kind === "setup" ? finalCta(copy.ui.finalCta) : ""}
   });
 }
 
-/** Merchant setup guide at giftpin.app/setup. */
+/** Merchant setup guide at giftpin.app/setup: install, theme, Save buttons, and a hub to the other guides. */
 export function setupHtml(locale: Locale = siteLocale()): string {
   return guideHtml("setup", locale);
+}
+
+/** Merchant customize guide at giftpin.app/setup/customize. */
+export function setupCustomizeHtml(locale: Locale = siteLocale()): string {
+  return guideHtml("customize", locale);
+}
+
+/** Merchant Pro guide at giftpin.app/setup/pro. */
+export function setupProHtml(locale: Locale = siteLocale()): string {
+  return guideHtml("pro", locale);
 }
 
 /** Registry creator guide at giftpin.app/registry-guide. */
 export function registryGuideHtml(locale: Locale = siteLocale()): string {
   return guideHtml("registry", locale);
+}
+
+/** Guest guide at giftpin.app/guest-guide. */
+export function guestGuideHtml(locale: Locale = siteLocale()): string {
+  return guideHtml("guest", locale);
 }
 
 const CSS = `

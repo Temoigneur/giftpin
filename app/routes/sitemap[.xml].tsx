@@ -1,7 +1,7 @@
 import { SITE_URL, holidayPromoOn } from "../marketing/config";
 
 /** giftpin.app/sitemap.xml: the public marketing pages. */
-export const MARKETING_PATHS = ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/gift-cards", "/privacy"];
+export const MARKETING_PATHS = ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/setup/customize", "/setup/pro", "/registry-guide", "/guest-guide", "/gift-cards", "/privacy"];
 
 /** Seasonal pages, listed only while their promo runs (see holidayPromoOn). */
 export const SEASONAL_PATHS = ["/holiday-wish-lists"];
