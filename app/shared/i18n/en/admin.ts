@@ -94,6 +94,8 @@ export const enAdmin = {
   "admin.set.appearance": "Appearance",
   "admin.set.langLabel": "Registry page language",
   "admin.set.langDetails": "The language guests see on registry pages and in registry emails. The text you type, like registry names and product titles, is shown as entered.",
+  "admin.set.langMenu": "Show a language menu on guest pages",
+  "admin.set.langMenuDetails": "Adds a row of language links at the bottom of registry, gift card and create pages, so a guest can read them in another language. Off by default.",
   "admin.set.buttonLabel": "Button label",
   "admin.set.accent": "Accent colour",
   "admin.set.accentDetails": "Hex, e.g. #1a1a1a. Used for buttons on the registry page.",

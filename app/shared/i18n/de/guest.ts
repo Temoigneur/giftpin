@@ -2,6 +2,7 @@ import type { enGuest } from "../en/guest";
 
 export const deGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.layout.byHtml": "Geschenkeliste von <a href=\"/\"><strong>{shop}</strong></a>",
+  "guest.layout.language": "Sprache",
   "guest.layout.poweredHtml": "Bereitgestellt von <a href=\"{href}\" target=\"_blank\" rel=\"noopener nofollow\">Giftpin</a>",
 
   "guest.ship.fallbackWho": "die Person, die die Liste angelegt hat",

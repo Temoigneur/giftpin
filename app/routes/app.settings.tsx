@@ -129,6 +129,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       : "#1a1a1a",
     buttonLabel: String(form.get("buttonLabel") ?? "Add to registry").slice(0, 40),
     findARegistryEnabled: form.get("findARegistryEnabled") === "on",
+    languageMenu: form.get("languageMenu") === "on",
     hideBuyerUntilEvent: form.get("hideBuyerUntilEvent") === "on",
     // Pro automations. Saved on any plan so a merchant's choices survive a
     // plan change; the daily job checks the plan before acting on them.
@@ -329,6 +330,12 @@ export default function Settings() {
               </s-option>
             ))}
           </s-select>
+          <s-checkbox
+            name="languageMenu"
+            label={t("admin.set.langMenu")}
+            details={t("admin.set.langMenuDetails")}
+            {...(settings.languageMenu ? { checked: true } : {})}
+          />
           <s-text-field
             name="buttonLabel"
             label={t("admin.set.buttonLabel")}
