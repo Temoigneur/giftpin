@@ -323,5 +323,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "設定中的「外觀」區塊，「清單頁面語言」選單以紅框標示",
       "ja": "設定の「外観」セクション。「リストページの言語」メニューが赤い枠で示されている"
     }
+  },
+  "import": {
+    "src": "/guides/c6-import.png",
+    "alt": {
+      "en": "The Bring registries from another app page: Choose File boxed and numbered 1, the optional email checkbox boxed, and Check file boxed and numbered 2",
+      "fr": "La page d'importation de listes d'une autre application : Choisir un fichier encadré et numéroté 1, la case facultative d'envoi d'e-mail encadrée, et Vérifier le fichier encadré et numéroté 2",
+      "es": "La página para traer listas de otra aplicación: Elegir archivo enmarcado y numerado 1, la casilla opcional de correo enmarcada y Comprobar archivo enmarcado y numerado 2",
+      "de": "Die Seite zum Übernehmen von Listen aus einer anderen App: Datei auswählen rot umrandet und mit 1 nummeriert, das optionale E-Mail-Kästchen umrandet, Datei prüfen mit 2 nummeriert",
+      "pt-BR": "A página para trazer listas de outro aplicativo: Escolher arquivo destacado e numerado 1, a caixa opcional de e-mail destacada e Verificar arquivo destacado e numerado 2",
+      "hi": "दूसरे ऐप से रजिस्ट्री लाने वाला पेज: फ़ाइल चुनें बटन लाल बॉक्स में नंबर 1 के साथ, वैकल्पिक ईमेल चेकबॉक्स बॉक्स में, और फ़ाइल जाँचें बटन नंबर 2 के साथ",
+      "zh-CN": "“从其他应用导入清单”页面：“选择文件”用红框标出并编号为 1，可选的邮件复选框用红框标出，“检查文件”用红框标出并编号为 2",
+      "zh-TW": "「從其他應用程式匯入清單」頁面：「選擇檔案」以紅框標示並編號 1，選用的電子郵件核取方塊以紅框標示，「檢查檔案」以紅框標示並編號 2",
+      "ja": "他のアプリからリストを取り込むページ。「ファイルを選択」が赤い枠と番号1、任意のメールのチェックボックスが赤い枠、「ファイルを確認」が赤い枠と番号2で示されている"
+    }
   }
 };
