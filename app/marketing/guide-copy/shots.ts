@@ -337,5 +337,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「從其他應用程式匯入清單」頁面：「選擇檔案」以紅框標示並編號 1，選用的電子郵件核取方塊以紅框標示，「檢查檔案」以紅框標示並編號 2",
       "ja": "他のアプリからリストを取り込むページ。「ファイルを選択」が赤い枠と番号1、任意のメールのチェックボックスが赤い枠、「ファイルを確認」が赤い枠と番号2で示されている"
     }
+  },
+  "flow": {
+    "src": "/guides/c7-flow-triggers.png",
+    "alt": {
+      "en": "The Flow Select a trigger screen with the Giftpin app boxed in red and its three triggers boxed: Registry created, Registry event coming up and Registry gift bought",
+      "fr": "L'écran Flow de sélection d'un déclencheur, avec l'application Giftpin encadrée en rouge et ses trois déclencheurs : Registry created, Registry event coming up et Registry gift bought",
+      "es": "La pantalla de Flow para seleccionar un activador, con la aplicación Giftpin enmarcada en rojo y sus tres activadores: Registry created, Registry event coming up y Registry gift bought",
+      "de": "Der Flow-Bildschirm zur Trigger-Auswahl, die Giftpin-App rot umrandet und ihre drei Trigger: Registry created, Registry event coming up und Registry gift bought",
+      "pt-BR": "A tela do Flow para selecionar um gatilho, com o app Giftpin destacado em vermelho e seus três gatilhos: Registry created, Registry event coming up e Registry gift bought",
+      "hi": "Flow में ट्रिगर चुनने की स्क्रीन, Giftpin ऐप लाल बॉक्स में और उसके तीनों ट्रिगर: Registry created, Registry event coming up और Registry gift bought",
+      "zh-CN": "Flow 的“选择触发器”界面，Giftpin 应用用红框标出，其三个触发器：Registry created、Registry event coming up、Registry gift bought",
+      "zh-TW": "Flow 的「選取觸發條件」畫面，Giftpin 應用程式以紅框標示，其三個觸發條件：Registry created、Registry event coming up、Registry gift bought",
+      "ja": "Flowの「トリガーを選択」画面。Giftpinアプリが赤い枠で、3つのトリガー（Registry created、Registry event coming up、Registry gift bought）も赤い枠で示されている"
+    }
   }
 };
