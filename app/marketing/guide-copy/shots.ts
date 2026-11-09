@@ -421,5 +421,47 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "設定底部的「立即執行活動結束後的電子郵件與折扣」卡片，「立即執行」按鈕以紅框標示並編號 7",
       "ja": "設定の下部にある「イベント後のメールと割引を今すぐ実行」カード。「今すぐ実行」ボタンが赤い枠と番号7で示されている"
     }
+  },
+  "navPromotions": {
+    "src": "/guides/p4-nav-promotions.png",
+    "alt": {
+      "en": "The Giftpin menu in the Shopify admin with Promotions boxed in red and numbered 1",
+      "fr": "Le menu Giftpin dans l'admin Shopify, Promotions encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en el administrador de Shopify, con Promociones enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü im Shopify-Admin, Aktionen rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin no admin da Shopify, com Promoções destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में Giftpin मेन्यू, प्रमोशन लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台中的 Giftpin 菜单，“促销”用红框标出并编号为 1",
+      "zh-TW": "Shopify 後台中的 Giftpin 選單，「促銷」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のGiftpinメニュー。「プロモーション」が赤い枠と番号1で示されている"
+    }
+  },
+  "newPromotion": {
+    "src": "/guides/p4-new-promotion.png",
+    "alt": {
+      "en": "The New promotion form with the type choice boxed and numbered 2, the discount boxed and numbered 3, the start and end dates boxed and numbered 4, and Create promotion boxed and numbered 5",
+      "fr": "Le formulaire Nouvelle promotion : le type encadré et numéroté 2, la réduction 3, les dates de début et de fin 4, et Créer la promotion 5",
+      "es": "El formulario Nueva promoción: el tipo enmarcado y numerado 2, el descuento 3, las fechas de inicio y fin 4 y Crear promoción 5",
+      "de": "Das Formular Neue Aktion: Typ rot umrandet und mit 2 nummeriert, Rabatt 3, Start- und Enddatum 4 und Aktion erstellen 5",
+      "pt-BR": "O formulário Nova promoção: o tipo destacado e numerado 2, o desconto 3, as datas de início e fim 4 e Criar promoção 5",
+      "hi": "नया प्रमोशन फ़ॉर्म: प्रकार बॉक्स में नंबर 2, छूट नंबर 3, शुरू और खत्म की तारीख नंबर 4, और प्रमोशन बनाएँ नंबर 5",
+      "zh-CN": "“新建促销”表单：类型用红框标出并编号为 2，折扣为 3，开始和结束日期为 4，“创建促销”为 5",
+      "zh-TW": "「新增促銷」表單：類型以紅框標示並編號 2，折扣為 3，開始與結束日期為 4，「建立促銷」為 5",
+      "ja": "新規プロモーションのフォーム。種類が赤い枠と番号2、割引が3、開始日と終了日が4、「プロモーションを作成」が5で示されている"
+    }
+  },
+  "yourPromotions": {
+    "src": "/guides/p4-your-promotions.png",
+    "alt": {
+      "en": "The Your promotions list, which sits above the New promotion form, with the Pause button boxed in red and numbered 6",
+      "fr": "La liste Vos promotions, située au-dessus du formulaire Nouvelle promotion, avec le bouton Suspendre encadré en rouge et numéroté 6",
+      "es": "La lista Tus promociones, situada encima del formulario Nueva promoción, con el botón Pausar enmarcado en rojo y numerado 6",
+      "de": "Die Liste Ihre Aktionen, die über dem Formular Neue Aktion steht, mit dem Button Pausieren rot umrandet und mit 6 nummeriert",
+      "pt-BR": "A lista Suas promoções, que fica acima do formulário Nova promoção, com o botão Pausar destacado em vermelho e numerado 6",
+      "hi": "आपके प्रमोशन की सूची, जो नया प्रमोशन फ़ॉर्म के ऊपर है, रोकें बटन लाल बॉक्स में और नंबर 6 के साथ",
+      "zh-CN": "“您的促销”列表位于“新建促销”表单上方，“暂停”按钮用红框标出并编号为 6",
+      "zh-TW": "「您的促銷」清單位於「新增促銷」表單上方，「暫停」按鈕以紅框標示並編號 6",
+      "ja": "「プロモーション一覧」は新規プロモーションのフォームの上にあり、「一時停止」ボタンが赤い枠と番号6で示されている"
+    }
   }
 };
