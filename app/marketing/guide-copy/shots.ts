@@ -365,5 +365,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "已啟用 Pro 的「方案」頁面，顯示月費和以紅框標示的「取消 Pro」按鈕",
       "ja": "Pro加入中のプランページ。月額料金と、赤い枠で示された「Proを解約」ボタン"
     }
+  },
+  "afterEvent": {
+    "src": "/guides/p2-after-event.png",
+    "alt": {
+      "en": "The After the event (Pro) section of Settings with three numbered red boxes: 1 the discount tick box, 2 the Discount (%) field, 3 the Code works for (days) field",
+      "fr": "La section Après l'événement (Pro) des Réglages avec trois cadres rouges numérotés : 1 la case de réduction, 2 le champ Réduction (%), 3 le champ Durée de validité du code (jours)",
+      "es": "La sección Después del evento (Pro) de Ajustes con tres recuadros rojos numerados: 1 la casilla del descuento, 2 el campo Descuento (%), 3 el campo Validez del código (días)",
+      "de": "Der Bereich Nach der Veranstaltung (Pro) in den Einstellungen mit drei nummerierten roten Rahmen: 1 das Rabatt-Kästchen, 2 das Feld Rabatt (%), 3 das Feld Code gültig für (Tage)",
+      "pt-BR": "A seção Depois do evento (Pro) em Configurações com três caixas vermelhas numeradas: 1 a caixa do desconto, 2 o campo Desconto (%), 3 o campo Código válido por (dias)",
+      "hi": "सेटिंग्स में कार्यक्रम के बाद (Pro) सेक्शन, तीन क्रमांकित लाल बॉक्स: 1 छूट का चेकबॉक्स, 2 छूट (%) फ़ील्ड, 3 कोड कितने दिन चलेगा फ़ील्ड",
+      "zh-CN": "设置中的“活动结束后（Pro）”部分，三个带编号的红框：1 折扣复选框，2“折扣 (%)”输入框，3“优惠码有效天数”输入框",
+      "zh-TW": "設定中的「活動結束後（Pro）」區塊，三個帶編號的紅框：1 折扣核取方塊，2「折扣 (%)」欄位，3「折扣碼有效天數」欄位",
+      "ja": "設定の「イベント後（Pro）」セクション。番号付きの赤い枠3つ：1 割引のチェックボックス、2「割引（%）」欄、3「コードの有効日数」欄"
+    }
   }
 };
