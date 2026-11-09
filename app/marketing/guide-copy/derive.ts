@@ -23,7 +23,17 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     lede: s("hub_lede"),
     steps: [1, 2, 3, 4].map((n): Step => ({ title: s(`hub${n}_t`), items: [s(`hub${n}_i`)] })),
   };
-  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, get, save] };
+  // Install step: the two real install screens, with the buttons boxed and numbered in the images.
+  const installShots = ["installStore", "installApprove"];
+  const getWithShots: typeof get = {
+    ...get,
+    steps: get.steps.map((st, i) =>
+      i === 0
+        ? { ...st, ...(locale === "en" ? { img: installShots.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: installShots.map((k) => SHOTS[k].alt[locale]) }) }
+        : st,
+    ),
+  };
+  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, save] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({
     ...raw.setup,
     eyebrow: s(`${p}_eyebrow`),

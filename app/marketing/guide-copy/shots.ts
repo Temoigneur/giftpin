@@ -1,7 +1,7 @@
 import type { Locale } from "../../shared/i18n";
 
 /** Real screenshots of the app used by the new guide steps (public/guides/). Alt text per language. */
-export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }> =  {
+export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }> = {
   "qr": {
     "src": "/guides/m12-qr-code.png",
     "alt": {
@@ -98,6 +98,34 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-CN": "“查找清单”页面，含名称输入框和搜索按钮",
       "zh-TW": "「尋找清單」頁面，含名稱輸入框和搜尋按鈕",
       "ja": "「リストを探す」ページ。名前の入力欄と検索ボタン"
+    }
+  },
+  "installStore": {
+    "src": "/guides/m1-install-store.png",
+    "alt": {
+      "en": "The Giftpin page on the Shopify App Store with the Install button boxed in red and numbered 1",
+      "fr": "La page Giftpin sur le Shopify App Store, bouton Installer encadré en rouge et numéroté 1",
+      "es": "La página de Giftpin en la Shopify App Store con el botón Instalar enmarcado en rojo y numerado 1",
+      "de": "Die Giftpin-Seite im Shopify App Store, der Installieren-Button rot umrandet und mit 1 nummeriert",
+      "pt-BR": "A página do Giftpin na Shopify App Store com o botão Instalar destacado em vermelho e numerado 1",
+      "hi": "Shopify App Store पर Giftpin का पेज, इंस्टॉल बटन लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 应用商店中的 Giftpin 页面，“安装”按钮用红框标出并编号为 1",
+      "zh-TW": "Shopify App Store 中的 Giftpin 頁面，「安裝」按鈕以紅框標示並編號 1",
+      "ja": "Shopify App StoreのGiftpinのページ。「インストール」ボタンが赤い枠と番号1で示されている"
+    }
+  },
+  "installApprove": {
+    "src": "/guides/m1-install-approve.png",
+    "alt": {
+      "en": "The permissions screen with the Install button boxed in red and numbered 2",
+      "fr": "L'écran des autorisations, bouton Installer encadré en rouge et numéroté 2",
+      "es": "La pantalla de permisos con el botón Instalar enmarcado en rojo y numerado 2",
+      "de": "Der Berechtigungsbildschirm, der Installieren-Button rot umrandet und mit 2 nummeriert",
+      "pt-BR": "A tela de permissões com o botão Instalar destacado em vermelho e numerado 2",
+      "hi": "अनुमतियों वाली स्क्रीन, इंस्टॉल बटन लाल बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "权限确认界面，“安装”按钮用红框标出并编号为 2",
+      "zh-TW": "權限確認畫面，「安裝」按鈕以紅框標示並編號 2",
+      "ja": "権限の確認画面。「インストール」ボタンが赤い枠と番号2で示されている"
     }
   }
 };
