@@ -100,5 +100,5 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"])]), pro: sub("p", [withShot(withShot(pro, 0, ["cancelPro"]), 3, ["afterEvent"])]), registry, guest };
+  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"])]), pro: sub("p", [withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"])]), registry, guest };
 }

@@ -369,15 +369,57 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
   "afterEvent": {
     "src": "/guides/p2-after-event.png",
     "alt": {
-      "en": "The After the event (Pro) section of Settings with three numbered red boxes: 1 the discount tick box, 2 the Discount (%) field, 3 the Code works for (days) field",
-      "fr": "La section Après l'événement (Pro) des Réglages avec trois cadres rouges numérotés : 1 la case de réduction, 2 le champ Réduction (%), 3 le champ Durée de validité du code (jours)",
-      "es": "La sección Después del evento (Pro) de Ajustes con tres recuadros rojos numerados: 1 la casilla del descuento, 2 el campo Descuento (%), 3 el campo Validez del código (días)",
-      "de": "Der Bereich Nach der Veranstaltung (Pro) in den Einstellungen mit drei nummerierten roten Rahmen: 1 das Rabatt-Kästchen, 2 das Feld Rabatt (%), 3 das Feld Code gültig für (Tage)",
-      "pt-BR": "A seção Depois do evento (Pro) em Configurações com três caixas vermelhas numeradas: 1 a caixa do desconto, 2 o campo Desconto (%), 3 o campo Código válido por (dias)",
-      "hi": "सेटिंग्स में कार्यक्रम के बाद (Pro) सेक्शन, तीन क्रमांकित लाल बॉक्स: 1 छूट का चेकबॉक्स, 2 छूट (%) फ़ील्ड, 3 कोड कितने दिन चलेगा फ़ील्ड",
-      "zh-CN": "设置中的“活动结束后（Pro）”部分，三个带编号的红框：1 折扣复选框，2“折扣 (%)”输入框，3“优惠码有效天数”输入框",
-      "zh-TW": "設定中的「活動結束後（Pro）」區塊，三個帶編號的紅框：1 折扣核取方塊，2「折扣 (%)」欄位，3「折扣碼有效天數」欄位",
-      "ja": "設定の「イベント後（Pro）」セクション。番号付きの赤い枠3つ：1 割引のチェックボックス、2「割引（%）」欄、3「コードの有効日数」欄"
+      "en": "The After the event (Pro) section of Settings with the discount tick box and the Discount (%) and Code works for (days) fields boxed in red and numbered 2 to 4",
+      "fr": "La section Après l'événement (Pro) des Réglages, avec la case de réduction et les champs Réduction (%) et Durée de validité du code (jours) encadrés en rouge et numérotés de 2 à 4",
+      "es": "La sección Después del evento (Pro) de Ajustes, con la casilla del descuento y los campos Descuento (%) y Validez del código (días) enmarcados en rojo y numerados del 2 al 4",
+      "de": "Der Bereich Nach der Veranstaltung (Pro) in den Einstellungen, das Rabatt-Kästchen und die Felder Rabatt (%) und Code gültig für (Tage) rot umrandet und mit 2 bis 4 nummeriert",
+      "pt-BR": "A seção Depois do evento (Pro) em Configurações, com a caixa do desconto e os campos Desconto (%) e Código válido por (dias) destacados em vermelho e numerados de 2 a 4",
+      "hi": "सेटिंग्स में कार्यक्रम के बाद (Pro) सेक्शन, छूट चेकबॉक्स और छूट (%) व कोड कितने दिन चलेगा फ़ील्ड लाल बॉक्स में, नंबर 2 से 4 के साथ",
+      "zh-CN": "设置中的“活动结束后（Pro）”部分，折扣复选框以及“折扣 (%)”“优惠码有效天数”输入框用红框标出，编号 2 至 4",
+      "zh-TW": "設定中的「活動結束後（Pro）」區塊，折扣核取方塊以及「折扣 (%)」「折扣碼有效天數」欄位以紅框標示，編號 2 至 4",
+      "ja": "設定の「イベント後（Pro）」セクション。割引のチェックボックスと「割引（%）」「コードの有効日数」欄が赤い枠で、番号2〜4で示されている"
+    }
+  },
+  "navSettings": {
+    "src": "/guides/p3-nav-settings.png",
+    "alt": {
+      "en": "The Giftpin menu in the Shopify admin with Settings boxed in red and numbered 1",
+      "fr": "Le menu Giftpin dans l'admin Shopify, Réglages encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en el administrador de Shopify, con Ajustes enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü im Shopify-Admin, Einstellungen rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin no admin da Shopify, com Configurações destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में Giftpin मेन्यू, सेटिंग्स लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台中的 Giftpin 菜单，“设置”用红框标出并编号为 1",
+      "zh-TW": "Shopify 後台中的 Giftpin 選單，「設定」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のGiftpinメニュー。「設定」が赤い枠と番号1で示されている"
+    }
+  },
+  "emails": {
+    "src": "/guides/p3-emails.png",
+    "alt": {
+      "en": "The Automatic emails (Pro) section of Settings with its three tick boxes boxed and numbered 5 and the Save button boxed and numbered 6",
+      "fr": "La section Courriels automatiques (Pro) des Réglages, avec ses trois cases encadrées et numérotées 5 et le bouton Enregistrer encadré et numéroté 6",
+      "es": "La sección de correos automáticos (Pro) de Ajustes, con sus tres casillas enmarcadas y numeradas 5 y el botón Guardar enmarcado y numerado 6",
+      "de": "Der Bereich Automatische E-Mails (Pro) in den Einstellungen, die drei Kästchen umrandet und mit 5 nummeriert, der Speichern-Button umrandet und mit 6 nummeriert",
+      "pt-BR": "A seção de e-mails automáticos (Pro) em Configurações, com as três caixas destacadas e numeradas 5 e o botão Salvar destacado e numerado 6",
+      "hi": "सेटिंग्स में स्वचालित ईमेल (Pro) सेक्शन, तीनों चेकबॉक्स बॉक्स में नंबर 5 के साथ और सेव बटन बॉक्स में नंबर 6 के साथ",
+      "zh-CN": "设置中的“自动邮件（Pro）”部分，三个复选框用红框标出并编号为 5，“保存”按钮用红框标出并编号为 6",
+      "zh-TW": "設定中的「自動電子郵件（Pro）」區塊，三個核取方塊以紅框標示並編號 5，「儲存」按鈕以紅框標示並編號 6",
+      "ja": "設定の「自動メール（Pro）」セクション。3つのチェックボックスが赤い枠と番号5、「保存」ボタンが赤い枠と番号6で示されている"
+    }
+  },
+  "runNow": {
+    "src": "/guides/p3-run-now.png",
+    "alt": {
+      "en": "The Run the after-event emails and discounts now card at the bottom of Settings, with the Run now button boxed in red and numbered 7",
+      "fr": "La carte Lancer maintenant les courriels et réductions après l'événement, en bas des Réglages, bouton Exécuter maintenant encadré en rouge et numéroté 7",
+      "es": "La tarjeta para ejecutar ahora los correos y descuentos posteriores al evento, al final de Ajustes, con el botón Ejecutar ahora enmarcado en rojo y numerado 7",
+      "de": "Die Karte zum sofortigen Ausführen der E-Mails und Rabatte nach der Veranstaltung am Ende der Einstellungen, der Button Jetzt ausführen rot umrandet und mit 7 nummeriert",
+      "pt-BR": "O cartão para executar agora os e-mails e descontos pós-evento, no fim de Configurações, com o botão Executar agora destacado em vermelho e numerado 7",
+      "hi": "सेटिंग्स के नीचे कार्यक्रम के बाद के ईमेल और छूट अभी चलाएँ कार्ड, अभी चलाएँ बटन लाल बॉक्स में और नंबर 7 के साथ",
+      "zh-CN": "设置底部的“立即运行活动结束后的邮件和折扣”卡片，“立即运行”按钮用红框标出并编号为 7",
+      "zh-TW": "設定底部的「立即執行活動結束後的電子郵件與折扣」卡片，「立即執行」按鈕以紅框標示並編號 7",
+      "ja": "設定の下部にある「イベント後のメールと割引を今すぐ実行」カード。「今すぐ実行」ボタンが赤い枠と番号7で示されている"
     }
   }
 };
