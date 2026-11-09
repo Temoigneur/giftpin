@@ -197,5 +197,47 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「集體禮物與基金」區塊，專屬的「儲存」按鈕以紅框標示並編號 3",
       "ja": "「グループギフトと資金」セクション。専用の「保存」ボタンが赤い枠と番号3で示されている"
     }
+  },
+  "manageSaveSettings": {
+    "src": "/guides/m6-manage-save-settings.png",
+    "alt": {
+      "en": "The Registry settings form on the manage page with the Save changes button boxed in red and numbered 1",
+      "fr": "Le formulaire Réglages de la liste sur la page de gestion, bouton Enregistrer les modifications encadré en rouge et numéroté 1",
+      "es": "El formulario de ajustes de la lista en la página de gestión, con el botón Guardar cambios enmarcado en rojo y numerado 1",
+      "de": "Das Formular Listeneinstellungen auf der Verwaltungsseite, der Button Änderungen speichern rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O formulário de configurações da lista na página de gerenciamento, com o botão Salvar alterações destacado em vermelho e numerado 1",
+      "hi": "मैनेज पेज पर रजिस्ट्री सेटिंग्स फ़ॉर्म, बदलाव सेव करें बटन लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "管理页面上的清单设置表单，“保存更改”按钮用红框标出并编号为 1",
+      "zh-TW": "管理頁面上的清單設定表單，「儲存變更」按鈕以紅框標示並編號 1",
+      "ja": "管理ページのリスト設定フォーム。「変更を保存」ボタンが赤い枠と番号1で示されている"
+    }
+  },
+  "manageSaveShip": {
+    "src": "/guides/m6-manage-save-ship.png",
+    "alt": {
+      "en": "The bottom of the Let guests ship gifts to me form with its own Save button boxed in red and numbered 2",
+      "fr": "Le bas du formulaire Laisser les invités m'envoyer des cadeaux, avec son propre bouton Enregistrer encadré en rouge et numéroté 2",
+      "es": "La parte inferior del formulario para que los invitados envíen regalos a tu dirección, con su propio botón Guardar enmarcado en rojo y numerado 2",
+      "de": "Das Ende des Formulars „Gäste dürfen Geschenke an mich senden“ mit eigenem Speichern-Button, rot umrandet und mit 2 nummeriert",
+      "pt-BR": "O fim do formulário para convidados enviarem presentes para você, com seu próprio botão Salvar destacado em vermelho e numerado 2",
+      "hi": "मेहमानों को गिफ्ट मुझे भेजने देने वाले फ़ॉर्म का निचला हिस्सा, अपने सेव बटन के साथ, लाल बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "“允许访客把礼物寄给我”表单底部，自带的“保存”按钮用红框标出并编号为 2",
+      "zh-TW": "「讓訪客把禮物寄給我」表單底部，專屬的「儲存」按鈕以紅框標示並編號 2",
+      "ja": "「ゲストがギフトを私に送れるようにする」フォームの下部。専用の「保存」ボタンが赤い枠と番号2で示されている"
+    }
+  },
+  "manageItemUpdate": {
+    "src": "/guides/m6-manage-item-update.png",
+    "alt": {
+      "en": "An item on the manage page with its Update button boxed in red and numbered 3",
+      "fr": "Un article sur la page de gestion, bouton Mettre à jour encadré en rouge et numéroté 3",
+      "es": "Un artículo en la página de gestión, con el botón Actualizar enmarcado en rojo y numerado 3",
+      "de": "Ein Artikel auf der Verwaltungsseite, der Button Aktualisieren rot umrandet und mit 3 nummeriert",
+      "pt-BR": "Um item na página de gerenciamento, com o botão Atualizar destacado em vermelho e numerado 3",
+      "hi": "मैनेज पेज पर एक आइटम, अपडेट बटन लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "管理页面上的一件商品，“更新”按钮用红框标出并编号为 3",
+      "zh-TW": "管理頁面上的一件商品，「更新」按鈕以紅框標示並編號 3",
+      "ja": "管理ページのアイテム。「更新」ボタンが赤い枠と番号3で示されている"
+    }
   }
 };

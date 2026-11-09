@@ -49,7 +49,9 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
   });
   const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
   const saveWithShots = withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]);
-  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveWithShots] };
+  const manageKeys = ["manageSaveSettings", "manageSaveShip", "manageItemUpdate"];
+  const saveAll = withShot(saveWithShots, 3, manageKeys);
+  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveAll] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({
     ...raw.setup,
     eyebrow: s(`${p}_eyebrow`),
@@ -89,7 +91,9 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
 
   const registry: GuideDoc = {
     ...raw.registry,
-    sections: raw.registry.sections.map((sec, i) => (i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : sec)),
+    sections: raw.registry.sections.map((sec, i) =>
+      i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
+    ),
   };
 
   const withPanel: typeof more = {
