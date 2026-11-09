@@ -10,7 +10,7 @@ import {
 } from "../lib/proxy.server";
 import { cached, registryCacheKey } from "../lib/cache.server";
 import { withLocale, overrideLocale } from "../lib/i18n.server";
-import { currentLocale, registryLanguageFrom, t, type MessageKey } from "../shared/i18n";
+import { currentLocale, isLocale, registryLanguageFrom, t, type MessageKey } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
@@ -168,7 +168,13 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   const settings = settingsFor(shop);
   // Everything below renders in the store's chosen language (see
   // app/lib/i18n.server.ts for why this is per request and not a global).
-  return withLocale(settings.language, () => routeProxyRequest(request, ctx, shop, settings));
+  //
+  // ?lang=xx on a page (GET) shows it in that language instead, over the
+  // store's and the registry's own. For checking a translation, for example
+  // ?lang=en on a store that is set to Japanese.
+  const asked = request.method === "GET" ? ctx.query.get("lang") : null;
+  const forced = isLocale(asked);
+  return withLocale(forced ? asked : settings.language, () => routeProxyRequest(request, ctx, shop, settings), forced);
 }
 
 async function routeProxyRequest(

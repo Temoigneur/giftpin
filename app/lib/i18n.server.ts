@@ -10,13 +10,13 @@ import { setLocaleSource, toLocale, type Locale } from "../shared/i18n";
  * The store holds a box rather than the bare language so a request can narrow
  * it once it knows which registry it is about (see overrideLocale).
  */
-const store = new AsyncLocalStorage<{ locale: Locale }>();
+const store = new AsyncLocalStorage<{ locale: Locale; forced: boolean }>();
 
 setLocaleSource(() => store.getStore()?.locale);
 
 /** Run `fn` with `locale` active for everything it calls, awaited or not. */
-export function withLocale<T>(locale: unknown, fn: () => T): T {
-  return store.run({ locale: toLocale(locale) }, fn);
+export function withLocale<T>(locale: unknown, fn: () => T, forced = false): T {
+  return store.run({ locale: toLocale(locale), forced }, fn);
 }
 
 /**
@@ -26,5 +26,6 @@ export function withLocale<T>(locale: unknown, fn: () => T): T {
  */
 export function overrideLocale(locale: string | null | undefined): void {
   const box = store.getStore();
-  if (box && locale) box.locale = toLocale(locale);
+  // A visitor's ?lang= choice outranks the store's and the registry's.
+  if (box && locale && !box.forced) box.locale = toLocale(locale);
 }
