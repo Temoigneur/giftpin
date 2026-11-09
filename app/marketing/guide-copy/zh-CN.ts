@@ -175,7 +175,7 @@ export const zhCN: GuideCopy = {
               "在 Giftpin 中打开 <b>{{admin.nav.settings}}</b>。如果页面之前已打开，请刷新页面，让新礼品卡显示出来。在 <b>{{admin.set.funds}}</b> 下，于 <b>{{admin.set.fundsPick}}</b> 中选择您的礼品卡，然后点击该部分自己的 <b>{{admin.set.save}}</b>。",
               "现在登记人可以在管理页面添加礼金基金：在 <b>{{manage.fund.title}}</b> 中填写名称和目标金额，然后点按 <b>{{manage.fund.add}}</b>。宾客用您礼品卡的面额为基金或大件礼物出资。",
             ],
-            alts: ["清单管理页面上的礼金基金区域，包含名称、目标金额和备注输入框以及添加基金按钮"],
+            alts: ["Shopify 的 Create gift card product 页面，标题为 Redwood Essentials gift card，面额为 10、25、50 和 100", "Giftpin 设置中的集体送礼与礼金基金，已选好礼品卡并勾选在 giftpin.app 上架", "清单管理页面上的礼金基金区域，包含名称、目标金额和备注输入框以及添加基金按钮"],
           },
           {
             id: "gift-cards",

@@ -175,7 +175,7 @@ export const ja: GuideCopy = {
               "Giftpinで <b>{{admin.nav.settings}}</b> を開きます。すでに開いていた場合は、新しいギフトカードが表示されるようにページを再読み込みしてください。<b>{{admin.set.funds}}</b> の <b>{{admin.set.fundsPick}}</b> でギフトカードを選び、そのセクションの <b>{{admin.set.save}}</b> を押します。",
               "これで登録者は管理ページからキャッシュファンドを追加できます。<b>{{manage.fund.title}}</b> で名前と目標額を入力し、<b>{{manage.fund.add}}</b> をタップします。ゲストはギフトカードの金額で、ファンドや大きなアイテムに出し合えます。",
             ],
-            alts: ["レジストリ管理ページのキャッシュファンド欄。名前、目標額、メモの入力欄と「ファンドを追加」ボタン"],
+            alts: ["Shopifyの「Create gift card product」ページ。タイトルはRedwood Essentials gift card、金額は10、25、50、100", "Giftpinの設定、みんなでギフトとファンド。ギフトカードを選び、giftpin.appへの掲載にチェックが入っている", "レジストリ管理ページのキャッシュファンド欄。名前、目標額、メモの入力欄と「ファンドを追加」ボタン"],
           },
           {
             id: "gift-cards",

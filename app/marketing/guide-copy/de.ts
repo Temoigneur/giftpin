@@ -175,7 +175,7 @@ export const de: GuideCopy = {
               "Öffnen Sie in Giftpin <b>{{admin.nav.settings}}</b>. War die Seite schon offen, laden Sie sie neu, damit die neue Geschenkkarte erscheint. Wählen Sie unter <b>{{admin.set.funds}}</b> Ihre Geschenkkarte bei <b>{{admin.set.fundsPick}}</b> und drücken Sie den <b>{{admin.set.save}}</b>-Button dieses Abschnitts.",
               "Registrierende können jetzt auf ihrer Verwaltungsseite einen Geldfonds anlegen: Unter <b>{{manage.fund.title}}</b> geben sie einen Namen und ein Ziel ein und tippen auf <b>{{manage.fund.add}}</b>. Gäste beteiligen sich mit den Beträgen Ihrer Geschenkkarte, für einen Fonds oder ein großes Geschenk.",
             ],
-            alts: ["Der Bereich Ein Geldfonds auf der Verwaltungsseite einer Liste, mit Feldern für Name, Ziel und Notiz und dem Button Fonds hinzufügen"],
+            alts: ["Die Shopify-Seite Create gift card product mit dem Titel Redwood Essentials gift card und Beträgen von 10, 25, 50 und 100", "Giftpin-Einstellungen, Gruppengeschenke und Fonds, mit gewählter Geschenkkarte und markiertem Kästchen zum Listen auf giftpin.app", "Der Bereich Ein Geldfonds auf der Verwaltungsseite einer Liste, mit Feldern für Name, Ziel und Notiz und dem Button Fonds hinzufügen"],
           },
           {
             id: "gift-cards",
