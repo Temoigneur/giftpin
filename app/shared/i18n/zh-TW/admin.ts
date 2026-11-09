@@ -148,6 +148,7 @@ export const zhTWAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "立即執行",
   "admin.set.runStarted": "已開始。電子郵件與代碼將在一分鐘內送達。",
   "admin.set.warnGc": "若要在 giftpin.app 列出您的禮品卡，請選擇至少有一個金額在 {max} 以下的禮品卡。",
+  "admin.set.warnGcPick": "若要在 giftpin.app 列出您的禮品卡，請在上方「{pick}」中選取您的禮品卡（目前為{off}），然後儲存。",
   "admin.set.warnLogo": "標誌連結未儲存：必須是完整的 https:// 圖片連結。",
   "admin.set.warnContrast": "您的文字與背景顏色搭配後不易閱讀（對比度 {ratio}:1；建議至少 4.5:1）。",
   "admin.bill.page": "方案",

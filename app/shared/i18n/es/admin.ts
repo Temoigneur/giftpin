@@ -148,6 +148,7 @@ export const esAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "Ejecutar ahora",
   "admin.set.runStarted": "Iniciado. Los correos y códigos llegan en un minuto.",
   "admin.set.warnGc": "Para anunciar tus tarjetas regalo en giftpin.app, elige una tarjeta regalo con al menos un importe de {max} o menos.",
+  "admin.set.warnGcPick": "Para anunciar tus tarjetas regalo en giftpin.app, elige tu tarjeta regalo en «{pick}» arriba (ahora está en {off}) y guarda.",
   "admin.set.warnLogo": "El enlace del logotipo no se guardó: debe ser un enlace de imagen https:// completo.",
   "admin.set.warnContrast": "Los colores de texto y fondo son difíciles de leer juntos (contraste {ratio}:1; apunta a al menos 4,5:1).",
   "admin.bill.page": "Plan",

@@ -148,6 +148,7 @@ export const zhCNAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "立即运行",
   "admin.set.runStarted": "已开始。邮件和代码将在一分钟内送达。",
   "admin.set.warnGc": "要在 giftpin.app 上列出您的礼品卡，请选择至少有一个面额不超过 {max} 的礼品卡。",
+  "admin.set.warnGcPick": "要在 giftpin.app 上列出您的礼品卡，请在上方“{pick}”中选择您的礼品卡（目前为{off}），然后保存。",
   "admin.set.warnLogo": "标志链接未保存：必须是完整的 https:// 图片链接。",
   "admin.set.warnContrast": "您的文字颜色与背景色搭配后难以阅读（对比度 {ratio}:1；建议至少 4.5:1）。",
   "admin.bill.page": "套餐",

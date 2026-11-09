@@ -148,6 +148,7 @@ export const deAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "Jetzt ausführen",
   "admin.set.runStarted": "Gestartet. E-Mails und Codes kommen innerhalb einer Minute an.",
   "admin.set.warnGc": "Um deine Geschenkkarten auf giftpin.app zu listen, wähle eine Geschenkkarte mit mindestens einem Betrag von {max} oder weniger.",
+  "admin.set.warnGcPick": "Um deine Geschenkkarten auf giftpin.app zu listen, wähle oben unter „{pick}“ deine Geschenkkarte aus (gerade steht dort „{off}“) und speichere.",
   "admin.set.warnLogo": "Der Logo-Link wurde nicht gespeichert: Er muss ein vollständiger https://-Bildlink sein.",
   "admin.set.warnContrast": "Deine Text- und Hintergrundfarben sind zusammen schwer lesbar (Kontrast {ratio}:1; Ziel mindestens 4,5:1).",
   "admin.bill.page": "Tarif",

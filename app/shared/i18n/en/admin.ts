@@ -146,6 +146,7 @@ export const enAdmin = {
   "admin.set.runNow": "Run now",
   "admin.set.runStarted": "Started. Emails and codes arrive within a minute.",
   "admin.set.warnGc": "To list your gift cards on giftpin.app, pick a gift card with at least one amount of {max} or less.",
+  "admin.set.warnGcPick": "To list your gift cards on giftpin.app, choose your gift card in “{pick}” above (it says {off} right now), then save.",
   "admin.set.warnLogo": "The logo link wasn't saved: it needs to be a full https:// image link.",
   "admin.set.warnContrast": "Your text and background colours are hard to read together (contrast {ratio}:1; aim for at least 4.5:1).",
   "admin.bill.page": "Plan",

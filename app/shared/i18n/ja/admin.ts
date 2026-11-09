@@ -148,6 +148,7 @@ export const jaAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "今すぐ実行",
   "admin.set.runStarted": "開始しました。メールとコードは1分ほどで届きます。",
   "admin.set.warnGc": "giftpin.appにギフトカードを掲載するには、{max}以下の金額が1つ以上あるギフトカードを選んでください。",
+  "admin.set.warnGcPick": "giftpin.appにギフトカードを掲載するには、上の「{pick}」でギフトカードを選び（今は{off}です）、保存してください。",
   "admin.set.warnLogo": "ロゴのリンクは保存されませんでした。https://で始まる完全な画像リンクが必要です。",
   "admin.set.warnContrast": "文字色と背景色の組み合わせは読みにくいです（コントラスト比{ratio}:1。4.5:1以上が目安です）。",
   "admin.bill.page": "プラン",

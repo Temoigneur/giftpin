@@ -148,6 +148,7 @@ export const frAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "Lancer maintenant",
   "admin.set.runStarted": "Lancé. Les courriels et codes arrivent en moins d'une minute.",
   "admin.set.warnGc": "Pour lister vos cartes-cadeaux sur giftpin.app, choisissez une carte-cadeau avec au moins un montant de {max} ou moins.",
+  "admin.set.warnGcPick": "Pour lister vos cartes-cadeaux sur giftpin.app, choisissez votre carte-cadeau dans « {pick} » ci-dessus (actuellement sur « {off} »), puis enregistrez.",
   "admin.set.warnLogo": "Le lien du logo n'a pas été enregistré : il doit être un lien d'image https:// complet.",
   "admin.set.warnContrast": "Vos couleurs de texte et d'arrière-plan sont difficiles à lire ensemble (contraste {ratio}:1 ; visez au moins 4,5:1).",
   "admin.bill.page": "Forfait",
