@@ -148,6 +148,7 @@ export const hiAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "अभी चलाएँ",
   "admin.set.runStarted": "शुरू हो गया। ईमेल और कोड एक मिनट में पहुँच जाएँगे।",
   "admin.set.warnGc": "अपने गिफ्ट कार्ड giftpin.app पर सूचीबद्ध करने के लिए ऐसा गिफ्ट कार्ड चुनें जिसमें कम से कम एक राशि {max} या उससे कम हो।",
+  "admin.set.warnGcPick": "अपने गिफ्ट कार्ड giftpin.app पर सूचीबद्ध करने के लिए ऊपर “{pick}” में अपना गिफ्ट कार्ड चुनें (अभी यह {off} है), फिर सेव करें।",
   "admin.set.warnLogo": "लोगो का लिंक सेव नहीं हुआ: वह पूरा https:// इमेज लिंक होना चाहिए।",
   "admin.set.warnContrast": "आपके टेक्स्ट और बैकग्राउंड के रंग साथ में पढ़ने में कठिन हैं (कंट्रास्ट {ratio}:1; कम से कम 4.5:1 रखें)।",
   "admin.bill.page": "प्लान",

@@ -77,7 +77,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
     await updateSettings(session.shop, { contributionProduct: picked, giftCardListing });
     const warnings: string[] = [];
-    if (giftCardListing.enabled && listedGiftCardAmounts(picked).length === 0) {
+    // Listing sells the gift card picked in the group-gift dropdown above, so
+    // the most common miss is leaving that on Off. Say so plainly, rather
+    // than the amount rule, which reads as "your gift card is wrong".
+    if (giftCardListing.enabled && !picked) {
+      warnings.push(
+        t("admin.set.warnGcPick", { pick: t("admin.set.fundsPick", {}, locale), off: t("admin.set.off", {}, locale) }, locale),
+      );
+    } else if (giftCardListing.enabled && listedGiftCardAmounts(picked).length === 0) {
       warnings.push(t("admin.set.warnGc", { max: MAX_LISTED_GIFT_CARD }, locale));
     }
     return { ok: true, warnings };

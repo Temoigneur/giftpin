@@ -169,20 +169,24 @@ export const ptBR: GuideCopy = {
           {
             title: "Presentes em grupo e fundos",
             items: [
-              "No painel da Shopify, vá a <b>Products → Gift cards → Add a gift card product</b>, com alguns valores como US$ 25, US$ 50 e US$ 100.",
+              "No admin da Shopify, vá em <b>Products → Gift cards</b> e clique em <b>Add a gift card product</b>.",
+              "Dê um título e alguns valores, como 25, 50 e 100. Para vendê-lo no giftpin.app, pelo menos um valor precisa ser de 500 ou menos, na moeda da sua loja. Deixe <b>Online Store</b> marcado em <b>Sales channels and apps</b> e clique em <b>Save gift card product</b>.",
               "Em <b>Settings → General → Order processing</b>, escolha <b>Automatically fulfill only the gift cards</b>. A Shopify só envia um cartão-presente depois que o pedido é cumprido.",
-              "No Giftpin, abra <b>{{admin.nav.settings}}</b>. Em <b>{{admin.set.funds}}</b>, escolha esse cartão-presente em <b>{{admin.set.fundsPick}}</b> e pressione o <b>{{admin.set.save}}</b> dessa seção. Os convidados já podem contribuir para um presente grande ou um fundo em dinheiro.",
+              "No Giftpin, abra <b>{{admin.nav.settings}}</b>. Se a página já estava aberta, recarregue-a para o novo cartão-presente aparecer. Em <b>{{admin.set.funds}}</b>, escolha seu cartão-presente em <b>{{admin.set.fundsPick}}</b> e pressione o <b>{{admin.set.save}}</b> dessa seção.",
+              "Agora quem cria a lista pode adicionar um fundo na página de gerenciamento: em <b>{{manage.fund.title}}</b>, dá um nome e uma meta e toca em <b>{{manage.fund.add}}</b>. Os convidados contribuem com os valores do seu cartão-presente, para um fundo ou um presente grande.",
             ],
+            alts: ["A seção Um fundo em dinheiro na página de gerenciamento de uma lista, com campos de nome, meta e recado e o botão Adicionar fundo"],
           },
           {
             id: "gift-cards",
             title: "Vender cartões-presente no giftpin.app",
             items: [
-              "Configure primeiro o cartão-presente no passo anterior. A listagem usa o mesmo cartão-presente, com valores de até US$ 500.",
+              "Isso exige o Pro e o cartão-presente do passo anterior, escolhido em <b>{{admin.set.fundsPick}}</b>. Se ali ainda estiver <b>{{admin.set.off}}</b>, sua loja não aparece e o Giftpin mostra um aviso ao salvar.",
               "No Giftpin, abra <b>{{admin.nav.settings}}</b>. Em <b>{{admin.set.sell}}</b>, marque <b>{{admin.set.listMine}}</b>, adicione <b>{{admin.set.blurb}}</b> e pressione o <b>{{admin.set.save}}</b> dessa seção.",
               "A sua loja agora aparece em <a href=\"/gift-cards?lang=pt-BR\">giftpin.app/gift-cards</a>, no seu país, e as suas páginas de lista ganham um link <b>Rather give a gift card?</b>. Os compradores adquirem o seu cartão-presente no seu próprio checkout, então você fica com o dinheiro e com qualquer saldo não utilizado. Os cartões-presente vendidos assim aparecem em <b>{{admin.nav.analytics}}</b>.",
               "O Giftpin cobra {{feePct}}% de cada cartão-presente vendido dessa forma, na sua fatura da Shopify, {{holdDays}} dias depois da venda, para que um cartão reembolsado nunca seja cobrado. Não há taxa durante o seu teste grátis.",
             ],
+            alts: ["A página de cartão-presente de uma loja com valores de US$ 25, US$ 50, US$ 100 e US$ 250, uma caixa para enviar por e-mail e o botão Adicionar ao carrinho"],
           },
           {
             title: "Desconto pós-evento e e-mails automáticos",

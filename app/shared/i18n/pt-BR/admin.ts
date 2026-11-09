@@ -148,6 +148,7 @@ export const ptBRAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.runNow": "Executar agora",
   "admin.set.runStarted": "Iniciado. E-mails e códigos chegam em até um minuto.",
   "admin.set.warnGc": "Para listar seus vales-presente no giftpin.app, escolha um vale-presente com pelo menos um valor de {max} ou menos.",
+  "admin.set.warnGcPick": "Para listar seus vales-presente no giftpin.app, escolha seu vale-presente em “{pick}” acima (agora está {off}) e salve.",
   "admin.set.warnLogo": "O link do logotipo não foi salvo: precisa ser um link de imagem https:// completo.",
   "admin.set.warnContrast": "As cores de texto e fundo são difíceis de ler juntas (contraste {ratio}:1; busque pelo menos 4,5:1).",
   "admin.bill.page": "Plano",
