@@ -281,5 +281,33 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "設定中的「售完商品」區塊，兩個選項以紅框標示：顯示為已售完，或補貨前隱藏",
       "ja": "設定の「売り切れ商品」セクション。2つの選択肢（売り切れとして表示、在庫が戻るまで非表示）が赤い枠で示されている"
     }
+  },
+  "privacy": {
+    "src": "/guides/c3-privacy.png",
+    "alt": {
+      "en": "The Privacy section of Settings with its two tick boxes boxed in red: hide who gave what until the event date, and enable the public find-a-registry page",
+      "fr": "La section Confidentialité des Réglages, avec ses deux cases encadrées en rouge : masquer qui a offert quoi jusqu'à la date de l'événement et activer la page publique de recherche de listes",
+      "es": "La sección de Privacidad en Ajustes, con sus dos casillas enmarcadas en rojo: ocultar quién regaló qué hasta la fecha del evento y activar la página pública para buscar listas",
+      "de": "Der Bereich Datenschutz in den Einstellungen, die beiden Kontrollkästchen rot umrandet: wer was geschenkt hat bis zum Veranstaltungstag ausblenden und die öffentliche Listensuche aktivieren",
+      "pt-BR": "A seção de Privacidade em Configurações, com as duas caixas destacadas em vermelho: ocultar quem deu o quê até a data do evento e ativar a página pública de busca de listas",
+      "hi": "सेटिंग्स में प्राइवेसी सेक्शन, दोनों चेक बॉक्स लाल बॉक्स में: कार्यक्रम की तारीख तक किसने क्या दिया छिपाएँ, और सार्वजनिक रजिस्ट्री खोज पेज चालू करें",
+      "zh-CN": "设置中的“隐私”部分，两个复选框用红框标出：活动日期前隐藏谁送了什么，以及启用公开的清单查找页面",
+      "zh-TW": "設定中的「隱私」區塊，兩個核取方塊以紅框標示：活動日期前隱藏誰送了什麼，以及啟用公開的清單搜尋頁面",
+      "ja": "設定の「プライバシー」セクション。2つのチェックボックス（イベント日まで誰が何を贈ったかを隠す、公開のリスト検索ページを有効にする）が赤い枠で示されている"
+    }
+  },
+  "perks": {
+    "src": "/guides/c4-perks.png",
+    "alt": {
+      "en": "The Registry perks section of Settings with the Your perks box boxed in red, holding one perk per line",
+      "fr": "La section Avantages de liste des Réglages, avec la zone Vos avantages encadrée en rouge, un avantage par ligne",
+      "es": "La sección de ventajas de la lista en Ajustes, con el cuadro Tus ventajas enmarcado en rojo, una ventaja por línea",
+      "de": "Der Bereich Listenvorteile in den Einstellungen, das Feld Ihre Vorteile rot umrandet, ein Vorteil pro Zeile",
+      "pt-BR": "A seção de vantagens da lista em Configurações, com a caixa Suas vantagens destacada em vermelho, uma vantagem por linha",
+      "hi": "सेटिंग्स में रजिस्ट्री पर्क्स सेक्शन, आपके पर्क्स बॉक्स लाल बॉक्स में, हर लाइन में एक पर्क",
+      "zh-CN": "设置中的“清单福利”部分，“您的福利”输入框用红框标出，每行一项福利",
+      "zh-TW": "設定中的「清單福利」區塊，「您的福利」輸入框以紅框標示，每行一項福利",
+      "ja": "設定の「リスト特典」セクション。「特典」の入力欄が赤い枠で示され、1行に1つの特典が入っている"
+    }
   }
 };

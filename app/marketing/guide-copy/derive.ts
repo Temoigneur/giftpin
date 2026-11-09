@@ -100,5 +100,5 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), withPanel]), pro: sub("p", [pro]), registry, guest };
+  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withPanel]), pro: sub("p", [pro]), registry, guest };
 }
