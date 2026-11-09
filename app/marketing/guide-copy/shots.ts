@@ -127,5 +127,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "權限確認畫面，「安裝」按鈕以紅框標示並編號 2",
       "ja": "権限の確認画面。「インストール」ボタンが赤い枠と番号2で示されている"
     }
+  },
+  "themeSave": {
+    "src": "/guides/m2-theme-save.png",
+    "alt": {
+      "en": "The theme editor with the Save button at the top right boxed in red and numbered 1",
+      "fr": "L'éditeur de thème, bouton Enregistrer en haut à droite encadré en rouge et numéroté 1",
+      "es": "El editor de temas con el botón Guardar, arriba a la derecha, enmarcado en rojo y numerado 1",
+      "de": "Der Theme-Editor, der Speichern-Button oben rechts rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O editor de temas com o botão Salvar, no canto superior direito, destacado em vermelho e numerado 1",
+      "hi": "थीम एडिटर, ऊपर दाईं ओर सेव बटन लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "主题编辑器，右上角的“保存”按钮用红框标出并编号为 1",
+      "zh-TW": "主題編輯器，右上角的「儲存」按鈕以紅框標示並編號 1",
+      "ja": "テーマエディタ。右上の「保存」ボタンが赤い枠と番号1で示されている"
+    }
   }
 };

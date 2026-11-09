@@ -23,17 +23,18 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     lede: s("hub_lede"),
     steps: [1, 2, 3, 4].map((n): Step => ({ title: s(`hub${n}_t`), items: [s(`hub${n}_i`)] })),
   };
-  // Install step: the two real install screens, with the buttons boxed and numbered in the images.
-  const installShots = ["installStore", "installApprove"];
-  const getWithShots: typeof get = {
-    ...get,
-    steps: get.steps.map((st, i) =>
-      i === 0
-        ? { ...st, ...(locale === "en" ? { img: installShots.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: installShots.map((k) => SHOTS[k].alt[locale]) }) }
+  // Real screens with the buttons boxed and numbered in the images.
+  const withShot = (sec: typeof get, at: number, keys: string[]): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) =>
+      i === at
+        ? { ...st, ...(locale === "en" ? { img: keys.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: keys.map((k) => SHOTS[k].alt[locale]) }) }
         : st,
     ),
-  };
-  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, save] };
+  });
+  const getWithShots = withShot(get, 0, ["installStore", "installApprove"]);
+  const saveWithShots = withShot(save, 0, ["themeSave"]);
+  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveWithShots] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({
     ...raw.setup,
     eyebrow: s(`${p}_eyebrow`),
