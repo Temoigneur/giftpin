@@ -48,6 +48,14 @@ export type GuideCopy = {
     shopifyNote: string;
     finalCta: string;
   };
+  /** Merchant guides: setup (with the hub), customize, Pro. */
   setup: GuideDoc;
+  customize: GuideDoc;
+  pro: GuideDoc;
+  /** For registrants and for guests. */
   registry: GuideDoc;
+  guest: GuideDoc;
 };
+
+/** What each language file holds; derive.ts splits it into the guides above. */
+export type RawGuideCopy = Omit<GuideCopy, "customize" | "pro" | "guest">;

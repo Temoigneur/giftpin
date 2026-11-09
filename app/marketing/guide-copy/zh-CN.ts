@@ -1,8 +1,8 @@
-import type { GuideCopy } from "./types";
+import type { RawGuideCopy } from "./types";
 
 const CHROME = "https://chromewebstore.google.com/detail/giftpin-%E2%80%94-add-to-registry/hfmielpmefknpgpekhfehnfdlhiobdkk";
 
-export const zhCN: GuideCopy = {
+export const zhCN: RawGuideCopy = {
   ui: {
     language: "语言",
     shotsNote: "截图显示的是界面的英文版本。",

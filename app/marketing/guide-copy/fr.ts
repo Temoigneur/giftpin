@@ -1,8 +1,8 @@
-import type { GuideCopy } from "./types";
+import type { RawGuideCopy } from "./types";
 
 const CHROME = "https://chromewebstore.google.com/detail/giftpin-%E2%80%94-add-to-registry/hfmielpmefknpgpekhfehnfdlhiobdkk";
 
-export const fr: GuideCopy = {
+export const fr: RawGuideCopy = {
   ui: {
     language: "Langue",
     shotsNote: "Les captures d'écran montrent la version anglaise des écrans.",

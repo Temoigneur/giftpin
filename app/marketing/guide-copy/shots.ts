@@ -1,0 +1,89 @@
+import type { Locale } from "../../shared/i18n";
+
+/** Real screenshots of the app used by the new guide steps (public/guides/). Alt text per language. */
+export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }> = {
+  "qr": {
+    "src": "/guides/m12-qr-code.png",
+    "alt": {
+      "en": "The Your share link box with Share with guests, Copy link and QR code buttons, and a QR code open with a Download QR code button",
+      "fr": "Le cadre du lien de partage avec les boutons de partage, Copier le lien et Code QR, et un code QR affiché avec un bouton pour le télécharger",
+      "es": "El cuadro del enlace para compartir con los botones de compartir, Copiar enlace y Código QR, y un código QR abierto con un botón para descargarlo",
+      "de": "Der Kasten mit dem Teilen-Link, Buttons zum Teilen, Link kopieren und QR-Code sowie ein geöffneter QR-Code mit Download-Button",
+      "pt-BR": "A caixa do link de compartilhamento com os botões de compartilhar, Copiar link e Código QR, e um código QR aberto com um botão para baixá-lo",
+      "hi": "शेयर लिंक वाला बॉक्स: शेयर, लिंक कॉपी करें और QR कोड बटन, और खुला हुआ QR कोड, डाउनलोड बटन के साथ",
+      "zh-CN": "分享链接区域，含分享、复制链接和二维码按钮，并展开了二维码和下载二维码按钮",
+      "zh-TW": "分享連結區塊，含分享、複製連結和 QR 碼按鈕，並展開 QR 碼與下載按鈕",
+      "ja": "共有リンクの枠。共有、リンクをコピー、QRコードのボタンと、開いたQRコード（ダウンロードボタン付き）"
+    }
+  },
+  "mylink": {
+    "src": "/guides/m13-my-registries-link.png",
+    "alt": {
+      "en": "The My registries link above the registry name on the manage page",
+      "fr": "Le lien Mes listes au-dessus du nom de la liste, sur la page de gestion",
+      "es": "El enlace Mis listas encima del nombre de la lista, en la página de gestión",
+      "de": "Der Link Meine Listen über dem Listennamen auf der Verwaltungsseite",
+      "pt-BR": "O link Minhas listas acima do nome da lista, na página de gerenciamento",
+      "hi": "मैनेज पेज पर रजिस्ट्री के नाम के ऊपर मेरी रजिस्ट्रियाँ लिंक",
+      "zh-CN": "管理页面中清单名称上方的“我的清单”链接",
+      "zh-TW": "管理頁面中清單名稱上方的「我的清單」連結",
+      "ja": "管理ページのリスト名の上にある「マイリスト」リンク"
+    }
+  },
+  "myregs": {
+    "src": "/guides/m14-my-registries.png",
+    "alt": {
+      "en": "The My registries page, a grid of every registry started with the same email, each with an Open button",
+      "fr": "La page Mes listes : toutes les listes créées avec le même e-mail, chacune avec un bouton Ouvrir",
+      "es": "La página Mis listas: todas las listas creadas con el mismo correo, cada una con un botón Abrir",
+      "de": "Die Seite Meine Listen: alle mit derselben E-Mail erstellten Listen, jeweils mit einem Öffnen-Button",
+      "pt-BR": "A página Minhas listas: todas as listas criadas com o mesmo e-mail, cada uma com um botão Abrir",
+      "hi": "मेरी रजिस्ट्रियाँ पेज: एक ही ईमेल से बनी सभी रजिस्ट्रियाँ, हर एक पर खोलें बटन",
+      "zh-CN": "“我的清单”页面：用同一邮箱创建的所有清单，每个都有“打开”按钮",
+      "zh-TW": "「我的清單」頁面：用同一個電子郵件建立的所有清單，每個都有「開啟」按鈕",
+      "ja": "「マイリスト」ページ。同じメールアドレスで作成したすべてのリストと、それぞれの「開く」ボタン"
+    }
+  },
+  "chip": {
+    "src": "/guides/g1-chip-in.png",
+    "alt": {
+      "en": "A fund item on a guest's registry page with a goal, an Add to cart button, and the chip-in box with an amount and a Chip in button",
+      "fr": "Un cadeau en cagnotte sur la page d'un invité, avec l'objectif, Ajouter au panier et la zone de participation avec un montant et un bouton pour participer",
+      "es": "Un regalo con fondo en la página de un invitado, con la meta, Añadir al carrito y el cuadro para aportar con un importe y un botón de aportar",
+      "de": "Ein Fonds-Geschenk auf der Gästeseite mit Ziel, In den Warenkorb und dem Beitragsfeld mit Betrag und Button zum Beisteuern",
+      "pt-BR": "Um presente de vaquinha na página de um convidado, com a meta, Adicionar ao carrinho e a caixa para contribuir com um valor e um botão de contribuir",
+      "hi": "मेहमान के पेज पर फंड वाला गिफ्ट: लक्ष्य, कार्ट में जोड़ें बटन, और रकम तथा योगदान बटन वाला बॉक्स",
+      "zh-CN": "访客页面上的基金礼物：显示目标、加入购物车按钮，以及带金额和出资按钮的出资框",
+      "zh-TW": "訪客頁面上的基金禮物：顯示目標、加入購物車按鈕，以及含金額與出資按鈕的出資框",
+      "ja": "ゲストのページにある資金ギフト。目標額、カートに入れるボタン、金額欄と参加ボタンのある出資ボックス"
+    }
+  },
+  "remind": {
+    "src": "/guides/g2-reminder.png",
+    "alt": {
+      "en": "The reminder box on a guest's registry page, with an email field and a Remind me button",
+      "fr": "La zone de rappel sur la page d'un invité, avec un champ e-mail et un bouton de rappel",
+      "es": "El cuadro de recordatorio en la página de un invitado, con un campo de correo y un botón de recordatorio",
+      "de": "Der Erinnerungskasten auf der Gästeseite mit E-Mail-Feld und Erinnerungs-Button",
+      "pt-BR": "A caixa de lembrete na página de um convidado, com um campo de e-mail e um botão de lembrete",
+      "hi": "मेहमान के पेज पर रिमाइंडर बॉक्स: ईमेल फ़ील्ड और रिमाइंडर बटन",
+      "zh-CN": "访客页面上的提醒框，含邮箱输入框和提醒按钮",
+      "zh-TW": "訪客頁面上的提醒框，含電子郵件欄位和提醒按鈕",
+      "ja": "ゲストのページにあるリマインダー欄。メールアドレス欄とリマインドボタン"
+    }
+  },
+  "panel": {
+    "src": "/guides/m15-admin-panel.png",
+    "alt": {
+      "en": "A product page in the Shopify admin with the Giftpin registry panel open, listing the registries that include the product",
+      "fr": "Une page produit dans l'admin Shopify avec le panneau Giftpin ouvert, listant les listes qui contiennent le produit",
+      "es": "Una página de producto en el administrador de Shopify con el panel de Giftpin abierto, con las listas que incluyen el producto",
+      "de": "Eine Produktseite im Shopify-Admin mit geöffnetem Giftpin-Bereich, der die Listen mit diesem Produkt zeigt",
+      "pt-BR": "Uma página de produto no admin da Shopify com o painel do Giftpin aberto, listando as listas que incluem o produto",
+      "hi": "Shopify एडमिन में प्रोडक्ट पेज, Giftpin पैनल खुला हुआ, जिसमें वे रजिस्ट्रियाँ दिख रही हैं जिनमें यह प्रोडक्ट है",
+      "zh-CN": "Shopify 后台的商品页面，已打开 Giftpin 面板，列出包含该商品的清单",
+      "zh-TW": "Shopify 後台的商品頁面，已開啟 Giftpin 面板，列出包含該商品的清單",
+      "ja": "Shopify管理画面の商品ページ。Giftpinパネルを開き、その商品を含むリストを表示"
+    }
+  }
+};

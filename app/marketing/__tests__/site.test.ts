@@ -12,6 +12,9 @@ import { loader as babyRegistryLoader } from "../../routes/baby-registry";
 import { loader as homeGoodsLoader } from "../../routes/home-goods-registry";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
+import { loader as setupCustomizeLoader } from "../../routes/setup_.customize";
+import { loader as setupProLoader } from "../../routes/setup_.pro";
+import { loader as guestGuideLoader } from "../../routes/guest-guide";
 import { loader as holidayLoader } from "../../routes/holiday-wish-lists";
 import { homeHtml } from "../home";
 import { MARKETING_PATHS, SEASONAL_PATHS, loader as sitemapLoader } from "../../routes/sitemap[.xml]";
@@ -31,6 +34,9 @@ const LOADERS: Record<string, Loader> = {
   "/compare": compareLoader,
   "/setup": setupLoader,
   "/registry-guide": registryGuideLoader,
+  "/setup/customize": setupCustomizeLoader,
+  "/setup/pro": setupProLoader,
+  "/guest-guide": guestGuideLoader,
   "/gift-registry-app": giftRegistryAppLoader,
   "/baby-registry": babyRegistryLoader,
   "/home-goods-registry": homeGoodsLoader,
@@ -54,7 +60,7 @@ describe("marketing site", () => {
     });
   });
 
-  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"])("%s renders with the shared nav, footer and icon", async (path) => {
+  it.each(["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/setup/customize", "/setup/pro", "/registry-guide", "/guest-guide", "/holiday-wish-lists"])("%s renders with the shared nav, footer and icon", async (path) => {
     const html = await page(path);
     expect(html).toContain('href="/pricing"');
     expect(html).toContain('href="/privacy"');
@@ -125,7 +131,7 @@ describe("marketing site", () => {
   });
 
   it("never claims a Babylist partnership, Amazon support or the unreleased share-menu app", async () => {
-    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/setup/customize", "/setup/pro", "/registry-guide", "/guest-guide", "/holiday-wish-lists"]) {
       const html = (await page(path)).toLowerCase();
       expect(html).not.toContain("amazon");
       expect(html).not.toMatch(/babylist[^<.]{0,40}(partner|endorse|official|certified)/);
@@ -157,12 +163,25 @@ describe("marketing site", () => {
     }
   });
 
-  it("setup guide walks through install, theme, settings and Pro, and is linked from every page", async () => {
+  it("setup guide covers install, theme and Save buttons, and points to the other guides", async () => {
     const html = await page("/setup");
-    for (const label of ["Add button to product pages", "Add registry links", "Add heart to product pages", "Add saved items to the cart page", "Occasions", "Items from other stores", "Cancel Pro", "Automatically fulfill only the gift cards"]) {
+    for (const label of ["Add button to product pages", "Add registry links", "Add heart to product pages", "Add saved items to the cart page"]) {
       expect(html).toContain(label);
     }
+    for (const href of ["/setup/customize", "/setup/pro", "/registry-guide", "/guest-guide"]) expect(html).toContain(`href="${href}"`);
     expect(await page("/")).toContain('href="/setup"');
+  });
+
+  it("the customize and Pro guides keep the settings and Pro steps that used to be on /setup", async () => {
+    const customize = await page("/setup/customize");
+    for (const label of ["Occasions", "Items from other stores"]) expect(customize).toContain(label);
+    const pro = await page("/setup/pro");
+    for (const label of ["Cancel Pro", "Automatically fulfill only the gift cards"]) expect(pro).toContain(label);
+  });
+
+  it("the guest guide covers finding, buying, chipping in and reminders", async () => {
+    const html = await page("/guest-guide");
+    for (const label of ["Open the registry", "Buy a gift from another store", "Chip in or give a gift card", "Reminders and sharing"]) expect(html).toContain(label);
   });
 
   it("registry guide covers starting, adding, the extension and sharing, and is linked from every page", async () => {
@@ -186,7 +205,7 @@ describe("marketing site", () => {
 
   it("every image the pages reference ships in public/", async () => {
     const pub = join(__dirname, "../../../public");
-    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/registry-guide", "/holiday-wish-lists"]) {
+    for (const path of ["/", "/features", "/pricing", "/faq", "/gift-registry-app", "/wedding-registry", "/baby-registry", "/home-goods-registry", "/compare", "/setup", "/setup/customize", "/setup/pro", "/registry-guide", "/guest-guide", "/holiday-wish-lists"]) {
       const html = await page(path);
       for (const m of html.matchAll(/(?:src|href|content)="(?:https:\/\/giftpin\.app)?(\/(?:brand|guides)\/[^"]+)"/g)) {
         expect(existsSync(join(pub, m[1])), m[1]).toBe(true);
@@ -208,6 +227,9 @@ describe("marketing site", () => {
       "/compare": "compare.tsx",
       "/setup": "setup.tsx",
       "/registry-guide": "registry-guide.tsx",
+      "/setup/customize": "setup_.customize.tsx",
+      "/setup/pro": "setup_.pro.tsx",
+      "/guest-guide": "guest-guide.tsx",
       "/gift-cards": "gift-cards.tsx",
       "/privacy": "privacy.tsx",
       "/holiday-wish-lists": "holiday-wish-lists.tsx",

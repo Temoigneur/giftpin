@@ -4,6 +4,9 @@ import type { GuideDoc } from "../guide-copy";
 import { LOCALES, hasMessage, type Locale } from "../../shared/i18n";
 import { loader as setupLoader } from "../../routes/setup";
 import { loader as registryGuideLoader } from "../../routes/registry-guide";
+import { loader as setupCustomizeLoader } from "../../routes/setup_.customize";
+import { loader as setupProLoader } from "../../routes/setup_.pro";
+import { loader as guestGuideLoader } from "../../routes/guest-guide";
 import { renderFor, sitePage } from "../layout";
 import { siteLocaleFromRequest } from "../chrome-copy";
 
@@ -12,7 +15,7 @@ const tokens = (s: string) => [...s.matchAll(/\{\{([^}]+)\}\}/g)].map((m) => m[1
 const bolds = (s: string) => (s.match(/<b>/g) ?? []).length;
 const links = (s: string) => (s.match(/<a /g) ?? []).length;
 
-const KINDS = ["setup", "registry"] as const;
+const KINDS = ["setup", "customize", "pro", "registry", "guest"] as const;
 const OTHERS = LOCALES.filter((l) => l !== "en");
 
 const get = async (loader: (a: never) => Response | Promise<Response>, path: string, opts: { query?: string; cookie?: string } = {}) => {
@@ -96,6 +99,17 @@ describe("guide pages in each language", () => {
       expect(html).not.toContain("{{");
       expect(html).toContain("/guides/r1-start.png");
     });
+
+    it(`/setup/customize, /setup/pro and /guest-guide?lang=${locale} render in ${locale} with every label filled in`, async () => {
+      const query = locale === "en" ? "" : `?lang=${locale}`;
+      for (const [loader, path] of [[setupCustomizeLoader, "/setup/customize"], [setupProLoader, "/setup/pro"], [guestGuideLoader, "/guest-guide"]] as const) {
+        const { res, html } = await get(loader, path, { query });
+        expect(res.status, path).toBe(200);
+        expect(html, path).toContain(`<html lang="${locale}">`);
+        expect(html, path).not.toContain("{{");
+        expect(html, path).not.toContain("undefined");
+      }
+    });
   }
 
   it("states a canonical URL per language and links the others with hreflang", async () => {
@@ -105,8 +119,8 @@ describe("guide pages in each language", () => {
     expect(html).toContain('hreflang="x-default" href="https://giftpin.app/setup"');
   });
 
-  it("the setup guide quotes the price, trial and fee from the billing constants", async () => {
-    const { html } = await get(setupLoader, "/setup", { query: "?lang=fr" });
+  it("the Pro guide quotes the price, trial and fee from the billing constants", async () => {
+    const { html } = await get(setupProLoader, "/setup/pro", { query: "?lang=fr" });
     expect(html).toContain("14 jours");
     expect(html).toContain("$9.99");
     expect(html).toContain("2 %");

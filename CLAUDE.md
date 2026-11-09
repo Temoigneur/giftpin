@@ -157,7 +157,7 @@ its language (`?lang=`, else the `giftpin-lang` cookie) in `renderFor()`
 synchronous render and resets it. That is only safe because nothing `await`s
 in between, so two requests can't interleave. Don't add an `await` inside a
 page builder; load data first, then pass it in (as `giftCardsHtml(stores)` does).
-The setup and registry guides' words live in `app/marketing/guide-copy/<lang>.ts`;
+The guides' words live in `app/marketing/guide-copy/<lang>.ts` (setup, registry) and `extra.ts` (hub, guest guide, QR step); `derive.ts` splits them into /setup, /setup/customize, /setup/pro, /registry-guide and /guest-guide. Guide screenshots must be real captures of the UI, never generated;
 a bold button name is written `{{key}}` so it is filled from the app's own
 dictionaries, and `guides-i18n.test.ts` fails if a translation drifts from English.
 
