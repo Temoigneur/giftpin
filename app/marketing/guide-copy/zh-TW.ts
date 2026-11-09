@@ -175,7 +175,7 @@ export const zhTW: GuideCopy = {
               "在 Giftpin 中，開啟 <b>{{admin.nav.settings}}</b>。如果頁面原本就開著，請重新整理，讓新的禮品卡顯示出來。在 <b>{{admin.set.funds}}</b> 底下，於 <b>{{admin.set.fundsPick}}</b> 中選取您的禮品卡，然後按下該區段自己的 <b>{{admin.set.save}}</b>。",
               "現在登記人可以在管理頁面新增禮金基金：在 <b>{{manage.fund.title}}</b> 中填寫名稱和目標金額，然後點按 <b>{{manage.fund.add}}</b>。賓客用您禮品卡的金額，為基金或大型禮物出資。",
             ],
-            alts: ["清單管理頁面上的禮金基金區塊，包含名稱、目標金額和備註欄位，以及新增基金按鈕"],
+            alts: ["Shopify 的 Create gift card product 頁面，標題為 Redwood Essentials gift card，金額為 10、25、50 和 100", "Giftpin 設定中的集體送禮與禮金基金，已選好禮品卡並勾選在 giftpin.app 上架", "清單管理頁面上的禮金基金區塊，包含名稱、目標金額和備註欄位，以及新增基金按鈕"],
           },
           {
             id: "gift-cards",

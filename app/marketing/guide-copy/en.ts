@@ -174,7 +174,11 @@ export const en: GuideCopy = {
               "In Giftpin, open <b>{{admin.nav.settings}}</b>. If it was already open, reload the page so the new gift card shows up. Under <b>{{admin.set.funds}}</b>, pick your gift card in <b>{{admin.set.fundsPick}}</b> and press that section's own <b>{{admin.set.save}}</b>.",
               "Registrants can now add a cash fund on their manage page: under <b>{{manage.fund.title}}</b>, they give it a name and a goal and tap <b>{{manage.fund.add}}</b>. Guests chip in with your gift card's amounts, toward a fund or a big item.",
             ],
-            img: { src: "/guides/m9-cash-fund.png", alt: "The A cash fund box on a registry's manage page, with fund name, goal and note fields and the Add fund button" },
+            img: [
+              { src: "/guides/m8-create-gift-card.png", alt: "Shopify's Create gift card product page with the title Redwood Essentials gift card and denominations of 10, 25, 50 and 100" },
+              { src: "/guides/m11-settings-gift-card.png", alt: "Giftpin Settings, Group gifts and funds, with a gift card picked under Gift card guests chip in with and List my gift cards on giftpin.app ticked" },
+              { src: "/guides/m9-cash-fund.png", alt: "The A cash fund box on a registry's manage page, with fund name, goal and note fields and the Add fund button" },
+            ],
           },
           {
             id: "gift-cards",

@@ -175,7 +175,7 @@ export const es: GuideCopy = {
               "En Giftpin, abre <b>{{admin.nav.settings}}</b>. Si ya estaba abierta, recarga la página para que aparezca la nueva tarjeta de regalo. En <b>{{admin.set.funds}}</b>, elige tu tarjeta de regalo en <b>{{admin.set.fundsPick}}</b> y pulsa el <b>{{admin.set.save}}</b> de esa sección.",
               "Ahora quien crea la lista puede añadir un fondo desde su página de gestión: en <b>{{manage.fund.title}}</b>, le pone un nombre y una meta y toca <b>{{manage.fund.add}}</b>. Los invitados aportan con los importes de tu tarjeta de regalo, para un fondo o un regalo grande.",
             ],
-            alts: ["La sección Un fondo en efectivo de la página de gestión de una lista, con los campos de nombre, meta y nota y el botón Añadir fondo"],
+            alts: ["La página Create gift card product de Shopify con el título Redwood Essentials gift card e importes de 10, 25, 50 y 100", "Ajustes de Giftpin, Regalos en grupo y fondos, con una tarjeta de regalo elegida y la casilla de listarla en giftpin.app marcada", "La sección Un fondo en efectivo de la página de gestión de una lista, con los campos de nombre, meta y nota y el botón Añadir fondo"],
           },
           {
             id: "gift-cards",

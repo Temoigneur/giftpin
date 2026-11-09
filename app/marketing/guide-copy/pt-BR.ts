@@ -175,7 +175,7 @@ export const ptBR: GuideCopy = {
               "No Giftpin, abra <b>{{admin.nav.settings}}</b>. Se a página já estava aberta, recarregue-a para o novo cartão-presente aparecer. Em <b>{{admin.set.funds}}</b>, escolha seu cartão-presente em <b>{{admin.set.fundsPick}}</b> e pressione o <b>{{admin.set.save}}</b> dessa seção.",
               "Agora quem cria a lista pode adicionar um fundo na página de gerenciamento: em <b>{{manage.fund.title}}</b>, dá um nome e uma meta e toca em <b>{{manage.fund.add}}</b>. Os convidados contribuem com os valores do seu cartão-presente, para um fundo ou um presente grande.",
             ],
-            alts: ["A seção Um fundo em dinheiro na página de gerenciamento de uma lista, com campos de nome, meta e recado e o botão Adicionar fundo"],
+            alts: ["A página Create gift card product da Shopify com o título Redwood Essentials gift card e valores de 10, 25, 50 e 100", "Configurações do Giftpin, Presentes em grupo e fundos, com um cartão-presente escolhido e a caixa de listar no giftpin.app marcada", "A seção Um fundo em dinheiro na página de gerenciamento de uma lista, com campos de nome, meta e recado e o botão Adicionar fundo"],
           },
           {
             id: "gift-cards",

@@ -175,7 +175,7 @@ export const fr: GuideCopy = {
               "Dans Giftpin, ouvrez <b>{{admin.nav.settings}}</b>. Si la page était déjà ouverte, rechargez-la pour que la nouvelle carte-cadeau apparaisse. Sous <b>{{admin.set.funds}}</b>, choisissez votre carte-cadeau dans <b>{{admin.set.fundsPick}}</b> et appuyez sur le <b>{{admin.set.save}}</b> de cette section.",
               "Les personnes inscrites peuvent maintenant ajouter une cagnotte depuis leur page de gestion : sous <b>{{manage.fund.title}}</b>, elles lui donnent un nom et un objectif, puis touchent <b>{{manage.fund.add}}</b>. Les invités participent avec les montants de votre carte-cadeau, pour une cagnotte ou un gros cadeau.",
             ],
-            alts: ["La section Une cagnotte de la page de gestion d'une liste, avec les champs nom, objectif et note et le bouton Ajouter la cagnotte"],
+            alts: ["La page Create gift card product de Shopify avec le titre Redwood Essentials gift card et des valeurs de 10, 25, 50 et 100", "Les réglages de Giftpin, Cadeaux de groupe et cagnottes, avec une carte-cadeau choisie et la case de liste sur giftpin.app cochée", "La section Une cagnotte de la page de gestion d'une liste, avec les champs nom, objectif et note et le bouton Ajouter la cagnotte"],
           },
           {
             id: "gift-cards",
