@@ -84,7 +84,7 @@ export const frGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.remind.button": "Me le rappeler",
   "guest.remind.done": "C'est fait. Nous vous enverrons un courriel avant l'événement.",
 
-  "guest.dup.leadHtml": "<strong>Vous achetez chez une autre boutique ?</strong> Appuyez sur « Je l'ai acheté » quand c'est fait pour que personne ne l'achète en double. Nous le réservons pour vous en attendant.",
+  "guest.dup.leadHtml": "<strong>Vous achetez chez une autre boutique ?</strong> Appuyez sur « Acheter chez » : nous réservons l'article pendant vos achats pour que personne d'autre ne l'achète aussi. Une fois acheté, appuyez sur « Je l'ai acheté » pour le marquer comme acheté. Si c'est déjà fait, tout est en ordre.",
   "guest.dup.disclosure": "Les liens vers d'autres boutiques peuvent rapporter une petite commission à Giftpin. Cela ne change jamais ce que vous payez et ne s'applique jamais aux produits de cette boutique. Cela nous aide à continuer d'améliorer Giftpin.",
 
   "guest.bought.confirm": "Marquer comme acheté ? Faites-le seulement si vous l'avez obtenu autrement, par exemple en magasin. Les commandes passées ici sont comptées automatiquement.",

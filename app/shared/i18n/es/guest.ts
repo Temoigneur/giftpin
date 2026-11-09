@@ -84,7 +84,7 @@ export const esGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.remind.button": "Recuérdamelo",
   "guest.remind.done": "Listo. Te enviaremos un correo antes del evento.",
 
-  "guest.dup.leadHtml": "<strong>¿Compras en otra tienda?</strong> Pulsa «Ya lo compré» cuando termines para que nadie lo compre dos veces. Mientras tanto, lo reservamos para ti.",
+  "guest.dup.leadHtml": "<strong>¿Compras en otra tienda?</strong> Pulsa «Comprar en» y reservamos el artículo mientras compras, para que nadie más lo compre también. Cuando lo hayas comprado, pulsa «Ya lo compré» para marcarlo como comprado. Si ya lo hiciste, no tienes que hacer nada más.",
   "guest.dup.disclosure": "Los enlaces a otras tiendas pueden dar a Giftpin una pequeña comisión. Nunca cambia lo que pagas ni se aplica a los productos de esta tienda. Nos ayuda a seguir mejorando Giftpin.",
 
   "guest.bought.confirm": "¿Marcar como comprado? Hazlo solo si lo conseguiste de otra forma, por ejemplo en la tienda física. Los pedidos hechos aquí se cuentan automáticamente.",

@@ -84,7 +84,7 @@ export const zhCNGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.remind.button": "提醒我",
   "guest.remind.done": "好的，我们会在活动前给您发邮件。",
 
-  "guest.dup.leadHtml": "<strong>要在其他店铺购买吗？</strong>买好后请点击&ldquo;我已购买&rdquo;，避免别人重复购买。在此期间我们会为您保留。",
+  "guest.dup.leadHtml": "<strong>在其他店铺购买？</strong>点击&ldquo;前往…购买&rdquo;后，我们会在您购物期间为您保留此商品，避免别人重复购买。买好后，请点击&ldquo;我已购买&rdquo;将其标记为已购买。如果已经点过，就无需再操作。",
   "guest.dup.disclosure": "此处通往其他店铺的链接可能会为 Giftpin 带来少量佣金或费用，这不会改变您支付的价格，也不适用于本店自己的商品。这有助于我们持续改进 Giftpin。",
 
   "guest.bought.confirm": "要将此标记为已购买吗？仅当您通过其他方式（例如在实体店）买到时才这样做。在此处下的订单会被自动统计。",
