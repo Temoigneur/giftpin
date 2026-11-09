@@ -73,7 +73,7 @@ export function renderGiftCardPage(data: GiftCardPageData): string {
       indexable: false,
       shopName: data.shopName,
       branding: data.branding,
-      head: `<style>.gc-amts{border:0;padding:0;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:8px}.gc-amts legend{font-weight:600;margin-bottom:8px}.gc-amt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;min-height:44px}.gc-amt:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.js-gc-recipient{margin-top:8px}</style>`,
+      head: `<style>.gc-amts{border:0;padding:0;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:8px}.gc-amts legend{font-weight:600;margin-bottom:8px}.gc-amt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;min-height:44px}.gc-amt:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.js-gc-recipient{margin-top:8px}.js-gc-fields[hidden]{display:none}</style>`,
     },
     body + clientScript(),
   );

@@ -132,6 +132,11 @@ describe("store gift card page", () => {
     token: "tok.sig",
   });
 
+  it("keeps the recipient fields hidden until the box is ticked, even on wide screens", () => {
+    // .fields is display:grid on desktop, which would otherwise beat [hidden].
+    expect(html).toContain(".js-gc-fields[hidden]{display:none}");
+  });
+
   it("posts straight to the store's cart with the signed tag", () => {
     expect(html).toContain('action="/cart/add"');
     expect(html).toContain(`name="properties[${GIFT_CARD_PROPERTY}]" value="tok.sig"`);
