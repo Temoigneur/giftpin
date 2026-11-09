@@ -169,20 +169,24 @@ export const zhCN: GuideCopy = {
           {
             title: "集体送礼和礼金基金",
             items: [
-              "在 Shopify 后台，进入 <b>Products → Gift cards → Add a gift card product</b>，设置几档金额，例如 $25、$50 和 $100。",
+              "在 Shopify 后台，前往 <b>Products → Gift cards</b>，点击 <b>Add a gift card product</b>。",
+              "填写标题和几个面额，例如 25、50 和 100。要在 giftpin.app 上销售，至少要有一个面额不超过 500（按您商店的货币）。在 <b>Sales channels and apps</b> 中保持勾选 <b>Online Store</b>，然后点击 <b>Save gift card product</b>。",
               "在 <b>Settings → General → Order processing</b> 中，选择 <b>Automatically fulfill only the gift cards</b>。Shopify 只有在订单履约后才会发送礼品卡。",
-              "在 Giftpin 中打开 <b>{{admin.nav.settings}}</b>。在 <b>{{admin.set.funds}}</b> 下，于 <b>{{admin.set.fundsPick}}</b> 中选择该礼品卡，然后点击该部分自己的 <b>{{admin.set.save}}</b>。宾客现在就可以为大件礼物或礼金基金凑份子了。",
+              "在 Giftpin 中打开 <b>{{admin.nav.settings}}</b>。如果页面之前已打开，请刷新页面，让新礼品卡显示出来。在 <b>{{admin.set.funds}}</b> 下，于 <b>{{admin.set.fundsPick}}</b> 中选择您的礼品卡，然后点击该部分自己的 <b>{{admin.set.save}}</b>。",
+              "现在登记人可以在管理页面添加礼金基金：在 <b>{{manage.fund.title}}</b> 中填写名称和目标金额，然后点按 <b>{{manage.fund.add}}</b>。宾客用您礼品卡的面额为基金或大件礼物出资。",
             ],
+            alts: ["清单管理页面上的礼金基金区域，包含名称、目标金额和备注输入框以及添加基金按钮"],
           },
           {
             id: "gift-cards",
             title: "在 giftpin.app 上销售礼品卡",
             items: [
-              "请先按上一步设置好礼品卡。上架时使用的是同一张礼品卡，金额最高 $500。",
+              "这需要 Pro，以及上一步的礼品卡，并在 <b>{{admin.set.fundsPick}}</b> 中选中它。如果那里仍显示 <b>{{admin.set.off}}</b>，您的商店就不会上架，保存时 Giftpin 会显示警告。",
               "在 Giftpin 中打开 <b>{{admin.nav.settings}}</b>。在 <b>{{admin.set.sell}}</b> 下，勾选 <b>{{admin.set.listMine}}</b>，添加 <b>{{admin.set.blurb}}</b>，然后点击该部分的 <b>{{admin.set.save}}</b>。",
               "您的店铺现在会显示在 <a href=\"/gift-cards?lang=zh-CN\">giftpin.app/gift-cards</a> 上您所在国家下方，您的礼物清单页面也会出现 <b>Rather give a gift card?</b> 链接。顾客在您自己的结账页面购买您的礼品卡，所以款项和任何未使用的余额都归您。以这种方式售出的礼品卡会显示在 Giftpin 的 <b>{{admin.nav.analytics}}</b> 中。",
               "Giftpin 会对以这种方式售出的每张礼品卡收取 {{feePct}}% 的费用，在售出 {{holdDays}} 天后计入您的 Shopify 账单，这样已退款的礼品卡永远不会被收费。免费试用期间不收取任何费用。",
             ],
+            alts: ["商店的礼品卡页面，显示 $25、$50、$100 和 $250 的面额、直接通过电子邮件发送的勾选框和加入购物车按钮"],
           },
           {
             title: "活动结束后的折扣和自动邮件",

@@ -169,20 +169,24 @@ export const de: GuideCopy = {
           {
             title: "Gruppengeschenke und Fonds",
             items: [
-              "Gehen Sie in Ihrem Shopify-Admin zu <b>Products → Gift cards → Add a gift card product</b>, mit einigen Beträgen wie 25 $, 50 $ und 100 $.",
+              "Gehen Sie in Ihrem Shopify-Adminbereich zu <b>Products → Gift cards</b> und klicken Sie auf <b>Add a gift card product</b>.",
+              "Geben Sie ihr einen Titel und einige Beträge, etwa 25, 50 und 100. Damit sie auf giftpin.app verkauft werden kann, muss mindestens ein Betrag 500 oder weniger in Ihrer Shopwährung sein. Lassen Sie <b>Online Store</b> unter <b>Sales channels and apps</b> aktiviert und klicken Sie auf <b>Save gift card product</b>.",
               "Wählen Sie unter <b>Settings → General → Order processing</b> die Option <b>Automatically fulfill only the gift cards</b>. Shopify verschickt eine Geschenkkarte erst, wenn ihre Bestellung erfüllt ist.",
-              "Öffnen Sie in Giftpin <b>{{admin.nav.settings}}</b>. Wählen Sie unter <b>{{admin.set.funds}}</b> diese Geschenkkarte bei <b>{{admin.set.fundsPick}}</b> und drücken Sie den <b>{{admin.set.save}}</b>-Button dieses Abschnitts. Gäste können sich nun an einem großen Geschenk oder einem Geldfonds beteiligen.",
+              "Öffnen Sie in Giftpin <b>{{admin.nav.settings}}</b>. War die Seite schon offen, laden Sie sie neu, damit die neue Geschenkkarte erscheint. Wählen Sie unter <b>{{admin.set.funds}}</b> Ihre Geschenkkarte bei <b>{{admin.set.fundsPick}}</b> und drücken Sie den <b>{{admin.set.save}}</b>-Button dieses Abschnitts.",
+              "Registrierende können jetzt auf ihrer Verwaltungsseite einen Geldfonds anlegen: Unter <b>{{manage.fund.title}}</b> geben sie einen Namen und ein Ziel ein und tippen auf <b>{{manage.fund.add}}</b>. Gäste beteiligen sich mit den Beträgen Ihrer Geschenkkarte, für einen Fonds oder ein großes Geschenk.",
             ],
+            alts: ["Der Bereich Ein Geldfonds auf der Verwaltungsseite einer Liste, mit Feldern für Name, Ziel und Notiz und dem Button Fonds hinzufügen"],
           },
           {
             id: "gift-cards",
             title: "Geschenkkarten auf giftpin.app verkaufen",
             items: [
-              "Richten Sie zuerst die Geschenkkarte im Schritt davor ein. Der Eintrag nutzt dieselbe Geschenkkarte, mit Beträgen bis 500 $.",
+              "Dafür brauchen Sie Pro und die Geschenkkarte aus dem Schritt davor, ausgewählt bei <b>{{admin.set.fundsPick}}</b>. Steht dort noch <b>{{admin.set.off}}</b>, wird Ihr Shop nicht gelistet und Giftpin zeigt beim Speichern eine Warnung.",
               "Öffnen Sie in Giftpin <b>{{admin.nav.settings}}</b>. Markieren Sie unter <b>{{admin.set.sell}}</b> <b>{{admin.set.listMine}}</b>, ergänzen Sie <b>{{admin.set.blurb}}</b> und drücken Sie den <b>{{admin.set.save}}</b>-Button dieses Abschnitts.",
               "Ihr Shop erscheint nun auf <a href=\"/gift-cards?lang=de\">giftpin.app/gift-cards</a> unter Ihrem Land, und Ihre Listenseiten erhalten einen Link <b>Rather give a gift card?</b>. Käufer erwerben Ihre Geschenkkarte an Ihrer eigenen Kasse, Sie behalten also das Geld und jedes nicht eingelöste Guthaben. So verkaufte Geschenkkarten erscheinen in <b>{{admin.nav.analytics}}</b>.",
               "Giftpin berechnet {{feePct}} % jeder so verkauften Geschenkkarte, über Ihre Shopify-Rechnung, {{holdDays}} Tage nach dem Verkauf, damit eine erstattete Karte nie berechnet wird. Während Ihrer kostenlosen Testphase fällt keine Gebühr an.",
             ],
+            alts: ["Die Geschenkkartenseite eines Shops mit Beträgen von 25 $, 50 $, 100 $ und 250 $, einem Feld zum direkten Versand per E-Mail und dem Button In den Warenkorb"],
           },
           {
             title: "Rabatt nach dem Ereignis und automatische E-Mails",

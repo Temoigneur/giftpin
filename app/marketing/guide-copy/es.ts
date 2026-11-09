@@ -169,20 +169,24 @@ export const es: GuideCopy = {
           {
             title: "Regalos en grupo y fondos",
             items: [
-              "En tu administrador de Shopify, ve a <b>Products → Gift cards → Add a gift card product</b>, con algunos importes como 25 $, 50 $ y 100 $.",
+              "En tu administración de Shopify, ve a <b>Products → Gift cards</b> y haz clic en <b>Add a gift card product</b>.",
+              "Ponle un título y algunos importes, como 25, 50 y 100. Para venderla en giftpin.app, al menos uno debe ser de 500 o menos, en la moneda de tu tienda. Deja marcado <b>Online Store</b> en <b>Sales channels and apps</b> y haz clic en <b>Save gift card product</b>.",
               "En <b>Settings → General → Order processing</b>, elige <b>Automatically fulfill only the gift cards</b>. Shopify solo envía una tarjeta de regalo cuando se completa su pedido.",
-              "En Giftpin, abre <b>{{admin.nav.settings}}</b>. En <b>{{admin.set.funds}}</b>, elige esa tarjeta de regalo en <b>{{admin.set.fundsPick}}</b> y pulsa el <b>{{admin.set.save}}</b> de esa sección. Tus invitados ya pueden aportar para un regalo grande o un fondo en efectivo.",
+              "En Giftpin, abre <b>{{admin.nav.settings}}</b>. Si ya estaba abierta, recarga la página para que aparezca la nueva tarjeta de regalo. En <b>{{admin.set.funds}}</b>, elige tu tarjeta de regalo en <b>{{admin.set.fundsPick}}</b> y pulsa el <b>{{admin.set.save}}</b> de esa sección.",
+              "Ahora quien crea la lista puede añadir un fondo desde su página de gestión: en <b>{{manage.fund.title}}</b>, le pone un nombre y una meta y toca <b>{{manage.fund.add}}</b>. Los invitados aportan con los importes de tu tarjeta de regalo, para un fondo o un regalo grande.",
             ],
+            alts: ["La sección Un fondo en efectivo de la página de gestión de una lista, con los campos de nombre, meta y nota y el botón Añadir fondo"],
           },
           {
             id: "gift-cards",
             title: "Vender tarjetas de regalo en giftpin.app",
             items: [
-              "Configura primero la tarjeta de regalo en el paso anterior. El listado usa la misma tarjeta, con importes de hasta 500 $.",
+              "Necesitas Pro y la tarjeta de regalo del paso anterior, elegida en <b>{{admin.set.fundsPick}}</b>. Si ahí sigue diciendo <b>{{admin.set.off}}</b>, tu tienda no aparece y Giftpin muestra un aviso al guardar.",
               "En Giftpin, abre <b>{{admin.nav.settings}}</b>. En <b>{{admin.set.sell}}</b>, marca <b>{{admin.set.listMine}}</b>, añade <b>{{admin.set.blurb}}</b> y pulsa el <b>{{admin.set.save}}</b> de esa sección.",
               "Tu tienda aparece ahora en <a href=\"/gift-cards?lang=es\">giftpin.app/gift-cards</a>, bajo tu país, y tus páginas de lista muestran un enlace <b>Rather give a gift card?</b>. Los compradores adquieren tu tarjeta de regalo en tu propio pago, así que te quedas con el dinero y con cualquier saldo sin gastar. Las tarjetas vendidas así aparecen en <b>{{admin.nav.analytics}}</b>.",
               "Giftpin cobra el {{feePct}} % de cada tarjeta de regalo vendida de esta forma, en tu factura de Shopify, {{holdDays}} días después de la venta, para que una tarjeta reembolsada nunca se cobre. No hay comisión durante tu prueba gratuita.",
             ],
+            alts: ["La página de tarjeta de regalo de una tienda con importes de 25 $, 50 $, 100 $ y 250 $, una casilla para enviarla por correo y el botón Añadir al carrito"],
           },
           {
             title: "Descuento posterior al evento y correos automáticos",

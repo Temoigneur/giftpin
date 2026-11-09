@@ -169,20 +169,24 @@ export const zhTW: GuideCopy = {
           {
             title: "集體送禮與禮金基金",
             items: [
-              "在您的 Shopify 後台，前往 <b>Products → Gift cards → Add a gift card product</b>，設定幾個金額，例如 $25、$50 和 $100。",
+              "在 Shopify 管理介面中，前往 <b>Products → Gift cards</b>，點擊 <b>Add a gift card product</b>。",
+              "填寫標題和幾種金額，例如 25、50 和 100。若要在 giftpin.app 上販售，至少要有一種金額不超過 500（以您商店的幣別計）。在 <b>Sales channels and apps</b> 中保持勾選 <b>Online Store</b>，然後點擊 <b>Save gift card product</b>。",
               "在 <b>Settings → General → Order processing</b> 中，選擇 <b>Automatically fulfill only the gift cards</b>。Shopify 要等訂單完成處理後，才會發送禮品卡。",
-              "在 Giftpin 中，開啟 <b>{{admin.nav.settings}}</b>。在 <b>{{admin.set.funds}}</b> 底下，於 <b>{{admin.set.fundsPick}}</b> 中選擇該禮品卡，然後按下該區段自己的 <b>{{admin.set.save}}</b>。賓客現在就可以共同出資購買大型禮物或禮金基金。",
+              "在 Giftpin 中，開啟 <b>{{admin.nav.settings}}</b>。如果頁面原本就開著，請重新整理，讓新的禮品卡顯示出來。在 <b>{{admin.set.funds}}</b> 底下，於 <b>{{admin.set.fundsPick}}</b> 中選取您的禮品卡，然後按下該區段自己的 <b>{{admin.set.save}}</b>。",
+              "現在登記人可以在管理頁面新增禮金基金：在 <b>{{manage.fund.title}}</b> 中填寫名稱和目標金額，然後點按 <b>{{manage.fund.add}}</b>。賓客用您禮品卡的金額，為基金或大型禮物出資。",
             ],
+            alts: ["清單管理頁面上的禮金基金區塊，包含名稱、目標金額和備註欄位，以及新增基金按鈕"],
           },
           {
             id: "gift-cards",
             title: "在 giftpin.app 銷售禮品卡",
             items: [
-              "請先在上一個步驟設定好禮品卡。上架時使用同一張禮品卡，金額最高 $500。",
+              "這需要 Pro，以及上一步的禮品卡，並在 <b>{{admin.set.fundsPick}}</b> 中選取。如果那裡仍顯示 <b>{{admin.set.off}}</b>，您的商店就不會上架，儲存時 Giftpin 會顯示警告。",
               "在 Giftpin 中，開啟 <b>{{admin.nav.settings}}</b>。在 <b>{{admin.set.sell}}</b> 底下，勾選 <b>{{admin.set.listMine}}</b>，填寫 <b>{{admin.set.blurb}}</b>，然後按下該區段的 <b>{{admin.set.save}}</b>。",
               "您的商店現在會顯示在 <a href=\"/gift-cards?lang=zh-TW\">giftpin.app/gift-cards</a> 的您所在國家之下，而且您的禮物清單頁面會出現 <b>Rather give a gift card?</b> 連結。顧客在您自己的結帳流程中購買您的禮品卡，所以款項和任何未使用的餘額都歸您所有。以此方式售出的禮品卡會顯示在 Giftpin 的 <b>{{admin.nav.analytics}}</b> 中。",
               "Giftpin 會對以此方式售出的每張禮品卡收取 {{feePct}}%，列在您的 Shopify 帳單上，並在售出 {{holdDays}} 天後才收取，因此已退款的禮品卡絕不會被收費。免費試用期間不收取任何費用。",
             ],
+            alts: ["商店的禮品卡頁面，顯示 $25、$50、$100 和 $250 的金額、直接以電子郵件寄送的勾選框和加入購物車按鈕"],
           },
           {
             title: "活動結束後的折扣與自動電子郵件",

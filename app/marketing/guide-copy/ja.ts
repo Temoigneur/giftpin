@@ -169,20 +169,24 @@ export const ja: GuideCopy = {
           {
             title: "みんなでギフトとキャッシュファンド",
             items: [
-              "Shopify管理画面で <b>Products → Gift cards → Add a gift card product</b> に進み、$25、$50、$100など、いくつかの金額を設定します。",
+              "Shopify管理画面で <b>Products → Gift cards</b> を開き、<b>Add a gift card product</b> をクリックします。",
+              "タイトルと、25、50、100 などの金額をいくつか設定します。giftpin.appで販売するには、ストアの通貨で500以下の金額が1つ以上必要です。<b>Sales channels and apps</b> の <b>Online Store</b> はオンのままにして、<b>Save gift card product</b> をクリックします。",
               "<b>Settings → General → Order processing</b> で <b>Automatically fulfill only the gift cards</b> を選びます。Shopifyは、注文が処理済みになってからギフトカードを送信します。",
-              "Giftpinで <b>{{admin.nav.settings}}</b> を開きます。<b>{{admin.set.funds}}</b> の <b>{{admin.set.fundsPick}}</b> でそのギフトカードを選び、そのセクション専用の <b>{{admin.set.save}}</b> を押します。これで、ゲストは高価なアイテムやキャッシュファンドにみんなで参加できます。",
+              "Giftpinで <b>{{admin.nav.settings}}</b> を開きます。すでに開いていた場合は、新しいギフトカードが表示されるようにページを再読み込みしてください。<b>{{admin.set.funds}}</b> の <b>{{admin.set.fundsPick}}</b> でギフトカードを選び、そのセクションの <b>{{admin.set.save}}</b> を押します。",
+              "これで登録者は管理ページからキャッシュファンドを追加できます。<b>{{manage.fund.title}}</b> で名前と目標額を入力し、<b>{{manage.fund.add}}</b> をタップします。ゲストはギフトカードの金額で、ファンドや大きなアイテムに出し合えます。",
             ],
+            alts: ["レジストリ管理ページのキャッシュファンド欄。名前、目標額、メモの入力欄と「ファンドを追加」ボタン"],
           },
           {
             id: "gift-cards",
             title: "giftpin.appでギフトカードを販売する",
             items: [
-              "先に、上のステップでギフトカードを設定してください。掲載には同じギフトカードを使い、金額は$500までです。",
+              "Proと、上のステップのギフトカードが必要です。<b>{{admin.set.fundsPick}}</b> で選ばれている必要があり、まだ <b>{{admin.set.off}}</b> のままだとストアは掲載されず、保存時にGiftpinが警告を表示します。",
               "Giftpinで <b>{{admin.nav.settings}}</b> を開きます。<b>{{admin.set.sell}}</b> で <b>{{admin.set.listMine}}</b> にチェックを入れ、<b>{{admin.set.blurb}}</b> を追加して、そのセクションの <b>{{admin.set.save}}</b> を押します。",
               "あなたのストアが <a href=\"/gift-cards?lang=ja\">giftpin.app/gift-cards</a> の国別の欄に表示され、ギフトリストのページには <b>Rather give a gift card?</b> のリンクが追加されます。お客様はあなた自身のチェックアウトでギフトカードを購入するので、代金と未使用の残高はあなたのものです。この方法で販売されたギフトカードは、Giftpinの <b>{{admin.nav.analytics}}</b> に表示されます。",
               "Giftpinは、この方法で販売されたギフトカード1枚ごとに{{feePct}}%を、販売の{{holdDays}}日後にShopifyの請求書に加えて請求します。返金されたカードが請求されることはありません。無料トライアル中は手数料はかかりません。",
             ],
+            alts: ["ストアのギフトカードページ。$25、$50、$100、$250の金額、メールで直接送るチェックボックス、カートに追加ボタン"],
           },
           {
             title: "イベント後の割引と自動メール",

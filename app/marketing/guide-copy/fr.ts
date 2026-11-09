@@ -169,20 +169,24 @@ export const fr: GuideCopy = {
           {
             title: "Cadeaux de groupe et cagnottes",
             items: [
-              "Dans votre administration Shopify, allez à <b>Products → Gift cards → Add a gift card product</b>, avec quelques montants comme 25 $, 50 $ et 100 $.",
+              "Dans votre administration Shopify, allez à <b>Products → Gift cards</b> et cliquez sur <b>Add a gift card product</b>.",
+              "Donnez-lui un titre et quelques valeurs, comme 25, 50 et 100. Pour la vendre sur giftpin.app, au moins une valeur doit être de 500 ou moins, dans la devise de votre boutique. Laissez <b>Online Store</b> coché sous <b>Sales channels and apps</b> et cliquez sur <b>Save gift card product</b>.",
               "Dans <b>Settings → General → Order processing</b>, choisissez <b>Automatically fulfill only the gift cards</b>. Shopify n'envoie une carte-cadeau qu'une fois la commande traitée.",
-              "Dans Giftpin, ouvrez <b>{{admin.nav.settings}}</b>. Sous <b>{{admin.set.funds}}</b>, choisissez cette carte-cadeau dans <b>{{admin.set.fundsPick}}</b> et appuyez sur le <b>{{admin.set.save}}</b> de cette section. Vos invités peuvent maintenant participer à un gros cadeau ou à une cagnotte.",
+              "Dans Giftpin, ouvrez <b>{{admin.nav.settings}}</b>. Si la page était déjà ouverte, rechargez-la pour que la nouvelle carte-cadeau apparaisse. Sous <b>{{admin.set.funds}}</b>, choisissez votre carte-cadeau dans <b>{{admin.set.fundsPick}}</b> et appuyez sur le <b>{{admin.set.save}}</b> de cette section.",
+              "Les personnes inscrites peuvent maintenant ajouter une cagnotte depuis leur page de gestion : sous <b>{{manage.fund.title}}</b>, elles lui donnent un nom et un objectif, puis touchent <b>{{manage.fund.add}}</b>. Les invités participent avec les montants de votre carte-cadeau, pour une cagnotte ou un gros cadeau.",
             ],
+            alts: ["La section Une cagnotte de la page de gestion d'une liste, avec les champs nom, objectif et note et le bouton Ajouter la cagnotte"],
           },
           {
             id: "gift-cards",
             title: "Vendre des cartes-cadeaux sur giftpin.app",
             items: [
-              "Configurez d'abord la carte-cadeau à l'étape précédente. L'inscription utilise la même carte-cadeau, pour des montants allant jusqu'à 500 $.",
+              "Il faut Pro et la carte-cadeau de l'étape précédente, choisie dans <b>{{admin.set.fundsPick}}</b>. Si ce champ indique encore <b>{{admin.set.off}}</b>, votre boutique n'est pas listée et Giftpin affiche un avertissement à l'enregistrement.",
               "Dans Giftpin, ouvrez <b>{{admin.nav.settings}}</b>. Sous <b>{{admin.set.sell}}</b>, cochez <b>{{admin.set.listMine}}</b>, ajoutez <b>{{admin.set.blurb}}</b> et appuyez sur le <b>{{admin.set.save}}</b> de cette section.",
               "Votre boutique apparaît maintenant sur <a href=\"/gift-cards?lang=fr\">giftpin.app/gift-cards</a>, sous votre pays, et vos pages de liste affichent un lien <b>Rather give a gift card?</b>. Les clients achètent votre carte-cadeau à votre propre caisse : vous gardez l'argent et tout solde non dépensé. Les cartes-cadeaux vendues ainsi apparaissent dans <b>{{admin.nav.analytics}}</b>.",
               "Giftpin facture {{feePct}} % de chaque carte-cadeau vendue de cette façon, sur votre facture Shopify, {{holdDays}} jours après la vente, pour qu'une carte remboursée ne soit jamais facturée. Aucuns frais pendant votre essai gratuit.",
             ],
+            alts: ["La page carte-cadeau d'une boutique avec des montants de 25 $, 50 $, 100 $ et 250 $, une case pour l'envoyer par courriel et le bouton Ajouter au panier"],
           },
           {
             title: "Rabais après l'événement et courriels automatiques",

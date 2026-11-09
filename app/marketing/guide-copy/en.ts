@@ -168,20 +168,24 @@ export const en: GuideCopy = {
           {
             title: "Group gifts and funds",
             items: [
-              "In your Shopify admin, go to <b>Products → Gift cards → Add a gift card product</b>, with a few amounts such as $25, $50 and $100.",
+              "In your Shopify admin, go to <b>Products → Gift cards</b> and click <b>Add a gift card product</b>.",
+              "Give it a title and a few denominations, such as 25, 50 and 100. To sell it on giftpin.app, at least one must be 500 or less, in your store's currency. Leave <b>Online Store</b> ticked under <b>Sales channels and apps</b> and click <b>Save gift card product</b>.",
               "In <b>Settings → General → Order processing</b>, choose <b>Automatically fulfill only the gift cards</b>. Shopify only sends a gift card once its order is fulfilled.",
-              "In Giftpin, open <b>{{admin.nav.settings}}</b>. Under <b>{{admin.set.funds}}</b>, pick that gift card in <b>{{admin.set.fundsPick}}</b> and press that section's own <b>{{admin.set.save}}</b>. Guests can now chip in toward a big item or a cash fund.",
+              "In Giftpin, open <b>{{admin.nav.settings}}</b>. If it was already open, reload the page so the new gift card shows up. Under <b>{{admin.set.funds}}</b>, pick your gift card in <b>{{admin.set.fundsPick}}</b> and press that section's own <b>{{admin.set.save}}</b>.",
+              "Registrants can now add a cash fund on their manage page: under <b>{{manage.fund.title}}</b>, they give it a name and a goal and tap <b>{{manage.fund.add}}</b>. Guests chip in with your gift card's amounts, toward a fund or a big item.",
             ],
+            img: { src: "/guides/m9-cash-fund.png", alt: "The A cash fund box on a registry's manage page, with fund name, goal and note fields and the Add fund button" },
           },
           {
             id: "gift-cards",
             title: "Sell gift cards on giftpin.app",
             items: [
-              "Set up the gift card in the step above first. The listing uses the same gift card, in amounts up to $500.",
+              "This needs Pro and the gift card from the step above, picked in <b>{{admin.set.fundsPick}}</b>. If that still says <b>{{admin.set.off}}</b>, your store isn't listed and Giftpin shows a warning when you save.",
               "In Giftpin, open <b>{{admin.nav.settings}}</b>. Under <b>{{admin.set.sell}}</b>, tick <b>{{admin.set.listMine}}</b>, add <b>{{admin.set.blurb}}</b>, and press that section's <b>{{admin.set.save}}</b>.",
               "Your store now appears at <a href=\"/gift-cards\">giftpin.app/gift-cards</a>, under your country, and your registry pages get a <b>Rather give a gift card?</b> link. Shoppers buy your gift card at your own checkout, so you keep the money and any unspent balance. Gift cards sold this way show up in Giftpin's <b>{{admin.nav.analytics}}</b>.",
               "Giftpin charges {{feePct}}% of each gift card sold this way, on your Shopify bill, {{holdDays}} days after the sale so a refunded card is never charged. There's no fee during your free trial.",
             ],
+            img: { src: "/guides/m10-gift-card-page.png", alt: "A store's gift card page with amounts of $25, $50, $100 and $250, an Email it straight to someone box and Add to cart" },
           },
           {
             title: "After-event discount and automatic emails",
