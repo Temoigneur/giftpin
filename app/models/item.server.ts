@@ -427,11 +427,34 @@ export async function removeItem(itemId: string, registryId: string) {
 // shop row.
 // ---------------------------------------------------------------------------
 
-export const MAX_FUND_GOAL = 100_000;
+export const MAX_FUND_GOAL = 10_000_000;
 
-/** Parses a goal typed by a registrant. Null when it isn't a usable amount. */
+/**
+ * Parses a goal typed by a registrant. Null when it isn't a usable amount.
+ * Accepts "1500", "1,500", "1 500", "1.500,00", "1,500.50" and "¥150,000":
+ * the last separator is the decimal point only when it is followed by one or
+ * two digits (or the other separator comes before it); otherwise separators
+ * are thousands marks. The old version stripped everything but digits and dots,
+ * so "1,500" worked but anything over 100,000 (a normal yen goal) was refused.
+ */
 export function parseFundGoal(raw: unknown): string | null {
-  const value = Number(String(raw ?? "").replace(/[^0-9.]/g, ""));
+  const text = String(raw ?? "").replace(/[^0-9.,]/g, "");
+  if (!text) return null;
+  const lastDot = text.lastIndexOf(".");
+  const lastComma = text.lastIndexOf(",");
+  const lastSep = Math.max(lastDot, lastComma);
+  let normalized = text.replace(/[.,]/g, "");
+  if (lastSep >= 0) {
+    const decimals = text.slice(lastSep + 1);
+    const otherSepBefore = text.slice(0, lastSep).includes(lastDot > lastComma ? "," : ".");
+    const sameSepRepeated = text.slice(0, lastSep).includes(text[lastSep]);
+    if (decimals.length > 0 && decimals.length <= 2 && !sameSepRepeated) {
+      normalized = `${text.slice(0, lastSep).replace(/[.,]/g, "")}.${decimals}`;
+    } else if (otherSepBefore && decimals.length === 0) {
+      normalized = text.replace(/[.,]/g, "");
+    }
+  }
+  const value = Number(normalized);
   if (!Number.isFinite(value) || value < 1 || value > MAX_FUND_GOAL) return null;
   return value.toFixed(2);
 }

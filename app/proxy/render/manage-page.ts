@@ -623,7 +623,7 @@ button.cat-chip{font:inherit;font-size:13px;cursor:pointer}
 button.cat-chip::before{content:"+";margin-right:5px;color:var(--accent);font-weight:600}
 button.cat-chip:hover,button.cat-chip:focus-visible{border-color:var(--accent);color:var(--accent)}
 .idea-add{display:grid;gap:8px;margin-top:10px}
-.js-fund input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
+.js-fund input[name=goal]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 .manage details.ideas{background:var(--card);border-color:var(--line);border-radius:18px;box-shadow:var(--shadow)}
 .manage .ideas-icon{background:var(--soft);color:var(--hi)}
 .manage .hero-img,.manage .hero-art{border-radius:18px;box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);background:var(--card)}
@@ -912,7 +912,7 @@ function renderFundSetup(data: ManagePageData): string {
     <label class="sr" for="fund-title">${T("manage.fund.name")}</label>
     <input id="fund-title" type="text" name="title" maxlength="300" placeholder="${A("manage.fund.namePh")}" required>
     <label class="sr" for="fund-goal">${T("manage.fund.goal")}</label>
-    <input id="fund-goal" type="number" name="goal" min="1" step="1" inputmode="numeric" placeholder="${A("manage.fund.goalPh")}" required style="margin-top:10px">
+    <input id="fund-goal" type="text" name="goal" inputmode="decimal" autocomplete="off" placeholder="${A("manage.fund.goalPh")}" required style="margin-top:10px">
     <label class="sr" for="fund-note">${T("manage.noteLabel")}</label>
     <input id="fund-note" type="text" name="note" maxlength="500" placeholder="${A("manage.fund.notePh")}" style="margin-top:10px">
     <div class="row" style="margin-top:10px">
@@ -938,7 +938,7 @@ function renderGroupGift(item: DisplayItem, data: ManagePageData): string {
   const goal = item.fund ? String(item.fund.goal) : item.price ? String(Math.ceil(item.price * item.desiredQty)) : "";
   return `<form class="row js-group" data-item="${id}" style="margin-top:8px">
   <label class="mi-gg" for="gg-${id}">${T(item.isFund ? "manage.group.goal" : "manage.group.goalLabel")}</label>
-  <input class="qty" style="width:110px" id="gg-${id}" type="number" name="goal" min="1" step="1" inputmode="numeric" value="${escapeAttr(goal)}" placeholder="${A("manage.group.goal")}">
+  <input class="qty" style="width:110px" id="gg-${id}" type="text" name="goal" inputmode="decimal" autocomplete="off" value="${escapeAttr(goal)}" placeholder="${A("manage.group.goal")}">
   <button class="btn sm ghost" type="submit">${T(item.isFund ? "manage.group.updateGoal" : item.fund ? "manage.group.update" : "manage.group.letChip")}</button>
   ${!item.isFund && item.fund ? `<button class="btn sm ghost js-group-off" type="button" data-item="${id}">${T("manage.group.stop")}</button>` : ""}
   <span class="js-status item-meta" role="status"></span>
