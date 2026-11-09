@@ -32,7 +32,22 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
         : st,
     ),
   });
-  const getWithShots = withShot(get, 0, ["installStore", "installApprove"]);
+  // Replace one existing image in a step (the old Overview shot) with a new real one.
+  const swapShot = (sec: typeof get, at: number, imgAt: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? [...st.img] : st.img ? [st.img] : [];
+        list[imgAt] = { src: SHOTS[key].src, alt: SHOTS[key].alt.en };
+        return { ...st, img: list };
+      }
+      const alts = [...(st.alts ?? [])];
+      alts[imgAt] = SHOTS[key].alt[locale];
+      return { ...st, alts };
+    }),
+  });
+  const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
   const saveWithShots = withShot(save, 0, ["themeSave"]);
   const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveWithShots] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({

@@ -141,5 +141,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "主題編輯器，右上角的「儲存」按鈕以紅框標示並編號 1",
       "ja": "テーマエディタ。右上の「保存」ボタンが赤い枠と番号1で示されている"
     }
+  },
+  "overviewTheme": {
+    "src": "/guides/m3-overview-theme.png",
+    "alt": {
+      "en": "The Add Giftpin to your theme card on the Overview page, with the Add button to product pages, Add registry links and Add heart to product pages buttons boxed in red",
+      "fr": "La carte Ajouter Giftpin à votre thème sur la page Aperçu, avec les boutons pour les pages produit, les liens de liste et le cœur encadrés en rouge",
+      "es": "La tarjeta Añadir Giftpin a tu tema en la página de Resumen, con los botones de producto, enlaces de lista y corazón enmarcados en rojo",
+      "de": "Die Karte „Giftpin zu Ihrem Theme hinzufügen“ auf der Übersicht, die Buttons für Produktseiten, Listen-Links und Herz sind rot umrandet",
+      "pt-BR": "O cartão Adicionar o Giftpin ao seu tema na página Visão geral, com os botões de página de produto, links de lista e coração destacados em vermelho",
+      "hi": "ओवरव्यू पेज पर Giftpin को अपनी थीम में जोड़ें कार्ड, प्रोडक्ट पेज बटन, रजिस्ट्री लिंक और हार्ट बटन लाल बॉक्स में",
+      "zh-CN": "“概览”页面上的“将 Giftpin 添加到主题”卡片，商品页按钮、清单链接和爱心按钮用红框标出",
+      "zh-TW": "「總覽」頁面上的「將 Giftpin 加入佈景主題」卡片，商品頁按鈕、清單連結和愛心按鈕以紅框標示",
+      "ja": "概要ページの「テーマにGiftpinを追加」カード。商品ページ用ボタン、リストのリンク、ハートのボタンが赤い枠で示されている"
+    }
   }
 };
