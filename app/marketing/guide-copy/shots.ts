@@ -1,7 +1,7 @@
 import type { Locale } from "../../shared/i18n";
 
 /** Real screenshots of the app used by the new guide steps (public/guides/). Alt text per language. */
-export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }> = {
+export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }> =  {
   "qr": {
     "src": "/guides/m12-qr-code.png",
     "alt": {
@@ -84,6 +84,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-CN": "Shopify 后台的商品页面，已打开 Giftpin 面板，列出包含该商品的清单",
       "zh-TW": "Shopify 後台的商品頁面，已開啟 Giftpin 面板，列出包含該商品的清單",
       "ja": "Shopify管理画面の商品ページ。Giftpinパネルを開き、その商品を含むリストを表示"
+    }
+  },
+  "find": {
+    "src": "/guides/g3-find-registry.png",
+    "alt": {
+      "en": "The Find a registry page with a Name box and a Search button",
+      "fr": "La page Trouver une liste avec un champ Nom et un bouton Rechercher",
+      "es": "La página Buscar una lista con un campo Nombre y un botón Buscar",
+      "de": "Die Seite Liste finden mit einem Namensfeld und einem Suchen-Button",
+      "pt-BR": "A página Encontrar uma lista com um campo Nome e um botão Buscar",
+      "hi": "रजिस्ट्री खोजें पेज, नाम वाला बॉक्स और खोजें बटन के साथ",
+      "zh-CN": "“查找清单”页面，含名称输入框和搜索按钮",
+      "zh-TW": "「尋找清單」頁面，含名稱輸入框和搜尋按鈕",
+      "ja": "「リストを探す」ページ。名前の入力欄と検索ボタン"
     }
   }
 };
