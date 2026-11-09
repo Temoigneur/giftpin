@@ -98,7 +98,7 @@ export const de: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> befindet sich am Ende von <b>{{manage.prefs.settings}}</b>, innerhalb von <b>{{manage.prefs.open}}</b> im unteren Seitenbereich. Es speichert Name, Anlass, Datum, Nachricht, Sprache und wer die Liste sehen darf.",
               "<b>{{manage.save}}</b> in <b>{{manage.ship.title}}</b> speichert die Lieferadresse. Es ist ein eigener Button, getrennt von dem darüber.",
               "<b>{{manage.item.update}}</b> an einem Artikel speichert Menge, Notiz und Kategorie dieses Artikels.",
-              "Bei der Ersteinrichtung heißen die Buttons <b>{{manage.setup.saveContinue}}</b> und <b>{{manage.setup.skip}}</b>.",
+              "Bei der Ersteinrichtung heißen die Buttons <b>{{manage.setup.saveContinue}}</b> und <b>{{manage.setup.skip}}</b>. Schritt 2, zum Partner, hat stattdessen <b>{{manage.partner.add}}</b> und <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],

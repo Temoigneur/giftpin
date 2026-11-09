@@ -98,7 +98,7 @@ export const zhCN: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> 在页面靠下位置的 <b>{{manage.prefs.open}}</b> 里，位于 <b>{{manage.prefs.settings}}</b> 的末尾。它会保存名称、场合、日期、留言、语言以及谁可以查看。",
               "<b>{{manage.ship.title}}</b> 中的 <b>{{manage.save}}</b> 用于保存配送地址。它与上面的按钮是分开的。",
               "商品上的 <b>{{manage.item.update}}</b> 用于保存该商品的数量、备注和分类。",
-              "首次设置时，按钮是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。",
+              "首次设置时，按钮是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。关于伴侣的第 2 步则是 <b>{{manage.partner.add}}</b> 和 <b>{{manage.partner.notNow}}</b>。",
             ],
           },
         ],

@@ -98,7 +98,7 @@ export const ptBR: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> fica no fim de <b>{{manage.prefs.settings}}</b>, dentro de <b>{{manage.prefs.open}}</b>, perto do fim da página. Ele salva o nome, a ocasião, a data, o recado, o idioma e quem pode ver a lista.",
               "<b>{{manage.save}}</b> dentro de <b>{{manage.ship.title}}</b> salva o endereço de entrega. É um botão separado do de cima.",
               "<b>{{manage.item.update}}</b> em um item salva a quantidade, a observação e a categoria desse item.",
-              "Durante a configuração inicial, os botões são <b>{{manage.setup.saveContinue}}</b> e <b>{{manage.setup.skip}}</b>.",
+              "Durante a configuração inicial, os botões são <b>{{manage.setup.saveContinue}}</b> e <b>{{manage.setup.skip}}</b>. O passo 2, sobre um parceiro, tem em vez disso <b>{{manage.partner.add}}</b> e <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],

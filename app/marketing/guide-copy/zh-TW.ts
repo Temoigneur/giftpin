@@ -98,7 +98,7 @@ export const zhTW: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> 位於 <b>{{manage.prefs.open}}</b> 裡面 <b>{{manage.prefs.settings}}</b> 的底部，靠近頁面下方。它會儲存名稱、場合、日期、留言、語言，以及誰可以查看。",
               "<b>{{manage.ship.title}}</b> 裡的 <b>{{manage.save}}</b> 會儲存運送地址。它和上面的按鈕是分開的。",
               "商品上的 <b>{{manage.item.update}}</b> 會儲存該商品的數量、備註和分類。",
-              "首次設定時，按鈕是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。",
+              "首次設定時，按鈕是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。關於伴侶的第 2 步則是 <b>{{manage.partner.add}}</b> 和 <b>{{manage.partner.notNow}}</b>。",
             ],
           },
         ],

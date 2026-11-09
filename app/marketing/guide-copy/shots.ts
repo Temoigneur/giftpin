@@ -239,5 +239,47 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "管理頁面上的一件商品，「更新」按鈕以紅框標示並編號 3",
       "ja": "管理ページのアイテム。「更新」ボタンが赤い枠と番号3で示されている"
     }
+  },
+  "partnerDialog": {
+    "src": "/guides/m7-partner-dialog.png",
+    "alt": {
+      "en": "Step 2 of the first-time setup, Planning this with someone?, with the Add partner and Not now buttons boxed in red",
+      "fr": "L'étape 2 de la configuration initiale, Vous organisez cela avec quelqu'un ?, avec les boutons Ajouter un partenaire et Pas maintenant encadrés en rouge",
+      "es": "El paso 2 de la configuración inicial, ¿Lo organizas con alguien?, con los botones Añadir pareja y Ahora no enmarcados en rojo",
+      "de": "Schritt 2 der Ersteinrichtung, „Planen Sie das mit jemandem?“, die Buttons Partner hinzufügen und Jetzt nicht rot umrandet",
+      "pt-BR": "O passo 2 da configuração inicial, Está planejando isso com alguém?, com os botões Adicionar parceiro e Agora não destacados em vermelho",
+      "hi": "शुरुआती सेटअप का चरण 2, क्या आप यह किसी के साथ प्लान कर रहे हैं?, पार्टनर जोड़ें और अभी नहीं बटन लाल बॉक्स में",
+      "zh-CN": "首次设置的第 2 步“和别人一起筹备吗？”，“添加伴侣”和“暂不”按钮用红框标出",
+      "zh-TW": "首次設定的第 2 步「和別人一起籌備嗎？」，「新增伴侶」和「暫不」按鈕以紅框標示",
+      "ja": "最初のセットアップのステップ2「誰かと一緒に準備していますか？」。「パートナーを追加」と「今はしない」のボタンが赤い枠で示されている"
+    }
+  },
+  "extItems": {
+    "src": "/guides/c1-items-other-stores.png",
+    "alt": {
+      "en": "The Items from other stores section of Settings with its three choices boxed in red: Allow, Allow but keep my products in the majority, and My products only",
+      "fr": "La section Articles d'autres boutiques des Réglages, avec ses trois choix encadrés en rouge : autoriser, autoriser en gardant mes produits majoritaires, et mes produits uniquement",
+      "es": "La sección de artículos de otras tiendas en Ajustes, con sus tres opciones enmarcadas en rojo: permitir, permitir manteniendo mis productos mayoritarios y solo mis productos",
+      "de": "Der Bereich Artikel aus anderen Shops in den Einstellungen, die drei Optionen rot umrandet: erlauben, erlauben mit Mehrheit meiner Produkte und nur meine Produkte",
+      "pt-BR": "A seção de itens de outras lojas em Configurações, com as três opções destacadas em vermelho: permitir, permitir mantendo meus produtos em maioria e somente meus produtos",
+      "hi": "सेटिंग्स में दूसरे स्टोर के आइटम सेक्शन, तीनों विकल्प लाल बॉक्स में: अनुमति दें, अनुमति दें पर मेरे प्रोडक्ट ज़्यादा रखें, और सिर्फ़ मेरे प्रोडक्ट",
+      "zh-CN": "设置中的“其他商店的商品”部分，三个选项用红框标出：允许、允许但保持我的商品占多数、仅限我的商品",
+      "zh-TW": "設定中的「其他商店的商品」區塊，三個選項以紅框標示：允許、允許但以我的商品為多數、僅限我的商品",
+      "ja": "設定の「他のストアの商品」セクション。3つの選択肢（許可、自社商品を過半数に保って許可、自社商品のみ）が赤い枠で示されている"
+    }
+  },
+  "soldOut": {
+    "src": "/guides/c2-sold-out.png",
+    "alt": {
+      "en": "The Sold-out products section of Settings with its two choices boxed in red: show it as sold out, or hide it until it's back in stock",
+      "fr": "La section Produits épuisés des Réglages, avec ses deux choix encadrés en rouge : l'afficher comme épuisé ou le masquer jusqu'au retour en stock",
+      "es": "La sección de productos agotados en Ajustes, con sus dos opciones enmarcadas en rojo: mostrarlo como agotado u ocultarlo hasta que vuelva a haber stock",
+      "de": "Der Bereich Ausverkaufte Produkte in den Einstellungen, die zwei Optionen rot umrandet: als ausverkauft anzeigen oder ausblenden, bis wieder Bestand da ist",
+      "pt-BR": "A seção de produtos esgotados em Configurações, com as duas opções destacadas em vermelho: mostrar como esgotado ou ocultar até voltar ao estoque",
+      "hi": "सेटिंग्स में बिक चुके प्रोडक्ट सेक्शन, दोनों विकल्प लाल बॉक्स में: बिका हुआ दिखाएँ या स्टॉक में लौटने तक छिपाएँ",
+      "zh-CN": "设置中的“售罄商品”部分，两个选项用红框标出：显示为已售罄，或在补货前隐藏",
+      "zh-TW": "設定中的「售完商品」區塊，兩個選項以紅框標示：顯示為已售完，或補貨前隱藏",
+      "ja": "設定の「売り切れ商品」セクション。2つの選択肢（売り切れとして表示、在庫が戻るまで非表示）が赤い枠で示されている"
+    }
   }
 };

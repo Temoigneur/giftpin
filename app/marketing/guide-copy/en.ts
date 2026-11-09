@@ -97,7 +97,7 @@ export const en: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> is at the bottom of <b>{{manage.prefs.settings}}</b>, inside <b>{{manage.prefs.open}}</b> near the bottom of the page. It saves the name, occasion, date, note, language and who can see it.",
               "<b>{{manage.save}}</b> inside <b>{{manage.ship.title}}</b> saves the shipping address. It is a separate button from the one above.",
               "<b>{{manage.item.update}}</b> on an item saves that item's quantity, note and category.",
-              "During first-time setup the buttons are <b>{{manage.setup.saveContinue}}</b> and <b>{{manage.setup.skip}}</b>.",
+              "During first-time setup the buttons are <b>{{manage.setup.saveContinue}}</b> and <b>{{manage.setup.skip}}</b>. Step 2, about a partner, has <b>{{manage.partner.add}}</b> and <b>{{manage.partner.notNow}}</b> instead.",
             ],
           },
         ],

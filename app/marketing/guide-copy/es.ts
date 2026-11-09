@@ -98,7 +98,7 @@ export const es: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> está al final de <b>{{manage.prefs.settings}}</b>, dentro de <b>{{manage.prefs.open}}</b>, hacia el final de la página. Guarda el nombre, la ocasión, la fecha, la nota, el idioma y quién puede verla.",
               "<b>{{manage.save}}</b> dentro de <b>{{manage.ship.title}}</b> guarda la dirección de envío. Es un botón distinto del anterior.",
               "<b>{{manage.item.update}}</b> en un artículo guarda la cantidad, la nota y la categoría de ese artículo.",
-              "Durante la configuración inicial, los botones son <b>{{manage.setup.saveContinue}}</b> y <b>{{manage.setup.skip}}</b>.",
+              "Durante la configuración inicial, los botones son <b>{{manage.setup.saveContinue}}</b> y <b>{{manage.setup.skip}}</b>. El paso 2, sobre una pareja, tiene en su lugar <b>{{manage.partner.add}}</b> y <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],

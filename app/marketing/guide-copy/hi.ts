@@ -98,7 +98,7 @@ export const hi: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> पेज के नीचे की ओर, <b>{{manage.prefs.open}}</b> के अंदर <b>{{manage.prefs.settings}}</b> के अंत में है। यह नाम, अवसर, तारीख, संदेश, भाषा और रजिस्ट्री कौन देख सकता है, यह सेव करता है।",
               "<b>{{manage.ship.title}}</b> में <b>{{manage.save}}</b> डिलीवरी का पता सेव करता है। यह ऊपर वाले बटन से अलग बटन है।",
               "किसी आइटम पर <b>{{manage.item.update}}</b> उस आइटम की मात्रा, नोट और श्रेणी सेव करता है।",
-              "शुरुआती सेटअप के दौरान बटन <b>{{manage.setup.saveContinue}}</b> और <b>{{manage.setup.skip}}</b> हैं।",
+              "शुरुआती सेटअप के दौरान बटन <b>{{manage.setup.saveContinue}}</b> और <b>{{manage.setup.skip}}</b> हैं। पार्टनर वाले चरण 2 में इसके बजाय <b>{{manage.partner.add}}</b> और <b>{{manage.partner.notNow}}</b> हैं।",
             ],
           },
         ],

@@ -92,7 +92,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
   const registry: GuideDoc = {
     ...raw.registry,
     sections: raw.registry.sections.map((sec, i) =>
-      i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
+      i === 2 ? { ...withShot(sec, 1, ["partnerDialog"]), steps: [...withShot(sec, 1, ["partnerDialog"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
     ),
   };
 
@@ -100,5 +100,5 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [make, withPanel]), pro: sub("p", [pro]), registry, guest };
+  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), withPanel]), pro: sub("p", [pro]), registry, guest };
 }

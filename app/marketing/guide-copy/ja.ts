@@ -98,7 +98,7 @@ export const ja: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> は、ページ下部の <b>{{manage.prefs.open}}</b> の中にある <b>{{manage.prefs.settings}}</b> の末尾にあります。名前、用途、日付、メッセージ、言語、公開範囲を保存します。",
               "<b>{{manage.ship.title}}</b> の中の <b>{{manage.save}}</b> は、配送先の住所を保存します。上のボタンとは別のボタンです。",
               "アイテムの <b>{{manage.item.update}}</b> は、そのアイテムの数量、メモ、カテゴリを保存します。",
-              "最初のセットアップ中のボタンは <b>{{manage.setup.saveContinue}}</b> と <b>{{manage.setup.skip}}</b> です。",
+              "最初のセットアップ中のボタンは <b>{{manage.setup.saveContinue}}</b> と <b>{{manage.setup.skip}}</b> です。パートナーについての2つ目のステップでは、代わりに <b>{{manage.partner.add}}</b> と <b>{{manage.partner.notNow}}</b> です。",
             ],
           },
         ],
