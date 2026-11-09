@@ -39,6 +39,7 @@
   }
 
   function initHeart(root) {
+    if (window.GiftpinI18n) window.GiftpinI18n.apply(root);
     var btn = root.querySelector("[data-giftpin-save]");
     var statusEl = root.querySelector("[data-giftpin-save-status]");
     if (!btn) return;
@@ -77,6 +78,7 @@
   }
 
   function initList(root) {
+    if (window.GiftpinI18n) window.GiftpinI18n.apply(root);
     var listEl = root.querySelector("[data-giftpin-saved-list]");
     var emptyEl = root.querySelector("[data-giftpin-saved-empty]");
     if (!listEl) return;

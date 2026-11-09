@@ -33,6 +33,7 @@
   });
 
   function init(root) {
+    if (window.GiftpinI18n) window.GiftpinI18n.apply(root);
     var openBtn = root.querySelector("[data-giftpin-open]");
     var picker = root.querySelector("[data-giftpin-picker]");
     var select = root.querySelector("[data-giftpin-select]");

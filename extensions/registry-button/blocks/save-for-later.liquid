@@ -8,9 +8,10 @@
 {% endcomment %}
 
 {%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
-{%- assign lbl_save_label = block.settings.save_label -%}{%- if lbl_save_label == blank or lbl_save_label == 'Save for later' -%}{%- assign lbl_save_label = 'save_for_later.label' | t -%}{%- endif -%}
+{%- assign lbl_save_label = block.settings.save_label -%}{%- if lbl_save_label == blank or lbl_save_label == 'Save for later' -%}{%- assign lbl_save_label = 'save_for_later.label' | t -%}{%- assign lbl_save_default = ' data-gp-t="save_for_later.label"' -%}{%- endif -%}
 {%- assign lbl_saved_label = block.settings.saved_label -%}{%- if lbl_saved_label == blank or lbl_saved_label == 'Saved' -%}{%- assign lbl_saved_label = 'save_for_later.saved' | t -%}{%- endif -%}
 
+{%- assign gp_sf = request.locale.iso_code | slice: 0, 2 -%}{%- assign gp_lang = '' -%}{%- if gp_sf == 'en' -%}{%- assign gp_lang = app.metafields.giftpin.language.value | default: '' -%}{%- endif -%}
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 
 <div
@@ -22,6 +23,7 @@
   data-price="{{ current_variant.price | money | escape }}"
   data-label-save="{{ lbl_save_label | escape }}"
   data-label-saved="{{ lbl_saved_label | escape }}"
+  data-gp-lang="{{ gp_lang | escape }}"
   data-label-error="{{ 'save_for_later.error' | t | escape }}"
   {{ block.shopify_attributes }}
   style="
@@ -34,12 +36,13 @@
     <svg width="20" height="20" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
       <path d="M10 17s-6.5-4-6.5-8.6C3.5 5.9 5.2 4.5 7 4.5c1.3 0 2.4.7 3 1.8.6-1.1 1.7-1.8 3-1.8 1.8 0 3.5 1.4 3.5 3.9C16.5 13 10 17 10 17Z"/>
     </svg>
-    <span data-giftpin-save-label>{{ lbl_save_label }}</span>
+    <span data-giftpin-save-label{{ lbl_save_default }}>{{ lbl_save_label }}</span>
   </button>
   <p class="giftpin-save__status" data-giftpin-save-status role="status" aria-live="polite"></p>
 </div>
 
 {{ 'giftpin-saved.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'giftpin-i18n.js' | asset_url }}" defer></script>
 <script src="{{ 'giftpin-saved.js' | asset_url }}" defer></script>
 
 {% schema %}

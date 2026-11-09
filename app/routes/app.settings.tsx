@@ -3,6 +3,7 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useLoaderData, useFetcher } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { syncStorefrontLanguage } from "../models/storefront-language.server";
 import { authenticate } from "../shopify.server";
 import { enqueue } from "../lib/queue.server";
 import { isPro, requireShop, settingsFor, updateSettings } from "../models/shop.server";
@@ -145,6 +146,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     registryPerks: cleanPerks(form.get("registryPerks")),
     ...branding,
   });
+
+  await syncStorefrontLanguage((q, o) => admin.graphql(q, o), toLocale(form.get("language")));
 
   const warnings: string[] = [];
   if ("logoUrl" in branding && String(form.get("logoUrl") ?? "").trim() && !branding.logoUrl) {

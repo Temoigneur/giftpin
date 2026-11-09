@@ -23,31 +23,34 @@
 {% endcomment %}
 
 {%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
-{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank or lbl_heading == 'Gift registry' -%}{%- assign lbl_heading = 'registry_links.heading' | t -%}{%- endif -%}
-{%- assign lbl_create_label = block.settings.create_label -%}{%- if lbl_create_label == blank or lbl_create_label == 'Create a gift registry' -%}{%- assign lbl_create_label = 'registry_links.create' | t -%}{%- endif -%}
-{%- assign lbl_find_label = block.settings.find_label -%}{%- if lbl_find_label == blank or lbl_find_label == 'Find a gift registry' -%}{%- assign lbl_find_label = 'registry_links.find' | t -%}{%- endif -%}
-{%- assign lbl_manage_label = block.settings.manage_label -%}{%- if lbl_manage_label == blank or lbl_manage_label == 'Manage my gift registry' -%}{%- assign lbl_manage_label = 'registry_links.manage' | t -%}{%- endif -%}
-{%- assign lbl_cart_return_label = block.settings.cart_return_label -%}{%- if lbl_cart_return_label == blank or lbl_cart_return_label == 'Return to registry' -%}{%- assign lbl_cart_return_label = 'registry_links.cart_return' | t -%}{%- endif -%}
+{%- assign lbl_heading = block.settings.heading -%}{%- if lbl_heading == blank or lbl_heading == 'Gift registry' -%}{%- assign lbl_heading = 'registry_links.heading' | t -%}{%- assign gp_heading = ' data-gp-t="registry_links.heading"' -%}{%- endif -%}
+{%- assign lbl_create_label = block.settings.create_label -%}{%- if lbl_create_label == blank or lbl_create_label == 'Create a gift registry' -%}{%- assign lbl_create_label = 'registry_links.create' | t -%}{%- assign gp_create_label = ' data-gp-t="registry_links.create"' -%}{%- endif -%}
+{%- assign lbl_find_label = block.settings.find_label -%}{%- if lbl_find_label == blank or lbl_find_label == 'Find a gift registry' -%}{%- assign lbl_find_label = 'registry_links.find' | t -%}{%- assign gp_find_label = ' data-gp-t="registry_links.find"' -%}{%- endif -%}
+{%- assign lbl_manage_label = block.settings.manage_label -%}{%- if lbl_manage_label == blank or lbl_manage_label == 'Manage my gift registry' -%}{%- assign lbl_manage_label = 'registry_links.manage' | t -%}{%- assign gp_manage_label = ' data-gp-t="registry_links.manage"' -%}{%- endif -%}
+{%- assign lbl_cart_return_label = block.settings.cart_return_label -%}{%- if lbl_cart_return_label == blank or lbl_cart_return_label == 'Return to registry' -%}{%- assign lbl_cart_return_label = 'registry_links.cart_return' | t -%}{%- assign gp_cart_return_label = ' data-gp-t="registry_links.cart_return"' -%}{%- endif -%}
 
+{%- assign gp_sf = request.locale.iso_code | slice: 0, 2 -%}{%- assign gp_lang = '' -%}{%- if gp_sf == 'en' -%}{%- assign gp_lang = app.metafields.giftpin.language.value | default: '' -%}{%- endif -%}
 {%- assign base = block.settings.proxy_path | default: '/apps/registry' -%}
 {%- assign size = block.settings.text_size | default: 18 -%}
 
 <nav
   class="giftpin-links giftpin-links--{{ block.id }} giftpin-links--{{ block.settings.style | default: 'buttons' }}"
   aria-label="{{ lbl_heading | escape }}"
+  data-gp-lang="{{ gp_lang | escape }}"
   {{ block.shopify_attributes }}
 >
-  <p class="giftpin-links__heading">{{ lbl_heading | escape }}</p>
+  <p class="giftpin-links__heading"{{ gp_heading }}>{{ lbl_heading | escape }}</p>
   <ul class="giftpin-links__list">
-    <li><a href="{{ base }}">{{ lbl_create_label | escape }}</a></li>
+    <li><a href="{{ base }}"{{ gp_create_label }}>{{ lbl_create_label | escape }}</a></li>
     {%- if block.settings.show_find -%}
-      <li><a href="{{ base }}/find">{{ lbl_find_label | escape }}</a></li>
+      <li><a href="{{ base }}/find"{{ gp_find_label }}>{{ lbl_find_label | escape }}</a></li>
     {%- endif -%}
     {%- if block.settings.show_manage -%}
-      <li><a href="{{ base }}/manage">{{ lbl_manage_label | escape }}</a></li>
+      <li><a href="{{ base }}/manage"{{ gp_manage_label }}>{{ lbl_manage_label | escape }}</a></li>
     {%- endif -%}
   </ul>
 </nav>
+<script src="{{ 'giftpin-i18n.js' | asset_url }}" defer></script>
 
 {%- if template.name == 'cart' and block.settings.show_cart_return -%}
 <script>
@@ -56,13 +59,15 @@
     try { r = JSON.parse(localStorage.getItem('giftpin_last') || 'null'); } catch (e) {}
     if (!r || typeof r.u !== 'string' || r.u.indexOf({{ base | append: '/' | json }}) !== 0) return;
     var text = {{ lbl_cart_return_label | json }};
+    var gpLang = {{ gp_lang | json }}, gpDefault = {{ gp_cart_return_label | size | json }} > 0;
     function link() {
       var p = document.createElement('p');
       p.className = 'giftpin-return';
       p.style.margin = '0.6em 0 1em';
       var a = document.createElement('a');
       a.href = r.u;
-      a.textContent = text + (r.t ? ': ' + r.t : '');
+      var shown = (gpDefault && gpLang && window.GiftpinI18n && GiftpinI18n.get(gpLang, 'registry_links.cart_return')) || text;
+      a.textContent = shown + (r.t ? ': ' + r.t : '');
       a.style.textDecoration = 'underline';
       a.style.textUnderlineOffset = '3px';
       p.appendChild(a);
