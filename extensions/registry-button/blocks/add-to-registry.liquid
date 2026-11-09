@@ -10,8 +10,9 @@
 {% endcomment %}
 
 {%- comment -%}Before 7 Nov 2026 these settings had English defaults, which themes saved with each block. A label still equal to its old default is treated as blank so it follows the shopper's language.{%- endcomment -%}
-{%- assign lbl_button_label = block.settings.button_label -%}{%- if lbl_button_label == blank or lbl_button_label == 'Add to registry' -%}{%- assign lbl_button_label = 'add_to_registry.label' | t -%}{%- endif -%}
+{%- assign lbl_button_label = block.settings.button_label -%}{%- if lbl_button_label == blank or lbl_button_label == 'Add to registry' -%}{%- assign lbl_button_label = 'add_to_registry.label' | t -%}{%- assign lbl_button_default = ' data-gp-t="add_to_registry.label"' -%}{%- endif -%}
 
+{%- assign gp_sf = request.locale.iso_code | slice: 0, 2 -%}{%- assign gp_lang = '' -%}{%- if gp_sf == 'en' -%}{%- assign gp_lang = app.metafields.giftpin.language.value | default: '' -%}{%- endif -%}
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 {%- assign offers_choice = false -%}
 {%- if block.settings.offer_babylist or block.settings.offer_other_registry -%}
@@ -39,6 +40,8 @@
   data-label-dup-message="{{ 'add_to_registry.dup_message' | t: qty: '__QTY__' | escape }}"
   data-label-dup-short="{{ 'add_to_registry.dup_short' | t: qty: '__QTY__' | escape }}"
   data-label-copy-prompt="{{ 'add_to_registry.copy_prompt' | t | escape }}"
+  data-gp-lang="{{ gp_lang | escape }}"
+  data-shop-name="{{ shop.name | escape }}"
   data-customer-id="{{ customer.id }}"
   {%- if offers_choice %}
     data-offers-choice="1"
@@ -64,7 +67,7 @@
         <path d="M3.5 12.5h13v4h-13z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
       </svg>
     {%- endif -%}
-    <span data-giftpin-label>{{ lbl_button_label }}</span>
+    <span data-giftpin-label{{ lbl_button_default }}>{{ lbl_button_label }}</span>
   </button>
 
   <p class="giftpin-deal" data-giftpin-deal hidden></p>
@@ -85,13 +88,13 @@
       only once a shopper picks Babylist.
     {%- endcomment -%}
     <div class="giftpin-picker giftpin-choice" data-giftpin-choice hidden>
-      <p class="giftpin-label">{{ 'add_to_registry.which' | t }}</p>
+      <p class="giftpin-label" data-gp-t="add_to_registry.which">{{ 'add_to_registry.which' | t }}</p>
       <div class="giftpin-row">
-        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="store">
+        <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="store" data-gp-t="add_to_registry.store_option">
           {{ 'add_to_registry.store_option' | t: shop: shop.name }}
         </button>
         {%- if block.settings.offer_babylist -%}
-          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="babylist">
+          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="babylist" data-gp-t="add_to_registry.babylist_option">
             {{ 'add_to_registry.babylist_option' | t }}
           </button>
         {%- endif -%}
@@ -102,7 +105,7 @@
             the link and says where to paste it. No deep links: none of them
             document one.
           {%- endcomment -%}
-          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="other">
+          <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-option="other" data-gp-t="add_to_registry.other_option">
             {{ 'add_to_registry.other_option' | t }}
           </button>
         {%- endif -%}
@@ -143,7 +146,7 @@
     common case stays a single tap. Hidden until needed; never a modal on load.
   {%- endcomment -%}
   <div class="giftpin-picker" data-giftpin-picker hidden>
-    <label class="giftpin-label" for="giftpin-select-{{ block.id }}">
+    <label class="giftpin-label" data-gp-t="add_to_registry.choose" for="giftpin-select-{{ block.id }}">
       {{ 'add_to_registry.choose' | t }}
     </label>
     <select class="giftpin-select" id="giftpin-select-{{ block.id }}" data-giftpin-select></select>
@@ -155,9 +158,10 @@
         max="20"
         value="1"
         data-giftpin-qty
+        data-gp-aria="add_to_registry.quantity"
         aria-label="{{ 'add_to_registry.quantity' | t | escape }}"
       >
-      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-confirm>
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-confirm{{ lbl_button_default }}>
         {{ lbl_button_label }}
       </button>
     </div>
@@ -178,12 +182,13 @@
         min="1"
         max="99"
         data-giftpin-dup-qty
+        data-gp-aria="add_to_registry.total_quantity"
         aria-label="{{ 'add_to_registry.total_quantity' | t | escape }}"
       >
-      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-confirm>
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-confirm data-gp-t="add_to_registry.update">
         {{ 'add_to_registry.update' | t }}
       </button>
-      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-cancel>
+      <button type="button" class="giftpin-btn giftpin-btn--sm" data-giftpin-dup-cancel data-gp-t="add_to_registry.cancel">
         {{ 'add_to_registry.cancel' | t }}
       </button>
     </div>
@@ -191,6 +196,7 @@
 </div>
 
 {{ 'giftpin.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'giftpin-i18n.js' | asset_url }}" defer></script>
 {%- if block.settings.offer_babylist -%}
   <script src="{{ 'giftpin-babylist.js' | asset_url }}" defer></script>
 {%- endif %}

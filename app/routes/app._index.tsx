@@ -1,6 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { syncStorefrontLanguage } from "../models/storefront-language.server";
 import { authenticate } from "../shopify.server";
 import { isPro, requireShop, settingsFor } from "../models/shop.server";
 import { dashboardStats } from "../models/dashboard.server";
@@ -19,6 +20,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // (vintage themes). null means we couldn't list themes (read_themes not
   // approved yet); the page then falls back to links into the live theme.
   const graphql = admin.graphql.bind(admin);
+  // Stores that chose a language before this existed have no metafield yet.
+  if (settingsFor(shop).language !== "en") void syncStorefrontLanguage(graphql, settingsFor(shop).language);
   const themes = await listThemes(graphql);
   const requested = new URL(request.url).searchParams.get("theme");
   const selectedTheme = themes?.find((t) => t.id === requested) ?? themes?.[0] ?? null;
