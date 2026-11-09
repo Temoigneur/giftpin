@@ -3,6 +3,7 @@ import { PRICE, PRO_NAME, foundingOffer, siteVars } from "./plans-copy";
 import { LANDING_COPY, fill } from "./site-copy";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { GUIDE_COPY, type Shot, type Step } from "./guide-copy";
+import { DOCS_UI } from "./guide-copy/docs-ui";
 import { LOCALES, t, type Locale, type MessageKey } from "../shared/i18n";
 import { SITE_URL } from "./config";
 
@@ -35,8 +36,8 @@ const hero = (eyebrow: string, title: string, lede: string) => `
   </div>
 </section>`;
 
-const section = (title: string, lede: string, inner: string, tint = false) => `
-<section class="sec${tint ? " tint" : ""}">
+const section = (title: string, lede: string, inner: string, tint = false, id = "") => `
+<section class="sec${tint ? " tint" : ""}"${id ? ` id="${id}"` : ""}>
   <div class="wrap">
     <div class="sec-head rise">
       <h2>${title}</h2>
@@ -200,6 +201,29 @@ const GUIDE_PAGES: Record<GuideKind, { path: string; nav: "setup" | "guides"; ic
   guest: { path: "/guest-guide", nav: "guides", icon: "heart", cta: false },
 };
 
+const ORDER: GuideKind[] = ["setup", "customize", "pro", "registry", "guest"];
+const AUDIENCE: Record<GuideKind, "forMerchant" | "forRegistrant" | "forGuest"> = {
+  setup: "forMerchant",
+  customize: "forMerchant",
+  pro: "forMerchant",
+  registry: "forRegistrant",
+  guest: "forGuest",
+};
+
+/** The menu on every guide: jump to any guide, grouped by who it is for, and (below it) to any section of this page. */
+function docsMenu(kind: GuideKind, locale: Locale, sections: { title: string }[]): string {
+  const ui = DOCS_UI[locale];
+  const q = locale === "en" ? "" : `?lang=${locale}`;
+  const link = (k: GuideKind) =>
+    `<a href="${GUIDE_PAGES[k].path}${q}"${k === kind ? ' aria-current="page"' : ""}>${esc(ui.links[ORDER.indexOf(k)])}</a>`;
+  const toc = sections.length > 1 ? `<p class="dm-toc"><b>${esc(ui.onPage)}</b>${sections.map((sec, i) => `<a href="#s${i + 1}">${esc(sec.title)}</a>`).join("")}</p>` : "";
+  return `<div class="wrap"><nav class="docs-menu" aria-label="${esc(ui.menu)}">
+  <div><b>${esc(ui.merchants)}</b>${ORDER.slice(0, 3).map(link).join("")}</div>
+  <div><b>${esc(ui.customers)}</b>${ORDER.slice(3).map(link).join("")}</div>
+  ${toc}
+</nav></div>`;
+}
+
 function guideHtml(kind: GuideKind, locale: Locale): string {
   const copy = GUIDE_COPY[locale];
   const eng = GUIDE_COPY.en;
@@ -210,10 +234,11 @@ function guideHtml(kind: GuideKind, locale: Locale): string {
   const merchant = page.nav === "setup";
   const notes = [copy.ui.shotsNote, merchant ? copy.ui.shopifyNote : ""].filter(Boolean);
   const body = `
-${hero(`${icon(page.icon)} ${esc(doc.eyebrow)}`, doc.h1, doc.lede)}
+${hero(`${icon(page.icon)} ${esc(doc.eyebrow)} <span class="aud aud-${merchant ? "m" : "c"}">${esc(DOCS_UI[locale][AUDIENCE[kind]])}</span>`, doc.h1, doc.lede)}
+${docsMenu(kind, locale, doc.sections)}
 ${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
 ${doc.sections
-  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale), sec.tint))
+  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale), sec.tint, `s${i + 1}`))
   .join("\n")}
 ${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint) : ""}
 ${page.cta ? finalCta(copy.ui.finalCta) : ""}
@@ -277,5 +302,15 @@ const CSS = `
 .step h3{margin:4px 0 8px}
 .step ol{margin:0; padding-left:20px; display:grid; gap:6px}
 .step b{font-weight:700}
+.aud{display:inline-block; margin-left:8px; padding:2px 10px; border-radius:999px; font-size:13px; font-weight:700; letter-spacing:0; text-transform:none; border:1px solid var(--accent); color:var(--accent)}
+.aud-m{background:var(--accent); color:#fff}
+.docs-menu{max-width:860px; margin:20px auto 0; padding:14px 18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); display:grid; gap:10px; font-size:15px}
+.docs-menu div,.dm-toc{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin:0}
+.docs-menu b{flex:none; min-width:210px}
+.docs-menu a{padding:4px 12px; border-radius:999px; border:1px solid var(--line); text-decoration:none; color:inherit}
+.docs-menu a[aria-current="page"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.dm-toc{border-top:1px solid var(--line); padding-top:10px}
+.dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
+.sec[id]{scroll-margin-top:80px}
 .shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
 `;
