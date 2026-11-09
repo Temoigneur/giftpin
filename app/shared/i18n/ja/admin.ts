@@ -96,8 +96,6 @@ export const jaAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "外観",
   "admin.set.langLabel": "ギフトリストページの言語",
   "admin.set.langDetails": "ゲストがギフトリストのページやメールで見る言語です。ギフトリスト名や商品名など、入力したテキストはそのまま表示されます。",
-  "admin.set.langMenu": "ゲスト向けページに言語メニューを表示する",
-  "admin.set.langMenuDetails": "レジストリ、ギフトカード、作成ページの下部に言語リンクの列を追加し、ゲストが別の言語で読めるようにします。初期設定ではオフです。",
   "admin.set.buttonLabel": "ボタンのラベル",
   "admin.set.accent": "アクセントカラー",
   "admin.set.accentDetails": "16進数で入力します（例：#1a1a1a）。ギフトリストページのボタンに使われます。",

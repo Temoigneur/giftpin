@@ -96,8 +96,6 @@ export const zhCNAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "外观",
   "admin.set.langLabel": "礼物清单页面语言",
   "admin.set.langDetails": "宾客在礼物清单页面和清单邮件中看到的语言。您输入的文字，如清单名称和商品标题，将按输入内容原样显示。",
-  "admin.set.langMenu": "在宾客页面显示语言菜单",
-  "admin.set.langMenuDetails": "在清单、礼品卡和创建页面底部添加一行语言链接，方便宾客用其他语言阅读。默认关闭。",
   "admin.set.buttonLabel": "按钮文字",
   "admin.set.accent": "强调色",
   "admin.set.accentDetails": "十六进制，例如 #1a1a1a。用于礼物清单页面上的按钮。",

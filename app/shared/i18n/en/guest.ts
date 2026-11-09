@@ -5,7 +5,6 @@
  */
 export const enGuest = {
   "guest.layout.byHtml": "Registry by <a href=\"/\"><strong>{shop}</strong></a>",
-  "guest.layout.language": "Language",
   "guest.layout.poweredHtml": "Powered by <a href=\"{href}\" target=\"_blank\" rel=\"noopener nofollow\">Giftpin</a>",
 
   "guest.ship.fallbackWho": "the registrant",

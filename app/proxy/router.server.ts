@@ -11,7 +11,6 @@ import {
 import { cached, registryCacheKey } from "../lib/cache.server";
 import { withLocale, overrideLocale } from "../lib/i18n.server";
 import { currentLocale, isLocale, registryLanguageFrom, t, type MessageKey } from "../shared/i18n";
-import { languageMenuHtml, withLanguageMenu } from "./language-menu";
 import { bumpStat, countView } from "../models/stats.server";
 import { STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
@@ -170,23 +169,12 @@ export async function handleProxyRequest(request: Request): Promise<Response> {
   // Everything below renders in the store's chosen language (see
   // app/lib/i18n.server.ts for why this is per request and not a global).
   //
-  // ?lang=xx (the language menu, or a link someone is testing with) wins over
-  // the store's and the registry's language, for pages only.
+  // ?lang=xx on a page (GET) shows it in that language instead, over the
+  // store's and the registry's own. For checking a translation, for example
+  // ?lang=en on a store that is set to Japanese.
   const asked = request.method === "GET" ? ctx.query.get("lang") : null;
   const forced = isLocale(asked);
-  return withLocale(forced ? asked : settings.language, async () => {
-    const response = await routeProxyRequest(request, ctx, shop, settings);
-    if (!settings.languageMenu || request.method !== "GET" || response.status !== 200) return response;
-    if (!(response.headers.get("Content-Type") ?? "").includes("text/html")) return response;
-    const menu = languageMenuHtml({
-      pathPrefix: ctx.pathPrefix,
-      path: ctx.path,
-      query: ctx.query,
-      current: currentLocale(),
-      label: t("guest.layout.language"),
-    });
-    return new Response(withLanguageMenu(await response.text(), menu), { status: 200, headers: response.headers });
-  }, forced);
+  return withLocale(forced ? asked : settings.language, () => routeProxyRequest(request, ctx, shop, settings), forced);
 }
 
 async function routeProxyRequest(

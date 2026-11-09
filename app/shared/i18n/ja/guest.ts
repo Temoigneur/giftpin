@@ -2,7 +2,6 @@ import type { enGuest } from "../en/guest";
 
 export const jaGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.layout.byHtml": "<a href=\"/\"><strong>{shop}</strong></a>のギフトリスト",
-  "guest.layout.language": "言語",
   "guest.layout.poweredHtml": "<a href=\"{href}\" target=\"_blank\" rel=\"noopener nofollow\">Giftpin</a>提供",
 
   "guest.ship.fallbackWho": "リストの作成者",

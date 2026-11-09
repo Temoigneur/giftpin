@@ -96,8 +96,6 @@ export const ptBRAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "Aparência",
   "admin.set.langLabel": "Idioma das páginas de listas",
   "admin.set.langDetails": "O idioma que os convidados veem nas páginas de listas e nos e-mails das listas. O texto que você digita, como nomes de listas e títulos de produtos, aparece como foi digitado.",
-  "admin.set.langMenu": "Mostrar um menu de idiomas nas páginas dos convidados",
-  "admin.set.langMenuDetails": "Adiciona uma linha de links de idioma no rodapé das páginas de lista, de cartão-presente e de criação, para o convidado ler em outro idioma. Desativado por padrão.",
   "admin.set.buttonLabel": "Rótulo do botão",
   "admin.set.accent": "Cor de destaque",
   "admin.set.accentDetails": "Hexadecimal, ex.: #1a1a1a. Usada nos botões da página da lista.",

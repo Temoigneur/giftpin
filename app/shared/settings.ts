@@ -43,11 +43,6 @@ export interface ShopSettings {
    * registry stays unlisted unless its owner picks "Listed publicly".
    */
   findARegistryEnabled: boolean;
-  /**
-   * Show a row of language links at the foot of guest pages (registry, gift
-   * card, create). Off by default: most stores sell in one language.
-   */
-  languageMenu: boolean;
   /** Hide who gave what until the event date. */
   hideBuyerUntilEvent: boolean;
   /**
@@ -178,7 +173,6 @@ export const SHOP_SETTINGS_DEFAULTS: ShopSettings = {
   accentColor: "#1a1a1a",
   buttonLabel: "Add to registry",
   findARegistryEnabled: true,
-  languageMenu: false,
   hideBuyerUntilEvent: false,
   contributionProduct: null,
   giftCardListing: GIFT_CARD_LISTING_DEFAULTS,

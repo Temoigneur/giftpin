@@ -96,8 +96,6 @@ export const deAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "Darstellung",
   "admin.set.langLabel": "Sprache der Listenseiten",
   "admin.set.langDetails": "Die Sprache, die Gäste auf Listenseiten und in E-Mails zu Listen sehen. Texte, die du eingibst, wie Listennamen und Produkttitel, werden so angezeigt, wie sie eingegeben wurden.",
-  "admin.set.langMenu": "Sprachmenü auf Gästeseiten anzeigen",
-  "admin.set.langMenuDetails": "Fügt unten auf Listen-, Geschenkkarten- und Erstellungsseiten eine Reihe von Sprachlinks hinzu, damit Gäste sie in einer anderen Sprache lesen können. Standardmäßig aus.",
   "admin.set.buttonLabel": "Beschriftung des Buttons",
   "admin.set.accent": "Akzentfarbe",
   "admin.set.accentDetails": "Hex, z. B. #1a1a1a. Wird für Buttons auf der Listenseite verwendet.",

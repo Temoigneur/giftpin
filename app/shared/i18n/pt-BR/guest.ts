@@ -2,7 +2,6 @@ import type { enGuest } from "../en/guest";
 
 export const ptBRGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.layout.byHtml": "Lista de presentes de <a href=\"/\"><strong>{shop}</strong></a>",
-  "guest.layout.language": "Idioma",
   "guest.layout.poweredHtml": "Desenvolvido por <a href=\"{href}\" target=\"_blank\" rel=\"noopener nofollow\">Giftpin</a>",
 
   "guest.ship.fallbackWho": "quem criou a lista",

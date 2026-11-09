@@ -2,7 +2,6 @@ import type { enGuest } from "../en/guest";
 
 export const zhTWGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.layout.byHtml": "<a href=\"/\"><strong>{shop}</strong></a> 的禮物清單",
-  "guest.layout.language": "語言",
   "guest.layout.poweredHtml": "由 <a href=\"{href}\" target=\"_blank\" rel=\"noopener nofollow\">Giftpin</a> 提供技術支援",
 
   "guest.ship.fallbackWho": "清單主人",

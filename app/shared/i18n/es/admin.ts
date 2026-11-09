@@ -96,8 +96,6 @@ export const esAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.set.appearance": "Apariencia",
   "admin.set.langLabel": "Idioma de las páginas de listas",
   "admin.set.langDetails": "El idioma que ven los invitados en las páginas de listas y en los correos de las listas. El texto que escribes, como nombres de listas y títulos de productos, se muestra tal como lo escribes.",
-  "admin.set.langMenu": "Mostrar un menú de idiomas en las páginas de invitados",
-  "admin.set.langMenuDetails": "Añade una fila de enlaces de idioma al pie de las páginas de lista, de tarjeta regalo y de creación, para que el invitado las lea en otro idioma. Desactivado por defecto.",
   "admin.set.buttonLabel": "Etiqueta del botón",
   "admin.set.accent": "Color de acento",
   "admin.set.accentDetails": "Hexadecimal, p. ej. #1a1a1a. Se usa en los botones de la página de la lista.",
