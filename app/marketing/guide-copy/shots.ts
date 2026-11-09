@@ -351,5 +351,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "Flow 的「選取觸發條件」畫面，Giftpin 應用程式以紅框標示，其三個觸發條件：Registry created、Registry event coming up、Registry gift bought",
       "ja": "Flowの「トリガーを選択」画面。Giftpinアプリが赤い枠で、3つのトリガー（Registry created、Registry event coming up、Registry gift bought）も赤い枠で示されている"
     }
+  },
+  "cancelPro": {
+    "src": "/guides/p1-cancel-pro.png",
+    "alt": {
+      "en": "The Plan page on Pro, showing the monthly price and the Cancel Pro button boxed in red",
+      "fr": "La page Forfait sur Pro, avec le prix mensuel et le bouton Annuler Pro encadré en rouge",
+      "es": "La página de Plan con Pro activo, con el precio mensual y el botón Cancelar Pro enmarcado en rojo",
+      "de": "Die Seite Tarif mit aktivem Pro, mit dem Monatspreis und dem Button Pro kündigen rot umrandet",
+      "pt-BR": "A página do Plano com o Pro ativo, mostrando o preço mensal e o botão Cancelar Pro destacado em vermelho",
+      "hi": "Pro चालू होने पर प्लान पेज, मासिक कीमत और Pro रद्द करें बटन लाल बॉक्स में",
+      "zh-CN": "已开通 Pro 的“套餐”页面，显示月费和用红框标出的“取消 Pro”按钮",
+      "zh-TW": "已啟用 Pro 的「方案」頁面，顯示月費和以紅框標示的「取消 Pro」按鈕",
+      "ja": "Pro加入中のプランページ。月額料金と、赤い枠で示された「Proを解約」ボタン"
+    }
   }
 };
