@@ -157,7 +157,7 @@ export const jaManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "{shop}の一致する商品を見る",
   "manage.match.loading": "読み込み中…",
   "manage.fund.line": "{goal}のうち{funded}が集まりました",
-  "manage.fund.nothing": "まだありません",
+  "manage.fund.lineNone": "目標{goal}、まだ集まっていません",
   "manage.fund.title": "キャッシュファンド",
   "manage.fund.hint": "新婚旅行や住まいなど、大きな目標に。ゲストは用意された金額から選んで出し合い、{shop}のギフトカードで支払われます。",
   "manage.fund.name": "ファンド名",

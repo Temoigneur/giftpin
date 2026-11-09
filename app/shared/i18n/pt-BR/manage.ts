@@ -157,7 +157,7 @@ export const ptBRManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "Ver produtos correspondentes em {shop}",
   "manage.match.loading": "Carregando…",
   "manage.fund.line": "{funded} de {goal} arrecadados",
-  "manage.fund.nothing": "Nada",
+  "manage.fund.lineNone": "Meta {goal}, nada arrecadado ainda",
   "manage.fund.title": "Um fundo em dinheiro",
   "manage.fund.hint": "Para uma lua de mel, uma casa ou algo maior. Os convidados contribuem com um de alguns valores fixos, pagos como vales-presente de {shop}.",
   "manage.fund.name": "Nome do fundo",

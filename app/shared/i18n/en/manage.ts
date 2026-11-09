@@ -155,7 +155,7 @@ export const enManage = {
   "manage.match.see": "See matching products in {shop}",
   "manage.match.loading": "Loading…",
   "manage.fund.line": "{funded} of {goal} raised",
-  "manage.fund.nothing": "Nothing",
+  "manage.fund.lineNone": "Goal {goal}, nothing raised yet",
   "manage.fund.title": "A cash fund",
   "manage.fund.hint": "For a honeymoon, a house or anything bigger. Guests chip in any of a few set amounts, paid as {shop} gift cards.",
   "manage.fund.name": "Fund name",

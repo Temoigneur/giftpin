@@ -157,7 +157,7 @@ export const deManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "Passende Produkte bei {shop} ansehen",
   "manage.match.loading": "Wird geladen…",
   "manage.fund.line": "{funded} von {goal} gesammelt",
-  "manage.fund.nothing": "Nichts",
+  "manage.fund.lineNone": "Ziel {goal}, noch nichts gesammelt",
   "manage.fund.title": "Ein Geldfonds",
   "manage.fund.hint": "Für eine Hochzeitsreise, ein Haus oder etwas Größeres. Gäste beteiligen sich mit einem von mehreren festen Beträgen, bezahlt als {shop}-Geschenkkarten.",
   "manage.fund.name": "Name des Fonds",

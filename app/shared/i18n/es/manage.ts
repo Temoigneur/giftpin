@@ -157,7 +157,7 @@ export const esManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "Ver productos similares en {shop}",
   "manage.match.loading": "Cargando…",
   "manage.fund.line": "{funded} de {goal} recaudados",
-  "manage.fund.nothing": "Nada",
+  "manage.fund.lineNone": "Objetivo {goal}, aún no se ha recaudado nada",
   "manage.fund.title": "Un fondo en efectivo",
   "manage.fund.hint": "Para una luna de miel, una casa o algo más grande. Los invitados aportan uno de varios importes fijos, pagados como tarjetas regalo de {shop}.",
   "manage.fund.name": "Nombre del fondo",
