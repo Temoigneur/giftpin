@@ -2,6 +2,7 @@ import type { Locale } from "../../shared/i18n";
 import type { GuideCopy, GuideDoc, RawGuideCopy, Step } from "./types";
 import type { Extra } from "./extra";
 import { GUEST_SHOT_ALT, GUEST_SHOT_SRC } from "./guest-shots";
+import { SHOTS } from "./shots";
 
 /**
  * Splits one language's original guide copy into the five guides:
@@ -34,7 +35,12 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     faq: [],
   });
 
-  const step = (t: string, items: string[]): Step => ({ title: t, items });
+  const step = (t: string, items: string[], shots: string[] = []): Step => {
+    if (!shots.length) return { title: t, items };
+    return locale === "en"
+      ? { title: t, items, img: shots.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) }
+      : { title: t, items, alts: shots.map((k) => SHOTS[k].alt[locale]) };
+  };
   const guest: GuideDoc = {
     eyebrow: s("g_eyebrow"),
     h1: h1("g_h1"),
@@ -47,9 +53,9 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
         title: s("gs2_t"),
         lede: s("gs2_lede"),
         tint: true,
-        steps: [step(s("g3_t"), [s("g3_i1"), s("g3_i2")]), { ...step(s("g4_t"), [s("g4_i1"), s("g4_i2"), s("g4_i3")]), ...(locale === "en" ? { img: { src: GUEST_SHOT_SRC, alt: GUEST_SHOT_ALT.en } } : { alts: [GUEST_SHOT_ALT[locale]] }) }, step(s("g5_t"), [s("g5_i1"), s("g5_i2")])],
+        steps: [step(s("g3_t"), [s("g3_i1"), s("g3_i2")]), { ...step(s("g4_t"), [s("g4_i1"), s("g4_i2"), s("g4_i3")]), ...(locale === "en" ? { img: { src: GUEST_SHOT_SRC, alt: GUEST_SHOT_ALT.en } } : { alts: [GUEST_SHOT_ALT[locale]] }) }, step(s("g5_t"), [s("g5_i1"), s("g5_i2")], ["chip"])],
       },
-      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")])] },
+      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")], ["remind"])] },
     ],
     faqTitle: raw.registry.faqTitle,
     faq: [1, 2, 3].map((n) => ({ q: s(`q${n}`), a: s(`a${n}`) })),
@@ -57,8 +63,12 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
 
   const registry: GuideDoc = {
     ...raw.registry,
-    sections: raw.registry.sections.map((sec, i) => (i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")])] } : sec)),
+    sections: raw.registry.sections.map((sec, i) => (i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : sec)),
   };
 
-  return { ui: raw.ui, setup, customize: sub("c", [make, more]), pro: sub("p", [pro]), registry, guest };
+  const withPanel: typeof more = {
+    ...more,
+    steps: more.steps.map((st, i) => (i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
+  };
+  return { ui: raw.ui, setup, customize: sub("c", [make, withPanel]), pro: sub("p", [pro]), registry, guest };
 }
