@@ -309,5 +309,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "設定中的「清單福利」區塊，「您的福利」輸入框以紅框標示，每行一項福利",
       "ja": "設定の「リスト特典」セクション。「特典」の入力欄が赤い枠で示され、1行に1つの特典が入っている"
     }
+  },
+  "language": {
+    "src": "/guides/c5-language.png",
+    "alt": {
+      "en": "The Appearance section of Settings with the Registry page language menu boxed in red",
+      "fr": "La section Apparence des Réglages, avec le menu Langue de la page de liste encadré en rouge",
+      "es": "La sección Apariencia de Ajustes, con el menú Idioma de la página de la lista enmarcado en rojo",
+      "de": "Der Bereich Darstellung in den Einstellungen, das Menü Sprache der Listenseite rot umrandet",
+      "pt-BR": "A seção Aparência em Configurações, com o menu Idioma da página da lista destacado em vermelho",
+      "hi": "सेटिंग्स में दिखावट सेक्शन, रजिस्ट्री पेज की भाषा मेन्यू लाल बॉक्स में",
+      "zh-CN": "设置中的“外观”部分，“清单页面语言”菜单用红框标出",
+      "zh-TW": "設定中的「外觀」區塊，「清單頁面語言」選單以紅框標示",
+      "ja": "設定の「外観」セクション。「リストページの言語」メニューが赤い枠で示されている"
+    }
   }
 };
