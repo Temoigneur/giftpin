@@ -519,5 +519,33 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "分析圖表（已建立的禮物清單、已加入的商品、已記入的禮物），「下載 CSV」按鈕以紅框標示並編號 2",
       "ja": "分析のグラフ（作成されたリスト、追加された商品、反映されたギフト）。「CSVをダウンロード」ボタンが赤い枠と番号2で示されている"
     }
+  },
+  "navRegistries": {
+    "src": "/guides/p7-nav-registries.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Registries boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Registres encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Registros enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Listen rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Listas destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, रजिस्ट्रियाँ लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「礼物清单」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「禮物清單」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「リスト」が赤い枠と番号1で示されている"
+    }
+  },
+  "exportCsv": {
+    "src": "/guides/p7-export-csv.png",
+    "alt": {
+      "en": "The Export box at the bottom of the Registries page, with the Registries CSV button boxed and numbered 2 and the Purchases CSV button boxed and numbered 3",
+      "fr": "Le bloc Exporter en bas de la page Registres, avec le bouton CSV des registres encadré et numéroté 2 et le bouton CSV des achats encadré et numéroté 3",
+      "es": "El cuadro Exportar al final de la página Registros, con el botón CSV de registros enmarcado y numerado 2 y el botón CSV de compras enmarcado y numerado 3",
+      "de": "Das Feld Export unten auf der Seite Listen, mit dem Button CSV der Listen umrandet und mit 2 nummeriert und dem Button CSV der Käufe umrandet und mit 3 nummeriert",
+      "pt-BR": "A caixa Exportar no fim da página Listas, com o botão CSV das listas destacado e numerado 2 e o botão CSV das compras destacado e numerado 3",
+      "hi": "रजिस्ट्रियाँ पेज के नीचे एक्सपोर्ट बॉक्स, रजिस्ट्रियाँ CSV बटन बॉक्स में नंबर 2 के साथ और खरीदारी CSV बटन बॉक्स में नंबर 3 के साथ",
+      "zh-CN": "「礼物清单」页面底部的导出区域，「清单 CSV」按钮以红框标示并编号 2，「购买 CSV」按钮以红框标示并编号 3",
+      "zh-TW": "「禮物清單」頁面底部的匯出區域，「清單 CSV」按鈕以紅框標示並編號 2，「購買 CSV」按鈕以紅框標示並編號 3",
+      "ja": "リストページ下部のエクスポート欄。「リストCSV」ボタンが赤い枠と番号2、「購入CSV」ボタンが赤い枠と番号3で示されている"
+    }
   }
 };
