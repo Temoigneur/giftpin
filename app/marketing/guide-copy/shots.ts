@@ -743,5 +743,145 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "Shopify POS 主畫面，Giftpin 圖塊「Find or start a gift registry for a customer at the counter」以紅框標示並編號 18",
       "ja": "Shopify POSのホーム画面。Giftpinのタイル「Find or start a gift registry for a customer at the counter」が赤い枠と番号18で示されている"
     }
+  },
+  "posPhoneSearch": {
+    "src": "/guides/p10-pos-phone-search.png",
+    "alt": {
+      "en": "Shopify POS on a phone: “Search box” boxed in red and numbered 19; “Maya's Christmas list” boxed in red and numbered 20; “Start a registry for a customer” boxed in red and numbered 21",
+      "fr": "Shopify POS sur téléphone: « Search box » encadré en rouge et numéroté 19; « Maya's Christmas list » encadré en rouge et numéroté 20; « Start a registry for a customer » encadré en rouge et numéroté 21",
+      "es": "Shopify POS en un teléfono: «Search box» enmarcado en rojo y numerado 19; «Maya's Christmas list» enmarcado en rojo y numerado 20; «Start a registry for a customer» enmarcado en rojo y numerado 21",
+      "de": "Shopify POS auf dem Smartphone: „Search box“ rot umrandet und mit 19 nummeriert; „Maya's Christmas list“ rot umrandet und mit 20 nummeriert; „Start a registry for a customer“ rot umrandet und mit 21 nummeriert",
+      "pt-BR": "Shopify POS no celular: “Search box” destacado em vermelho e numerado 19; “Maya's Christmas list” destacado em vermelho e numerado 20; “Start a registry for a customer” destacado em vermelho e numerado 21",
+      "hi": "फ़ोन पर Shopify POS: “Search box” लाल बॉक्स में और नंबर 19 के साथ; “Maya's Christmas list” लाल बॉक्स में और नंबर 20 के साथ; “Start a registry for a customer” लाल बॉक्स में और नंबर 21 के साथ",
+      "zh-CN": "手机上的 Shopify POS: “Search box”以红框标示并编号 19; “Maya's Christmas list”以红框标示并编号 20; “Start a registry for a customer”以红框标示并编号 21",
+      "zh-TW": "手機上的 Shopify POS: 「Search box」以紅框標示並編號 19; 「Maya's Christmas list」以紅框標示並編號 20; 「Start a registry for a customer」以紅框標示並編號 21",
+      "ja": "スマートフォンのShopify POS: 「Search box」が赤い枠と番号19で示されている; 「Maya's Christmas list」が赤い枠と番号20で示されている; 「Start a registry for a customer」が赤い枠と番号21で示されている"
+    }
+  },
+  "barProducts": {
+    "src": "/guides/p10-products.png",
+    "alt": {
+      "en": "Shopify admin: “Products” boxed in red and numbered 22",
+      "fr": "Admin Shopify: « Products » encadré en rouge et numéroté 22",
+      "es": "Admin de Shopify: «Products» enmarcado en rojo y numerado 22",
+      "de": "Shopify-Admin: „Products“ rot umrandet und mit 22 nummeriert",
+      "pt-BR": "Admin da Shopify: “Products” destacado em vermelho e numerado 22",
+      "hi": "Shopify एडमिन: “Products” लाल बॉक्स में और नंबर 22 के साथ",
+      "zh-CN": "Shopify 后台: “Products”以红框标示并编号 22",
+      "zh-TW": "Shopify 後台: 「Products」以紅框標示並編號 22",
+      "ja": "Shopify管理画面: 「Products」が赤い枠と番号22で示されている"
+    }
+  },
+  "barRow": {
+    "src": "/guides/p10-product-row.png",
+    "alt": {
+      "en": "Shopify admin: “Product name” boxed in red and numbered 23",
+      "fr": "Admin Shopify: « Product name » encadré en rouge et numéroté 23",
+      "es": "Admin de Shopify: «Product name» enmarcado en rojo y numerado 23",
+      "de": "Shopify-Admin: „Product name“ rot umrandet und mit 23 nummeriert",
+      "pt-BR": "Admin da Shopify: “Product name” destacado em vermelho e numerado 23",
+      "hi": "Shopify एडमिन: “Product name” लाल बॉक्स में और नंबर 23 के साथ",
+      "zh-CN": "Shopify 后台: “Product name”以红框标示并编号 23",
+      "zh-TW": "Shopify 後台: 「Product name」以紅框標示並編號 23",
+      "ja": "Shopify管理画面: 「Product name」が赤い枠と番号23で示されている"
+    }
+  },
+  "barChip": {
+    "src": "/guides/p10-barcodes-chip.png",
+    "alt": {
+      "en": "Shopify admin: “Barcodes” boxed in red and numbered 24",
+      "fr": "Admin Shopify: « Barcodes » encadré en rouge et numéroté 24",
+      "es": "Admin de Shopify: «Barcodes» enmarcado en rojo y numerado 24",
+      "de": "Shopify-Admin: „Barcodes“ rot umrandet und mit 24 nummeriert",
+      "pt-BR": "Admin da Shopify: “Barcodes” destacado em vermelho e numerado 24",
+      "hi": "Shopify एडमिन: “Barcodes” लाल बॉक्स में और नंबर 24 के साथ",
+      "zh-CN": "Shopify 后台: “Barcodes”以红框标示并编号 24",
+      "zh-TW": "Shopify 後台: 「Barcodes」以紅框標示並編號 24",
+      "ja": "Shopify管理画面: 「Barcodes」が赤い枠と番号24で示されている"
+    }
+  },
+  "barField": {
+    "src": "/guides/p10-barcode-field.png",
+    "alt": {
+      "en": "Shopify admin: “Barcode” boxed in red and numbered 25",
+      "fr": "Admin Shopify: « Barcode » encadré en rouge et numéroté 25",
+      "es": "Admin de Shopify: «Barcode» enmarcado en rojo y numerado 25",
+      "de": "Shopify-Admin: „Barcode“ rot umrandet und mit 25 nummeriert",
+      "pt-BR": "Admin da Shopify: “Barcode” destacado em vermelho e numerado 25",
+      "hi": "Shopify एडमिन: “Barcode” लाल बॉक्स में और नंबर 25 के साथ",
+      "zh-CN": "Shopify 后台: “Barcode”以红框标示并编号 25",
+      "zh-TW": "Shopify 後台: 「Barcode」以紅框標示並編號 25",
+      "ja": "Shopify管理画面: 「Barcode」が赤い枠と番号25で示されている"
+    }
+  },
+  "barSave": {
+    "src": "/guides/p10-save.png",
+    "alt": {
+      "en": "Shopify admin: “Save” boxed in red and numbered 26",
+      "fr": "Admin Shopify: « Save » encadré en rouge et numéroté 26",
+      "es": "Admin de Shopify: «Save» enmarcado en rojo y numerado 26",
+      "de": "Shopify-Admin: „Save“ rot umrandet und mit 26 nummeriert",
+      "pt-BR": "Admin da Shopify: “Save” destacado em vermelho e numerado 26",
+      "hi": "Shopify एडमिन: “Save” लाल बॉक्स में और नंबर 26 के साथ",
+      "zh-CN": "Shopify 后台: “Save”以红框标示并编号 26",
+      "zh-TW": "Shopify 後台: 「Save」以紅框標示並編號 26",
+      "ja": "Shopify管理画面: 「Save」が赤い枠と番号26で示されている"
+    }
+  },
+  "scanCam": {
+    "src": "/guides/p10-scan-cam.png",
+    "alt": {
+      "en": "Registry manage page on a phone: the open camera pointed at a barcode, boxed in red and numbered 27",
+      "fr": "Page de gestion du registre sur téléphone: la caméra ouverte devant un code-barres, encadrée en rouge et numérotée 27",
+      "es": "Página de gestión del registro en un teléfono: la cámara abierta apuntando a un código de barras, enmarcada en rojo y numerada 27",
+      "de": "Verwaltungsseite der Liste auf dem Smartphone: die geöffnete Kamera auf einen Barcode gerichtet, rot umrandet und mit 27 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista no celular: a câmera aberta apontada para um código de barras, destacada em vermelho e numerada 27",
+      "hi": "फ़ोन पर रजिस्ट्री का मैनेज पेज: बारकोड की ओर खुला कैमरा, लाल बॉक्स में और नंबर 27 के साथ",
+      "zh-CN": "手机上的清单管理页面: 对准条形码的相机画面以红框标示并编号 27",
+      "zh-TW": "手機上的清單管理頁面: 對準條碼的相機畫面以紅框標示並編號 27",
+      "ja": "スマートフォンのリスト管理ページ: バーコードに向けたカメラ画面が赤い枠と番号27で示されている"
+    }
+  },
+  "scanType": {
+    "src": "/guides/p10-scan-type.png",
+    "alt": {
+      "en": "Registry manage page on a phone: “Barcode number” boxed in red and numbered 28; “Look up” boxed in red and numbered 29",
+      "fr": "Page de gestion du registre sur téléphone: « Barcode number » encadré en rouge et numéroté 28; « Look up » encadré en rouge et numéroté 29",
+      "es": "Página de gestión del registro en un teléfono: «Barcode number» enmarcado en rojo y numerado 28; «Look up» enmarcado en rojo y numerado 29",
+      "de": "Verwaltungsseite der Liste auf dem Smartphone: „Barcode number“ rot umrandet und mit 28 nummeriert; „Look up“ rot umrandet und mit 29 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista no celular: “Barcode number” destacado em vermelho e numerado 28; “Look up” destacado em vermelho e numerado 29",
+      "hi": "फ़ोन पर रजिस्ट्री का मैनेज पेज: “Barcode number” लाल बॉक्स में और नंबर 28 के साथ; “Look up” लाल बॉक्स में और नंबर 29 के साथ",
+      "zh-CN": "手机上的清单管理页面: “Barcode number”以红框标示并编号 28; “Look up”以红框标示并编号 29",
+      "zh-TW": "手機上的清單管理頁面: 「Barcode number」以紅框標示並編號 28; 「Look up」以紅框標示並編號 29",
+      "ja": "スマートフォンのリスト管理ページ: 「Barcode number」が赤い枠と番号28で示されている; 「Look up」が赤い枠と番号29で示されている"
+    }
+  },
+  "scanFound": {
+    "src": "/guides/p10-scan-found.png",
+    "alt": {
+      "en": "Registry manage page on a phone: “On your list: add one more” boxed in red and numbered 30",
+      "fr": "Page de gestion du registre sur téléphone: « On your list: add one more » encadré en rouge et numéroté 30",
+      "es": "Página de gestión del registro en un teléfono: «On your list: add one more» enmarcado en rojo y numerado 30",
+      "de": "Verwaltungsseite der Liste auf dem Smartphone: „On your list: add one more“ rot umrandet und mit 30 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista no celular: “On your list: add one more” destacado em vermelho e numerado 30",
+      "hi": "फ़ोन पर रजिस्ट्री का मैनेज पेज: “On your list: add one more” लाल बॉक्स में और नंबर 30 के साथ",
+      "zh-CN": "手机上的清单管理页面: “On your list: add one more”以红框标示并编号 30",
+      "zh-TW": "手機上的清單管理頁面: 「On your list: add one more」以紅框標示並編號 30",
+      "ja": "スマートフォンのリスト管理ページ: 「On your list: add one more」が赤い枠と番号30で示されている"
+    }
+  },
+  "scanDone": {
+    "src": "/guides/p10-scan-done.png",
+    "alt": {
+      "en": "Registry manage page on a phone: “Done scanning” boxed in red and numbered 31",
+      "fr": "Page de gestion du registre sur téléphone: « Done scanning » encadré en rouge et numéroté 31",
+      "es": "Página de gestión del registro en un teléfono: «Done scanning» enmarcado en rojo y numerado 31",
+      "de": "Verwaltungsseite der Liste auf dem Smartphone: „Done scanning“ rot umrandet und mit 31 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista no celular: “Done scanning” destacado em vermelho e numerado 31",
+      "hi": "फ़ोन पर रजिस्ट्री का मैनेज पेज: “Done scanning” लाल बॉक्स में और नंबर 31 के साथ",
+      "zh-CN": "手机上的清单管理页面: “Done scanning”以红框标示并编号 31",
+      "zh-TW": "手機上的清單管理頁面: 「Done scanning」以紅框標示並編號 31",
+      "ja": "スマートフォンのリスト管理ページ: 「Done scanning」が赤い枠と番号31で示されている"
+    }
   }
 };
