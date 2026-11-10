@@ -463,5 +463,61 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「您的促銷」清單位於「新增促銷」表單上方，「暫停」按鈕以紅框標示並編號 6",
       "ja": "「プロモーション一覧」は新規プロモーションのフォームの上にあり、「一時停止」ボタンが赤い枠と番号6で示されている"
     }
+  },
+  "navDiscounts": {
+    "src": "/guides/p5-nav-discounts.png",
+    "alt": {
+      "en": "Shopify admin left menu with Discounts boxed in red and numbered 7",
+      "fr": "Menu de gauche de l'admin Shopify avec Réductions encadré en rouge et numéroté 7",
+      "es": "Menú izquierdo del admin de Shopify con Descuentos enmarcado en rojo y numerado 7",
+      "de": "Linkes Menü im Shopify-Admin mit Rabatte rot umrandet und mit 7 nummeriert",
+      "pt-BR": "Menu à esquerda do admin da Shopify com Descontos destacado em vermelho e numerado 7",
+      "hi": "Shopify एडमिन का बायाँ मेनू, डिस्काउंट लाल बॉक्स में और नंबर 7 के साथ",
+      "zh-CN": "Shopify 后台左侧菜单，「折扣」以红框标示并编号 7",
+      "zh-TW": "Shopify 後台左側選單，「折扣」以紅框標示並編號 7",
+      "ja": "Shopify管理画面の左メニュー。「割引」が赤い枠と番号7で示されている"
+    }
+  },
+  "discountsList": {
+    "src": "/guides/p5-discounts-list.png",
+    "alt": {
+      "en": "Shopify's Discounts list with the Giftpin: Registry sale row boxed in red and numbered 8",
+      "fr": "La liste des réductions de Shopify avec la ligne Giftpin: Registry sale encadrée en rouge et numérotée 8",
+      "es": "La lista de descuentos de Shopify con la fila Giftpin: Registry sale enmarcada en rojo y numerada 8",
+      "de": "Die Rabattliste von Shopify mit der Zeile Giftpin: Registry sale rot umrandet und mit 8 nummeriert",
+      "pt-BR": "A lista de descontos da Shopify com a linha Giftpin: Registry sale destacada em vermelho e numerada 8",
+      "hi": "Shopify की डिस्काउंट सूची, Giftpin: Registry sale वाली पंक्ति लाल बॉक्स में और नंबर 8 के साथ",
+      "zh-CN": "Shopify 折扣列表，「Giftpin: Registry sale」一行以红框标示并编号 8",
+      "zh-TW": "Shopify 折扣清單，「Giftpin: Registry sale」該列以紅框標示並編號 8",
+      "ja": "Shopifyの割引一覧。「Giftpin: Registry sale」の行が赤い枠と番号8で示されている"
+    }
+  },
+  "navAnalytics": {
+    "src": "/guides/p6-nav-analytics.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Analytics boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Analytique encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Analíticas enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Analysen rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Análises destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, एनालिटिक्स लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「分析」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「分析」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「分析」が赤い枠と番号1で示されている"
+    }
+  },
+  "analytics": {
+    "src": "/guides/p6-analytics.png",
+    "alt": {
+      "en": "The Analytics charts (registries created, items added, gifts credited) with the Download CSV button boxed in red and numbered 2",
+      "fr": "Les graphiques Analytique (registres créés, articles ajoutés, cadeaux crédités) avec le bouton Télécharger le CSV encadré en rouge et numéroté 2",
+      "es": "Los gráficos de Analíticas (registros creados, artículos añadidos, regalos acreditados) con el botón Descargar CSV enmarcado en rojo y numerado 2",
+      "de": "Die Analyse-Diagramme (erstellte Listen, hinzugefügte Artikel, angerechnete Geschenke) mit dem Button CSV herunterladen rot umrandet und mit 2 nummeriert",
+      "pt-BR": "Os gráficos de Análises (listas criadas, itens adicionados, presentes creditados) com o botão Baixar CSV destacado em vermelho e numerado 2",
+      "hi": "एनालिटिक्स चार्ट (बनाई गई रजिस्ट्रियाँ, जोड़े गए आइटम, क्रेडिट किए गए उपहार), CSV डाउनलोड करें बटन लाल बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "分析图表（已创建的礼物清单、已添加的商品、已记入的礼物），「下载 CSV」按钮以红框标示并编号 2",
+      "zh-TW": "分析圖表（已建立的禮物清單、已加入的商品、已記入的禮物），「下載 CSV」按鈕以紅框標示並編號 2",
+      "ja": "分析のグラフ（作成されたリスト、追加された商品、反映されたギフト）。「CSVをダウンロード」ボタンが赤い枠と番号2で示されている"
+    }
   }
 };
