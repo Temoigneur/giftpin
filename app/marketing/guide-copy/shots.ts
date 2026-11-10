@@ -883,5 +883,47 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "手機上的清單管理頁面: 「Done scanning」以紅框標示並編號 31",
       "ja": "スマートフォンのリスト管理ページ: 「Done scanning」が赤い枠と番号31で示されている"
     }
+  },
+  "prefsBar": {
+    "src": "/guides/r2-prefs-bar.png",
+    "alt": {
+      "en": "Registry manage page: “Edit registry & preferences” boxed in red and numbered 1",
+      "fr": "Page de gestion du registre: « Edit registry & preferences » encadré en rouge et numéroté 1",
+      "es": "Página de gestión del registro: «Edit registry & preferences» enmarcado en rojo y numerado 1",
+      "de": "Verwaltungsseite der Liste: „Edit registry & preferences“ rot umrandet und mit 1 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista: “Edit registry & preferences” destacado em vermelho e numerado 1",
+      "hi": "रजिस्ट्री का मैनेज पेज: “Edit registry & preferences” लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "清单管理页面: “Edit registry & preferences”以红框标示并编号 1",
+      "zh-TW": "清單管理頁面: 「Edit registry & preferences」以紅框標示並編號 1",
+      "ja": "リスト管理ページ: 「Edit registry & preferences」が赤い枠と番号1で示されている"
+    }
+  },
+  "partnerForm": {
+    "src": "/guides/r2-partner-form.png",
+    "alt": {
+      "en": "Registry manage page: “Add partner” boxed in red and numbered 2",
+      "fr": "Page de gestion du registre: « Add partner » encadré en rouge et numéroté 2",
+      "es": "Página de gestión del registro: «Add partner» enmarcado en rojo y numerado 2",
+      "de": "Verwaltungsseite der Liste: „Add partner“ rot umrandet und mit 2 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista: “Add partner” destacado em vermelho e numerado 2",
+      "hi": "रजिस्ट्री का मैनेज पेज: “Add partner” लाल बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "清单管理页面: “Add partner”以红框标示并编号 2",
+      "zh-TW": "清單管理頁面: 「Add partner」以紅框標示並編號 2",
+      "ja": "リスト管理ページ: 「Add partner」が赤い枠と番号2で示されている"
+    }
+  },
+  "partnerRemove": {
+    "src": "/guides/r2-partner-remove.png",
+    "alt": {
+      "en": "Registry manage page: “Remove partner” boxed in red and numbered 3",
+      "fr": "Page de gestion du registre: « Remove partner » encadré en rouge et numéroté 3",
+      "es": "Página de gestión del registro: «Remove partner» enmarcado en rojo y numerado 3",
+      "de": "Verwaltungsseite der Liste: „Remove partner“ rot umrandet und mit 3 nummeriert",
+      "pt-BR": "Página de gerenciamento da lista: “Remove partner” destacado em vermelho e numerado 3",
+      "hi": "रजिस्ट्री का मैनेज पेज: “Remove partner” लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "清单管理页面: “Remove partner”以红框标示并编号 3",
+      "zh-TW": "清單管理頁面: 「Remove partner」以紅框標示並編號 3",
+      "ja": "リスト管理ページ: 「Remove partner」が赤い枠と番号3で示されている"
+    }
   }
 };
