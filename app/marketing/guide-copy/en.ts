@@ -218,7 +218,7 @@ export const en: RawGuideCopy = {
             title: "In-store mode and Shopify POS",
             items: [
               "Open <b>{{admin.nav.inStore}}</b> in Giftpin's menu to find a customer's registry or start one for them at the counter.",
-              "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel.",
+              "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel. Then click <b>Save</b> at the top right of the screen, or the tile won't appear.",
               "Registrants can also scan a product's barcode with their phone in your shop to add it: they open <b>{{manage.scan.open}}</b> on their manage page. This needs barcodes (or SKUs) on your products, and it works best with a clear, full-frame view of one barcode.",
             ],
           },

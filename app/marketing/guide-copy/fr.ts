@@ -215,7 +215,7 @@ export const fr: RawGuideCopy = {
             title: "Mode en magasin et Shopify POS",
             items: [
               "Ouvrez <b>{{admin.nav.inStore}}</b> dans le menu de Giftpin pour trouver la liste d'un client ou en créer une pour lui au comptoir.",
-              "Pour encaisser des cadeaux de liste dans Shopify POS, ajoutez la tuile Giftpin : dans votre administration Shopify, ouvrez <b>Point of Sale</b>, puis l'éditeur POS, choisissez <b>Add tile → Apps</b> et sélectionnez Giftpin. Les produits doivent être publiés sur le canal Point of Sale.",
+              "Pour encaisser des cadeaux de liste dans Shopify POS, ajoutez la tuile Giftpin : dans votre administration Shopify, ouvrez <b>Point of Sale</b>, puis l'éditeur POS, choisissez <b>Add tile → Apps</b> et sélectionnez Giftpin. Les produits doivent être publiés sur le canal Point of Sale. Cliquez ensuite sur <b>Save</b> en haut à droite de l'écran, sinon la tuile n'apparaîtra pas.",
               "Les inscrits peuvent aussi scanner le code-barres d'un produit avec leur téléphone dans votre magasin pour l'ajouter : ils ouvrent <b>{{manage.scan.open}}</b> sur leur page de gestion. Il faut des codes-barres (ou des UGS) sur vos produits, et cela fonctionne mieux avec un seul code-barres bien cadré.",
             ],
           },

@@ -215,7 +215,7 @@ export const es: RawGuideCopy = {
             title: "Modo en tienda y Shopify POS",
             items: [
               "Abre <b>{{admin.nav.inStore}}</b> en el menú de Giftpin para encontrar la lista de un cliente o crearla por él en el mostrador.",
-              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale</b>, luego el editor de POS, elige <b>Add tile → Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale.",
+              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale</b>, luego el editor de POS, elige <b>Add tile → Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale. Después haz clic en <b>Save</b> arriba a la derecha de la pantalla, o el icono no aparecerá.",
               "Quienes crean listas también pueden escanear con el teléfono el código de barras de un producto en tu tienda para añadirlo: abren <b>{{manage.scan.open}}</b> en su página de gestión. Hacen falta códigos de barras (o SKU) en tus productos, y funciona mejor con un solo código bien encuadrado.",
             ],
           },
