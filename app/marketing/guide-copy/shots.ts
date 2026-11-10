@@ -547,5 +547,33 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「禮物清單」頁面底部的匯出區域，「清單 CSV」按鈕以紅框標示並編號 2，「購買 CSV」按鈕以紅框標示並編號 3",
       "ja": "リストページ下部のエクスポート欄。「リストCSV」ボタンが赤い枠と番号2、「購入CSV」ボタンが赤い枠と番号3で示されている"
     }
+  },
+  "navInStore": {
+    "src": "/guides/p8-nav-instore.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with In-store boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec En magasin encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con En tienda enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Im Laden rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Na loja destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, स्टोर में लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「店内」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「店內」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「店頭」が赤い枠と番号1で示されている"
+    }
+  },
+  "inStore": {
+    "src": "/guides/p8-instore.png",
+    "alt": {
+      "en": "The In-store page, with the Find a registry search box boxed in red and numbered 2 and the Create registry button boxed and numbered 3",
+      "fr": "La page En magasin, avec le champ Trouver un registre encadré en rouge et numéroté 2 et le bouton Créer un registre encadré et numéroté 3",
+      "es": "La página En tienda, con el cuadro Buscar un registro enmarcado en rojo y numerado 2 y el botón Crear registro enmarcado y numerado 3",
+      "de": "Die Seite Im Laden, mit dem Suchfeld Liste finden rot umrandet und mit 2 nummeriert und dem Button Liste erstellen umrandet und mit 3 nummeriert",
+      "pt-BR": "A página Na loja, com a caixa Encontrar uma lista destacada em vermelho e numerada 2 e o botão Criar lista destacado e numerado 3",
+      "hi": "स्टोर में पेज, रजिस्ट्री खोजें बॉक्स लाल बॉक्स में नंबर 2 के साथ और रजिस्ट्री बनाएँ बटन बॉक्स में नंबर 3 के साथ",
+      "zh-CN": "「店内」页面，「查找礼物清单」搜索框以红框标示并编号 2，「创建清单」按钮以红框标示并编号 3",
+      "zh-TW": "「店內」頁面，「尋找禮物清單」搜尋框以紅框標示並編號 2，「建立清單」按鈕以紅框標示並編號 3",
+      "ja": "店頭ページ。「リストを探す」の検索欄が赤い枠と番号2、「リストを作成」ボタンが赤い枠と番号3で示されている"
+    }
   }
 };
