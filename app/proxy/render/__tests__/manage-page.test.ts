@@ -296,7 +296,7 @@ describe("per-item guest notes (24 Sep 2026)", () => {
       ],
     });
     expect(html).toContain('value="Grey or purple please"');
-    expect(html).toContain("note:item.querySelector('[name=note]').value");
+    expect(html).toContain("note:f.querySelector('[name=note]').value");
   });
 });
 

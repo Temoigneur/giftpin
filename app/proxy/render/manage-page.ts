@@ -1165,6 +1165,35 @@ function manageScript(): string {
   }
 
   function status(el,msg,ok){var s=el.querySelector('.js-status');if(s){s.textContent=msg;s.style.color=ok===false?'#8c1d13':'';}}
+  // Each item card has two forms: the note/qty/category form and the chip-in
+  // form, and most buttons on the page reload it. Typed-but-unsaved edits in
+  // any item's form are saved before a reload, so ticking chip-in (or adding
+  // a fund, removing another item...) never throws away a note just typed.
+  function itemDirty(f){
+    return [].some.call(f.elements,function(el){
+      if(el.tagName==='SELECT')return [].some.call(el.options,function(o){return o.selected!==o.defaultSelected;});
+      if(el.tagName!=='INPUT'||el.type==='hidden')return false;
+      return el.value!==el.defaultValue;
+    });
+  }
+  function itemSaved(f){
+    [].forEach.call(f.elements,function(el){
+      if(el.tagName==='SELECT')[].forEach.call(el.options,function(o){o.defaultSelected=o.selected;});
+      else if(el.tagName==='INPUT')el.defaultValue=el.value;
+    });
+  }
+  function saveItem(f){
+    return post('/update-item',{itemId:f.dataset.item,desiredQty:Number(f.querySelector('[name=desiredQty]').value),category:f.querySelector('[name=category]').value,note:f.querySelector('[name=note]').value})
+      .catch(function(){return null;})
+      .then(function(res){var ok=!!(res&&res.ok);if(ok)itemSaved(f);status(f,ok?X.saved:((res&&res.error)||X.saveFail),ok);return ok;});
+  }
+  function saveDirtyItems(skipId){
+    var forms=[].filter.call(document.querySelectorAll('.js-item'),function(f){return f.dataset.item!==skipId&&itemDirty(f);});
+    return Promise.all(forms.map(saveItem)).then(function(oks){return oks.every(Boolean);});
+  }
+  function reload(skipId){
+    return saveDirtyItems(skipId).then(function(ok){if(ok)location.reload();});
+  }
   function post(path,body){return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(res){if(res&&res.ok)syncVersion();return res;})}
 
   // Pick up changes made elsewhere (the browser extension, the storefront
@@ -1182,6 +1211,7 @@ function manageScript(): string {
     var a=document.activeElement;
     if(a&&a.closest&&a.closest('#registro-list')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))return true;
     if(document.querySelector('#registro-list button:disabled'))return true;
+    if([].some.call(document.querySelectorAll('#registro-list .js-item'),itemDirty))return true;
     var d=document.querySelector('dialog');
     return !!(d&&d.open);
   }
@@ -1195,7 +1225,7 @@ function manageScript(): string {
         if(!fresh||!freshCfg)throw new Error('no list');
         // The match preview dialog only exists when some item has a match; if
         // one just appeared, a full reload is the simple, correct answer.
-        if(doc.querySelector('dialog')&&!document.querySelector('dialog')){location.reload();return;}
+        if(doc.querySelector('dialog')&&!document.querySelector('dialog')){reload();return;}
         document.getElementById('registro-list').innerHTML=fresh.innerHTML;
         var next=JSON.parse(freshCfg.textContent);
         cfg.version=next.version;
@@ -1282,7 +1312,7 @@ function manageScript(): string {
       showMatch:paste.querySelector('[name=showMatch]').checked,
       matchTitle:pasteFound.match?pasteFound.match.title:null
     }).then(function(res){
-      if(res&&res.ok){location.reload();return;}
+      if(res&&res.ok){reload();return;}
       btn.disabled=false;pasteStatus(found,(res&&res.error)||X.addLinkFail,false);
     }).catch(function(){btn.disabled=false;pasteStatus(found,X.addLinkFail,false);});
   }
@@ -1301,16 +1331,14 @@ function manageScript(): string {
     }
     var item=e.target.closest('.js-item');
     if(item){
-      e.preventDefault();status(item,X.saving);
-      post('/update-item',{itemId:item.dataset.item,desiredQty:Number(item.querySelector('[name=desiredQty]').value),category:item.querySelector('[name=category]').value,note:item.querySelector('[name=note]').value})
-        .then(function(res){status(item,res&&res.ok?X.saved:((res&&res.error)||X.saveFail),!(res&&res.ok));});
+      e.preventDefault();status(item,X.saving);saveItem(item);
       return;
     }
     var idea=e.target.closest('.js-idea-add');
     if(idea){
       e.preventDefault();var ib=idea.querySelector('button[type=submit]');ib.disabled=true;status(idea,X.addingDots);
       post('/add-manual',{title:idea.querySelector('[name=title]').value,url:idea.querySelector('[name=url]').value.trim(),price:idea.querySelector('[name=price]').value.trim(),note:idea.querySelector('[name=note]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(idea,(res&&res.error)||X.addFail,false);ib.disabled=false;}})
+        .then(function(res){if(res&&res.ok){reload();}else{status(idea,(res&&res.error)||X.addFail,false);ib.disabled=false;}})
         .catch(function(){status(idea,X.addFail,false);ib.disabled=false;});
       return;
     }
@@ -1318,7 +1346,7 @@ function manageScript(): string {
     if(fund){
       e.preventDefault();var fb=fund.querySelector('button');fb.disabled=true;status(fund,X.addingDots);
       post('/add-fund',{title:fund.querySelector('[name=title]').value,goal:fund.querySelector('[name=goal]').value,note:fund.querySelector('[name=note]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(fund,(res&&res.error)||X.fundFail,false);fb.disabled=false;}})
+        .then(function(res){if(res&&res.ok){reload();}else{status(fund,(res&&res.error)||X.fundFail,false);fb.disabled=false;}})
         .catch(function(){status(fund,X.fundFail,false);fb.disabled=false;});
       return;
     }
@@ -1326,7 +1354,7 @@ function manageScript(): string {
     if(group){
       e.preventDefault();status(group,X.saving);
       post('/item-fund',{itemId:group.dataset.item,goal:group.querySelector('[name=goal]').value})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(group,(res&&res.error)||X.saveFail,false);}});
+        .then(function(res){if(res&&res.ok){reload();}else{status(group,(res&&res.error)||X.saveFail,false);}});
       return;
     }
     var del=e.target.closest('.js-confirm-delete');
@@ -1466,7 +1494,7 @@ function manageScript(): string {
     if(off){
       var gf=off.closest('.js-group');status(gf,X.saving);
       post('/item-fund',{itemId:off.dataset.item,goal:null})
-        .then(function(res){if(res&&res.ok){location.reload();}else{status(gf,(res&&res.error)||X.saveFail,false);}});
+        .then(function(res){if(res&&res.ok){reload();}else{status(gf,(res&&res.error)||X.saveFail,false);}});
       return;
     }
     var mp=e.target.closest('.js-match-preview');
@@ -1480,7 +1508,7 @@ function manageScript(): string {
     if(mk){
       mk.disabled=true;
       post('/item-match',{itemId:dlg.dataset.item,action:'keep'}).then(function(res){
-        if(res&&res.ok){location.reload();}else{mdMessage((res&&res.error)||X.couldNot);mk.disabled=false;}
+        if(res&&res.ok){reload(dlg.dataset.item);}else{mdMessage((res&&res.error)||X.couldNot);mk.disabled=false;}
       });
       return;
     }
@@ -1497,7 +1525,7 @@ function manageScript(): string {
       }
       sw.disabled=true;
       post('/item-match',{itemId:dlg.dataset.item,action:'swap',productGid:sw.dataset.gid}).then(function(res){
-        if(res&&res.ok){location.reload();}
+        if(res&&res.ok){reload(dlg.dataset.item);}
         else{mdMessage((res&&res.error)||X.swapFail);sw.disabled=false;}
       });
       return;
@@ -1507,7 +1535,7 @@ function manageScript(): string {
       if(match.dataset.action==='swap'&&!confirm(X.confirmReplace))return;
       match.disabled=true;
       post('/item-match',{itemId:match.dataset.item,action:match.dataset.action}).then(function(res){
-        if(res&&res.ok){location.reload();}
+        if(res&&res.ok){reload(match.dataset.item);}
         else{alert((res&&res.error)||X.couldNot);match.disabled=false;}
       });
       return;
@@ -1517,7 +1545,7 @@ function manageScript(): string {
       if(!confirm(X.confirmRemove))return;
       remove.disabled=true;
       post('/remove-item',{itemId:remove.dataset.item}).then(function(res){
-        if(res&&res.ok){location.reload();}
+        if(res&&res.ok){reload(remove.dataset.item);}
         else{status(remove.closest('.js-item'),(res&&res.error)||X.removeFail,false);remove.disabled=false;}
       });
       return;
