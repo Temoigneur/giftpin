@@ -215,7 +215,7 @@ export const ja: RawGuideCopy = {
             title: "店頭モードとShopify POS",
             items: [
               "Giftpinのメニューで <b>{{admin.nav.inStore}}</b> を開くと、お客様のギフトリストを探したり、カウンターでお客様の代わりに作成したりできます。",
-              "Shopify POSでギフトリストのギフトを会計するには、Giftpinのタイルを追加します。Shopify管理画面で <b>Point of Sale</b> を開き、POSエディタで <b>Add tile → Embedded Apps</b> を選んで、Giftpinを選択してください。商品はPoint of Saleチャネルに公開されている必要があります。",
+              "Shopify POSでギフトリストのギフトを会計するには、Giftpinのタイルを追加します。Shopify管理画面で <b>Point of Sale</b> を開き、POSエディタで <b>Add tile → Apps</b> を選んで、Giftpinを選択してください。商品はPoint of Saleチャネルに公開されている必要があります。",
               "リストの作成者は、お店で商品のバーコードをスマートフォンでスキャンして追加することもできます。管理ページの <b>{{manage.scan.open}}</b> を開きます。商品にバーコード（またはSKU）が必要で、1つのバーコードを画面いっぱいにはっきり映すと読み取りやすくなります。",
             ],
           },

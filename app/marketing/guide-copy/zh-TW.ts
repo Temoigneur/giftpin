@@ -215,7 +215,7 @@ export const zhTW: RawGuideCopy = {
             title: "店內模式與 Shopify POS",
             items: [
               "在 Giftpin 選單中開啟 <b>{{admin.nav.inStore}}</b>，即可在櫃檯找到顧客的禮物清單，或為他們建立一份。",
-              "若要在 Shopify POS 中為禮物清單的禮物結帳，請加入 Giftpin 圖塊：在您的 Shopify 後台開啟 <b>Point of Sale</b>，進入 POS 編輯器，選擇 <b>Add tile → Embedded Apps</b>，然後選取 Giftpin。商品必須已發布到 Point of Sale 通路。",
+              "若要在 Shopify POS 中為禮物清單的禮物結帳，請加入 Giftpin 圖塊：在您的 Shopify 後台開啟 <b>Point of Sale</b>，進入 POS 編輯器，選擇 <b>Add tile → Apps</b>，然後選取 Giftpin。商品必須已發布到 Point of Sale 通路。",
               "清單主人也可以在您的店內用手機掃描商品條碼來加入商品：他們在管理頁面開啟 <b>{{manage.scan.open}}</b>。這需要您的商品有條碼（或 SKU），而且在畫面中清楚、完整地對準單一條碼時效果最好。",
             ],
           },

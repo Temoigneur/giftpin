@@ -215,7 +215,7 @@ export const ptBR: RawGuideCopy = {
             title: "Modo loja física e Shopify POS",
             items: [
               "Abra <b>{{admin.nav.inStore}}</b> no menu do Giftpin para encontrar a lista de um cliente ou criar uma para ele no balcão.",
-              "Para registrar presentes de lista no Shopify POS, adicione o bloco do Giftpin: no painel da Shopify, abra <b>Point of Sale</b>, depois o editor do POS, escolha <b>Add tile → Embedded Apps</b> e selecione o Giftpin. Os produtos precisam estar publicados no canal Point of Sale.",
+              "Para registrar presentes de lista no Shopify POS, adicione o bloco do Giftpin: no painel da Shopify, abra <b>Point of Sale</b>, depois o editor do POS, escolha <b>Add tile → Apps</b> e selecione o Giftpin. Os produtos precisam estar publicados no canal Point of Sale.",
               "Quem cria listas também pode escanear com o celular o código de barras de um produto na sua loja para adicioná-lo: abre <b>{{manage.scan.open}}</b> na própria página de gerenciamento. É preciso ter códigos de barras (ou SKUs) nos seus produtos, e funciona melhor com um único código de barras bem enquadrado.",
             ],
           },

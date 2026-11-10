@@ -575,5 +575,173 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "「店內」頁面，「尋找禮物清單」搜尋框以紅框標示並編號 2，「建立清單」按鈕以紅框標示並編號 3",
       "ja": "店頭ページ。「リストを探す」の検索欄が赤い枠と番号2、「リストを作成」ボタンが赤い枠と番号3で示されている"
     }
+  },
+  "posSettings": {
+    "src": "/guides/p9-settings.png",
+    "alt": {
+      "en": "Shopify admin: “Settings” boxed in red and numbered 4",
+      "fr": "Admin Shopify: « Settings » encadré en rouge et numéroté 4",
+      "es": "Admin de Shopify: «Settings» enmarcado en rojo y numerado 4",
+      "de": "Shopify-Admin: „Settings“ rot umrandet und mit 4 nummeriert",
+      "pt-BR": "Admin da Shopify: “Settings” destacado em vermelho e numerado 4",
+      "hi": "Shopify एडमिन: “Settings” लाल बॉक्स में और नंबर 4 के साथ",
+      "zh-CN": "Shopify 后台: “Settings”以红框标示并编号 4",
+      "zh-TW": "Shopify 後台: 「Settings」以紅框標示並編號 4",
+      "ja": "Shopify管理画面: 「Settings」が赤い枠と番号4で示されている"
+    }
+  },
+  "posSettingsChannels": {
+    "src": "/guides/p9-settings-channels.png",
+    "alt": {
+      "en": "Shopify admin: “Sales channels” boxed in red and numbered 5",
+      "fr": "Admin Shopify: « Sales channels » encadré en rouge et numéroté 5",
+      "es": "Admin de Shopify: «Sales channels» enmarcado en rojo y numerado 5",
+      "de": "Shopify-Admin: „Sales channels“ rot umrandet und mit 5 nummeriert",
+      "pt-BR": "Admin da Shopify: “Sales channels” destacado em vermelho e numerado 5",
+      "hi": "Shopify एडमिन: “Sales channels” लाल बॉक्स में और नंबर 5 के साथ",
+      "zh-CN": "Shopify 后台: “Sales channels”以红框标示并编号 5",
+      "zh-TW": "Shopify 後台: 「Sales channels」以紅框標示並編號 5",
+      "ja": "Shopify管理画面: 「Sales channels」が赤い枠と番号5で示されている"
+    }
+  },
+  "posSettingsBack": {
+    "src": "/guides/p9-settings-back.png",
+    "alt": {
+      "en": "Shopify admin: “Back arrow next to Settings” boxed in red and numbered 6",
+      "fr": "Admin Shopify: « Back arrow next to Settings » encadré en rouge et numéroté 6",
+      "es": "Admin de Shopify: «Back arrow next to Settings» enmarcado en rojo y numerado 6",
+      "de": "Shopify-Admin: „Back arrow next to Settings“ rot umrandet und mit 6 nummeriert",
+      "pt-BR": "Admin da Shopify: “Back arrow next to Settings” destacado em vermelho e numerado 6",
+      "hi": "Shopify एडमिन: “Back arrow next to Settings” लाल बॉक्स में और नंबर 6 के साथ",
+      "zh-CN": "Shopify 后台: “Back arrow next to Settings”以红框标示并编号 6",
+      "zh-TW": "Shopify 後台: 「Back arrow next to Settings」以紅框標示並編號 6",
+      "ja": "Shopify管理画面: 「Back arrow next to Settings」が赤い枠と番号6で示されている"
+    }
+  },
+  "posProducts": {
+    "src": "/guides/p9-products.png",
+    "alt": {
+      "en": "Shopify admin: “Products” boxed in red and numbered 7",
+      "fr": "Admin Shopify: « Products » encadré en rouge et numéroté 7",
+      "es": "Admin de Shopify: «Products» enmarcado en rojo y numerado 7",
+      "de": "Shopify-Admin: „Products“ rot umrandet und mit 7 nummeriert",
+      "pt-BR": "Admin da Shopify: “Products” destacado em vermelho e numerado 7",
+      "hi": "Shopify एडमिन: “Products” लाल बॉक्स में और नंबर 7 के साथ",
+      "zh-CN": "Shopify 后台: “Products”以红框标示并编号 7",
+      "zh-TW": "Shopify 後台: 「Products」以紅框標示並編號 7",
+      "ja": "Shopify管理画面: 「Products」が赤い枠と番号7で示されている"
+    }
+  },
+  "posProductRow": {
+    "src": "/guides/p9-product-row.png",
+    "alt": {
+      "en": "Shopify admin: “Product name” boxed in red and numbered 8",
+      "fr": "Admin Shopify: « Product name » encadré en rouge et numéroté 8",
+      "es": "Admin de Shopify: «Product name» enmarcado en rojo y numerado 8",
+      "de": "Shopify-Admin: „Product name“ rot umrandet und mit 8 nummeriert",
+      "pt-BR": "Admin da Shopify: “Product name” destacado em vermelho e numerado 8",
+      "hi": "Shopify एडमिन: “Product name” लाल बॉक्स में और नंबर 8 के साथ",
+      "zh-CN": "Shopify 后台: “Product name”以红框标示并编号 8",
+      "zh-TW": "Shopify 後台: 「Product name」以紅框標示並編號 8",
+      "ja": "Shopify管理画面: 「Product name」が赤い枠と番号8で示されている"
+    }
+  },
+  "posPublishing": {
+    "src": "/guides/p9-publishing.png",
+    "alt": {
+      "en": "Shopify admin: “Publishing adjust icon” boxed in red and numbered 9",
+      "fr": "Admin Shopify: « Publishing adjust icon » encadré en rouge et numéroté 9",
+      "es": "Admin de Shopify: «Publishing adjust icon» enmarcado en rojo y numerado 9",
+      "de": "Shopify-Admin: „Publishing adjust icon“ rot umrandet und mit 9 nummeriert",
+      "pt-BR": "Admin da Shopify: “Publishing adjust icon” destacado em vermelho e numerado 9",
+      "hi": "Shopify एडमिन: “Publishing adjust icon” लाल बॉक्स में और नंबर 9 के साथ",
+      "zh-CN": "Shopify 后台: “Publishing adjust icon”以红框标示并编号 9",
+      "zh-TW": "Shopify 後台: 「Publishing adjust icon」以紅框標示並編號 9",
+      "ja": "Shopify管理画面: 「Publishing adjust icon」が赤い枠と番号9で示されている"
+    }
+  },
+  "posPublishDialog": {
+    "src": "/guides/p9-publish-dialog.png",
+    "alt": {
+      "en": "Shopify admin: “Point of Sale” boxed in red and numbered 10; “Done” boxed in red and numbered 11",
+      "fr": "Admin Shopify: « Point of Sale » encadré en rouge et numéroté 10; « Done » encadré en rouge et numéroté 11",
+      "es": "Admin de Shopify: «Point of Sale» enmarcado en rojo y numerado 10; «Done» enmarcado en rojo y numerado 11",
+      "de": "Shopify-Admin: „Point of Sale“ rot umrandet und mit 10 nummeriert; „Done“ rot umrandet und mit 11 nummeriert",
+      "pt-BR": "Admin da Shopify: “Point of Sale” destacado em vermelho e numerado 10; “Done” destacado em vermelho e numerado 11",
+      "hi": "Shopify एडमिन: “Point of Sale” लाल बॉक्स में और नंबर 10 के साथ; “Done” लाल बॉक्स में और नंबर 11 के साथ",
+      "zh-CN": "Shopify 后台: “Point of Sale”以红框标示并编号 10; “Done”以红框标示并编号 11",
+      "zh-TW": "Shopify 後台: 「Point of Sale」以紅框標示並編號 10; 「Done」以紅框標示並編號 11",
+      "ja": "Shopify管理画面: 「Point of Sale」が赤い枠と番号10で示されている; 「Done」が赤い枠と番号11で示されている"
+    }
+  },
+  "posProductSave": {
+    "src": "/guides/p9-product-save.png",
+    "alt": {
+      "en": "Shopify admin: “Save” boxed in red and numbered 12",
+      "fr": "Admin Shopify: « Save » encadré en rouge et numéroté 12",
+      "es": "Admin de Shopify: «Save» enmarcado en rojo y numerado 12",
+      "de": "Shopify-Admin: „Save“ rot umrandet und mit 12 nummeriert",
+      "pt-BR": "Admin da Shopify: “Save” destacado em vermelho e numerado 12",
+      "hi": "Shopify एडमिन: “Save” लाल बॉक्स में और नंबर 12 के साथ",
+      "zh-CN": "Shopify 后台: “Save”以红框标示并编号 12",
+      "zh-TW": "Shopify 後台: 「Save」以紅框標示並編號 12",
+      "ja": "Shopify管理画面: 「Save」が赤い枠と番号12で示されている"
+    }
+  },
+  "posMenu": {
+    "src": "/guides/p9-pos-menu.png",
+    "alt": {
+      "en": "Shopify admin: “Point of Sale” boxed in red and numbered 13",
+      "fr": "Admin Shopify: « Point of Sale » encadré en rouge et numéroté 13",
+      "es": "Admin de Shopify: «Point of Sale» enmarcado en rojo y numerado 13",
+      "de": "Shopify-Admin: „Point of Sale“ rot umrandet und mit 13 nummeriert",
+      "pt-BR": "Admin da Shopify: “Point of Sale” destacado em vermelho e numerado 13",
+      "hi": "Shopify एडमिन: “Point of Sale” लाल बॉक्स में और नंबर 13 के साथ",
+      "zh-CN": "Shopify 后台: “Point of Sale”以红框标示并编号 13",
+      "zh-TW": "Shopify 後台: 「Point of Sale」以紅框標示並編號 13",
+      "ja": "Shopify管理画面: 「Point of Sale」が赤い枠と番号13で示されている"
+    }
+  },
+  "posEdit": {
+    "src": "/guides/p9-edit-pos.png",
+    "alt": {
+      "en": "Shopify admin: “Edit Point of Sale” boxed in red and numbered 14",
+      "fr": "Admin Shopify: « Edit Point of Sale » encadré en rouge et numéroté 14",
+      "es": "Admin de Shopify: «Edit Point of Sale» enmarcado en rojo y numerado 14",
+      "de": "Shopify-Admin: „Edit Point of Sale“ rot umrandet und mit 14 nummeriert",
+      "pt-BR": "Admin da Shopify: “Edit Point of Sale” destacado em vermelho e numerado 14",
+      "hi": "Shopify एडमिन: “Edit Point of Sale” लाल बॉक्स में और नंबर 14 के साथ",
+      "zh-CN": "Shopify 后台: “Edit Point of Sale”以红框标示并编号 14",
+      "zh-TW": "Shopify 後台: 「Edit Point of Sale」以紅框標示並編號 14",
+      "ja": "Shopify管理画面: 「Edit Point of Sale」が赤い枠と番号14で示されている"
+    }
+  },
+  "posAddTile": {
+    "src": "/guides/p9-add-tile.png",
+    "alt": {
+      "en": "Shopify admin: “Add tile” boxed in red and numbered 15; “Apps” boxed in red and numbered 16; “Giftpin Gift Registry” boxed in red and numbered 17",
+      "fr": "Admin Shopify: « Add tile » encadré en rouge et numéroté 15; « Apps » encadré en rouge et numéroté 16; « Giftpin Gift Registry » encadré en rouge et numéroté 17",
+      "es": "Admin de Shopify: «Add tile» enmarcado en rojo y numerado 15; «Apps» enmarcado en rojo y numerado 16; «Giftpin Gift Registry» enmarcado en rojo y numerado 17",
+      "de": "Shopify-Admin: „Add tile“ rot umrandet und mit 15 nummeriert; „Apps“ rot umrandet und mit 16 nummeriert; „Giftpin Gift Registry“ rot umrandet und mit 17 nummeriert",
+      "pt-BR": "Admin da Shopify: “Add tile” destacado em vermelho e numerado 15; “Apps” destacado em vermelho e numerado 16; “Giftpin Gift Registry” destacado em vermelho e numerado 17",
+      "hi": "Shopify एडमिन: “Add tile” लाल बॉक्स में और नंबर 15 के साथ; “Apps” लाल बॉक्स में और नंबर 16 के साथ; “Giftpin Gift Registry” लाल बॉक्स में और नंबर 17 के साथ",
+      "zh-CN": "Shopify 后台: “Add tile”以红框标示并编号 15; “Apps”以红框标示并编号 16; “Giftpin Gift Registry”以红框标示并编号 17",
+      "zh-TW": "Shopify 後台: 「Add tile」以紅框標示並編號 15; 「Apps」以紅框標示並編號 16; 「Giftpin Gift Registry」以紅框標示並編號 17",
+      "ja": "Shopify管理画面: 「Add tile」が赤い枠と番号15で示されている; 「Apps」が赤い枠と番号16で示されている; 「Giftpin Gift Registry」が赤い枠と番号17で示されている"
+    }
+  },
+  "posTile": {
+    "src": "/guides/p9-pos-tile.png",
+    "alt": {
+      "en": "Shopify POS home screen with the Giftpin tile, “Find or start a gift registry for a customer at the counter”, boxed in red and numbered 18",
+      "fr": "Écran d'accueil de Shopify POS avec la tuile Giftpin, « Find or start a gift registry for a customer at the counter », encadrée en rouge et numérotée 18",
+      "es": "Pantalla de inicio de Shopify POS con el icono de Giftpin, «Find or start a gift registry for a customer at the counter», enmarcado en rojo y numerado 18",
+      "de": "Startbildschirm von Shopify POS mit der Giftpin-Kachel „Find or start a gift registry for a customer at the counter“, rot umrandet und mit 18 nummeriert",
+      "pt-BR": "Tela inicial do Shopify POS com o bloco do Giftpin, “Find or start a gift registry for a customer at the counter”, destacado em vermelho e numerado 18",
+      "hi": "Shopify POS की होम स्क्रीन, Giftpin टाइल “Find or start a gift registry for a customer at the counter” लाल बॉक्स में और नंबर 18 के साथ",
+      "zh-CN": "Shopify POS 主屏幕，Giftpin 磁贴“Find or start a gift registry for a customer at the counter”以红框标示并编号 18",
+      "zh-TW": "Shopify POS 主畫面，Giftpin 圖塊「Find or start a gift registry for a customer at the counter」以紅框標示並編號 18",
+      "ja": "Shopify POSのホーム画面。Giftpinのタイル「Find or start a gift registry for a customer at the counter」が赤い枠と番号18で示されている"
+    }
   }
 };

@@ -215,7 +215,7 @@ export const de: RawGuideCopy = {
             title: "Ladenmodus und Shopify POS",
             items: [
               "Öffnen Sie <b>{{admin.nav.inStore}}</b> im Giftpin-Menü, um die Liste eines Kunden zu finden oder direkt an der Kasse eine für ihn zu erstellen.",
-              "Um Listengeschenke in Shopify POS zu kassieren, fügen Sie die Giftpin-Kachel hinzu: Öffnen Sie in Ihrem Shopify-Admin <b>Point of Sale</b>, dann den POS-Editor, wählen Sie <b>Add tile → Embedded Apps</b> und Giftpin. Die Produkte müssen im Vertriebskanal Point of Sale veröffentlicht sein.",
+              "Um Listengeschenke in Shopify POS zu kassieren, fügen Sie die Giftpin-Kachel hinzu: Öffnen Sie in Ihrem Shopify-Admin <b>Point of Sale</b>, dann den POS-Editor, wählen Sie <b>Add tile → Apps</b> und Giftpin. Die Produkte müssen im Vertriebskanal Point of Sale veröffentlicht sein.",
               "Listenersteller können in Ihrem Geschäft auch mit dem Smartphone den Barcode eines Produkts scannen, um es hinzuzufügen: Sie öffnen dazu <b>{{manage.scan.open}}</b> auf ihrer Verwaltungsseite. Dafür brauchen Ihre Produkte Barcodes (oder SKUs), und es klappt am besten, wenn ein einzelner Barcode das Bild füllt.",
             ],
           },

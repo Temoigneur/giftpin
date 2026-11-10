@@ -215,7 +215,7 @@ export const zhCN: RawGuideCopy = {
             title: "门店模式和 Shopify POS",
             items: [
               "在 Giftpin 菜单中打开 <b>{{admin.nav.inStore}}</b>，可以查找顾客的礼物清单，或在柜台为顾客新建一份。",
-              "要在 Shopify POS 中为清单礼物收银，请添加 Giftpin 磁贴：在 Shopify 后台打开 <b>Point of Sale</b>，进入 POS 编辑器，选择 <b>Add tile → Embedded Apps</b>，然后选择 Giftpin。商品必须已发布到 Point of Sale 渠道。",
+              "要在 Shopify POS 中为清单礼物收银，请添加 Giftpin 磁贴：在 Shopify 后台打开 <b>Point of Sale</b>，进入 POS 编辑器，选择 <b>Add tile → Apps</b>，然后选择 Giftpin。商品必须已发布到 Point of Sale 渠道。",
               "清单主人还可以在您的店里用手机扫描商品条形码来添加商品：他们在自己的管理页面打开 <b>{{manage.scan.open}}</b>。这需要您的商品上有条形码（或 SKU），并且在画面中清晰、完整地对准一个条形码时效果最好。",
             ],
           },
