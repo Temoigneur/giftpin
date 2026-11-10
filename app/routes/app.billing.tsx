@@ -148,9 +148,7 @@ export default function Billing() {
               {t("admin.bill.priceMo", { price })}
               {liveSubscriptionName ? ` — ${liveSubscriptionName}` : ""}.
             </s-paragraph>
-            <s-unordered-list>
-              <ProFeatures t={t} />
-            </s-unordered-list>
+            <ProFeatures t={t} />
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="cancel" />
               <s-button type="submit" variant="secondary" {...(busy ? { loading: true } : {})}>
@@ -176,9 +174,7 @@ export default function Billing() {
               </s-banner>
             )}
             <s-paragraph>{t("admin.bill.proAdds", { price })}</s-paragraph>
-            <s-unordered-list>
-              <ProFeatures t={t} />
-            </s-unordered-list>
+            <ProFeatures t={t} />
             <s-banner tone="info" heading={t("admin.bill.limitHead")}>
               <s-paragraph>
                 {t("admin.bill.limitText", { pct: GIFT_CARD_FEE_PERCENT, cap: GIFT_CARD_FEE_CAP })}
