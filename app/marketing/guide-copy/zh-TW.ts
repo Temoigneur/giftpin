@@ -98,7 +98,7 @@ export const zhTW: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> 位於 <b>{{manage.prefs.open}}</b> 裡面 <b>{{manage.prefs.settings}}</b> 的底部，靠近頁面下方。它會儲存名稱、場合、日期、留言、語言，以及誰可以查看。",
               "<b>{{manage.ship.title}}</b> 裡的 <b>{{manage.save}}</b> 會儲存運送地址。它和上面的按鈕是分開的。",
               "商品上的 <b>{{manage.item.update}}</b> 會儲存該商品的數量、備註和分類。",
-              "首次設定時，按鈕是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。",
+              "首次設定時，按鈕是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。關於伴侶的第 2 步則是 <b>{{manage.partner.add}}</b> 和 <b>{{manage.partner.notNow}}</b>。",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const zhTW: RawGuideCopy = {
           {
             title: "設定隱私",
             items: [
-              "在 <b>{{admin.set.privacy}}</b> 底下，選擇是否要 <b>{{admin.set.hideBuyer}}</b>，以及是否開啟公開的尋找禮物清單頁面（<b>{{admin.set.find}}</b>）。只有擁有者同意的清單才會列在那裡。在您勾選之前，它是關閉的：在那之前，商店中的尋找連結會改為請訪客輸入禮物清單連結。",
+              "在 <b>{{admin.set.privacy}}</b> 底下，選擇是否要 <b>{{admin.set.hideBuyer}}</b>，以及是否開啟公開的尋找禮物清單頁面（<b>{{admin.set.find}}</b>）。只有擁有者同意的清單才會列在那裡。在您勾選之前，它是關閉的：在那之前，商店中的尋找連結會改為請訪客輸入禮物清單連結。 只有當清單的擁有者在其管理頁面的 <b>{{manage.prefs.who}}</b> 中也選擇 <b>{{manage.vis.public}}</b> 時，該清單才會列在那裡。",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const zhTW: RawGuideCopy = {
             title: "店內模式與 Shopify POS",
             items: [
               "在 Giftpin 選單中開啟 <b>{{admin.nav.inStore}}</b>，即可在櫃檯找到顧客的禮物清單，或為他們建立一份。",
-              "若要在 Shopify POS 中為禮物清單的禮物結帳，請加入 Giftpin 圖塊：在您的 Shopify 後台開啟 <b>Point of Sale</b>，進入 POS 編輯器，選擇 <b>Add tile → Embedded Apps</b>，然後選取 Giftpin。商品必須已發布到 Point of Sale 通路。",
+              "若要在 Shopify POS 中為禮物清單的禮物結帳，請加入 Giftpin 圖塊：在您的 Shopify 後台開啟 <b>Point of Sale</b>，進入 POS 編輯器，選擇 <b>Add tile → Apps</b>，然後選取 Giftpin。商品必須已發布到 Point of Sale 通路。 接著點擊畫面右上角的 <b>Save</b>，否則圖塊不會出現。",
               "清單主人也可以在您的店內用手機掃描商品條碼來加入商品：他們在管理頁面開啟 <b>{{manage.scan.open}}</b>。這需要您的商品有條碼（或 SKU），而且在畫面中清楚、完整地對準單一條碼時效果最好。",
             ],
           },

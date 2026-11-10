@@ -98,7 +98,7 @@ export const ja: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> は、ページ下部の <b>{{manage.prefs.open}}</b> の中にある <b>{{manage.prefs.settings}}</b> の末尾にあります。名前、用途、日付、メッセージ、言語、公開範囲を保存します。",
               "<b>{{manage.ship.title}}</b> の中の <b>{{manage.save}}</b> は、配送先の住所を保存します。上のボタンとは別のボタンです。",
               "アイテムの <b>{{manage.item.update}}</b> は、そのアイテムの数量、メモ、カテゴリを保存します。",
-              "最初のセットアップ中のボタンは <b>{{manage.setup.saveContinue}}</b> と <b>{{manage.setup.skip}}</b> です。",
+              "最初のセットアップ中のボタンは <b>{{manage.setup.saveContinue}}</b> と <b>{{manage.setup.skip}}</b> です。パートナーについての2つ目のステップでは、代わりに <b>{{manage.partner.add}}</b> と <b>{{manage.partner.notNow}}</b> です。",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const ja: RawGuideCopy = {
           {
             title: "プライバシーを設定する",
             items: [
-              "<b>{{admin.set.privacy}}</b> で、<b>{{admin.set.hideBuyer}}</b> かどうかと、公開のギフトリスト検索ページ（<b>{{admin.set.find}}</b>）を有効にするかどうかを選びます。ここに表示されるのは、作成者が公開に同意したギフトリストだけです。チェックを入れるまではオフで、それまではストアの検索リンクから、ギフトリストのリンクの入力を求める画面が開きます。",
+              "<b>{{admin.set.privacy}}</b> で、<b>{{admin.set.hideBuyer}}</b> かどうかと、公開のギフトリスト検索ページ（<b>{{admin.set.find}}</b>）を有効にするかどうかを選びます。ここに表示されるのは、作成者が公開に同意したギフトリストだけです。チェックを入れるまではオフで、それまではストアの検索リンクから、ギフトリストのリンクの入力を求める画面が開きます。 リストの所有者が管理ページの <b>{{manage.prefs.who}}</b> でも <b>{{manage.vis.public}}</b> を選んだ場合にのみ、そこに掲載されます。",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const ja: RawGuideCopy = {
             title: "店頭モードとShopify POS",
             items: [
               "Giftpinのメニューで <b>{{admin.nav.inStore}}</b> を開くと、お客様のギフトリストを探したり、カウンターでお客様の代わりに作成したりできます。",
-              "Shopify POSでギフトリストのギフトを会計するには、Giftpinのタイルを追加します。Shopify管理画面で <b>Point of Sale</b> を開き、POSエディタで <b>Add tile → Embedded Apps</b> を選んで、Giftpinを選択してください。商品はPoint of Saleチャネルに公開されている必要があります。",
+              "Shopify POSでギフトリストのギフトを会計するには、Giftpinのタイルを追加します。Shopify管理画面で <b>Point of Sale</b> を開き、POSエディタで <b>Add tile → Apps</b> を選んで、Giftpinを選択してください。商品はPoint of Saleチャネルに公開されている必要があります。 その後、画面右上の <b>Save</b> をクリックしてください。クリックしないとタイルは表示されません。",
               "リストの作成者は、お店で商品のバーコードをスマートフォンでスキャンして追加することもできます。管理ページの <b>{{manage.scan.open}}</b> を開きます。商品にバーコード（またはSKU）が必要で、1つのバーコードを画面いっぱいにはっきり映すと読み取りやすくなります。",
             ],
           },

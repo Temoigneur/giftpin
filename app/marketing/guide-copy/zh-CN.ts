@@ -98,7 +98,7 @@ export const zhCN: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> 在页面靠下位置的 <b>{{manage.prefs.open}}</b> 里，位于 <b>{{manage.prefs.settings}}</b> 的末尾。它会保存名称、场合、日期、留言、语言以及谁可以查看。",
               "<b>{{manage.ship.title}}</b> 中的 <b>{{manage.save}}</b> 用于保存配送地址。它与上面的按钮是分开的。",
               "商品上的 <b>{{manage.item.update}}</b> 用于保存该商品的数量、备注和分类。",
-              "首次设置时，按钮是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。",
+              "首次设置时，按钮是 <b>{{manage.setup.saveContinue}}</b> 和 <b>{{manage.setup.skip}}</b>。关于伴侣的第 2 步则是 <b>{{manage.partner.add}}</b> 和 <b>{{manage.partner.notNow}}</b>。",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const zhCN: RawGuideCopy = {
           {
             title: "设置隐私",
             items: [
-              "在 <b>{{admin.set.privacy}}</b> 下，选择是否 <b>{{admin.set.hideBuyer}}</b>，以及是否开启公开的礼物清单查找页面（<b>{{admin.set.find}}</b>）。只有主人同意的清单才会列在那里。在您勾选之前它是关闭的：在此之前，您店铺上的查找链接会改为请访客输入清单链接。",
+              "在 <b>{{admin.set.privacy}}</b> 下，选择是否 <b>{{admin.set.hideBuyer}}</b>，以及是否开启公开的礼物清单查找页面（<b>{{admin.set.find}}</b>）。只有主人同意的清单才会列在那里。在您勾选之前它是关闭的：在此之前，您店铺上的查找链接会改为请访客输入清单链接。 只有当清单的所有者在其管理页面的 <b>{{manage.prefs.who}}</b> 中也选择 <b>{{manage.vis.public}}</b> 时，该清单才会在那里列出。",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const zhCN: RawGuideCopy = {
             title: "门店模式和 Shopify POS",
             items: [
               "在 Giftpin 菜单中打开 <b>{{admin.nav.inStore}}</b>，可以查找顾客的礼物清单，或在柜台为顾客新建一份。",
-              "要在 Shopify POS 中为清单礼物收银，请添加 Giftpin 磁贴：在 Shopify 后台打开 <b>Point of Sale</b>，进入 POS 编辑器，选择 <b>Add tile → Embedded Apps</b>，然后选择 Giftpin。商品必须已发布到 Point of Sale 渠道。",
+              "要在 Shopify POS 中为清单礼物收银，请添加 Giftpin 磁贴：在 Shopify 后台打开 <b>Point of Sale</b>，进入 POS 编辑器，选择 <b>Add tile → Apps</b>，然后选择 Giftpin。商品必须已发布到 Point of Sale 渠道。 然后点击屏幕右上角的 <b>Save</b>，否则磁贴不会出现。",
               "清单主人还可以在您的店里用手机扫描商品条形码来添加商品：他们在自己的管理页面打开 <b>{{manage.scan.open}}</b>。这需要您的商品上有条形码（或 SKU），并且在画面中清晰、完整地对准一个条形码时效果最好。",
             ],
           },

@@ -98,7 +98,7 @@ export const de: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> befindet sich am Ende von <b>{{manage.prefs.settings}}</b>, innerhalb von <b>{{manage.prefs.open}}</b> im unteren Seitenbereich. Es speichert Name, Anlass, Datum, Nachricht, Sprache und wer die Liste sehen darf.",
               "<b>{{manage.save}}</b> in <b>{{manage.ship.title}}</b> speichert die Lieferadresse. Es ist ein eigener Button, getrennt von dem darüber.",
               "<b>{{manage.item.update}}</b> an einem Artikel speichert Menge, Notiz und Kategorie dieses Artikels.",
-              "Bei der Ersteinrichtung heißen die Buttons <b>{{manage.setup.saveContinue}}</b> und <b>{{manage.setup.skip}}</b>.",
+              "Bei der Ersteinrichtung heißen die Buttons <b>{{manage.setup.saveContinue}}</b> und <b>{{manage.setup.skip}}</b>. Schritt 2, zum Partner, hat stattdessen <b>{{manage.partner.add}}</b> und <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const de: RawGuideCopy = {
           {
             title: "Datenschutz festlegen",
             items: [
-              "Wählen Sie unter <b>{{admin.set.privacy}}</b>, ob Sie <b>{{admin.set.hideBuyer}}</b> möchten und ob Sie die öffentliche Seite zum Finden von Listen einschalten (<b>{{admin.set.find}}</b>). Dort erscheinen nur Listen, deren Besitzer zugestimmt haben. Sie ist aus, bis Sie sie markieren: Bis dahin fragt der Suchlink in Ihrem Shop die Besucher nach dem Link zur Liste.",
+              "Wählen Sie unter <b>{{admin.set.privacy}}</b>, ob Sie <b>{{admin.set.hideBuyer}}</b> möchten und ob Sie die öffentliche Seite zum Finden von Listen einschalten (<b>{{admin.set.find}}</b>). Dort erscheinen nur Listen, deren Besitzer zugestimmt haben. Sie ist aus, bis Sie sie markieren: Bis dahin fragt der Suchlink in Ihrem Shop die Besucher nach dem Link zur Liste. Eine Liste erscheint dort nur, wenn ihr Besitzer auf seiner Verwaltungsseite unter <b>{{manage.prefs.who}}</b> auch <b>{{manage.vis.public}}</b> wählt.",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const de: RawGuideCopy = {
             title: "Ladenmodus und Shopify POS",
             items: [
               "Öffnen Sie <b>{{admin.nav.inStore}}</b> im Giftpin-Menü, um die Liste eines Kunden zu finden oder direkt an der Kasse eine für ihn zu erstellen.",
-              "Um Listengeschenke in Shopify POS zu kassieren, fügen Sie die Giftpin-Kachel hinzu: Öffnen Sie in Ihrem Shopify-Admin <b>Point of Sale</b>, dann den POS-Editor, wählen Sie <b>Add tile → Embedded Apps</b> und Giftpin. Die Produkte müssen im Vertriebskanal Point of Sale veröffentlicht sein.",
+              "Um Listengeschenke in Shopify POS zu kassieren, fügen Sie die Giftpin-Kachel hinzu: Öffnen Sie in Ihrem Shopify-Admin <b>Point of Sale</b>, dann den POS-Editor, wählen Sie <b>Add tile → Apps</b> und Giftpin. Die Produkte müssen im Vertriebskanal Point of Sale veröffentlicht sein. Klicken Sie danach oben rechts auf dem Bildschirm auf <b>Save</b>, sonst erscheint die Kachel nicht.",
               "Listenersteller können in Ihrem Geschäft auch mit dem Smartphone den Barcode eines Produkts scannen, um es hinzuzufügen: Sie öffnen dazu <b>{{manage.scan.open}}</b> auf ihrer Verwaltungsseite. Dafür brauchen Ihre Produkte Barcodes (oder SKUs), und es klappt am besten, wenn ein einzelner Barcode das Bild füllt.",
             ],
           },

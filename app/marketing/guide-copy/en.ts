@@ -97,7 +97,7 @@ export const en: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> is at the bottom of <b>{{manage.prefs.settings}}</b>, inside <b>{{manage.prefs.open}}</b> near the bottom of the page. It saves the name, occasion, date, note, language and who can see it.",
               "<b>{{manage.save}}</b> inside <b>{{manage.ship.title}}</b> saves the shipping address. It is a separate button from the one above.",
               "<b>{{manage.item.update}}</b> on an item saves that item's quantity, note and category.",
-              "During first-time setup the buttons are <b>{{manage.setup.saveContinue}}</b> and <b>{{manage.setup.skip}}</b>.",
+              "During first-time setup the buttons are <b>{{manage.setup.saveContinue}}</b> and <b>{{manage.setup.skip}}</b>. Step 2, about a partner, has <b>{{manage.partner.add}}</b> and <b>{{manage.partner.notNow}}</b> instead.",
             ],
           },
         ],
@@ -143,7 +143,7 @@ export const en: RawGuideCopy = {
           {
             title: "Set privacy",
             items: [
-              "Under <b>{{admin.set.privacy}}</b>, choose whether to <b>{{admin.set.hideBuyer}}</b>, and whether to turn on the public find-a-registry page (<b>{{admin.set.find}}</b>). Only registries whose owners opt in are listed there. It is off until you tick it: until then, the Find link on your storefront asks visitors for the registry link instead.",
+              "Under <b>{{admin.set.privacy}}</b>, choose whether to <b>{{admin.set.hideBuyer}}</b>, and whether to turn on the public find-a-registry page (<b>{{admin.set.find}}</b>). Only registries whose owners opt in are listed there. It is off until you tick it: until then, the Find link on your storefront asks visitors for the registry link instead. A registry is listed there only if its owner also picks <b>{{manage.vis.public}}</b> under <b>{{manage.prefs.who}}</b> on their manage page.",
             ],
           },
           {
@@ -218,7 +218,7 @@ export const en: RawGuideCopy = {
             title: "In-store mode and Shopify POS",
             items: [
               "Open <b>{{admin.nav.inStore}}</b> in Giftpin's menu to find a customer's registry or start one for them at the counter.",
-              "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Embedded Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel.",
+              "To ring up registry gifts in Shopify POS, add the Giftpin tile: in your Shopify admin, open <b>Point of Sale</b>, then the POS editor, choose <b>Add tile → Apps</b> and pick Giftpin. Products must be published to the Point of Sale channel. Then click <b>Save</b> at the top right of the screen, or the tile won't appear.",
               "Registrants can also scan a product's barcode with their phone in your shop to add it: they open <b>{{manage.scan.open}}</b> on their manage page. This needs barcodes (or SKUs) on your products, and it works best with a clear, full-frame view of one barcode.",
             ],
           },

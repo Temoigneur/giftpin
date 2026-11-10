@@ -23,7 +23,35 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     lede: s("hub_lede"),
     steps: [1, 2, 3, 4].map((n): Step => ({ title: s(`hub${n}_t`), items: [s(`hub${n}_i`)] })),
   };
-  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, get, save] };
+  // Real screens with the buttons boxed and numbered in the images.
+  const withShot = (sec: typeof get, at: number, keys: string[]): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) =>
+      i === at
+        ? { ...st, ...(locale === "en" ? { img: keys.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: keys.map((k) => SHOTS[k].alt[locale]) }) }
+        : st,
+    ),
+  });
+  // Replace one existing image in a step (the old Overview shot) with a new real one.
+  const swapShot = (sec: typeof get, at: number, imgAt: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? [...st.img] : st.img ? [st.img] : [];
+        list[imgAt] = { src: SHOTS[key].src, alt: SHOTS[key].alt.en };
+        return { ...st, img: list };
+      }
+      const alts = [...(st.alts ?? [])];
+      alts[imgAt] = SHOTS[key].alt[locale];
+      return { ...st, alts };
+    }),
+  });
+  const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
+  const saveWithShots = withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]);
+  const manageKeys = ["manageSaveSettings", "manageSaveShip", "manageItemUpdate"];
+  const saveAll = withShot(saveWithShots, 3, manageKeys);
+  const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveAll] };
   const sub = (p: string, sections: GuideDoc["sections"]): GuideDoc => ({
     ...raw.setup,
     eyebrow: s(`${p}_eyebrow`),
@@ -48,7 +76,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     metaTitle: s("g_meta"),
     description: s("g_desc"),
     sections: [
-      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2")]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")])] },
+      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2"), s("g1_i3")], ["find"]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")])] },
       {
         title: s("gs2_t"),
         lede: s("gs2_lede"),
@@ -63,12 +91,14 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
 
   const registry: GuideDoc = {
     ...raw.registry,
-    sections: raw.registry.sections.map((sec, i) => (i === 2 ? { ...sec, steps: [...sec.steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : sec)),
+    sections: raw.registry.sections.map((sec, i) =>
+      i === 2 ? { ...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]), steps: [...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
+    ),
   };
 
   const withPanel: typeof more = {
     ...more,
-    steps: more.steps.map((st, i) => (i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
+    steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [make, withPanel]), pro: sub("p", [pro]), registry, guest };
+  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"])]), pro: sub("p", [withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"])]), registry, guest };
 }

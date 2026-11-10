@@ -98,7 +98,7 @@ export const es: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> está al final de <b>{{manage.prefs.settings}}</b>, dentro de <b>{{manage.prefs.open}}</b>, hacia el final de la página. Guarda el nombre, la ocasión, la fecha, la nota, el idioma y quién puede verla.",
               "<b>{{manage.save}}</b> dentro de <b>{{manage.ship.title}}</b> guarda la dirección de envío. Es un botón distinto del anterior.",
               "<b>{{manage.item.update}}</b> en un artículo guarda la cantidad, la nota y la categoría de ese artículo.",
-              "Durante la configuración inicial, los botones son <b>{{manage.setup.saveContinue}}</b> y <b>{{manage.setup.skip}}</b>.",
+              "Durante la configuración inicial, los botones son <b>{{manage.setup.saveContinue}}</b> y <b>{{manage.setup.skip}}</b>. El paso 2, sobre una pareja, tiene en su lugar <b>{{manage.partner.add}}</b> y <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const es: RawGuideCopy = {
           {
             title: "Configurar la privacidad",
             items: [
-              "En <b>{{admin.set.privacy}}</b>, elige si quieres <b>{{admin.set.hideBuyer}}</b> y si activas la página pública para buscar listas (<b>{{admin.set.find}}</b>). Solo aparecen allí las listas cuyos dueños lo aceptan. Está desactivada hasta que la marques: hasta entonces, el enlace de búsqueda de tu tienda pide a los visitantes el enlace de la lista.",
+              "En <b>{{admin.set.privacy}}</b>, elige si quieres <b>{{admin.set.hideBuyer}}</b> y si activas la página pública para buscar listas (<b>{{admin.set.find}}</b>). Solo aparecen allí las listas cuyos dueños lo aceptan. Está desactivada hasta que la marques: hasta entonces, el enlace de búsqueda de tu tienda pide a los visitantes el enlace de la lista. Un registro solo aparece ahí si su propietario también elige <b>{{manage.vis.public}}</b> en <b>{{manage.prefs.who}}</b> en su página de gestión.",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const es: RawGuideCopy = {
             title: "Modo en tienda y Shopify POS",
             items: [
               "Abre <b>{{admin.nav.inStore}}</b> en el menú de Giftpin para encontrar la lista de un cliente o crearla por él en el mostrador.",
-              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale</b>, luego el editor de POS, elige <b>Add tile → Embedded Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale.",
+              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale</b>, luego el editor de POS, elige <b>Add tile → Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale. Después haz clic en <b>Save</b> arriba a la derecha de la pantalla, o el icono no aparecerá.",
               "Quienes crean listas también pueden escanear con el teléfono el código de barras de un producto en tu tienda para añadirlo: abren <b>{{manage.scan.open}}</b> en su página de gestión. Hacen falta códigos de barras (o SKU) en tus productos, y funciona mejor con un solo código bien encuadrado.",
             ],
           },

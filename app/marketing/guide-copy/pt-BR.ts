@@ -98,7 +98,7 @@ export const ptBR: RawGuideCopy = {
               "<b>{{manage.prefs.save}}</b> fica no fim de <b>{{manage.prefs.settings}}</b>, dentro de <b>{{manage.prefs.open}}</b>, perto do fim da página. Ele salva o nome, a ocasião, a data, o recado, o idioma e quem pode ver a lista.",
               "<b>{{manage.save}}</b> dentro de <b>{{manage.ship.title}}</b> salva o endereço de entrega. É um botão separado do de cima.",
               "<b>{{manage.item.update}}</b> em um item salva a quantidade, a observação e a categoria desse item.",
-              "Durante a configuração inicial, os botões são <b>{{manage.setup.saveContinue}}</b> e <b>{{manage.setup.skip}}</b>.",
+              "Durante a configuração inicial, os botões são <b>{{manage.setup.saveContinue}}</b> e <b>{{manage.setup.skip}}</b>. O passo 2, sobre um parceiro, tem em vez disso <b>{{manage.partner.add}}</b> e <b>{{manage.partner.notNow}}</b>.",
             ],
           },
         ],
@@ -144,7 +144,7 @@ export const ptBR: RawGuideCopy = {
           {
             title: "Definir a privacidade",
             items: [
-              "Em <b>{{admin.set.privacy}}</b>, escolha se quer <b>{{admin.set.hideBuyer}}</b> e se ativa a página pública para encontrar listas (<b>{{admin.set.find}}</b>). Só aparecem ali as listas cujos donos aceitaram. Ela fica desativada até você marcar: até lá, o link de busca da sua loja pede aos visitantes o link da lista.",
+              "Em <b>{{admin.set.privacy}}</b>, escolha se quer <b>{{admin.set.hideBuyer}}</b> e se ativa a página pública para encontrar listas (<b>{{admin.set.find}}</b>). Só aparecem ali as listas cujos donos aceitaram. Ela fica desativada até você marcar: até lá, o link de busca da sua loja pede aos visitantes o link da lista. Uma lista só aparece ali se o dono dela também escolher <b>{{manage.vis.public}}</b> em <b>{{manage.prefs.who}}</b> na página de gerenciamento.",
             ],
           },
           {
@@ -215,7 +215,7 @@ export const ptBR: RawGuideCopy = {
             title: "Modo loja física e Shopify POS",
             items: [
               "Abra <b>{{admin.nav.inStore}}</b> no menu do Giftpin para encontrar a lista de um cliente ou criar uma para ele no balcão.",
-              "Para registrar presentes de lista no Shopify POS, adicione o bloco do Giftpin: no painel da Shopify, abra <b>Point of Sale</b>, depois o editor do POS, escolha <b>Add tile → Embedded Apps</b> e selecione o Giftpin. Os produtos precisam estar publicados no canal Point of Sale.",
+              "Para registrar presentes de lista no Shopify POS, adicione o bloco do Giftpin: no painel da Shopify, abra <b>Point of Sale</b>, depois o editor do POS, escolha <b>Add tile → Apps</b> e selecione o Giftpin. Os produtos precisam estar publicados no canal Point of Sale. Depois clique em <b>Save</b> no canto superior direito da tela, ou o bloco não aparecerá.",
               "Quem cria listas também pode escanear com o celular o código de barras de um produto na sua loja para adicioná-lo: abre <b>{{manage.scan.open}}</b> na própria página de gerenciamento. É preciso ter códigos de barras (ou SKUs) nos seus produtos, e funciona melhor com um único código de barras bem enquadrado.",
             ],
           },
