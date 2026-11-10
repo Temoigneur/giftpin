@@ -143,7 +143,7 @@ export const en: RawGuideCopy = {
           {
             title: "Set privacy",
             items: [
-              "Under <b>{{admin.set.privacy}}</b>, choose whether to <b>{{admin.set.hideBuyer}}</b>, and whether to turn on the public find-a-registry page (<b>{{admin.set.find}}</b>). Only registries whose owners opt in are listed there. It is off until you tick it: until then, the Find link on your storefront asks visitors for the registry link instead.",
+              "Under <b>{{admin.set.privacy}}</b>, choose whether to <b>{{admin.set.hideBuyer}}</b>, and whether to turn on the public find-a-registry page (<b>{{admin.set.find}}</b>). Only registries whose owners opt in are listed there. It is off until you tick it: until then, the Find link on your storefront asks visitors for the registry link instead. A registry is listed there only if its owner also picks <b>{{manage.vis.public}}</b> under <b>{{manage.prefs.who}}</b> on their manage page.",
             ],
           },
           {

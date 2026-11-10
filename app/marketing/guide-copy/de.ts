@@ -144,7 +144,7 @@ export const de: RawGuideCopy = {
           {
             title: "Datenschutz festlegen",
             items: [
-              "Wählen Sie unter <b>{{admin.set.privacy}}</b>, ob Sie <b>{{admin.set.hideBuyer}}</b> möchten und ob Sie die öffentliche Seite zum Finden von Listen einschalten (<b>{{admin.set.find}}</b>). Dort erscheinen nur Listen, deren Besitzer zugestimmt haben. Sie ist aus, bis Sie sie markieren: Bis dahin fragt der Suchlink in Ihrem Shop die Besucher nach dem Link zur Liste.",
+              "Wählen Sie unter <b>{{admin.set.privacy}}</b>, ob Sie <b>{{admin.set.hideBuyer}}</b> möchten und ob Sie die öffentliche Seite zum Finden von Listen einschalten (<b>{{admin.set.find}}</b>). Dort erscheinen nur Listen, deren Besitzer zugestimmt haben. Sie ist aus, bis Sie sie markieren: Bis dahin fragt der Suchlink in Ihrem Shop die Besucher nach dem Link zur Liste. Eine Liste erscheint dort nur, wenn ihr Besitzer auf seiner Verwaltungsseite unter <b>{{manage.prefs.who}}</b> auch <b>{{manage.vis.public}}</b> wählt.",
             ],
           },
           {

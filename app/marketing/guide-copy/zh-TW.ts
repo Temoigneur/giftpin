@@ -144,7 +144,7 @@ export const zhTW: RawGuideCopy = {
           {
             title: "設定隱私",
             items: [
-              "在 <b>{{admin.set.privacy}}</b> 底下，選擇是否要 <b>{{admin.set.hideBuyer}}</b>，以及是否開啟公開的尋找禮物清單頁面（<b>{{admin.set.find}}</b>）。只有擁有者同意的清單才會列在那裡。在您勾選之前，它是關閉的：在那之前，商店中的尋找連結會改為請訪客輸入禮物清單連結。",
+              "在 <b>{{admin.set.privacy}}</b> 底下，選擇是否要 <b>{{admin.set.hideBuyer}}</b>，以及是否開啟公開的尋找禮物清單頁面（<b>{{admin.set.find}}</b>）。只有擁有者同意的清單才會列在那裡。在您勾選之前，它是關閉的：在那之前，商店中的尋找連結會改為請訪客輸入禮物清單連結。 只有當清單的擁有者在其管理頁面的 <b>{{manage.prefs.who}}</b> 中也選擇 <b>{{manage.vis.public}}</b> 時，該清單才會列在那裡。",
             ],
           },
           {

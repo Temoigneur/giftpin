@@ -144,7 +144,7 @@ export const ptBR: RawGuideCopy = {
           {
             title: "Definir a privacidade",
             items: [
-              "Em <b>{{admin.set.privacy}}</b>, escolha se quer <b>{{admin.set.hideBuyer}}</b> e se ativa a página pública para encontrar listas (<b>{{admin.set.find}}</b>). Só aparecem ali as listas cujos donos aceitaram. Ela fica desativada até você marcar: até lá, o link de busca da sua loja pede aos visitantes o link da lista.",
+              "Em <b>{{admin.set.privacy}}</b>, escolha se quer <b>{{admin.set.hideBuyer}}</b> e se ativa a página pública para encontrar listas (<b>{{admin.set.find}}</b>). Só aparecem ali as listas cujos donos aceitaram. Ela fica desativada até você marcar: até lá, o link de busca da sua loja pede aos visitantes o link da lista. Uma lista só aparece ali se o dono dela também escolher <b>{{manage.vis.public}}</b> em <b>{{manage.prefs.who}}</b> na página de gerenciamento.",
             ],
           },
           {

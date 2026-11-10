@@ -144,7 +144,7 @@ export const es: RawGuideCopy = {
           {
             title: "Configurar la privacidad",
             items: [
-              "En <b>{{admin.set.privacy}}</b>, elige si quieres <b>{{admin.set.hideBuyer}}</b> y si activas la página pública para buscar listas (<b>{{admin.set.find}}</b>). Solo aparecen allí las listas cuyos dueños lo aceptan. Está desactivada hasta que la marques: hasta entonces, el enlace de búsqueda de tu tienda pide a los visitantes el enlace de la lista.",
+              "En <b>{{admin.set.privacy}}</b>, elige si quieres <b>{{admin.set.hideBuyer}}</b> y si activas la página pública para buscar listas (<b>{{admin.set.find}}</b>). Solo aparecen allí las listas cuyos dueños lo aceptan. Está desactivada hasta que la marques: hasta entonces, el enlace de búsqueda de tu tienda pide a los visitantes el enlace de la lista. Un registro solo aparece ahí si su propietario también elige <b>{{manage.vis.public}}</b> en <b>{{manage.prefs.who}}</b> en su página de gestión.",
             ],
           },
           {

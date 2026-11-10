@@ -144,7 +144,7 @@ export const zhCN: RawGuideCopy = {
           {
             title: "设置隐私",
             items: [
-              "在 <b>{{admin.set.privacy}}</b> 下，选择是否 <b>{{admin.set.hideBuyer}}</b>，以及是否开启公开的礼物清单查找页面（<b>{{admin.set.find}}</b>）。只有主人同意的清单才会列在那里。在您勾选之前它是关闭的：在此之前，您店铺上的查找链接会改为请访客输入清单链接。",
+              "在 <b>{{admin.set.privacy}}</b> 下，选择是否 <b>{{admin.set.hideBuyer}}</b>，以及是否开启公开的礼物清单查找页面（<b>{{admin.set.find}}</b>）。只有主人同意的清单才会列在那里。在您勾选之前它是关闭的：在此之前，您店铺上的查找链接会改为请访客输入清单链接。 只有当清单的所有者在其管理页面的 <b>{{manage.prefs.who}}</b> 中也选择 <b>{{manage.vis.public}}</b> 时，该清单才会在那里列出。",
             ],
           },
           {
