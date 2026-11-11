@@ -213,13 +213,14 @@ const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
     })
     .join("");
 
-function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null, merchant: boolean): string {
+const stepId = (st: Step, sec: number, i: number) => st.id ?? `step-${sec + 1}-${i + 1}`;
+function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null, merchant: boolean, sec: number): string {
   return `<div class="steps">${list
     .map((st, i) => {
       const base = english[i]?.img;
       const imgs = base ? (Array.isArray(base) ? base : [base]) : [];
       const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
-      return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
+      return `<div class="card rise step" id="${esc(stepId(st, sec, i))}">
   <span class="step-n${first === null ? " step-dot" : ""}">${first === null ? "•" : first + i}</span>
   <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown, locale, merchant)}</div>
 </div>`;
@@ -259,6 +260,22 @@ function stepNumbers(kind: GuideKind): { starts: (number | null)[]; total: numbe
     if (k === kind) mine = here;
   }
   return { starts: mine, total: n };
+}
+
+/** Sticky contents column: every section and step of this guide, each a link that jumps to it. */
+function guideToc(doc: { sections: { title: string; steps: Step[] }[]; faq: unknown[]; faqTitle: string }, nums: (number | null)[], locale: Locale): string {
+  const ui = DOCS_UI[locale];
+  const items = doc.sections
+    .map((sec, i) => {
+      const first = nums[i] ?? null;
+      const steps = sec.steps
+        .map((st, j) => `<li><a href="#${esc(stepId(st, i, j))}">${first === null ? "" : `<span>${first + j}</span>`}${esc(st.title)}</a></li>`)
+        .join("");
+      return `<li class="toc-sec"><a href="#s${i + 1}">${esc(sec.title)}</a>${steps ? `<ol>${steps}</ol>` : ""}</li>`;
+    })
+    .join("");
+  const faq = doc.faq.length ? `<li class="toc-sec"><a href="#faq">${esc(doc.faqTitle)}</a></li>` : "";
+  return `<aside class="toc" aria-label="${esc(ui.onPage)}"><b>${esc(ui.onPage)}</b><ul>${items}${faq}</ul></aside>`;
 }
 
 const ORDER: GuideKind[] = ["setup", "customize", "pro", "registry", "guest"];
@@ -303,12 +320,18 @@ function guideHtml(kind: GuideKind, locale: Locale): string {
 ${hero(`${icon(page.icon)} ${esc(doc.eyebrow)} <span class="aud aud-${merchant ? "m" : "c"}">${esc(DOCS_UI[locale][AUDIENCE[kind]])}</span>`, doc.h1, doc.lede)}
 ${docsMenu(kind, locale, doc.sections)}
 ${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
+<div class="guide-cols">
+${guideToc(doc, nums.starts, locale)}
+<div class="guide-main">
 ${doc.sections
-  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale, merchant ? (nums.starts[i] ?? null) : 1, merchant), sec.tint, `s${i + 1}`))
+  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale, merchant ? (nums.starts[i] ?? null) : 1, merchant, i), sec.tint, `s${i + 1}`))
   .join("\n")}
 ${nextLink}
-${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint) : ""}
+${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint, "faq") : ""}
+</div>
+</div>
 ${page.cta ? finalCta(copy.ui.finalCta) : ""}
+<script>(function(){var l=[].slice.call(document.querySelectorAll(".toc a"));if(!l.length||!window.IntersectionObserver)return;var m={};l.forEach(function(a){m[a.getAttribute("href").slice(1)]=a});var cur;var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){if(cur)cur.classList.remove("on");cur=m[e.target.id];if(cur){cur.classList.add("on");var t=cur.closest(".toc");if(t){var r=cur.getBoundingClientRect(),b=t.getBoundingClientRect();if(r.top<b.top||r.bottom>b.bottom)cur.scrollIntoView({block:"nearest"})}}}})},{rootMargin:"-90px 0px -65% 0px"});Object.keys(m).forEach(function(id){var e=document.getElementById(id);if(e)o.observe(e)})})()</script>
 `;
   return sitePage({
     path,
@@ -378,6 +401,22 @@ const CSS = `
 .docs-menu b{flex:none; min-width:210px}
 .docs-menu a{padding:4px 12px; border-radius:999px; border:1px solid var(--line); text-decoration:none; color:inherit}
 .docs-menu a[aria-current="page"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.guide-cols{display:block}
+.toc{display:none}
+.step,.sec{scroll-margin-top:90px}
+@media (min-width:1000px){
+  .guide-cols{display:grid; grid-template-columns:270px minmax(0,1fr); align-items:start; max-width:1500px; margin:0 auto}
+  .toc{display:block; position:sticky; top:84px; max-height:calc(100vh - 104px); overflow:auto; margin:28px 0 0 20px; padding:14px 12px; border:1px solid var(--line); border-radius:14px; background:var(--surface); font-size:14px; line-height:1.35}
+  .toc b{display:block; margin:0 0 8px 6px}
+  .toc ul,.toc ol{list-style:none; margin:0; padding:0}
+  .toc ol{margin:2px 0 8px 6px}
+  .toc a{display:flex; gap:8px; padding:5px 8px; border-radius:8px; text-decoration:none; color:inherit}
+  .toc .toc-sec>a{font-weight:700}
+  .toc ol a{font-weight:400; opacity:.85}
+  .toc a span{flex:none; min-width:1.4em; color:var(--accent); font-weight:700}
+  .toc a:hover{background:rgba(109,58,232,.08)}
+  .toc a.on{background:rgba(109,58,232,.14); opacity:1; font-weight:600}
+}
 .dm-toc{border-top:1px solid var(--line); padding-top:10px}
 .dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
 .sec[id]{scroll-margin-top:80px}
