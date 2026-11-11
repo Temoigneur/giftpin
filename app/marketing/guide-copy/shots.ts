@@ -87,17 +87,17 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     }
   },
   "find": {
-    "src": "/guides/g3-find-registry.png",
+    "src": "/guides/g1-find-empty.png",
     "alt": {
-      "en": "The Find a registry page with a Name box and a Search button",
-      "fr": "La page Trouver une liste avec un champ Nom et un bouton Rechercher",
-      "es": "La página Buscar una lista con un campo Nombre y un botón Buscar",
-      "de": "Die Seite Liste finden mit einem Namensfeld und einem Suchen-Button",
-      "pt-BR": "A página Encontrar uma lista com um campo Nome e um botão Buscar",
-      "hi": "रजिस्ट्री खोजें पेज, नाम वाला बॉक्स और खोजें बटन के साथ",
-      "zh-CN": "“查找清单”页面，含名称输入框和搜索按钮",
-      "zh-TW": "「尋找清單」頁面，含名稱輸入框和搜尋按鈕",
-      "ja": "「リストを探す」ページ。名前の入力欄と検索ボタン"
+      "en": "The Find a registry page: the name box boxed in red and numbered 1, and the Search button boxed and numbered 2",
+      "fr": "La page Trouver une liste : le champ du nom encadré en rouge et numéroté 1, et le bouton Rechercher encadré et numéroté 2",
+      "es": "La página Buscar un registro: el cuadro del nombre enmarcado en rojo y numerado 1, y el botón Buscar enmarcado y numerado 2",
+      "de": "Die Seite Liste finden: das Namensfeld rot umrandet und mit 1 nummeriert und der Button Suchen umrandet und mit 2 nummeriert",
+      "pt-BR": "A página Encontrar uma lista: a caixa do nome destacada em vermelho e numerada 1, e o botão Buscar destacado e numerado 2",
+      "hi": "रजिस्ट्री खोजें पेज: नाम का बॉक्स लाल बॉक्स में और नंबर 1 के साथ, और खोजें बटन बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "“查找清单”页面：名称输入框以红框标示并编号 1，“搜索”按钮以红框标示并编号 2",
+      "zh-TW": "「尋找清單」頁面：名稱輸入框以紅框標示並編號 1，「搜尋」按鈕以紅框標示並編號 2",
+      "ja": "「リストを探す」ページ。名前の入力欄が赤い枠と番号1、「検索」ボタンが赤い枠と番号2で示されている"
     }
   },
   "installStore": {
@@ -952,6 +952,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-CN": "管理页面顶部、清单名称下方，绿色提示“Your changes are saved.”以红框标示",
       "zh-TW": "管理頁面頂部、清單名稱下方，綠色提示「Your changes are saved.」以紅框標示",
       "ja": "管理ページの上部、リスト名の下。緑のメッセージ「Your changes are saved.」が赤い枠で示されている"
+    }
+  },
+  "findResults": {
+    "src": "/guides/g1-find-results.png",
+    "alt": {
+      "en": "The search results, with the registry's name link boxed in red and numbered 3",
+      "fr": "Les résultats de recherche, avec le lien du nom de la liste encadré en rouge et numéroté 3",
+      "es": "Los resultados de búsqueda, con el enlace del nombre del registro enmarcado en rojo y numerado 3",
+      "de": "Die Suchergebnisse, mit dem Namenslink der Liste rot umrandet und mit 3 nummeriert",
+      "pt-BR": "Os resultados da busca, com o link do nome da lista destacado em vermelho e numerado 3",
+      "hi": "खोज के नतीजे, रजिस्ट्री के नाम का लिंक लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "搜索结果，清单名称链接以红框标示并编号 3",
+      "zh-TW": "搜尋結果，清單名稱連結以紅框標示並編號 3",
+      "ja": "検索結果。リスト名のリンクが赤い枠と番号3で示されている"
     }
   }
 };
