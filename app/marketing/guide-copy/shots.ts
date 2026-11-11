@@ -925,5 +925,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "清單管理頁面: 「Remove partner」以紅框標示並編號 3",
       "ja": "リスト管理ページ: 「Remove partner」が赤い枠と番号3で示されている"
     }
+  },
+  "manageShipSaved": {
+    "src": "/guides/m6-manage-ship-saved.png",
+    "alt": {
+      "en": "The top of the shipping form, with the green message “Your shipping address is saved.” boxed in red and numbered 3",
+      "fr": "Le haut du formulaire d'expédition, avec le message vert « Your shipping address is saved. » encadré en rouge et numéroté 3",
+      "es": "La parte superior del formulario de envío, con el mensaje verde «Your shipping address is saved.» enmarcado en rojo y numerado 3",
+      "de": "Der obere Teil des Versandformulars, mit der grünen Meldung „Your shipping address is saved.“ rot umrandet und mit 3 nummeriert",
+      "pt-BR": "A parte de cima do formulário de envio, com a mensagem verde “Your shipping address is saved.” destacada em vermelho e numerada 3",
+      "hi": "शिपिंग फ़ॉर्म का ऊपरी हिस्सा, हरा संदेश “Your shipping address is saved.” लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "配送表单顶部，绿色提示“Your shipping address is saved.”以红框标示并编号 3",
+      "zh-TW": "配送表單頂部，綠色提示「Your shipping address is saved.」以紅框標示並編號 3",
+      "ja": "配送フォームの上部。緑のメッセージ「Your shipping address is saved.」が赤い枠と番号3で示されている"
+    }
   }
 };
