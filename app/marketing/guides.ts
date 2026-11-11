@@ -198,8 +198,18 @@ const arrowInto = (src: string) => {
   const f = (e[1] / e[0]).toFixed(4);
   return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
 };
-const guideShots = (list: Shot[]) =>
-  list.map((i, n) => (n ? arrowInto(i.src) : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join("");
+// Shots that only show what someone else will see: a caption says so, so nobody waits for the box to open.
+const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard"> = {
+  "/guides/m9-cash-fund.png": "seeManage",
+  "/guides/m10-gift-card-page.png": "seeGiftCard",
+};
+const guideShots = (list: Shot[], locale: Locale) =>
+  list
+    .map((i, n) => {
+      const cap = PREVIEW_SHOTS[i.src];
+      return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`;
+    })
+    .join("");
 
 function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
   return `<div class="steps">${list
@@ -209,7 +219,7 @@ function guideSteps(list: Step[], english: Step[], locale: Locale, first: number
       const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
       return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
   <span class="step-n${first === null ? " step-dot" : ""}">${first === null ? "•" : first + i}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown)}</div>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown, locale)}</div>
 </div>`;
     })
     .join("")}</div>`;
@@ -369,6 +379,7 @@ const CSS = `
 .dm-toc{border-top:1px solid var(--line); padding-top:10px}
 .dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
 .sec[id]{scroll-margin-top:80px}
+.shot-cap{margin:10px 0 0; padding:8px 12px; border-left:4px solid #e61e1e; background:rgba(230,30,30,.07); border-radius:6px; font-weight:600; font-size:.95em}
 .shot-arrow{display:block; width:24px; height:40px; margin:6px auto 0}
 .shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
 `;
