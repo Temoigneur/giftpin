@@ -92,7 +92,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
   const registry: GuideDoc = {
     ...raw.registry,
     sections: raw.registry.sections.map((sec, i) =>
-      i === 2 ? { ...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]), steps: [...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
+      i === 2 ? { ...withShot(withShot(sec, 3, ["shipSetup"]), 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]), steps: [...withShot(withShot(sec, 3, ["shipSetup"]), 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
     ),
   };
 

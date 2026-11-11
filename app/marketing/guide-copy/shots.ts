@@ -995,5 +995,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "一件已被安排好的禮物，「Already taken care of」標籤以紅框標示，「復原」連結以紅框標示並編號 3",
       "ja": "手配済みのギフト。「Already taken care of」のラベルが赤い枠で、「元に戻す」リンクが赤い枠と番号3で示されている"
     }
+  },
+  "shipSetup": {
+    "src": "/guides/r4-ship-setup.png",
+    "alt": {
+      "en": "First-time setup, step 1 of 2, Where should gifts go?, with the tick box to let guests ship gifts straight to you boxed in red and numbered 1",
+      "fr": "Configuration initiale, étape 1 sur 2, Où les cadeaux doivent-ils aller ?, avec la case permettant aux invités de vous expédier les cadeaux directement encadrée en rouge et numérotée 1",
+      "es": "Configuración inicial, paso 1 de 2, ¿Adónde deben ir los regalos?, con la casilla para que los invitados envíen los regalos directamente a ti enmarcada en rojo y numerada 1",
+      "de": "Ersteinrichtung, Schritt 1 von 2, Wohin sollen die Geschenke?, mit dem Kästchen, das Gästen den direkten Versand an Sie erlaubt, rot umrandet und mit 1 nummeriert",
+      "pt-BR": "Configuração inicial, etapa 1 de 2, Para onde os presentes devem ir?, com a caixa que permite aos convidados enviar presentes direto para você destacada em vermelho e numerada 1",
+      "hi": "पहली बार की सेटअप, चरण 1/2, उपहार कहाँ जाएँ?, मेहमानों को सीधे आपको उपहार भेजने देने वाला टिक बॉक्स लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "首次设置第 1 步（共 2 步），礼物寄到哪里？，允许宾客直接把礼物寄给你的勾选框以红框标示并编号 1",
+      "zh-TW": "首次設定第 1 步（共 2 步），禮物要寄到哪裡？，允許賓客直接把禮物寄給你的核取方塊以紅框標示並編號 1",
+      "ja": "初回設定のステップ1/2「ギフトの届け先」。ゲストが直接あなたにギフトを発送できるチェックボックスが赤い枠と番号1で示されている"
+    }
   }
 };
