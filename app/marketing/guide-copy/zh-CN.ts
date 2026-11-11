@@ -7,7 +7,7 @@ export const zhCN: RawGuideCopy = {
     language: "语言",
     shotsNote: "截图显示的是界面的英文版本。",
     shopifyNote:
-      "Shopify 自带的界面名称（例如 Online Store → Navigation）以英文标示，与英文版 Shopify 后台一致。在您的语言下，它们可能显示为翻译后的名称。",
+      "Shopify 自带的界面名称（例如 Content → Menus）以英文标示，与英文版 Shopify 后台一致。在您的语言下，它们可能显示为翻译后的名称。",
     finalCta: "准备好为您的顾客提供礼物清单了吗？",
   },
 
@@ -39,7 +39,7 @@ export const zhCN: RawGuideCopy = {
               "然后点击 <b>{{admin.theme.savedAdd}}</b>。这会在您的购物车页面添加一个 <b>Saved items</b> 列表，方便顾客找到自己收藏的商品。点击 <b>Save</b>。",
               "这两项不会自动开启。在您于主题编辑器中添加并点击 <b>Save</b> 之前，顾客看不到心形按钮。收藏记录保存在顾客自己的浏览器中，无需账号，因此换一台新设备时列表是空的。",
               "想自己手动放置？在主题编辑器中打开页面，点击 <b>Add block</b>（或 <b>Add section</b>），打开 <b>Apps</b> 分组，然后选择 <b>Save for later</b> 或 <b>Saved items</b>。",
-              "使用的是旧版主题（早于 Online Store 2.0）？这些区块在旧版主题中无法使用，但您的礼物清单页面仍然可用：请在 <b>Online Store → Navigation</b> 中添加一个指向 <b>/apps/registry</b> 的菜单项。",
+              "使用的是旧版主题（早于 Online Store 2.0）？这些区块在旧版主题中无法使用，但您的礼物清单页面仍然可用：请在 <b>Content → Menus</b> 中添加一个指向 <b>/apps/registry</b> 的菜单项。",
             ],
             alts: [
               "Giftpin 的概览页面，包含“将 Giftpin 添加到您的主题”卡片，以及添加到商品页面的按钮和添加清单链接的按钮",

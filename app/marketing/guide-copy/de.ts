@@ -7,7 +7,7 @@ export const de: RawGuideCopy = {
     language: "Sprache",
     shotsNote: "Die Screenshots zeigen die englische Version der Bildschirme.",
     shopifyNote:
-      "Die Namen von Shopify-Bildschirmen (zum Beispiel Online Store → Navigation) stehen auf Englisch, wie im englischen Shopify-Admin. In Ihrer Sprache können sie übersetzt erscheinen.",
+      "Die Namen von Shopify-Bildschirmen (zum Beispiel Content → Menus) stehen auf Englisch, wie im englischen Shopify-Admin. In Ihrer Sprache können sie übersetzt erscheinen.",
     finalCta: "Bereit, Ihren Kunden eine Geschenkliste anzubieten?",
   },
 
@@ -39,7 +39,7 @@ export const de: RawGuideCopy = {
               "Klicken Sie dann auf <b>{{admin.theme.savedAdd}}</b>. Das fügt Ihrer Warenkorbseite eine <b>Saved items</b>-Liste hinzu, damit Käufer wiederfinden, was sie mit dem Herz markiert haben. Drücken Sie auf <b>Save</b>.",
               "Diese beiden werden nicht automatisch aktiviert. Solange Sie sie nicht im Theme-Editor hinzugefügt und auf <b>Save</b> gedrückt haben, sehen Käufer kein Herz. Die Herzen werden im eigenen Browser des Käufers gespeichert, ohne Konto, daher ist die Liste auf einem neuen Gerät leer.",
               "Lieber von Hand platzieren? Öffnen Sie im Theme-Editor die Seite, klicken Sie auf <b>Add block</b> (oder <b>Add section</b>), öffnen Sie die Gruppe <b>Apps</b> und wählen Sie <b>Save for later</b> oder <b>Saved items</b>.",
-              "Sie nutzen ein altes Theme (vor Online Store 2.0)? Die Blöcke funktionieren dort nicht, Ihre Listenseiten aber schon: Fügen Sie unter <b>Online Store → Navigation</b> einen Menüpunkt hinzu, der auf <b>/apps/registry</b> verweist.",
+              "Sie nutzen ein altes Theme (vor Online Store 2.0)? Die Blöcke funktionieren dort nicht, Ihre Listenseiten aber schon: Fügen Sie unter <b>Content → Menus</b> einen Menüpunkt hinzu, der auf <b>/apps/registry</b> verweist.",
             ],
             alts: [
               "Die Giftpin-Übersicht mit der Karte „Giftpin zu Ihrem Theme hinzufügen“ und den Buttons zum Hinzufügen des Buttons zu Produktseiten und der Listen-Links",

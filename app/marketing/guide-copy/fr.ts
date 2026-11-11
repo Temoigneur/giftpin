@@ -7,7 +7,7 @@ export const fr: RawGuideCopy = {
     language: "Langue",
     shotsNote: "Les captures d'écran montrent la version anglaise des écrans.",
     shopifyNote:
-      "Les noms des écrans de Shopify (par exemple Online Store → Navigation) sont indiqués en anglais, comme dans l'administration Shopify en anglais. Dans votre langue, ils peuvent apparaître traduits.",
+      "Les noms des écrans de Shopify (par exemple Content → Menus) sont indiqués en anglais, comme dans l'administration Shopify en anglais. Dans votre langue, ils peuvent apparaître traduits.",
     finalCta: "Prêt à offrir une liste de cadeaux à vos clients ?",
   },
 
@@ -39,7 +39,7 @@ export const fr: RawGuideCopy = {
               "Cliquez ensuite sur <b>{{admin.theme.savedAdd}}</b>. Cela ajoute une liste <b>Saved items</b> à votre page panier, pour que les clients retrouvent ce qu'ils ont mis en favori. Appuyez sur <b>Save</b>.",
               "Ces deux blocs ne s'activent pas automatiquement. Tant que vous ne les avez pas ajoutés dans l'éditeur de thème et appuyé sur <b>Save</b>, vos clients ne verront pas de cœur. Les cœurs sont conservés dans le navigateur du client, sans compte : la liste est donc vide sur un nouvel appareil.",
               "Vous préférez les placer vous-même ? Dans l'éditeur de thème, ouvrez la page, cliquez sur <b>Add block</b> (ou <b>Add section</b>), ouvrez le groupe <b>Apps</b> et choisissez <b>Save for later</b> ou <b>Saved items</b>.",
-              "Votre thème est ancien (antérieur à Online Store 2.0) ? Les blocs n'y fonctionneront pas, mais vos pages de liste, si : ajoutez un élément de menu qui pointe vers <b>/apps/registry</b> dans <b>Online Store → Navigation</b>.",
+              "Votre thème est ancien (antérieur à Online Store 2.0) ? Les blocs n'y fonctionneront pas, mais vos pages de liste, si : ajoutez un élément de menu qui pointe vers <b>/apps/registry</b> dans <b>Content → Menus</b>.",
             ],
             alts: [
               "La page Aperçu de Giftpin avec la carte Ajouter Giftpin à votre thème et les boutons pour ajouter le bouton aux pages produit et les liens de liste",

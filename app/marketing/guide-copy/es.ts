@@ -7,7 +7,7 @@ export const es: RawGuideCopy = {
     language: "Idioma",
     shotsNote: "Las capturas de pantalla muestran la versión en inglés de las pantallas.",
     shopifyNote:
-      "Los nombres de las pantallas de Shopify (por ejemplo, Online Store → Navigation) aparecen en inglés, como en el administrador de Shopify en inglés. En tu idioma pueden verse traducidos.",
+      "Los nombres de las pantallas de Shopify (por ejemplo, Content → Menus) aparecen en inglés, como en el administrador de Shopify en inglés. En tu idioma pueden verse traducidos.",
     finalCta: "¿Listo para ofrecer una lista de regalos a tus clientes?",
   },
 
@@ -39,7 +39,7 @@ export const es: RawGuideCopy = {
               "Después haz clic en <b>{{admin.theme.savedAdd}}</b>. Esto añade una lista <b>Saved items</b> a tu página de carrito, para que los compradores encuentren lo que marcaron con el corazón. Pulsa <b>Save</b>.",
               "Estos dos no se activan automáticamente. Hasta que los añadas en el editor de temas y pulses <b>Save</b>, los compradores no verán ningún corazón. Los corazones se guardan en el propio navegador del comprador, sin cuenta, así que la lista aparece vacía en un dispositivo nuevo.",
               "¿Prefieres colocarlos a mano? En el editor de temas, abre la página, haz clic en <b>Add block</b> (o <b>Add section</b>), abre el grupo <b>Apps</b> y elige <b>Save for later</b> o <b>Saved items</b>.",
-              "¿Usas un tema antiguo (anterior a Online Store 2.0)? Los bloques no funcionarán ahí, pero tus páginas de lista sí: añade un elemento de menú que apunte a <b>/apps/registry</b> en <b>Online Store → Navigation</b>.",
+              "¿Usas un tema antiguo (anterior a Online Store 2.0)? Los bloques no funcionarán ahí, pero tus páginas de lista sí: añade un elemento de menú que apunte a <b>/apps/registry</b> en <b>Content → Menus</b>.",
             ],
             alts: [
               "La página Resumen de Giftpin con la tarjeta Añadir Giftpin a tu tema y los botones para añadir el botón a las páginas de producto y los enlaces de lista",
