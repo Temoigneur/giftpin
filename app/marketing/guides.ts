@@ -175,8 +175,10 @@ const fillLabels = (html: string, locale: Locale) =>
     key in GUIDE_VARS ? esc(GUIDE_VARS[key]) : esc(t(key as MessageKey, undefined, locale)),
   );
 
+// A red arrow between each screenshot, so a step reads as one connected path.
+const SHOT_ARROW = `<svg class="shot-arrow" viewBox="0 0 24 40" aria-hidden="true" focusable="false"><path d="M12 0v28M3 22l9 14 9-14" fill="none" stroke="#e61e1e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const guideShots = (list: Shot[]) =>
-  list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join("");
+  list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join(SHOT_ARROW);
 
 function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
   return `<div class="steps">${list
@@ -346,5 +348,6 @@ const CSS = `
 .dm-toc{border-top:1px solid var(--line); padding-top:10px}
 .dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
 .sec[id]{scroll-margin-top:80px}
+.shot-arrow{display:block; width:24px; height:40px; margin:6px auto 0}
 .shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
 `;
