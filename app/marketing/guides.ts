@@ -295,8 +295,8 @@ function docsMenu(kind: GuideKind, locale: Locale, sections: { title: string }[]
     `<a href="${GUIDE_PAGES[k].path}${q}"${k === kind ? ' aria-current="page"' : ""}>${esc(ui.links[ORDER.indexOf(k)])}</a>`;
   const toc = sections.length > 1 ? `<p class="dm-toc"><b>${esc(ui.onPage)}</b>${sections.map((sec, i) => `<a href="#s${i + 1}">${esc(sec.title)}</a>`).join("")}</p>` : "";
   return `<div class="wrap"><nav class="docs-menu" aria-label="${esc(ui.menu)}">
-  <div><b>${esc(ui.merchants)}</b>${ORDER.slice(0, 3).map(link).join("")}</div>
-  <div><b>${esc(ui.customers)}</b>${ORDER.slice(3).map(link).join("")}</div>
+  <div class="dm-m"><b>${esc(ui.merchants)}</b>${ORDER.slice(0, 3).map(link).join("")}</div>
+  <div class="dm-c"><b>${esc(ui.customers)}</b>${ORDER.slice(3).map(link).join("")}</div>
   ${toc}
 </nav></div>`;
 }
@@ -401,6 +401,14 @@ const CSS = `
 .docs-menu b{flex:none; min-width:210px}
 .docs-menu a{padding:4px 12px; border-radius:999px; border:1px solid var(--line); text-decoration:none; color:inherit}
 .docs-menu a[aria-current="page"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.docs-menu .dm-m,.docs-menu .dm-c{padding:10px 14px; border-radius:12px}
+.docs-menu .dm-m{background:rgba(109,58,232,.09)}
+.docs-menu .dm-m b{color:#4b25b8}
+.docs-menu .dm-m a{background:rgba(255,255,255,.75); border-color:rgba(109,58,232,.25)}
+.docs-menu .dm-c{background:rgba(34,211,238,.17)}
+.docs-menu .dm-c b{color:#0b6f86}
+.docs-menu .dm-c a{background:rgba(255,255,255,.75); border-color:rgba(14,116,144,.3)}
+.docs-menu .dm-c a[aria-current="page"]{background:#0e7490; border-color:#0e7490; color:#fff}
 .guide-cols{display:block}
 .toc{display:none}
 .step,.sec{scroll-margin-top:90px}
