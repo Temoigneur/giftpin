@@ -79,7 +79,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
       return { ...st, alts };
     }),
   });
-  const getWithShots = insertShot(insertShot(insertShot(menuFirst(menuFirst(swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme"), 2, "navRegistries"), 1, "navOverview"), 1, 3, "themePath"), 1, 4, "cartPath"), 1, 6, "menuPath");
+  const getWithShots = insertShot(insertShot(insertShot(insertShot(insertShot(insertShot(menuFirst(menuFirst(swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme"), 2, "navRegistries"), 1, "navOverview"), 1, 3, "themePath"), 1, 4, "cartPath"), 1, 5, "clickApps"), 1, 6, "clickGiftpinRow"), 1, 7, "clickOverview"), 1, 9, "menuPath");
   const saveWithShots = menuFirst(menuFirst(menuFirst(withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]), 1, "navSettings"), 2, "navInStore"), 2, "navPromotions");
   const manageKeys = ["manageSaveSettings", "manageSettingsSaved", "manageSaveShip", "manageShipSaved", "manageItemUpdate"];
   const saveAll = withShot(saveWithShots, 3, manageKeys);
