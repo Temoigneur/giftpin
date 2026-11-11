@@ -464,6 +464,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面：「顧客」が赤い枠と番号1、矢印の先の顧客ページで「その他の操作」が番号2、開いたメニューでGiftpin registryが番号3、その顧客のリストと購入したギフトを示すパネルで「完了」が番号4。購入者の名前は伏せてある"
     }
   },
+  "flowPath": {
+    "src": "/guides/p17-flow-path.png",
+    "alt": {
+      "en": "Shopify admin steps to a Flow trigger: Apps boxed and numbered 1, an arrow to the Apps list with Flow boxed and numbered 2, the Workflows page with Create workflow numbered 3, Select a trigger numbered 4, the Giftpin: Registry & Wishlist app numbered 5, and its three triggers with Registry created numbered 6 and added to the workflow. The developer's name is covered",
+      "fr": "Étapes de l'admin Shopify vers un déclencheur Flow : Applications encadré et numéroté 1, une flèche vers la liste des applications avec Flow encadré et numéroté 2, la page Workflows avec Créer un workflow numéroté 3, Sélectionner un déclencheur numéroté 4, l'application Giftpin: Registry & Wishlist numérotée 5, et ses trois déclencheurs avec Registry created numéroté 6 puis ajouté au workflow. Le nom du développeur est masqué",
+      "es": "Pasos del admin de Shopify hasta un activador de Flow: Aplicaciones enmarcado y numerado 1, una flecha a la lista de aplicaciones con Flow enmarcado y numerado 2, la página Workflows con Crear workflow numerado 3, Seleccionar un activador numerado 4, la aplicación Giftpin: Registry & Wishlist numerada 5, y sus tres activadores con Registry created numerado 6 y añadido al workflow. El nombre del desarrollador está tapado",
+      "de": "Schritte im Shopify-Admin zu einem Flow-Trigger: Apps umrandet und mit 1 nummeriert, ein Pfeil zur App-Liste mit Flow umrandet und mit 2 nummeriert, die Seite Workflows mit Workflow erstellen als 3, Trigger auswählen als 4, die App Giftpin: Registry & Wishlist als 5 und ihre drei Trigger mit Registry created als 6, danach dem Workflow hinzugefügt. Der Name des Entwicklers ist abgedeckt",
+      "pt-BR": "Etapas do admin da Shopify até um gatilho do Flow: Apps destacado e numerado 1, uma seta para a lista de apps com Flow destacado e numerado 2, a página Workflows com Criar workflow numerado 3, Selecionar um gatilho numerado 4, o app Giftpin: Registry & Wishlist numerado 5, e seus três gatilhos com Registry created numerado 6 e adicionado ao workflow. O nome do desenvolvedor está coberto",
+      "hi": "Shopify एडमिन से Flow ट्रिगर तक के चरण: ऐप्स लाल बॉक्स में नंबर 1, तीर ऐप्स की सूची की ओर जहाँ Flow नंबर 2 के साथ है, Workflows पेज पर Create workflow नंबर 3, Select a trigger नंबर 4, ऐप Giftpin: Registry & Wishlist नंबर 5, और इसके तीन ट्रिगर जिनमें Registry created नंबर 6 के साथ वर्कफ़्लो में जुड़ा है। डेवलपर का नाम ढका हुआ है",
+      "zh-CN": "从 Shopify 后台到 Flow 触发器的步骤：「应用」以红框标示并编号 1，箭头指向应用列表，其中 Flow 编号 2，Workflows 页面上的「创建工作流」编号 3，「选择触发器」编号 4，应用 Giftpin: Registry & Wishlist 编号 5，以及它的三个触发器，其中 Registry created 编号 6 并已添加到工作流。开发者姓名已遮盖",
+      "zh-TW": "從 Shopify 後台到 Flow 觸發條件的步驟：「應用程式」以紅框標示並編號 1，箭頭指向應用程式清單，其中 Flow 編號 2，Workflows 頁面上的「建立工作流程」編號 3，「選取觸發條件」編號 4，應用程式 Giftpin: Registry & Wishlist 編號 5，以及它的三個觸發條件，其中 Registry created 編號 6 並已加入工作流程。開發者姓名已遮蓋",
+      "ja": "Shopify管理画面からFlowのトリガーまでの手順：「アプリ」が赤い枠と番号1、矢印の先のアプリ一覧で「Flow」が番号2、Workflowsページの「ワークフローを作成」が番号3、「トリガーを選択」が番号4、アプリ「Giftpin: Registry & Wishlist」が番号5、その3つのトリガーのうちRegistry createdが番号6で、ワークフローに追加された状態。開発者名は伏せてある"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
