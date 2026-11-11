@@ -341,10 +341,13 @@ export const fr: RawGuideCopy = {
             title: "Ou utiliser l'extension Chrome",
             items: [
               `Sur un ordinateur, installez <a href="${CHROME}" target="_blank" rel="noopener">l'extension Giftpin pour Chrome</a>.`,
-              "Sur votre liste, sous <b>{{manage.ext.title}}</b>, cliquez sur <b>{{manage.ext.copy}}</b>. Ouvrez l'extension, collez le lien dans <b>Manage link</b> et cliquez sur <b>Connect</b>. Vous ne le faites qu'une fois.",
-              "Ensuite, sur n'importe quelle page produit de n'importe quel site, ouvrez l'extension, choisissez la <b>Quantity</b> et cliquez sur <b>Add to registry</b>.",
+              "Sur votre liste, sous <b>{{manage.ext.title}}</b>, cliquez sur <b>{{manage.ext.copy}}</b>.",
+              "Dans Chrome, cliquez sur le plugin Giftpin pour Chrome.",
+              "Si le plugin affiche déjà une liste, cliquez sur <b>Switch registry</b>.",
+              "Collez le lien dans <b>Manage link</b> et cliquez sur <b>Connect</b>. Vous ne le faites qu'une fois.",
+              "Ensuite, sur n'importe quelle page produit de n'importe quel site, cliquez sur le plugin Giftpin pour Chrome, choisissez la <b>Quantity</b> et cliquez sur <b>Add to registry</b>.",
             ],
-            alts: ["L'extension Giftpin sur une page produit Walmart, avec la quantité et le bouton Add to registry"],
+            alts: ["La page de votre liste, sous Connect the browser extension, avec le bouton Copy connection link encadré en rouge et numéroté 1 (le lien privé est masqué)", "La barre d'outils de Chrome avec l'icône du plugin Giftpin encadrée en rouge et numérotée 1", "Le plugin Giftpin déjà connecté à une liste, avec le lien Switch registry encadré en rouge et numéroté 1", "La boîte Connect to my registry avec le lien collé dans le champ Manage link, encadré en rouge et numéroté 1", "La même boîte avec le bouton Connect encadré en rouge et numéroté 1", "Le plugin maintenant connecté, avec la ligne Connected to et le nom de la liste encadrée en rouge et numérotée 1", "L'extension Giftpin sur une page produit Walmart, avec la quantité et le bouton Add to registry"],
           },
           {
             title: "En magasin ? Scannez un code-barres",

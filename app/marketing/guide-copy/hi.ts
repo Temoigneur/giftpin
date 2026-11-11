@@ -341,10 +341,13 @@ export const hi: RawGuideCopy = {
             title: "या Chrome एक्सटेंशन इस्तेमाल करें",
             items: [
               `कंप्यूटर पर <a href="${CHROME}" target="_blank" rel="noopener">Giftpin का Chrome एक्सटेंशन</a> इंस्टॉल करें।`,
-              "अपनी रजिस्ट्री में <b>{{manage.ext.title}}</b> के नीचे <b>{{manage.ext.copy}}</b> पर क्लिक करें। एक्सटेंशन खोलें, लिंक को <b>Manage link</b> में पेस्ट करें और <b>Connect</b> पर क्लिक करें। यह बस एक बार करना होता है।",
-              "इसके बाद किसी भी साइट के किसी भी प्रोडक्ट पेज पर एक्सटेंशन खोलें, <b>Quantity</b> चुनें और <b>Add to registry</b> पर क्लिक करें।",
+              "अपनी रजिस्ट्री में <b>{{manage.ext.title}}</b> के नीचे <b>{{manage.ext.copy}}</b> पर क्लिक करें।",
+              "Chrome में Giftpin Chrome प्लगइन पर क्लिक करें।",
+              "अगर प्लगइन पहले से कोई रजिस्ट्री दिखा रहा है, तो <b>Switch registry</b> पर क्लिक करें।",
+              "लिंक को <b>Manage link</b> में पेस्ट करें और <b>Connect</b> पर क्लिक करें। यह बस एक बार करना होता है।",
+              "इसके बाद किसी भी साइट के किसी भी प्रोडक्ट पेज पर Giftpin Chrome प्लगइन पर क्लिक करें, <b>Quantity</b> चुनें और <b>Add to registry</b> पर क्लिक करें।",
             ],
-            alts: ["Walmart के प्रोडक्ट पेज पर Giftpin एक्सटेंशन, जिसमें मात्रा और Add to registry बटन है"],
+            alts: ["आपकी रजिस्ट्री का पेज, Connect the browser extension के नीचे, Copy connection link बटन लाल बॉक्स में और नंबर 1 के साथ (निजी लिंक छिपा है)", "Chrome का टूलबार, Giftpin प्लगइन आइकन लाल बॉक्स में और नंबर 1 के साथ", "Giftpin प्लगइन पहले से किसी रजिस्ट्री से जुड़ा हुआ, Switch registry लिंक लाल बॉक्स में और नंबर 1 के साथ", "Connect to my registry बॉक्स, Manage link फ़ील्ड में लिंक पेस्ट किया हुआ, लाल बॉक्स में और नंबर 1 के साथ", "वही बॉक्स, Connect बटन लाल बॉक्स में और नंबर 1 के साथ", "प्लगइन अब जुड़ चुका है, Connected to और रजिस्ट्री के नाम वाली पंक्ति लाल बॉक्स में और नंबर 1 के साथ", "Walmart के प्रोडक्ट पेज पर Giftpin एक्सटेंशन, जिसमें मात्रा और Add to registry बटन है"],
           },
           {
             title: "स्टोर में हैं? बारकोड स्कैन करें",

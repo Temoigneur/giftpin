@@ -341,10 +341,13 @@ export const zhTW: RawGuideCopy = {
             title: "或使用 Chrome 擴充功能",
             items: [
               `在電腦上，安裝<a href="${CHROME}" target="_blank" rel="noopener"> Chrome 版 Giftpin 擴充功能</a>。`,
-              "在您的禮物清單中，於 <b>{{manage.ext.title}}</b> 底下點選 <b>{{manage.ext.copy}}</b>。開啟擴充功能，將連結貼到 <b>Manage link</b>，然後點選 <b>Connect</b>。這只需要做一次。",
-              "之後，在任何網站的任何商品頁面，開啟擴充功能，選擇 <b>Quantity</b>，然後點選 <b>Add to registry</b>。",
+              "在您的禮物清單中，於 <b>{{manage.ext.title}}</b> 底下點選 <b>{{manage.ext.copy}}</b>。",
+              "在 Chrome 中，點選 Giftpin Chrome 外掛。",
+              "如果外掛已經顯示了一個禮物清單，請點選 <b>Switch registry</b>。",
+              "將連結貼到 <b>Manage link</b>，然後點選 <b>Connect</b>。這只需要做一次。",
+              "之後，在任何網站的任何商品頁面，點選 Giftpin Chrome 外掛，選擇 <b>Quantity</b>，然後點選 <b>Add to registry</b>。",
             ],
-            alts: ["Walmart 商品頁面上的 Giftpin 擴充功能，顯示數量和 Add to registry 按鈕"],
+            alts: ["您的禮物清單頁面，在 Connect the browser extension 底下，Copy connection link 按鈕以紅框標示並編號 1（私密連結已隱藏）", "Chrome 工具列，Giftpin 外掛圖示以紅框標示並編號 1", "已連接到某個禮物清單的 Giftpin 外掛，Switch registry 連結以紅框標示並編號 1", "Connect to my registry 框，連結已貼到 Manage link 欄位，以紅框標示並編號 1", "同一個框，Connect 按鈕以紅框標示並編號 1", "外掛現已連接，Connected to 加禮物清單名稱的那一行以紅框標示並編號 1", "Walmart 商品頁面上的 Giftpin 擴充功能，顯示數量和 Add to registry 按鈕"],
           },
           {
             title: "在店裡嗎？掃描條碼",
