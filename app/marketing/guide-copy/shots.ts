@@ -422,6 +422,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面の左メニューでGiftpin Gift Registryが赤い枠と番号1、矢印の先のGiftpinメニューで「リスト」が番号2、さらに矢印の先のリストページで「リストをインポート」ボタンが番号3で示されている"
     }
   },
+  "productPanel": {
+    "src": "/guides/p15-product-panel-path.png",
+    "alt": {
+      "en": "A product page in the Shopify admin: More actions boxed and numbered 1, an arrow to the open menu with Giftpin registry boxed and numbered 2, and the panel that opens listing the registries that include the product, with Done boxed and numbered 3",
+      "fr": "Une page produit de l'admin Shopify : Autres actions encadré et numéroté 1, une flèche vers le menu ouvert avec Giftpin registry encadré et numéroté 2, et le panneau qui s'ouvre avec la liste des registres contenant le produit, Terminé encadré et numéroté 3",
+      "es": "Una página de producto del admin de Shopify: Más acciones enmarcado y numerado 1, una flecha al menú abierto con Giftpin registry enmarcado y numerado 2, y el panel que se abre con los registros que incluyen el producto, con Listo enmarcado y numerado 3",
+      "de": "Eine Produktseite im Shopify-Admin: Weitere Aktionen umrandet und mit 1 nummeriert, ein Pfeil zum geöffneten Menü mit Giftpin registry umrandet und mit 2 nummeriert, und das sich öffnende Fenster mit den Listen, die das Produkt enthalten, mit Fertig umrandet und mit 3 nummeriert",
+      "pt-BR": "Uma página de produto do admin da Shopify: Mais ações destacado e numerado 1, uma seta para o menu aberto com Giftpin registry destacado e numerado 2, e o painel que abre listando as listas que incluem o produto, com Concluído destacado e numerado 3",
+      "hi": "Shopify एडमिन में एक प्रोडक्ट पेज: और कार्रवाइयाँ लाल बॉक्स में नंबर 1, तीर खुले मेनू की ओर जहाँ Giftpin registry नंबर 2 के साथ है, और खुलने वाला पैनल जिसमें प्रोडक्ट वाली रजिस्ट्रियाँ दिखती हैं, हो गया नंबर 3 के साथ",
+      "zh-CN": "Shopify 后台的商品页面：「更多操作」以红框标示并编号 1，箭头指向展开的菜单，其中 Giftpin registry 编号 2，以及打开的面板，列出包含该商品的礼物清单，「完成」编号 3",
+      "zh-TW": "Shopify 後台的商品頁面：「更多動作」以紅框標示並編號 1，箭頭指向展開的選單，其中 Giftpin registry 編號 2，以及開啟的面板，列出包含該商品的禮物清單，「完成」編號 3",
+      "ja": "Shopify管理画面の商品ページ：「その他の操作」が赤い枠と番号1、矢印の先の開いたメニューでGiftpin registryが番号2、開いたパネルにはこの商品を含むリストが並び、「完了」が番号3で示されている"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
