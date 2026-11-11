@@ -478,6 +478,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面からFlowのトリガーまでの手順：「アプリ」が赤い枠と番号1、矢印の先のアプリ一覧で「Flow」が番号2、Workflowsページの「ワークフローを作成」が番号3、「トリガーを選択」が番号4、アプリ「Giftpin: Registry & Wishlist」が番号5、その3つのトリガーのうちRegistry createdが番号6で、ワークフローに追加された状態。開発者名は伏せてある"
     }
   },
+  "themePath": {
+    "src": "/guides/p18-theme-block-path.png",
+    "alt": {
+      "en": "Shopify admin steps to the theme editor: Online Store numbered 1, Edit theme on your theme numbered 2, the page picker Home page numbered 3 then Products numbered 4, Default product numbered 5, Product information numbered 6, Add block numbered 7, the Apps tab numbered 8, Save for later numbered 9, then the page picker again (10) to choose Cart (11)",
+      "fr": "Étapes de l'admin Shopify vers l'éditeur de thème : Boutique en ligne numéroté 1, Modifier le thème sur votre thème numéroté 2, le sélecteur de page Page d'accueil numéroté 3 puis Produits numéroté 4, Produit par défaut numéroté 5, Informations produit numéroté 6, Ajouter un bloc numéroté 7, l'onglet Applications numéroté 8, Save for later numéroté 9, puis de nouveau le sélecteur de page (10) pour choisir Panier (11)",
+      "es": "Pasos del admin de Shopify al editor de temas: Tienda online numerado 1, Editar tema en tu tema numerado 2, el selector de página Página de inicio numerado 3 y luego Productos numerado 4, Producto predeterminado numerado 5, Información del producto numerado 6, Añadir bloque numerado 7, la pestaña Aplicaciones numerada 8, Save for later numerado 9, y otra vez el selector de página (10) para elegir Carrito (11)",
+      "de": "Schritte im Shopify-Admin zum Theme-Editor: Onlineshop mit 1, Theme bearbeiten bei Ihrem Theme mit 2, die Seitenauswahl Startseite mit 3 und dann Produkte mit 4, Standardprodukt mit 5, Produktinformationen mit 6, Block hinzufügen mit 7, der Tab Apps mit 8, Save for later mit 9, danach erneut die Seitenauswahl (10), um Warenkorb (11) zu wählen",
+      "pt-BR": "Etapas do admin da Shopify até o editor de temas: Loja virtual numerado 1, Editar tema no seu tema numerado 2, o seletor de página Página inicial numerado 3 e depois Produtos numerado 4, Produto padrão numerado 5, Informações do produto numerado 6, Adicionar bloco numerado 7, a aba Apps numerada 8, Save for later numerado 9, e de novo o seletor de página (10) para escolher Carrinho (11)",
+      "hi": "Shopify एडमिन से थीम एडिटर तक के चरण: ऑनलाइन स्टोर नंबर 1, आपकी थीम पर थीम एडिट करें नंबर 2, पेज चयनकर्ता में होम पेज नंबर 3 फिर प्रोडक्ट्स नंबर 4, डिफ़ॉल्ट प्रोडक्ट नंबर 5, प्रोडक्ट जानकारी नंबर 6, ब्लॉक जोड़ें नंबर 7, ऐप्स टैब नंबर 8, Save for later नंबर 9, फिर दोबारा पेज चयनकर्ता (10) में कार्ट (11) चुनना",
+      "zh-CN": "从 Shopify 后台到主题编辑器的步骤：「在线商店」编号 1，主题上的「编辑主题」编号 2，页面选择器「首页」编号 3，然后「商品」编号 4，「默认商品」编号 5，「商品信息」编号 6，「添加区块」编号 7，「应用」标签编号 8，Save for later 编号 9，再次打开页面选择器（10）选择「购物车」（11）",
+      "zh-TW": "從 Shopify 後台到佈景主題編輯器的步驟：「線上商店」編號 1，佈景主題上的「編輯佈景主題」編號 2，頁面選擇器「首頁」編號 3，接著「商品」編號 4，「預設商品」編號 5，「商品資訊」編號 6，「新增區塊」編號 7，「應用程式」分頁編號 8，Save for later 編號 9，再次開啟頁面選擇器（10）選擇「購物車」（11）",
+      "ja": "Shopify管理画面からテーマエディタまでの手順：「オンラインストア」が番号1、テーマの「テーマを編集」が番号2、ページ選択の「ホームページ」が番号3、続いて「商品」が番号4、「デフォルト商品」が番号5、「商品情報」が番号6、「ブロックを追加」が番号7、「アプリ」タブが番号8、Save for laterが番号9、もう一度ページ選択（10）で「カート」（11）を選ぶ"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
