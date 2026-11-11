@@ -352,6 +352,34 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Flowの「トリガーを選択」画面。Giftpinアプリが赤い枠で、3つのトリガー（Registry created、Registry event coming up、Registry gift bought）も赤い枠で示されている"
     }
   },
+  "navPlan": {
+    "src": "/guides/p12-nav-plan.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Plan boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Forfait encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Plan enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Tarif rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Plano destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, प्लान लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「套餐」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「方案」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「プラン」が赤い枠と番号1で示されている"
+    }
+  },
+  "planFree": {
+    "src": "/guides/p12-plan-free.png",
+    "alt": {
+      "en": "The Plan page on the Free plan, listing what Pro adds, with the Upgrade to Pro button boxed in red and numbered 2",
+      "fr": "La page Forfait sur Gratuit, listant ce que Pro ajoute, avec le bouton Passer à Pro encadré en rouge et numéroté 2",
+      "es": "La página de Plan en el plan Gratis, con lo que añade Pro y el botón Pasar a Pro enmarcado en rojo y numerado 2",
+      "de": "Die Seite Tarif im Free-Tarif mit den Pro-Zusätzen und dem Button Auf Pro upgraden rot umrandet und mit 2 nummeriert",
+      "pt-BR": "A página do Plano no plano Grátis, listando o que o Pro acrescenta, com o botão Assinar Pro destacado em vermelho e numerado 2",
+      "hi": "फ्री प्लान पर प्लान पेज, Pro में क्या जुड़ता है, और Pro में अपग्रेड करें बटन लाल बॉक्स में नंबर 2 के साथ",
+      "zh-CN": "免费套餐下的“套餐”页面，列出 Pro 增加的功能，“升级到 Pro”按钮以红框标示并编号 2",
+      "zh-TW": "免費方案下的「方案」頁面，列出 Pro 增加的功能，「升級至 Pro」按鈕以紅框標示並編號 2",
+      "ja": "無料プランのプランページ。Proで追加される内容と、赤い枠と番号2で示された「Proにアップグレード」ボタン"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
