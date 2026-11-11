@@ -1009,5 +1009,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "首次設定第 1 步（共 2 步），禮物要寄到哪裡？，允許賓客直接把禮物寄給你的核取方塊以紅框標示並編號 1",
       "ja": "初回設定のステップ1/2「ギフトの届け先」。ゲストが直接あなたにギフトを発送できるチェックボックスが赤い枠と番号1で示されている"
     }
+  },
+  "giftCardPage": {
+    "src": "/guides/g5-gift-card-page.png",
+    "alt": {
+      "en": "The store's gift card page: an amount boxed in red and numbered 1, the Email it straight to someone tick box numbered 2, the recipient's email and name boxes numbered 3 and 4, and Add to cart numbered 5",
+      "fr": "La page de carte cadeau de la boutique : un montant encadré en rouge et numéroté 1, la case Envoyer par e-mail directement à quelqu'un numérotée 2, les champs e-mail et nom du destinataire numérotés 3 et 4, et Ajouter au panier numéroté 5",
+      "es": "La página de tarjeta de regalo de la tienda: un importe enmarcado en rojo y numerado 1, la casilla Enviarla por email directamente a alguien numerada 2, los cuadros de email y nombre del destinatario numerados 3 y 4, y Añadir al carrito numerado 5",
+      "de": "Die Geschenkkartenseite des Shops: ein Betrag rot umrandet und mit 1 nummeriert, das Kästchen Direkt per E-Mail an jemanden senden mit 2, die Felder für E-Mail und Name des Empfängers mit 3 und 4 und In den Warenkorb mit 5",
+      "pt-BR": "A página de vale-presente da loja: um valor destacado em vermelho e numerado 1, a caixa Enviar por e-mail direto para alguém numerada 2, os campos de e-mail e nome do destinatário numerados 3 e 4, e Adicionar ao carrinho numerado 5",
+      "hi": "स्टोर का गिफ़्ट कार्ड पेज: एक राशि लाल बॉक्स में और नंबर 1 के साथ, किसी को सीधे ईमेल करें टिक बॉक्स नंबर 2, प्राप्तकर्ता के ईमेल और नाम के बॉक्स नंबर 3 और 4, और कार्ट में जोड़ें नंबर 5",
+      "zh-CN": "商店的礼品卡页面：一个金额以红框标示并编号 1，“直接通过邮件发给某人”勾选框编号 2，收件人邮箱和姓名输入框编号 3 和 4，“加入购物车”编号 5",
+      "zh-TW": "商店的禮品卡頁面：一個金額以紅框標示並編號 1，「直接以電子郵件寄給某人」核取方塊編號 2，收件人電子郵件與姓名欄位編號 3 和 4，「加入購物車」編號 5",
+      "ja": "ストアのギフトカードページ。金額が赤い枠と番号1、「直接メールで送る」のチェックボックスが番号2、受取人のメールアドレスと名前の欄が番号3と4、「カートに追加」が番号5で示されている"
+    }
   }
 };
