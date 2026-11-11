@@ -759,7 +759,7 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     }
   },
   "navOverview": {
-    "src": "/guides/p11-nav-overview.png",
+    "src": "/guides/p21-nav-overview-click.png",
     "alt": {
       "en": "Giftpin's menu under Apps in the Shopify admin with Overview boxed in red and numbered 1",
       "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Aperçu encadré en rouge et numéroté 1",
