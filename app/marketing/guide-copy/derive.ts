@@ -10,7 +10,7 @@ import { SHOTS } from "./shots";
  * /registry-guide and /guest-guide. Images stay with the steps they were
  * written for; the new steps carry none, so every language has the same shape.
  */
-/** Shots of Giftpin's own left menu: each is preceded by the Apps → Giftpin click. */
+/** Shots of Giftpin's own left menu: each is preceded by the Apps → Giftpin and Giftpin menu clicks. */
 const NAV_KEYS = new Set(["navRegistries", "navSettings", "navPromotions", "navAnalytics", "navInStore", "navPlan", "navOverview"]);
 
 export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
@@ -27,7 +27,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     steps: [1, 2, 3, 4].map((n): Step => ({ title: s(`hub${n}_t`), items: [s(`hub${n}_i`)] })),
   };
   // Real screens with the buttons boxed and numbered in the images.
-  const withNav = (keys: string[]) => keys.flatMap((k, i) => (NAV_KEYS.has(k) && keys[i - 1] !== "openApps" ? ["openApps", k] : [k]));
+  const withNav = (keys: string[]) => keys.flatMap((k, i) => (NAV_KEYS.has(k) && keys[i - 1] !== "clickGiftpin" ? ["openApps", "clickGiftpin", k] : [k]));
   const withShot = (sec: typeof get, at: number, keys0: string[]): typeof get => ({
     ...sec,
     steps: sec.steps.map((st, i) =>
@@ -41,7 +41,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...sec,
     steps: sec.steps.map((st, i) => {
       if (i !== at) return st;
-      const keys = NAV_KEYS.has(key) ? ["openApps", key] : [key];
+      const keys = NAV_KEYS.has(key) ? ["openApps", "clickGiftpin", key] : [key];
       if (locale === "en") {
         const list = Array.isArray(st.img) ? st.img : st.img ? [st.img] : [];
         return { ...st, img: [...keys.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })), ...list] };
