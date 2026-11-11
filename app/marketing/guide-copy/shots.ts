@@ -520,6 +520,34 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "分析のグラフ（作成されたリスト、追加された商品、反映されたギフト）。「CSVをダウンロード」ボタンが赤い枠と番号2で示されている"
     }
   },
+  "openApps": {
+    "src": "/guides/p11-open-apps.png",
+    "alt": {
+      "en": "Shopify admin's left menu with Apps boxed in red and numbered 1, and an arrow to the Apps list where Giftpin Gift Registry is boxed and numbered 2",
+      "fr": "Le menu de gauche de l'admin Shopify avec Applications encadré en rouge et numéroté 1, et une flèche vers la liste des applications où Giftpin Gift Registry est encadré et numéroté 2",
+      "es": "El menú izquierdo del admin de Shopify con Aplicaciones enmarcado en rojo y numerado 1, y una flecha hacia la lista de aplicaciones donde Giftpin Gift Registry está enmarcado y numerado 2",
+      "de": "Das linke Menü im Shopify-Admin mit Apps rot umrandet und mit 1 nummeriert, und ein Pfeil zur App-Liste, in der Giftpin Gift Registry umrandet und mit 2 nummeriert ist",
+      "pt-BR": "O menu à esquerda do admin da Shopify com Apps destacado em vermelho e numerado 1, e uma seta para a lista de apps onde Giftpin Gift Registry está destacado e numerado 2",
+      "hi": "Shopify एडमिन का बायाँ मेनू, ऐप्स लाल बॉक्स में और नंबर 1 के साथ, और एक तीर ऐप्स की सूची की ओर जहाँ Giftpin Gift Registry लाल बॉक्स में और नंबर 2 के साथ है",
+      "zh-CN": "Shopify 后台左侧菜单，「应用」以红框标示并编号 1，箭头指向应用列表，其中 Giftpin Gift Registry 以红框标示并编号 2",
+      "zh-TW": "Shopify 後台左側選單，「應用程式」以紅框標示並編號 1，箭頭指向應用程式清單，其中 Giftpin Gift Registry 以紅框標示並編號 2",
+      "ja": "Shopify管理画面の左メニュー。「アプリ」が赤い枠と番号1で示され、矢印の先のアプリ一覧でGiftpin Gift Registryが赤い枠と番号2で示されている"
+    }
+  },
+  "navOverview": {
+    "src": "/guides/p11-nav-overview.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Overview boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Aperçu encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Resumen enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Übersicht rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Visão geral destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, ओवरव्यू लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「概览」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「總覽」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「概要」が赤い枠と番号1で示されている"
+    }
+  },
   "navRegistries": {
     "src": "/guides/p7-nav-registries.png",
     "alt": {
