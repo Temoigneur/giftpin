@@ -341,10 +341,13 @@ export const es: RawGuideCopy = {
             title: "O usar la extensión de Chrome",
             items: [
               `En un ordenador, instala <a href="${CHROME}" target="_blank" rel="noopener">la extensión de Giftpin para Chrome</a>.`,
-              "En tu lista, en <b>{{manage.ext.title}}</b>, haz clic en <b>{{manage.ext.copy}}</b>. Abre la extensión, pégalo en <b>Manage link</b> y haz clic en <b>Connect</b>. Solo lo haces una vez.",
-              "Después, en cualquier página de producto de cualquier sitio, abre la extensión, elige la <b>Quantity</b> y haz clic en <b>Add to registry</b>.",
+              "En tu lista, en <b>{{manage.ext.title}}</b>, haz clic en <b>{{manage.ext.copy}}</b>.",
+              "En Chrome, haz clic en el plugin de Giftpin para Chrome.",
+              "Si el plugin ya muestra una lista, haz clic en <b>Switch registry</b>.",
+              "Pega el enlace en <b>Manage link</b> y haz clic en <b>Connect</b>. Solo lo haces una vez.",
+              "Después, en cualquier página de producto de cualquier sitio, haz clic en el plugin de Giftpin para Chrome, elige la <b>Quantity</b> y haz clic en <b>Add to registry</b>.",
             ],
-            alts: ["La extensión de Giftpin en una página de producto de Walmart, con la cantidad y el botón Add to registry"],
+            alts: ["La página de tu lista, en Connect the browser extension, con el botón Copy connection link enmarcado en rojo y numerado 1 (el enlace privado está oculto)", "La barra de herramientas de Chrome con el icono del plugin de Giftpin enmarcado en rojo y numerado 1", "El plugin de Giftpin ya conectado a una lista, con el enlace Switch registry enmarcado en rojo y numerado 1", "El cuadro Connect to my registry con el enlace pegado en el campo Manage link, enmarcado en rojo y numerado 1", "El mismo cuadro con el botón Connect enmarcado en rojo y numerado 1", "El plugin ya conectado, con la línea Connected to y el nombre de la lista enmarcada en rojo y numerada 1", "La extensión de Giftpin en una página de producto de Walmart, con la cantidad y el botón Add to registry"],
           },
           {
             title: "¿En la tienda? Escanea un código de barras",

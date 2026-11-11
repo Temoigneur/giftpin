@@ -341,10 +341,13 @@ export const ptBR: RawGuideCopy = {
             title: "Ou use a extensão do Chrome",
             items: [
               `No computador, instale <a href="${CHROME}" target="_blank" rel="noopener">a extensão do Giftpin para Chrome</a>.`,
-              "Na sua lista, em <b>{{manage.ext.title}}</b>, clique em <b>{{manage.ext.copy}}</b>. Abra a extensão, cole em <b>Manage link</b> e clique em <b>Connect</b>. Você só faz isso uma vez.",
-              "Depois, em qualquer página de produto de qualquer site, abra a extensão, escolha a <b>Quantity</b> e clique em <b>Add to registry</b>.",
+              "Na sua lista, em <b>{{manage.ext.title}}</b>, clique em <b>{{manage.ext.copy}}</b>.",
+              "No Chrome, clique no plugin do Giftpin para Chrome.",
+              "Se o plugin já mostrar uma lista, clique em <b>Switch registry</b>.",
+              "Cole o link em <b>Manage link</b> e clique em <b>Connect</b>. Você só faz isso uma vez.",
+              "Depois, em qualquer página de produto de qualquer site, clique no plugin do Giftpin para Chrome, escolha a <b>Quantity</b> e clique em <b>Add to registry</b>.",
             ],
-            alts: ["A extensão do Giftpin em uma página de produto do Walmart, com a quantidade e o botão Add to registry"],
+            alts: ["A página da sua lista, em Connect the browser extension, com o botão Copy connection link destacado em vermelho e numerado 1 (o link privado está oculto)", "A barra de ferramentas do Chrome com o ícone do plugin do Giftpin destacado em vermelho e numerado 1", "O plugin do Giftpin já conectado a uma lista, com o link Switch registry destacado em vermelho e numerado 1", "A caixa Connect to my registry com o link colado no campo Manage link, destacado em vermelho e numerado 1", "A mesma caixa com o botão Connect destacado em vermelho e numerado 1", "O plugin agora conectado, com a linha Connected to e o nome da lista destacada em vermelho e numerada 1", "A extensão do Giftpin em uma página de produto do Walmart, com a quantidade e o botão Add to registry"],
           },
           {
             title: "Na loja física? Escaneie um código de barras",

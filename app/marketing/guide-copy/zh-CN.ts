@@ -341,10 +341,13 @@ export const zhCN: RawGuideCopy = {
             title: "或者使用 Chrome 扩展程序",
             items: [
               `在电脑上，安装<a href="${CHROME}" target="_blank" rel="noopener">适用于 Chrome 的 Giftpin 扩展程序</a>。`,
-              "在您的礼物清单中，于 <b>{{manage.ext.title}}</b> 下点击 <b>{{manage.ext.copy}}</b>。打开扩展程序，把它粘贴到 <b>Manage link</b> 中，然后点击 <b>Connect</b>。这一步只需做一次。",
-              "之后，在任何网站的任意商品页面，打开扩展程序，选择 <b>Quantity</b>，然后点击 <b>Add to registry</b>。",
+              "在您的礼物清单中，于 <b>{{manage.ext.title}}</b> 下点击 <b>{{manage.ext.copy}}</b>。",
+              "在 Chrome 中，点击 Giftpin Chrome 插件。",
+              "如果插件已经显示了一个礼物清单，请点击 <b>Switch registry</b>。",
+              "把链接粘贴到 <b>Manage link</b> 中，然后点击 <b>Connect</b>。这一步只需做一次。",
+              "之后，在任何网站的任意商品页面，点击 Giftpin Chrome 插件，选择 <b>Quantity</b>，然后点击 <b>Add to registry</b>。",
             ],
-            alts: ["Walmart 商品页面上的 Giftpin 扩展程序，带有数量和 Add to registry 按钮"],
+            alts: ["您的礼物清单页面，在 Connect the browser extension 下，Copy connection link 按钮以红框标示并编号 1（私密链接已隐藏）", "Chrome 工具栏，Giftpin 插件图标以红框标示并编号 1", "已连接到某个礼物清单的 Giftpin 插件，Switch registry 链接以红框标示并编号 1", "Connect to my registry 框，链接已粘贴到 Manage link 栏，以红框标示并编号 1", "同一个框，Connect 按钮以红框标示并编号 1", "插件现已连接，Connected to 加礼物清单名称的那一行以红框标示并编号 1", "Walmart 商品页面上的 Giftpin 扩展程序，带有数量和 Add to registry 按钮"],
           },
           {
             title: "在店里？扫描条形码",

@@ -341,10 +341,13 @@ export const de: RawGuideCopy = {
             title: "Oder die Chrome-Erweiterung nutzen",
             items: [
               `Installieren Sie auf einem Computer <a href="${CHROME}" target="_blank" rel="noopener">die Giftpin-Erweiterung für Chrome</a>.`,
-              "Klicken Sie in Ihrer Liste unter <b>{{manage.ext.title}}</b> auf <b>{{manage.ext.copy}}</b>. Öffnen Sie die Erweiterung, fügen Sie den Link bei <b>Manage link</b> ein und klicken Sie auf <b>Connect</b>. Das ist nur einmal nötig.",
-              "Öffnen Sie danach auf jeder Produktseite jeder Website die Erweiterung, wählen Sie die <b>Quantity</b> und klicken Sie auf <b>Add to registry</b>.",
+              "Klicken Sie in Ihrer Liste unter <b>{{manage.ext.title}}</b> auf <b>{{manage.ext.copy}}</b>.",
+              "Klicken Sie in Chrome auf das Giftpin-Chrome-Plugin.",
+              "Zeigt das Plugin schon eine Liste an, klicken Sie auf <b>Switch registry</b>.",
+              "Fügen Sie den Link bei <b>Manage link</b> ein und klicken Sie auf <b>Connect</b>. Das ist nur einmal nötig.",
+              "Klicken Sie danach auf jeder Produktseite jeder Website auf das Giftpin-Chrome-Plugin, wählen Sie die <b>Quantity</b> und klicken Sie auf <b>Add to registry</b>.",
             ],
-            alts: ["Die Giftpin-Erweiterung auf einer Walmart-Produktseite mit Menge und Add-to-registry-Button"],
+            alts: ["Die Seite Ihrer Liste unter Connect the browser extension, mit der Schaltfläche Copy connection link rot umrandet und mit 1 nummeriert (der private Link ist verdeckt)", "Die Chrome-Symbolleiste mit dem Giftpin-Plugin-Symbol rot umrandet und mit 1 nummeriert", "Das Giftpin-Plugin, bereits mit einer Liste verbunden, mit dem Link Switch registry rot umrandet und mit 1 nummeriert", "Das Feld Connect to my registry mit dem eingefügten Link im Feld Manage link, rot umrandet und mit 1 nummeriert", "Dasselbe Feld mit der Schaltfläche Connect rot umrandet und mit 1 nummeriert", "Das jetzt verbundene Plugin, mit der Zeile Connected to und dem Listennamen rot umrandet und mit 1 nummeriert", "Die Giftpin-Erweiterung auf einer Walmart-Produktseite mit Menge und Add-to-registry-Button"],
           },
           {
             title: "Im Geschäft? Barcode scannen",

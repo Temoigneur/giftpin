@@ -341,10 +341,13 @@ export const ja: RawGuideCopy = {
             title: "Chrome拡張機能を使う",
             items: [
               `パソコンで、<a href="${CHROME}" target="_blank" rel="noopener">Chrome用のGiftpin拡張機能</a>をインストールします。`,
-              "ギフトリストの <b>{{manage.ext.title}}</b> で <b>{{manage.ext.copy}}</b> をクリックします。拡張機能を開き、<b>Manage link</b> に貼り付けて <b>Connect</b> をクリックします。これは最初の1回だけです。",
-              "あとは、どのサイトの商品ページでも、拡張機能を開いて <b>Quantity</b> を選び、<b>Add to registry</b> をクリックするだけです。",
+              "ギフトリストの <b>{{manage.ext.title}}</b> で <b>{{manage.ext.copy}}</b> をクリックします。",
+              "Chromeで、Giftpin Chromeプラグインをクリックします。",
+              "プラグインがすでにリストを表示している場合は、<b>Switch registry</b> をクリックします。",
+              "リンクを <b>Manage link</b> に貼り付けて <b>Connect</b> をクリックします。これは最初の1回だけです。",
+              "あとは、どのサイトの商品ページでも、Giftpin Chromeプラグインをクリックして <b>Quantity</b> を選び、<b>Add to registry</b> をクリックするだけです。",
             ],
-            alts: ["Walmartの商品ページで表示したGiftpin拡張機能。数量とAdd to registryボタンがあります"],
+            alts: ["ギフトリストのページ、Connect the browser extension の下。Copy connection link ボタンが赤い枠と番号1で示されている（非公開リンクは隠してある）", "Chromeのツールバー。Giftpinプラグインのアイコンが赤い枠と番号1で示されている", "すでにリストに接続されたGiftpinプラグイン。Switch registry のリンクが赤い枠と番号1で示されている", "Connect to my registry の枠。Manage link 欄に貼り付けたリンクが赤い枠と番号1で示されている", "同じ枠。Connect ボタンが赤い枠と番号1で示されている", "接続済みになったプラグイン。Connected to とリスト名の行が赤い枠と番号1で示されている", "Walmartの商品ページで表示したGiftpin拡張機能。数量とAdd to registryボタンがあります"],
           },
           {
             title: "お店にいるときは、バーコードをスキャン",
