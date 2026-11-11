@@ -436,6 +436,34 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面の商品ページ：「その他の操作」が赤い枠と番号1、矢印の先の開いたメニューでGiftpin registryが番号2、開いたパネルにはこの商品を含むリストが並び、「完了」が番号3で示されている"
     }
   },
+  "orderPanel": {
+    "src": "/guides/p16-order-panel-path.png",
+    "alt": {
+      "en": "Shopify admin: Orders boxed and numbered 1, an arrow to the orders list with an order boxed and numbered 2, then the order page's More actions button numbered 3, the open menu with Giftpin registry boxed and numbered 4, and the panel showing which registry the order was credited to, with Done numbered 5. The buyer's name is covered",
+      "fr": "Admin Shopify : Commandes encadré et numéroté 1, une flèche vers la liste des commandes avec une commande encadrée et numérotée 2, puis le bouton Autres actions de la commande numéroté 3, le menu ouvert avec Giftpin registry encadré et numéroté 4, et le panneau indiquant à quel registre la commande a été créditée, Terminé numéroté 5. Le nom de l'acheteur est masqué",
+      "es": "Admin de Shopify: Pedidos enmarcado y numerado 1, una flecha a la lista de pedidos con un pedido enmarcado y numerado 2, luego el botón Más acciones del pedido numerado 3, el menú abierto con Giftpin registry enmarcado y numerado 4, y el panel que muestra a qué registro se acreditó el pedido, con Listo numerado 5. El nombre del comprador está tapado",
+      "de": "Shopify-Admin: Bestellungen umrandet und mit 1 nummeriert, ein Pfeil zur Bestellliste mit einer umrandeten, mit 2 nummerierten Bestellung, dann der Button Weitere Aktionen der Bestellung mit 3, das geöffnete Menü mit Giftpin registry umrandet und mit 4 nummeriert, und das Fenster, das zeigt, welcher Liste die Bestellung gutgeschrieben wurde, mit Fertig als 5. Der Name des Käufers ist abgedeckt",
+      "pt-BR": "Admin da Shopify: Pedidos destacado e numerado 1, uma seta para a lista de pedidos com um pedido destacado e numerado 2, depois o botão Mais ações do pedido numerado 3, o menu aberto com Giftpin registry destacado e numerado 4, e o painel que mostra a qual lista o pedido foi creditado, com Concluído numerado 5. O nome do comprador está coberto",
+      "hi": "Shopify एडमिन: ऑर्डर लाल बॉक्स में नंबर 1, तीर ऑर्डर सूची की ओर जहाँ एक ऑर्डर नंबर 2 के साथ है, फिर ऑर्डर पेज का और कार्रवाइयाँ बटन नंबर 3, खुला मेनू जिसमें Giftpin registry नंबर 4 के साथ है, और वह पैनल जो दिखाता है कि ऑर्डर किस रजिस्ट्री को क्रेडिट हुआ, हो गया नंबर 5। खरीदार का नाम ढका हुआ है",
+      "zh-CN": "Shopify 后台：「订单」以红框标示并编号 1，箭头指向订单列表，其中一个订单编号 2，然后是订单页的「更多操作」按钮编号 3，展开菜单中 Giftpin registry 编号 4，以及显示该订单记入哪个礼物清单的面板，「完成」编号 5。买家姓名已遮盖",
+      "zh-TW": "Shopify 後台：「訂單」以紅框標示並編號 1，箭頭指向訂單列表，其中一筆訂單編號 2，接著是訂單頁的「更多動作」按鈕編號 3，展開選單中 Giftpin registry 編號 4，以及顯示該訂單記入哪個禮物清單的面板，「完成」編號 5。買家姓名已遮蓋",
+      "ja": "Shopify管理画面：「注文」が赤い枠と番号1、矢印の先の注文一覧で注文が番号2、続いて注文ページの「その他の操作」が番号3、開いたメニューでGiftpin registryが番号4、この注文がどのリストに反映されたかを示すパネルで「完了」が番号5。購入者の名前は伏せてある"
+    }
+  },
+  "customerPanel": {
+    "src": "/guides/p16-customer-panel-path.png",
+    "alt": {
+      "en": "Shopify admin: Customers boxed and numbered 1, an arrow to a customer page with More actions numbered 2, the open menu with Giftpin registry boxed and numbered 3, and the panel listing their registries and the gifts they bought, with Done numbered 4. A buyer's name is covered",
+      "fr": "Admin Shopify : Clients encadré et numéroté 1, une flèche vers une fiche client avec Autres actions numéroté 2, le menu ouvert avec Giftpin registry encadré et numéroté 3, et le panneau listant ses registres et les cadeaux achetés, Terminé numéroté 4. Le nom d'un acheteur est masqué",
+      "es": "Admin de Shopify: Clientes enmarcado y numerado 1, una flecha a la página de un cliente con Más acciones numerado 2, el menú abierto con Giftpin registry enmarcado y numerado 3, y el panel con sus registros y los regalos que compró, con Listo numerado 4. El nombre de un comprador está tapado",
+      "de": "Shopify-Admin: Kunden umrandet und mit 1 nummeriert, ein Pfeil zur Kundenseite mit Weitere Aktionen als 2, das geöffnete Menü mit Giftpin registry umrandet und mit 3 nummeriert, und das Fenster mit den Listen des Kunden und den gekauften Geschenken, Fertig als 4. Der Name eines Käufers ist abgedeckt",
+      "pt-BR": "Admin da Shopify: Clientes destacado e numerado 1, uma seta para a página de um cliente com Mais ações numerado 2, o menu aberto com Giftpin registry destacado e numerado 3, e o painel com as listas dele e os presentes que comprou, com Concluído numerado 4. O nome de um comprador está coberto",
+      "hi": "Shopify एडमिन: ग्राहक लाल बॉक्स में नंबर 1, तीर ग्राहक पेज की ओर जहाँ और कार्रवाइयाँ नंबर 2 के साथ है, खुला मेनू जिसमें Giftpin registry नंबर 3 के साथ है, और पैनल जिसमें उनकी रजिस्ट्रियाँ और खरीदे गए उपहार दिखते हैं, हो गया नंबर 4। एक खरीदार का नाम ढका हुआ है",
+      "zh-CN": "Shopify 后台：「客户」以红框标示并编号 1，箭头指向客户页面，「更多操作」编号 2，展开菜单中 Giftpin registry 编号 3，以及列出其礼物清单和所购礼物的面板，「完成」编号 4。一位买家的姓名已遮盖",
+      "zh-TW": "Shopify 後台：「顧客」以紅框標示並編號 1，箭頭指向顧客頁面，「更多動作」編號 2，展開選單中 Giftpin registry 編號 3，以及列出其禮物清單與所購禮物的面板，「完成」編號 4。一位買家的姓名已遮蓋",
+      "ja": "Shopify管理画面：「顧客」が赤い枠と番号1、矢印の先の顧客ページで「その他の操作」が番号2、開いたメニューでGiftpin registryが番号3、その顧客のリストと購入したギフトを示すパネルで「完了」が番号4。購入者の名前は伏せてある"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
