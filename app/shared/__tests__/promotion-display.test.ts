@@ -8,6 +8,7 @@ import {
   promotionPerkLines,
   type Deal,
 } from "../promotion-display";
+import { withLocale } from "../../lib/i18n.server";
 import type { PromotionConfig, PromotionSummary } from "../promotions";
 
 const config = (over: Partial<PromotionConfig> = {}): PromotionConfig => ({
@@ -65,5 +66,13 @@ describe("duplicate promotions", () => {
     const b = sale({ productIds: ["gid://shopify/Product/2"] });
     expect(bannerLines([a, b], "CAD")).toHaveLength(1);
     expect(promotionPerkLines([a, b], "CAD")).toHaveLength(1);
+  });
+
+  it("shows the deal in the shopper's currency and language", () => {
+    const ja = withLocale("ja", () => itemDealText(sale({ amount: 10 }), 2800, "JPY"));
+    expect(ja).toContain("ギフトリスト価格");
+    expect(ja).toMatch(/2,520/);
+    expect(ja).not.toContain("$");
+    expect(ja).not.toContain("2520.00");
   });
 });

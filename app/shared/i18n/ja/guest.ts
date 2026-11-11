@@ -100,4 +100,10 @@ export const jaGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "保存しています...",
   "guest.couldNotAdd": "追加できませんでした",
   "guest.couldNotSave": "保存できませんでした",
+
+  "guest.promo.registryPrice": "ギフトリスト価格 {price}{how}",
+  "guest.promo.withCode": "（コード {code}）",
+  "guest.promo.pctOff": "{n}%オフ",
+  "guest.promo.amtOffEach": "1点につき{amount}オフ",
+  "guest.promo.tier": "（リストのギフト{n}点以上）",
 };

@@ -103,4 +103,10 @@ export const enGuest = {
   "guest.saving": "Saving...",
   "guest.couldNotAdd": "Could not add that",
   "guest.couldNotSave": "Could not save",
+
+  "guest.promo.registryPrice": "Registry price {price}{how}",
+  "guest.promo.withCode": " with code {code}",
+  "guest.promo.pctOff": "{n}% off",
+  "guest.promo.amtOffEach": "{amount} off each",
+  "guest.promo.tier": " on {n}+ registry gifts",
 } as const;

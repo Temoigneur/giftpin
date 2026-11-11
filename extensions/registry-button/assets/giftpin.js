@@ -59,7 +59,9 @@
     if (dealEl && root.dataset.productId) {
       fetch(
         proxy + "/deal?product=" + encodeURIComponent(root.dataset.productId) +
-          "&price=" + encodeURIComponent(root.dataset.price || ""),
+          "&price=" + encodeURIComponent(root.dataset.price || "") +
+          "&currency=" + encodeURIComponent(root.dataset.currency || "") +
+          "&lang=" + encodeURIComponent(root.dataset.lang || ""),
         { headers: { Accept: "application/json" }, credentials: "same-origin" }
       )
         .then(function (response) { return response.ok ? response.json() : null; })
