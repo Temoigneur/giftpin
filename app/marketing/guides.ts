@@ -178,14 +178,14 @@ const fillLabels = (html: string, locale: Locale) =>
 const guideShots = (list: Shot[]) =>
   list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join("");
 
-function guideSteps(list: Step[], english: Step[], locale: Locale): string {
+function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
   return `<div class="steps">${list
     .map((st, i) => {
       const base = english[i]?.img;
       const imgs = base ? (Array.isArray(base) ? base : [base]) : [];
       const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
       return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
-  <span class="step-n">${i + 1}</span>
+  <span class="step-n${first === null ? " step-dot" : ""}">${first === null ? "•" : first + i}</span>
   <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown)}</div>
 </div>`;
     })
@@ -200,6 +200,31 @@ const GUIDE_PAGES: Record<GuideKind, { path: string; nav: "setup" | "guides"; ic
   registry: { path: "/registry-guide", nav: "guides", icon: "gift", cta: false },
   guest: { path: "/guest-guide", nav: "guides", icon: "heart", cta: false },
 };
+
+
+/**
+ * Merchant steps are numbered in one run across Setup, Customize and Pro, so a
+ * store owner can follow them in order. Section 0 of Setup (the choose-a-guide
+ * cards) and its last section (the Save-button reference) are not steps.
+ */
+const MERCHANT_KINDS: GuideKind[] = ["setup", "customize", "pro"];
+const isNumbered = (kind: GuideKind, section: number, count: number): boolean =>
+  kind === "setup" ? section === 1 : MERCHANT_KINDS.includes(kind) && section < count;
+function stepNumbers(kind: GuideKind): { starts: (number | null)[]; total: number } {
+  let n = 0;
+  let mine: (number | null)[] = [];
+  for (const k of MERCHANT_KINDS) {
+    const secs = GUIDE_COPY.en[k].sections;
+    const here = secs.map((sec, i) => {
+      if (!isNumbered(k, i, secs.length)) return null;
+      const start = n + 1;
+      n += sec.steps.length;
+      return start;
+    });
+    if (k === kind) mine = here;
+  }
+  return { starts: mine, total: n };
+}
 
 const ORDER: GuideKind[] = ["setup", "customize", "pro", "registry", "guest"];
 const AUDIENCE: Record<GuideKind, "forMerchant" | "forRegistrant" | "forGuest"> = {
@@ -232,14 +257,21 @@ function guideHtml(kind: GuideKind, locale: Locale): string {
   const page = GUIDE_PAGES[kind];
   const path = page.path;
   const merchant = page.nav === "setup";
-  const notes = [copy.ui.shotsNote, merchant ? copy.ui.shopifyNote : ""].filter(Boolean);
+  const nums = merchant ? stepNumbers(kind) : { starts: [] as (number | null)[], total: 0 };
+  const notes = [copy.ui.shotsNote, merchant ? copy.ui.shopifyNote : "", merchant ? DOCS_UI[locale].order.replace("{n}", String(nums.total)) : ""].filter(Boolean);
+  const nextKind = kind === "setup" ? "customize" : kind === "customize" ? "pro" : null;
+  const q = locale === "en" ? "" : `?lang=${locale}`;
+  const nextLink = nextKind
+    ? `<div class="wrap"><p class="next-link"><b>${esc(DOCS_UI[locale].next)}:</b> <a href="${GUIDE_PAGES[nextKind].path}${q}">${esc(DOCS_UI[locale].links[ORDER.indexOf(nextKind)])} →</a></p></div>`
+    : "";
   const body = `
 ${hero(`${icon(page.icon)} ${esc(doc.eyebrow)} <span class="aud aud-${merchant ? "m" : "c"}">${esc(DOCS_UI[locale][AUDIENCE[kind]])}</span>`, doc.h1, doc.lede)}
 ${docsMenu(kind, locale, doc.sections)}
 ${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
 ${doc.sections
-  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale), sec.tint, `s${i + 1}`))
+  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale, merchant ? (nums.starts[i] ?? null) : 1), sec.tint, `s${i + 1}`))
   .join("\n")}
+${nextLink}
 ${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint) : ""}
 ${page.cta ? finalCta(copy.ui.finalCta) : ""}
 `;
@@ -299,6 +331,8 @@ const CSS = `
 .steps{max-width:860px; margin:0 auto; display:grid; gap:16px}
 .step{display:flex; gap:18px; align-items:flex-start}
 .step-n{flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-weight:800; color:#fff; background:var(--accent)}
+.next-link{font-size:18px; margin:8px 0 0}
+.step-dot{background:transparent; color:var(--accent); font-size:26px}
 .step h3{margin:4px 0 8px}
 .step ol{margin:0; padding-left:20px; display:grid; gap:6px}
 .step b{font-weight:700}

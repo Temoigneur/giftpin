@@ -112,5 +112,17 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [menuFirst(withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), 0, "navSettings"), menuFirst(menuFirst(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"]), 3, "navSettings"), 0, "navRegistries")]), pro: sub("p", [menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings")]), registry, guest };
+  const makeS = menuFirst(withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), 0, "navSettings");
+  const moreS = menuFirst(menuFirst(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"]), 3, "navSettings"), 0, "navRegistries");
+  const proS = menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings");
+  // One run in the order a store owner does things: Pro-only steps sit after Start Pro, and the Languages step follows the look-and-language step.
+  const [mkOcc, mkExt, mkSold, mkLook, mkPriv, mkPerks] = makeS.steps;
+  const [moImport, moPanels, moFlow, moLang] = moreS.steps;
+  const [prStart, ...prRest] = proS.steps;
+  const customizeSections = [
+    { ...makeS, steps: [mkOcc, mkExt, mkSold, mkLook, moLang, mkPriv] },
+    { ...moreS, steps: [moImport, moPanels] },
+  ];
+  const proSections = [{ ...proS, steps: [prStart, mkPerks, ...prRest, moFlow] }];
+  return { ui: raw.ui, setup, customize: sub("c", customizeSections), pro: sub("p", proSections), registry, guest };
 }
