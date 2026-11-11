@@ -100,4 +100,10 @@ export const hiGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "सेव हो रहा है...",
   "guest.couldNotAdd": "इसे जोड़ नहीं पाए",
   "guest.couldNotSave": "सेव नहीं हो पाया",
+
+  "guest.promo.registryPrice": "रजिस्ट्री मूल्य {price}{how}",
+  "guest.promo.withCode": " कोड {code} के साथ",
+  "guest.promo.pctOff": "{n}% की छूट",
+  "guest.promo.amtOffEach": "प्रत्येक पर {amount} की छूट",
+  "guest.promo.tier": " रजिस्ट्री के {n}+ उपहारों पर",
 };

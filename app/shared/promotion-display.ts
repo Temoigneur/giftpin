@@ -9,6 +9,7 @@
  * a price the function wouldn't.
  */
 
+import { formatCurrency, t } from "./i18n";
 import type { PromotionConfig, PromotionSummary } from "./promotions";
 
 export interface Deal {
@@ -55,13 +56,23 @@ export function dealPrice(deal: Deal, price: number): number | null {
   return Math.max(0, Math.round((price - off) * 100) / 100);
 }
 
-/** The line under a discounted item's price. */
+/**
+ * The line under a discounted item's price, in the active language. `currency`
+ * is the one the shopper is looking at (a Japan market shows yen), not
+ * necessarily the shop's own.
+ */
 export function itemDealText(deal: Deal, price: number, currency: string): string {
   const after = dealPrice(deal, price);
-  const how = deal.kind === "coupon" ? ` with code ${deal.code}` : "";
-  if (after !== null) return `Registry price ${money(after, currency)}${how}`;
-  const tier = deal.config.minQuantity > 1 ? ` on ${deal.config.minQuantity}+ registry gifts` : "";
-  return `${dealValue(deal, currency)}${tier}${how}`;
+  const how = deal.kind === "coupon" ? t("guest.promo.withCode", { code: deal.code ?? "" }) : "";
+  if (after !== null) {
+    return t("guest.promo.registryPrice", { price: formatCurrency(after, currency), how });
+  }
+  const tier = deal.config.minQuantity > 1 ? t("guest.promo.tier", { n: deal.config.minQuantity }) : "";
+  const value =
+    deal.config.valueType === "percentage"
+      ? t("guest.promo.pctOff", { n: deal.config.amount })
+      : t("guest.promo.amtOffEach", { amount: formatCurrency(deal.config.amount, currency) });
+  return `${value}${tier}${how}`;
 }
 
 function scope(deal: Deal): string {

@@ -100,4 +100,10 @@ export const esGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "Guardando...",
   "guest.couldNotAdd": "No se pudo añadir",
   "guest.couldNotSave": "No se pudo guardar",
+
+  "guest.promo.registryPrice": "Precio de la lista {price}{how}",
+  "guest.promo.withCode": " con el código {code}",
+  "guest.promo.pctOff": "{n}% de descuento",
+  "guest.promo.amtOffEach": "{amount} de descuento cada uno",
+  "guest.promo.tier": " en {n} o más regalos de la lista",
 };

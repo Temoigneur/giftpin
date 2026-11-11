@@ -100,4 +100,10 @@ export const ptBRGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "Salvando...",
   "guest.couldNotAdd": "Não foi possível adicionar",
   "guest.couldNotSave": "Não foi possível salvar",
+
+  "guest.promo.registryPrice": "Preço da lista {price}{how}",
+  "guest.promo.withCode": " com o código {code}",
+  "guest.promo.pctOff": "{n}% de desconto",
+  "guest.promo.amtOffEach": "{amount} de desconto cada",
+  "guest.promo.tier": " em {n}+ presentes da lista",
 };

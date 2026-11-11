@@ -100,4 +100,10 @@ export const deGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "Wird gespeichert...",
   "guest.couldNotAdd": "Konnte nicht hinzugefügt werden",
   "guest.couldNotSave": "Konnte nicht gespeichert werden",
+
+  "guest.promo.registryPrice": "Listenpreis {price}{how}",
+  "guest.promo.withCode": " mit Code {code}",
+  "guest.promo.pctOff": "{n} % Rabatt",
+  "guest.promo.amtOffEach": "{amount} Rabatt pro Stück",
+  "guest.promo.tier": " ab {n} Geschenken von der Liste",
 };

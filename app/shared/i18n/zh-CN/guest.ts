@@ -100,4 +100,10 @@ export const zhCNGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "正在保存...",
   "guest.couldNotAdd": "无法添加",
   "guest.couldNotSave": "无法保存",
+
+  "guest.promo.registryPrice": "礼物清单价 {price}{how}",
+  "guest.promo.withCode": "，使用优惠码 {code}",
+  "guest.promo.pctOff": "优惠 {n}%",
+  "guest.promo.amtOffEach": "每件立减 {amount}",
+  "guest.promo.tier": "，购买清单中 {n} 件及以上礼物时",
 };

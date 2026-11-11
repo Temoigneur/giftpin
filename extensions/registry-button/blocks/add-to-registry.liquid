@@ -41,6 +41,7 @@
   data-label-dup-short="{{ 'add_to_registry.dup_short' | t: qty: '__QTY__' | escape }}"
   data-label-copy-prompt="{{ 'add_to_registry.copy_prompt' | t | escape }}"
   data-gp-lang="{{ gp_lang | escape }}"
+  data-lang="{% if gp_lang != blank %}{{ gp_lang | escape }}{% else %}{{ request.locale.iso_code | escape }}{% endif %}"
   data-shop-name="{{ shop.name | escape }}"
   data-customer-id="{{ customer.id }}"
   {%- if offers_choice %}

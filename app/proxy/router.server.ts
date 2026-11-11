@@ -719,7 +719,28 @@ async function productDealJson(ctx: ProxyContext, shop: ShopRecord, settings: Sh
   const deal = dealForProduct(deals, gid, collections[gid] ?? []);
   if (!deal) return json({ text: null });
   const price = Number(ctx.query.get("price")) || 0;
-  return json({ text: itemDealText(deal, price, shop.currency) });
+  // The price and currency are what the shopper sees (a Japan market shows
+  // yen). A fixed-amount deal is set in the shop's currency and can't be
+  // converted here, so it isn't advertised in another one; checkout still
+  // applies it.
+  const currency = presentmentCurrency(ctx.query.get("currency"), shop.currency);
+  if (currency !== shop.currency && deal.config.valueType !== "percentage") return json({ text: null });
+  // The block is rendered in the storefront's language, which the proxy
+  // doesn't send, so the block passes it along.
+  overrideLocale(ctx.query.get("lang"));
+  return json({ text: itemDealText(deal, price, currency) });
+}
+
+/** A valid ISO currency code from the storefront, else the shop's own. */
+function presentmentCurrency(raw: string | null, fallback: string): string {
+  const code = (raw ?? "").toUpperCase();
+  if (!/^[A-Z]{3}$/.test(code)) return fallback;
+  try {
+    new Intl.NumberFormat("en", { style: "currency", currency: code });
+    return code;
+  } catch {
+    return fallback;
+  }
 }
 
 async function myRegistriesJson(ctx: ProxyContext, shop: ShopRecord): Promise<Response> {

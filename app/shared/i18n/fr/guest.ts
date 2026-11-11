@@ -100,4 +100,10 @@ export const frGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.saving": "Enregistrement...",
   "guest.couldNotAdd": "Impossible de l'ajouter",
   "guest.couldNotSave": "Impossible d'enregistrer",
+
+  "guest.promo.registryPrice": "Prix de la liste {price}{how}",
+  "guest.promo.withCode": " avec le code {code}",
+  "guest.promo.pctOff": "{n} % de réduction",
+  "guest.promo.amtOffEach": "{amount} de réduction chacun",
+  "guest.promo.tier": " dès {n} cadeaux de la liste",
 };
