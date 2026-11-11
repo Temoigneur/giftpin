@@ -125,7 +125,7 @@ reading Shopify's docs.
   GB and AU came from knowledge of each site's search, not a check. Run
   `node scripts/check-retailer-links.mjs` on a normal machine and fix or drop
   any BROKEN link. BLOCKED means the site refused a script: open it by hand.
-- **Ship-to-registrant in 17 countries (built 7 Nov 2026, not live-tested; IN, CN, JP regions added the same day, Taiwan has none):** the manage page address form now offers the same 13 countries as the registry country list, with region lists for IE, NZ, ES, MX and BR in `app/shared/shipping-address.ts`. The codes are ISO 3166-2 (Mexico: Shopify-style, from memory), never checked against a live `orderUpdate`. Save a test address in each country on the dev store and confirm the rewrite applies.
+- **Ship-to-registrant in 17 countries (built 7 Nov 2026, not live-tested; IN, CN, JP regions added the same day, Taiwan has none; CN district line and IN/CN/JP postal-code checks added 11 Nov):** the manage page address form now offers the same 13 countries as the registry country list, with region lists for IE, NZ, ES, MX and BR in `app/shared/shipping-address.ts`. The codes are ISO 3166-2 (Mexico: Shopify-style, from memory), never checked against a live `orderUpdate`. Save a test address in each country on the dev store and confirm the rewrite applies.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

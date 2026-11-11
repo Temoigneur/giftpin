@@ -15,6 +15,11 @@ export interface ShippingAddress {
   address1: string;
   address2?: string;
   city: string;
+  /**
+   * China only: the district (区), e.g. "Dongcheng". MailingAddressInput has no
+   * district field, so toMailingAddressInput() puts it at the start of address1.
+   */
+  district?: string;
   /** Shopify province code ("ON", "NY", "NSW"). Absent for GB. */
   provinceCode?: string;
   countryCode: string;
@@ -393,13 +398,47 @@ export const PROVINCES: Record<string, { label: string; regions: Region[] }> = {
 
 const LIMIT = 120;
 
-export type ShippingAddressError = "country" | "missing" | "region";
+/** Countries whose addresses carry a district line between city and street. */
+export const DISTRICT_COUNTRIES = ["CN"];
+
+/**
+ * Postal code rules for countries where a wrong code is easy to type and the
+ * courier depends on it. `normalize` returns the canonical form or null.
+ * Countries not listed accept any non-empty code (as before).
+ */
+const POSTAL_RULES: Record<string, (zip: string) => string | null> = {
+  // PIN code: six digits, never starting with 0 ("110 001" is common).
+  IN: (z) => {
+    const d = z.replace(/[\s-]/g, "");
+    return /^[1-9]\d{5}$/.test(d) ? d : null;
+  },
+  // Six digits.
+  CN: (z) => {
+    const d = z.replace(/\s/g, "");
+    return /^\d{6}$/.test(d) ? d : null;
+  },
+  // 〒NNN-NNNN; seven digits without the hyphen are accepted and hyphenated.
+  JP: (z) => {
+    const m = z.replace(/[〒\s]/g, "").match(/^(\d{3})-?(\d{4})$/);
+    return m ? `${m[1]}-${m[2]}` : null;
+  },
+};
+
+/** Label for the postal code field, by country (the default is "Postal code"). */
+export const POSTAL_LABEL_KEYS: Record<string, "manage.ship.zip" | "manage.ship.pin"> = {
+  US: "manage.ship.zip",
+  IN: "manage.ship.pin",
+};
+
+export type ShippingAddressError = "country" | "missing" | "region" | "district" | "postal";
 
 /** Keyed by code so the redirect carries a code, never free text, in its URL. */
 export const SHIPPING_ADDRESS_ERRORS: Record<ShippingAddressError, string> = {
   country: "Please choose a country for your shipping address.",
   missing: "Please fill in your name, street address, city and postal code.",
   region: "Please choose a state or province for your shipping address.",
+  district: "Please enter the district for your shipping address.",
+  postal: "That postal code doesn't look right for the country you chose.",
 };
 
 function field(form: { get(name: string): unknown }, name: string): string {
@@ -442,6 +481,19 @@ export function parseShippingAddressForm(
     address.provinceCode = provinceCode;
   }
 
+  if (DISTRICT_COUNTRIES.includes(countryCode)) {
+    const district = field(form, "district");
+    if (!district) return { error: "district" };
+    address.district = district;
+  }
+
+  const postalRule = POSTAL_RULES[countryCode];
+  if (postalRule) {
+    const zip = postalRule(address.zip);
+    if (!zip) return { error: "postal" };
+    address.zip = zip;
+  }
+
   const address2 = field(form, "address2");
   if (address2) address.address2 = address2;
   const phone = field(form, "phone");
@@ -462,5 +514,10 @@ export function toMailingAddressInput(stored: Record<string, string>): Record<st
   }
   const country = stored.countryCode || stored.countryCodeV2;
   if (country) input.countryCode = country;
+  // Chinese addresses run province, city, district, street: Shopify has no
+  // district field, so it leads the street line. Not yet checked on a live order.
+  if (country && DISTRICT_COUNTRIES.includes(country) && stored.district) {
+    input.address1 = `${stored.district} ${input.address1 ?? ""}`.trim();
+  }
   return input;
 }

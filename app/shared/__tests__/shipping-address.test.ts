@@ -76,3 +76,42 @@ describe("toMailingAddressInput", () => {
     });
   });
 });
+
+describe("China, India and Japan", () => {
+  const CN = { ...VALID, countryCode: "CN", provinceCode: "CN-11", city: "Beijing", district: "Dongcheng", zip: "100010", address1: "Jingshan Front St 4" };
+  const IN = { ...VALID, countryCode: "IN", provinceCode: "MH", city: "Mumbai", zip: "400 001" };
+  const JP = { ...VALID, countryCode: "JP", provinceCode: "JP-13", city: "Chiyoda", zip: "1000001" };
+
+  it("requires a district for China and stores it", () => {
+    expect(parseShippingAddressForm(form({ ...CN, district: " " }))).toEqual({ error: "district" });
+    expect(parseShippingAddressForm(form(CN))).toMatchObject({ address: { district: "Dongcheng", zip: "100010" } });
+  });
+
+  it("does not ask other countries for a district", () => {
+    expect(parseShippingAddressForm(form({ ...VALID, district: "X" }))).toEqual({
+      address: expect.not.objectContaining({ district: expect.anything() }),
+    });
+  });
+
+  it("puts the Chinese district at the start of the street line for Shopify", () => {
+    const stored = (parseShippingAddressForm(form(CN)) as unknown as { address: Record<string, string> }).address;
+    expect(toMailingAddressInput(stored)).toMatchObject({ address1: "Dongcheng Jingshan Front St 4", city: "Beijing" });
+    expect(toMailingAddressInput(stored)).not.toHaveProperty("district");
+  });
+
+  it("checks the 6-digit PIN code and strips the space", () => {
+    expect(parseShippingAddressForm(form(IN))).toMatchObject({ address: { zip: "400001" } });
+    expect(parseShippingAddressForm(form({ ...IN, zip: "040001" }))).toEqual({ error: "postal" });
+    expect(parseShippingAddressForm(form({ ...IN, zip: "4000" }))).toEqual({ error: "postal" });
+  });
+
+  it("checks the 6-digit Chinese postcode", () => {
+    expect(parseShippingAddressForm(form({ ...CN, zip: "1000" }))).toEqual({ error: "postal" });
+  });
+
+  it("formats Japanese postcodes as NNN-NNNN", () => {
+    expect(parseShippingAddressForm(form(JP))).toMatchObject({ address: { zip: "100-0001" } });
+    expect(parseShippingAddressForm(form({ ...JP, zip: "〒100-0001" }))).toMatchObject({ address: { zip: "100-0001" } });
+    expect(parseShippingAddressForm(form({ ...JP, zip: "10000" }))).toEqual({ error: "postal" });
+  });
+});
