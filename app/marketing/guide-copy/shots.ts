@@ -1023,5 +1023,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "商店的禮品卡頁面：一個金額以紅框標示並編號 1，「直接以電子郵件寄給某人」核取方塊編號 2，收件人電子郵件與姓名欄位編號 3 和 4，「加入購物車」編號 5",
       "ja": "ストアのギフトカードページ。金額が赤い枠と番号1、「直接メールで送る」のチェックボックスが番号2、受取人のメールアドレスと名前の欄が番号3と4、「カートに追加」が番号5で示されている"
     }
+  },
+  "shareRow": {
+    "src": "/guides/g6-share-row.png",
+    "alt": {
+      "en": "The Share row at the top of a registry, with the Share button boxed in red and numbered 1, beside the WhatsApp, Text and Email buttons",
+      "fr": "La rangée Partager en haut d'une liste, avec le bouton Partager encadré en rouge et numéroté 1, à côté des boutons WhatsApp, SMS et E-mail",
+      "es": "La fila Compartir en la parte superior de un registro, con el botón Compartir enmarcado en rojo y numerado 1, junto a los botones WhatsApp, Mensaje y Correo",
+      "de": "Die Zeile Teilen oben auf einer Liste, mit dem Button Teilen rot umrandet und mit 1 nummeriert, neben den Buttons WhatsApp, SMS und E-Mail",
+      "pt-BR": "A linha Compartilhar no topo de uma lista, com o botão Compartilhar destacado em vermelho e numerado 1, ao lado dos botões WhatsApp, Mensagem e E-mail",
+      "hi": "रजिस्ट्री के ऊपर शेयर की पंक्ति, शेयर बटन लाल बॉक्स में और नंबर 1 के साथ, WhatsApp, टेक्स्ट और ईमेल बटनों के बगल में",
+      "zh-CN": "清单顶部的分享行，“分享”按钮以红框标示并编号 1，旁边是 WhatsApp、短信和邮件按钮",
+      "zh-TW": "清單頂部的分享列，「分享」按鈕以紅框標示並編號 1，旁邊是 WhatsApp、簡訊和電子郵件按鈕",
+      "ja": "リスト上部の共有の列。「共有」ボタンが赤い枠と番号1で示され、隣にWhatsApp、テキスト、メールのボタンが並んでいる"
+    }
   }
 };

@@ -83,7 +83,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
         tint: true,
         steps: [step(s("g3_t"), [s("g3_i1"), s("g3_i2")]), { ...step(s("g4_t"), [s("g4_i1"), s("g4_i2"), s("g4_i3")]), ...(locale === "en" ? { img: { src: GUEST_SHOT_SRC, alt: GUEST_SHOT_ALT.en } } : { alts: [GUEST_SHOT_ALT[locale]] }) }, step(s("g5_t"), [s("g5_i1"), s("g5_i2")], ["chip", "giftCardPage"])],
       },
-      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")], ["remind"])] },
+      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")], ["remind", "shareRow"])] },
     ],
     faqTitle: raw.registry.faqTitle,
     faq: [1, 2, 3].map((n) => ({ q: s(`q${n}`), a: s(`a${n}`) })),
