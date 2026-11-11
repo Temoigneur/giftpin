@@ -506,6 +506,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "テーマエディタのカートページの「テンプレート」内：「セクションを追加」が番号1、「アプリ」タブが番号2、GiftpinのSaved itemsが番号3、右上の「保存」が番号4"
     }
   },
+  "menuPath": {
+    "src": "/guides/p20-menu-item-path.png",
+    "alt": {
+      "en": "For vintage themes: Content numbered 1, Menus numbered 2, Main menu numbered 3, Add menu item numbered 4, the Label (Gift registry, 5) and Link (/apps/registry, 6) fields, the /apps/registry suggestion numbered 7, then Save numbered 8",
+      "fr": "Pour les thèmes anciens : Contenu numéroté 1, Menus numéroté 2, Menu principal numéroté 3, Ajouter un élément de menu numéroté 4, les champs Libellé (Gift registry, 5) et Lien (/apps/registry, 6), la suggestion /apps/registry numérotée 7, puis Enregistrer numéroté 8",
+      "es": "Para temas antiguos: Contenido numerado 1, Menús numerado 2, Menú principal numerado 3, Añadir elemento de menú numerado 4, los campos Etiqueta (Gift registry, 5) y Enlace (/apps/registry, 6), la sugerencia /apps/registry numerada 7 y luego Guardar numerado 8",
+      "de": "Für ältere Themes: Inhalte mit 1, Menüs mit 2, Hauptmenü mit 3, Menüpunkt hinzufügen mit 4, die Felder Bezeichnung (Gift registry, 5) und Link (/apps/registry, 6), der Vorschlag /apps/registry mit 7, danach Speichern mit 8",
+      "pt-BR": "Para temas antigos: Conteúdo numerado 1, Menus numerado 2, Menu principal numerado 3, Adicionar item de menu numerado 4, os campos Rótulo (Gift registry, 5) e Link (/apps/registry, 6), a sugestão /apps/registry numerada 7 e depois Salvar numerado 8",
+      "hi": "पुरानी थीम के लिए: कंटेंट नंबर 1, मेन्यू नंबर 2, मेन मेन्यू नंबर 3, मेन्यू आइटम जोड़ें नंबर 4, लेबल (Gift registry, 5) और लिंक (/apps/registry, 6) फ़ील्ड, सुझाव /apps/registry नंबर 7, फिर सेव नंबर 8",
+      "zh-CN": "旧版主题：「内容」编号 1，「菜单」编号 2，「主菜单」编号 3，「添加菜单项」编号 4，「标签」（Gift registry，5）和「链接」（/apps/registry，6）字段，建议项 /apps/registry 编号 7，然后「保存」编号 8",
+      "zh-TW": "舊式佈景主題：「內容」編號 1，「選單」編號 2，「主選單」編號 3，「新增選單項目」編號 4，「標籤」（Gift registry，5）與「連結」（/apps/registry，6）欄位，建議項 /apps/registry 編號 7，然後「儲存」編號 8",
+      "ja": "古いテーマの場合：「コンテンツ」が番号1、「メニュー」が番号2、「メインメニュー」が番号3、「メニュー項目を追加」が番号4、「ラベル」（Gift registry、5）と「リンク」（/apps/registry、6）の欄、候補の/apps/registryが番号7、最後に「保存」が番号8"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
