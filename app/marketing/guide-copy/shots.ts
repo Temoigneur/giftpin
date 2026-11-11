@@ -981,5 +981,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "清單工具：展開的「排序」選單以紅框標示並編號 1，「只顯示仍需要的」核取方塊以紅框標示並編號 2",
       "ja": "リストのツール。開いた「並べ替え」メニューが赤い枠と番号1、「まだ必要なものだけ表示」のチェックボックスが赤い枠と番号2で示されている"
     }
+  },
+  "takenCare": {
+    "src": "/guides/g3-taken-care-of.png",
+    "alt": {
+      "en": "A gift that's been taken care of, with the label “Already taken care of” boxed in red and the Undo link boxed and numbered 3",
+      "fr": "Un cadeau déjà pris en charge, avec l'étiquette « Already taken care of » encadrée en rouge et le lien Annuler encadré et numéroté 3",
+      "es": "Un regalo ya resuelto, con la etiqueta «Already taken care of» enmarcada en rojo y el enlace Deshacer enmarcado y numerado 3",
+      "de": "Ein bereits erledigtes Geschenk, mit der Markierung „Already taken care of“ rot umrandet und dem Link Rückgängig umrandet und mit 3 nummeriert",
+      "pt-BR": "Um presente já resolvido, com o rótulo “Already taken care of” destacado em vermelho e o link Desfazer destacado e numerado 3",
+      "hi": "पहले से तय उपहार, “Already taken care of” लेबल लाल बॉक्स में और पूर्ववत करें लिंक बॉक्स में नंबर 3 के साथ",
+      "zh-CN": "一件已被安排好的礼物，“Already taken care of”标签以红框标示，“撤销”链接以红框标示并编号 3",
+      "zh-TW": "一件已被安排好的禮物，「Already taken care of」標籤以紅框標示，「復原」連結以紅框標示並編號 3",
+      "ja": "手配済みのギフト。「Already taken care of」のラベルが赤い枠で、「元に戻す」リンクが赤い枠と番号3で示されている"
+    }
   }
 };
