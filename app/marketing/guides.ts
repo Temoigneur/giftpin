@@ -408,7 +408,8 @@ const CSS = `
 .docs-menu .dm-c{background:rgba(34,211,238,.17)}
 .docs-menu .dm-c b{color:#0b6f86}
 .docs-menu .dm-c a{background:rgba(255,255,255,.75); border-color:rgba(14,116,144,.3)}
-.docs-menu .dm-c a[aria-current="page"]{background:#0e7490; border-color:#0e7490; color:#fff}
+.docs-menu .dm-m a[aria-current="page"]{background:#5b2fd0; border-color:#5b2fd0; color:#fff; font-weight:700}
+.docs-menu .dm-c a[aria-current="page"]{background:#0e7490; border-color:#0e7490; color:#fff; font-weight:700}
 .guide-cols{display:block}
 .toc{display:none}
 .step,.sec{scroll-margin-top:90px}
