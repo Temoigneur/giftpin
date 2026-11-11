@@ -32,6 +32,18 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
         : st,
     ),
   });
+  // Put the left-menu click (a real shot of Giftpin's menu with the item boxed) before a step's own shots.
+  const menuFirst = (sec: typeof get, at: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? st.img : st.img ? [st.img] : [];
+        return { ...st, img: [{ src: SHOTS[key].src, alt: SHOTS[key].alt.en }, ...list] };
+      }
+      return { ...st, alts: [SHOTS[key].alt[locale], ...(st.alts ?? [])] };
+    }),
+  });
   // Replace one existing image in a step (the old Overview shot) with a new real one.
   const swapShot = (sec: typeof get, at: number, imgAt: number, key: string): typeof get => ({
     ...sec,
@@ -47,8 +59,8 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
       return { ...st, alts };
     }),
   });
-  const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
-  const saveWithShots = withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]);
+  const getWithShots = menuFirst(swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme"), 2, "navRegistries");
+  const saveWithShots = menuFirst(menuFirst(menuFirst(withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]), 1, "navSettings"), 2, "navInStore"), 2, "navPromotions");
   const manageKeys = ["manageSaveSettings", "manageSettingsSaved", "manageSaveShip", "manageShipSaved", "manageItemUpdate"];
   const saveAll = withShot(saveWithShots, 3, manageKeys);
   const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveAll] };
@@ -100,5 +112,5 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"])]), pro: sub("p", [withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"])]), registry, guest };
+  return { ui: raw.ui, setup, customize: sub("c", [menuFirst(withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), 0, "navSettings"), menuFirst(menuFirst(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"]), 3, "navSettings"), 0, "navRegistries")]), pro: sub("p", [menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings")]), registry, guest };
 }
