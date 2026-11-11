@@ -177,8 +177,39 @@ const fillLabels = (html: string, locale: Locale) =>
 
 // A red arrow between each screenshot, so a step reads as one connected path.
 const SHOT_ARROW = `<svg class="shot-arrow" viewBox="0 0 24 40" aria-hidden="true" focusable="false"><path d="M12 0v28M3 22l9 14 9-14" fill="none" stroke="#e61e1e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const guideShots = (list: Shot[]) =>
-  list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join(SHOT_ARROW);
+// Path images that start with a left-hand panel (the menu, say): the arrow into them points at that
+// panel, not at the middle of the image. [image width, x of the first panel's centre], in pixels.
+const ENTRY_PANEL: Record<string, [number, number]> = {
+  "/guides/p11-open-apps.png": [1734, 194],
+  "/guides/p14-gift-card-path.png": [1514, 191],
+  "/guides/p14-import-path.png": [1416, 200],
+  "/guides/p14-order-processing-path.png": [1099, 144],
+  "/guides/p15-product-panel-path.png": [1541, 389],
+  "/guides/p16-customer-panel-path.png": [1545, 146],
+  "/guides/p16-order-panel-path.png": [1720, 146],
+  "/guides/p17-flow-path.png": [1700, 193],
+  "/guides/p18-theme-block-path.png": [1523, 95],
+  "/guides/p19-cart-block-path.png": [1581, 200],
+  "/guides/p20-menu-item-path.png": [1551, 134],
+};
+const arrowInto = (src: string) => {
+  const e = ENTRY_PANEL[src];
+  if (!e) return SHOT_ARROW;
+  const f = (e[1] / e[0]).toFixed(4);
+  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
+};
+// Shots that only show what someone else will see: a caption says so, so nobody waits for the box to open.
+const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard"> = {
+  "/guides/m9-cash-fund.png": "seeManage",
+  "/guides/m10-gift-card-page.png": "seeGiftCard",
+};
+const guideShots = (list: Shot[], locale: Locale) =>
+  list
+    .map((i, n) => {
+      const cap = PREVIEW_SHOTS[i.src];
+      return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`;
+    })
+    .join("");
 
 function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
   return `<div class="steps">${list
@@ -188,7 +219,7 @@ function guideSteps(list: Step[], english: Step[], locale: Locale, first: number
       const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
       return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
   <span class="step-n${first === null ? " step-dot" : ""}">${first === null ? "•" : first + i}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown)}</div>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown, locale)}</div>
 </div>`;
     })
     .join("")}</div>`;
@@ -348,6 +379,7 @@ const CSS = `
 .dm-toc{border-top:1px solid var(--line); padding-top:10px}
 .dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
 .sec[id]{scroll-margin-top:80px}
+.shot-cap{margin:10px 0 0; padding:8px 12px; border-left:4px solid #e61e1e; background:rgba(230,30,30,.07); border-radius:6px; font-weight:600; font-size:.95em}
 .shot-arrow{display:block; width:24px; height:40px; margin:6px auto 0}
-.shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
+.shot{display:block; max-width:100%; height:auto; margin:14px auto 0; border:1px solid var(--line); border-radius:12px}
 `;

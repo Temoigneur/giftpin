@@ -702,6 +702,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面の左メニュー。「アプリ」が赤い枠と番号1で示され、矢印の先のアプリ一覧でGiftpin Gift Registryが赤い枠と番号2で示されている"
     }
   },
+  "clickGiftpin": {
+    "src": "/guides/p11-click-giftpin.png",
+    "alt": {
+      "en": "Shopify admin's left menu with Giftpin Gift Registry, under Apps, boxed in red and numbered 1, and Giftpin's own menu open below it: Overview, Registries, Promotions, Analytics, In-store, Settings and Plan",
+      "fr": "Le menu de gauche de l'admin Shopify avec Giftpin Gift Registry, sous Applications, encadré en rouge et numéroté 1, et le menu de Giftpin ouvert en dessous : Vue d'ensemble, Listes, Promotions, Analyses, En magasin, Paramètres et Forfait",
+      "es": "El menú izquierdo del admin de Shopify con Giftpin Gift Registry, bajo Aplicaciones, enmarcado en rojo y numerado 1, y el menú de Giftpin abierto debajo: Resumen, Registros, Promociones, Analíticas, En tienda, Ajustes y Plan",
+      "de": "Das linke Menü im Shopify-Admin mit Giftpin Gift Registry unter Apps, rot umrandet und mit 1 nummeriert, darunter das geöffnete Giftpin-Menü: Übersicht, Listen, Aktionen, Analysen, Im Laden, Einstellungen und Tarif",
+      "pt-BR": "O menu à esquerda do admin da Shopify com Giftpin Gift Registry, em Apps, destacado em vermelho e numerado 1, e o menu do Giftpin aberto abaixo: Visão geral, Listas, Promoções, Análises, Na loja, Configurações e Plano",
+      "hi": "Shopify एडमिन का बायाँ मेनू, ऐप्स के नीचे Giftpin Gift Registry लाल बॉक्स में और नंबर 1 के साथ, और उसके नीचे खुला Giftpin का मेनू: ओवरव्यू, रजिस्ट्रियाँ, प्रमोशन, एनालिटिक्स, इन-स्टोर, सेटिंग्स और प्लान",
+      "zh-CN": "Shopify 后台左侧菜单，「应用」下的 Giftpin Gift Registry 以红框标示并编号 1，其下展开 Giftpin 自己的菜单：概览、礼物清单、促销、分析、门店、设置和方案",
+      "zh-TW": "Shopify 後台左側選單，「應用程式」下的 Giftpin Gift Registry 以紅框標示並編號 1，其下展開 Giftpin 自己的選單：總覽、禮物清單、促銷、分析、門市、設定和方案",
+      "ja": "Shopify管理画面の左メニュー。「アプリ」の下のGiftpin Gift Registryが赤い枠と番号1で示され、その下にGiftpinのメニュー（概要、リスト、プロモーション、分析、店頭、設定、プラン）が開いている"
+    }
+  },
   "navOverview": {
     "src": "/guides/p11-nav-overview.png",
     "alt": {
