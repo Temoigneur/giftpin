@@ -170,7 +170,7 @@ dictionaries, and `guides-i18n.test.ts` fails if a translation drifts from Engli
   `"pos"`; relabelling it would rely on the order's `source_name`, which
   hasn't been checked in a real payload yet. Getting the tile onto POS needs
   the product published to the Point of Sale channel, and the tile added from
-  Point of Sale → POS editor → Add tile → Embedded Apps.
+  Point of Sale → Edit Point of Sale → Add tile → Apps tab → Giftpin, then Save at the top right (checked live 10 Nov 2026).
 - ~~Hard rule "no affiliate/tracking params on outbound links, ever"~~ —
   deliberately reversed 20 Sep 2026, Ben's explicit call. Giftpin now
   takes a disclosed affiliate commission from launch (see

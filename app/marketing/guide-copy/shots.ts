@@ -929,15 +929,29 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
   "manageShipSaved": {
     "src": "/guides/m6-manage-ship-saved.png",
     "alt": {
-      "en": "The top of the shipping form, with the green message “Your shipping address is saved.” boxed in red and numbered 3",
-      "fr": "Le haut du formulaire d'expédition, avec le message vert « Your shipping address is saved. » encadré en rouge et numéroté 3",
-      "es": "La parte superior del formulario de envío, con el mensaje verde «Your shipping address is saved.» enmarcado en rojo y numerado 3",
-      "de": "Der obere Teil des Versandformulars, mit der grünen Meldung „Your shipping address is saved.“ rot umrandet und mit 3 nummeriert",
-      "pt-BR": "A parte de cima do formulário de envio, com a mensagem verde “Your shipping address is saved.” destacada em vermelho e numerada 3",
-      "hi": "शिपिंग फ़ॉर्म का ऊपरी हिस्सा, हरा संदेश “Your shipping address is saved.” लाल बॉक्स में और नंबर 3 के साथ",
-      "zh-CN": "配送表单顶部，绿色提示“Your shipping address is saved.”以红框标示并编号 3",
-      "zh-TW": "配送表單頂部，綠色提示「Your shipping address is saved.」以紅框標示並編號 3",
-      "ja": "配送フォームの上部。緑のメッセージ「Your shipping address is saved.」が赤い枠と番号3で示されている"
+      "en": "The top of the shipping form, with the green message “Your shipping address is saved.” boxed in red",
+      "fr": "Le haut du formulaire d'expédition, avec le message vert « Your shipping address is saved. » encadré en rouge",
+      "es": "La parte superior del formulario de envío, con el mensaje verde «Your shipping address is saved.» enmarcado en rojo",
+      "de": "Der obere Teil des Versandformulars, mit der grünen Meldung „Your shipping address is saved.“ rot umrandet",
+      "pt-BR": "A parte de cima do formulário de envio, com a mensagem verde “Your shipping address is saved.” destacada em vermelho",
+      "hi": "शिपिंग फ़ॉर्म का ऊपरी हिस्सा, हरा संदेश “Your shipping address is saved.” लाल बॉक्स में",
+      "zh-CN": "配送表单顶部，绿色提示“Your shipping address is saved.”以红框标示",
+      "zh-TW": "配送表單頂部，綠色提示「Your shipping address is saved.」以紅框標示",
+      "ja": "配送フォームの上部。緑のメッセージ「Your shipping address is saved.」が赤い枠で示されている"
+    }
+  },
+  "manageSettingsSaved": {
+    "src": "/guides/r3-settings-saved.png",
+    "alt": {
+      "en": "The top of the manage page, under the registry name, with the green message “Your changes are saved.” boxed in red",
+      "fr": "Le haut de la page de gestion, sous le nom du registre, avec le message vert « Your changes are saved. » encadré en rouge",
+      "es": "La parte superior de la página de gestión, bajo el nombre del registro, con el mensaje verde «Your changes are saved.» enmarcado en rojo",
+      "de": "Der obere Teil der Verwaltungsseite, unter dem Namen der Liste, mit der grünen Meldung „Your changes are saved.“ rot umrandet",
+      "pt-BR": "A parte de cima da página de gerenciamento, abaixo do nome da lista, com a mensagem verde “Your changes are saved.” destacada em vermelho",
+      "hi": "मैनेज पेज का ऊपरी हिस्सा, रजिस्ट्री के नाम के नीचे, हरा संदेश “Your changes are saved.” लाल बॉक्स में",
+      "zh-CN": "管理页面顶部、清单名称下方，绿色提示“Your changes are saved.”以红框标示",
+      "zh-TW": "管理頁面頂部、清單名稱下方，綠色提示「Your changes are saved.」以紅框標示",
+      "ja": "管理ページの上部、リスト名の下。緑のメッセージ「Your changes are saved.」が赤い枠で示されている"
     }
   }
 };
