@@ -87,7 +87,7 @@ export const enGuest = {
   "guest.remind.button": "Remind me",
   "guest.remind.done": "Done. We'll email you before the event.",
 
-  "guest.dup.leadHtml": "<strong>Buying something from another store?</strong> Tap &ldquo;I bought this&rdquo; when you're done so nobody buys it twice. We hold it for you in the meantime.",
+  "guest.dup.leadHtml": "<strong>Buying from another store?</strong> Tap &ldquo;Buy at&rdquo; and we hold the item for you while you shop, so nobody else buys it too. When you've bought it, tap &ldquo;I bought this&rdquo; to mark it as bought. If you've already done that, you're all set.",
   "guest.dup.disclosure": "Links to other stores here may earn Giftpin a small commission or fee — it never changes what you pay, and never applies to this store's own products. It helps us keep improving Giftpin.",
 
   "guest.bought.confirm": "Mark this as bought? Only do this if you got it some other way, like in the shop. Orders placed here are counted automatically.",

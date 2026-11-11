@@ -84,7 +84,7 @@ export const jaGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.remind.button": "知らせてもらう",
   "guest.remind.done": "完了しました。イベントの前にメールでお知らせします。",
 
-  "guest.dup.leadHtml": "<strong>他のストアで購入しますか？</strong>購入が終わったら&ldquo;購入しました&rdquo;をタップしてください。重複を防げます。それまでの間、この商品は確保しておきます。",
+  "guest.dup.leadHtml": "<strong>他のストアで購入する場合</strong>&ldquo;〜で購入&rdquo;をタップすると、お買い物の間この商品を確保し、他の方と重複しないようにします。購入が済んだら&ldquo;購入しました&rdquo;をタップして購入済みにしてください。すでにタップした場合は、これで完了です。",
   "guest.dup.disclosure": "他のストアへのリンクからは、Giftpinが少額の手数料や報酬を受け取る場合があります。お支払い額が変わることはなく、このストア自身の商品には適用されません。Giftpinの改善に役立てています。",
 
   "guest.bought.confirm": "購入済みにしますか？お店で買った場合など、他の方法で入手したときだけ操作してください。ここで注文されたものは自動的に反映されます。",

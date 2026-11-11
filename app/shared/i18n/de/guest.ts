@@ -84,7 +84,7 @@ export const deGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.remind.button": "Erinnern",
   "guest.remind.done": "Erledigt. Wir schicken Ihnen vor dem Fest eine E-Mail.",
 
-  "guest.dup.leadHtml": "<strong>Sie kaufen in einem anderen Shop?</strong> Tippen Sie danach auf „Habe ich gekauft“, damit es niemand doppelt kauft. Bis dahin halten wir es für Sie zurück.",
+  "guest.dup.leadHtml": "<strong>Sie kaufen in einem anderen Shop?</strong> Tippen Sie auf „Bei … kaufen“, dann halten wir den Artikel für Sie zurück, während Sie einkaufen, damit ihn niemand sonst auch kauft. Wenn Sie ihn gekauft haben, tippen Sie auf „Habe ich gekauft“, um ihn als gekauft zu markieren. Falls Sie das schon getan haben, ist alles erledigt.",
   "guest.dup.disclosure": "Über Links zu anderen Shops erhält Giftpin möglicherweise eine kleine Provision. Das ändert nie, was Sie zahlen, und gilt nie für die Produkte dieses Shops. Es hilft uns, Giftpin weiter zu verbessern.",
 
   "guest.bought.confirm": "Als gekauft markieren? Tun Sie das nur, wenn Sie es anders besorgt haben, etwa im Laden. Hier aufgegebene Bestellungen werden automatisch gezählt.",
