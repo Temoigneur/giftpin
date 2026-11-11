@@ -903,7 +903,10 @@ function renderMatchDialog(data: ManagePageData): string {
 function fundLine(item: DisplayItem, data: ManagePageData): string {
   if (!item.fund) return "";
   const currency = item.currency ?? data.currency;
-  return T("manage.fund.line", { funded: formatMoney(item.fund.funded, currency) || t("manage.fund.nothing"), goal: formatMoney(item.fund.goal, currency) });
+  const funded = formatMoney(item.fund.funded, currency);
+  const goal = formatMoney(item.fund.goal, currency);
+  // Nothing raised gets its own sentence: slotting "nothing" into "{funded} of {goal} raised" reads wrong in several languages.
+  return funded ? T("manage.fund.line", { funded, goal }) : T("manage.fund.lineNone", { goal });
 }
 
 /** "Add a cash fund" plus where chip-in gift cards go. */

@@ -159,7 +159,7 @@ export const zhTWManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "查看 {shop} 的相符商品",
   "manage.match.loading": "載入中…",
   "manage.fund.line": "目標 {goal}，已募得 {funded}",
-  "manage.fund.nothing": "尚無",
+  "manage.fund.lineNone": "目標 {goal}，尚未募得款項",
   "manage.fund.title": "禮金基金",
   "manage.fund.hint": "適合蜜月旅行、買房或任何較大的心願。賓客可以從幾個固定金額中選擇集資贊助，並以 {shop} 禮品卡支付。",
   "manage.fund.name": "基金名稱",

@@ -159,7 +159,7 @@ export const zhCNManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "查看 {shop} 中的匹配商品",
   "manage.match.loading": "加载中…",
   "manage.fund.line": "目标 {goal}，已筹 {funded}",
-  "manage.fund.nothing": "暂无",
+  "manage.fund.lineNone": "目标 {goal}，尚未筹到款项",
   "manage.fund.title": "礼金基金",
   "manage.fund.hint": "适用于蜜月、购房或其他较大的心愿。宾客可从几个固定金额中选择凑份子，以 {shop} 礼品卡的形式支付。",
   "manage.fund.name": "基金名称",

@@ -159,7 +159,7 @@ export const frManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "Voir les produits correspondants chez {shop}",
   "manage.match.loading": "Chargement…",
   "manage.fund.line": "{funded} sur {goal} recueillis",
-  "manage.fund.nothing": "Rien",
+  "manage.fund.lineNone": "Objectif {goal}, rien de recueilli pour l'instant",
   "manage.fund.title": "Une cagnotte",
   "manage.fund.hint": "Pour un voyage de noces, une maison ou quelque chose de plus gros. Les invités participent avec l'un de quelques montants fixes, payés en cartes-cadeaux {shop}.",
   "manage.fund.name": "Nom de la cagnotte",

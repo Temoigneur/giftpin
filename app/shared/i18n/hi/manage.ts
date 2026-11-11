@@ -159,7 +159,7 @@ export const hiManage: { [K in keyof typeof enManage]: string } = {
   "manage.match.see": "{shop} में मिलते-जुलते प्रोडक्ट देखें",
   "manage.match.loading": "लोड हो रहा है…",
   "manage.fund.line": "{goal} में से {funded} जमा हुए",
-  "manage.fund.nothing": "कुछ नहीं",
+  "manage.fund.lineNone": "लक्ष्य {goal}, अभी तक कुछ जमा नहीं हुआ",
   "manage.fund.title": "कैश फंड",
   "manage.fund.hint": "हनीमून, घर या किसी बड़ी चीज़ के लिए। मेहमान तय राशियों में से कोई भी राशि जमा करते हैं, जो {shop} गिफ्ट कार्ड के रूप में दी जाती है।",
   "manage.fund.name": "फंड का नाम",
