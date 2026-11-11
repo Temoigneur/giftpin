@@ -87,17 +87,17 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     }
   },
   "find": {
-    "src": "/guides/g3-find-registry.png",
+    "src": "/guides/g1-find-empty.png",
     "alt": {
-      "en": "The Find a registry page with a Name box and a Search button",
-      "fr": "La page Trouver une liste avec un champ Nom et un bouton Rechercher",
-      "es": "La página Buscar una lista con un campo Nombre y un botón Buscar",
-      "de": "Die Seite Liste finden mit einem Namensfeld und einem Suchen-Button",
-      "pt-BR": "A página Encontrar uma lista com um campo Nome e um botão Buscar",
-      "hi": "रजिस्ट्री खोजें पेज, नाम वाला बॉक्स और खोजें बटन के साथ",
-      "zh-CN": "“查找清单”页面，含名称输入框和搜索按钮",
-      "zh-TW": "「尋找清單」頁面，含名稱輸入框和搜尋按鈕",
-      "ja": "「リストを探す」ページ。名前の入力欄と検索ボタン"
+      "en": "The Find a registry page: the name box boxed in red and numbered 1, and the Search button boxed and numbered 2",
+      "fr": "La page Trouver une liste : le champ du nom encadré en rouge et numéroté 1, et le bouton Rechercher encadré et numéroté 2",
+      "es": "La página Buscar un registro: el cuadro del nombre enmarcado en rojo y numerado 1, y el botón Buscar enmarcado y numerado 2",
+      "de": "Die Seite Liste finden: das Namensfeld rot umrandet und mit 1 nummeriert und der Button Suchen umrandet und mit 2 nummeriert",
+      "pt-BR": "A página Encontrar uma lista: a caixa do nome destacada em vermelho e numerada 1, e o botão Buscar destacado e numerado 2",
+      "hi": "रजिस्ट्री खोजें पेज: नाम का बॉक्स लाल बॉक्स में और नंबर 1 के साथ, और खोजें बटन बॉक्स में और नंबर 2 के साथ",
+      "zh-CN": "“查找清单”页面：名称输入框以红框标示并编号 1，“搜索”按钮以红框标示并编号 2",
+      "zh-TW": "「尋找清單」頁面：名稱輸入框以紅框標示並編號 1，「搜尋」按鈕以紅框標示並編號 2",
+      "ja": "「リストを探す」ページ。名前の入力欄が赤い枠と番号1、「検索」ボタンが赤い枠と番号2で示されている"
     }
   },
   "installStore": {
@@ -952,6 +952,90 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-CN": "管理页面顶部、清单名称下方，绿色提示“Your changes are saved.”以红框标示",
       "zh-TW": "管理頁面頂部、清單名稱下方，綠色提示「Your changes are saved.」以紅框標示",
       "ja": "管理ページの上部、リスト名の下。緑のメッセージ「Your changes are saved.」が赤い枠で示されている"
+    }
+  },
+  "findResults": {
+    "src": "/guides/g1-find-results.png",
+    "alt": {
+      "en": "The search results, with the registry's name link boxed in red and numbered 3",
+      "fr": "Les résultats de recherche, avec le lien du nom de la liste encadré en rouge et numéroté 3",
+      "es": "Los resultados de búsqueda, con el enlace del nombre del registro enmarcado en rojo y numerado 3",
+      "de": "Die Suchergebnisse, mit dem Namenslink der Liste rot umrandet und mit 3 nummeriert",
+      "pt-BR": "Os resultados da busca, com o link do nome da lista destacado em vermelho e numerado 3",
+      "hi": "खोज के नतीजे, रजिस्ट्री के नाम का लिंक लाल बॉक्स में और नंबर 3 के साथ",
+      "zh-CN": "搜索结果，清单名称链接以红框标示并编号 3",
+      "zh-TW": "搜尋結果，清單名稱連結以紅框標示並編號 3",
+      "ja": "検索結果。リスト名のリンクが赤い枠と番号3で示されている"
+    }
+  },
+  "sortFilter": {
+    "src": "/guides/g2-sort-filter.png",
+    "alt": {
+      "en": "A registry's list tools: the Sort menu open and boxed in red and numbered 1, and the Only show what's still needed tick box boxed and numbered 2",
+      "fr": "Les outils de la liste : le menu Trier ouvert, encadré en rouge et numéroté 1, et la case Afficher seulement ce qui reste à offrir encadrée et numérotée 2",
+      "es": "Las herramientas de la lista: el menú Ordenar abierto, enmarcado en rojo y numerado 1, y la casilla Mostrar solo lo que aún falta enmarcada y numerada 2",
+      "de": "Die Listenwerkzeuge: das geöffnete Menü Sortieren, rot umrandet und mit 1 nummeriert, und das Kästchen Nur noch Benötigtes anzeigen, umrandet und mit 2 nummeriert",
+      "pt-BR": "As ferramentas da lista: o menu Ordenar aberto, destacado em vermelho e numerado 1, e a caixa Mostrar só o que ainda falta destacada e numerada 2",
+      "hi": "सूची के टूल: खुला हुआ क्रम चुनें मेनू लाल बॉक्स में और नंबर 1 के साथ, और केवल वही दिखाएँ जो अभी चाहिए वाला टिक बॉक्स नंबर 2 के साथ",
+      "zh-CN": "清单工具：展开的“排序”菜单以红框标示并编号 1，“只显示仍需要的”勾选框以红框标示并编号 2",
+      "zh-TW": "清單工具：展開的「排序」選單以紅框標示並編號 1，「只顯示仍需要的」核取方塊以紅框標示並編號 2",
+      "ja": "リストのツール。開いた「並べ替え」メニューが赤い枠と番号1、「まだ必要なものだけ表示」のチェックボックスが赤い枠と番号2で示されている"
+    }
+  },
+  "takenCare": {
+    "src": "/guides/g3-taken-care-of.png",
+    "alt": {
+      "en": "A gift that's been taken care of, with the label “Already taken care of” boxed in red and the Undo link boxed and numbered 3",
+      "fr": "Un cadeau déjà pris en charge, avec l'étiquette « Already taken care of » encadrée en rouge et le lien Annuler encadré et numéroté 3",
+      "es": "Un regalo ya resuelto, con la etiqueta «Already taken care of» enmarcada en rojo y el enlace Deshacer enmarcado y numerado 3",
+      "de": "Ein bereits erledigtes Geschenk, mit der Markierung „Already taken care of“ rot umrandet und dem Link Rückgängig umrandet und mit 3 nummeriert",
+      "pt-BR": "Um presente já resolvido, com o rótulo “Already taken care of” destacado em vermelho e o link Desfazer destacado e numerado 3",
+      "hi": "पहले से तय उपहार, “Already taken care of” लेबल लाल बॉक्स में और पूर्ववत करें लिंक बॉक्स में नंबर 3 के साथ",
+      "zh-CN": "一件已被安排好的礼物，“Already taken care of”标签以红框标示，“撤销”链接以红框标示并编号 3",
+      "zh-TW": "一件已被安排好的禮物，「Already taken care of」標籤以紅框標示，「復原」連結以紅框標示並編號 3",
+      "ja": "手配済みのギフト。「Already taken care of」のラベルが赤い枠で、「元に戻す」リンクが赤い枠と番号3で示されている"
+    }
+  },
+  "shipSetup": {
+    "src": "/guides/r4-ship-setup.png",
+    "alt": {
+      "en": "First-time setup, step 1 of 2, Where should gifts go?, with the tick box to let guests ship gifts straight to you boxed in red and numbered 1",
+      "fr": "Configuration initiale, étape 1 sur 2, Où les cadeaux doivent-ils aller ?, avec la case permettant aux invités de vous expédier les cadeaux directement encadrée en rouge et numérotée 1",
+      "es": "Configuración inicial, paso 1 de 2, ¿Adónde deben ir los regalos?, con la casilla para que los invitados envíen los regalos directamente a ti enmarcada en rojo y numerada 1",
+      "de": "Ersteinrichtung, Schritt 1 von 2, Wohin sollen die Geschenke?, mit dem Kästchen, das Gästen den direkten Versand an Sie erlaubt, rot umrandet und mit 1 nummeriert",
+      "pt-BR": "Configuração inicial, etapa 1 de 2, Para onde os presentes devem ir?, com a caixa que permite aos convidados enviar presentes direto para você destacada em vermelho e numerada 1",
+      "hi": "पहली बार की सेटअप, चरण 1/2, उपहार कहाँ जाएँ?, मेहमानों को सीधे आपको उपहार भेजने देने वाला टिक बॉक्स लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "首次设置第 1 步（共 2 步），礼物寄到哪里？，允许宾客直接把礼物寄给你的勾选框以红框标示并编号 1",
+      "zh-TW": "首次設定第 1 步（共 2 步），禮物要寄到哪裡？，允許賓客直接把禮物寄給你的核取方塊以紅框標示並編號 1",
+      "ja": "初回設定のステップ1/2「ギフトの届け先」。ゲストが直接あなたにギフトを発送できるチェックボックスが赤い枠と番号1で示されている"
+    }
+  },
+  "giftCardPage": {
+    "src": "/guides/g5-gift-card-page.png",
+    "alt": {
+      "en": "The store's gift card page: an amount boxed in red and numbered 1, the Email it straight to someone tick box numbered 2, the recipient's email and name boxes numbered 3 and 4, and Add to cart numbered 5",
+      "fr": "La page de carte cadeau de la boutique : un montant encadré en rouge et numéroté 1, la case Envoyer par e-mail directement à quelqu'un numérotée 2, les champs e-mail et nom du destinataire numérotés 3 et 4, et Ajouter au panier numéroté 5",
+      "es": "La página de tarjeta de regalo de la tienda: un importe enmarcado en rojo y numerado 1, la casilla Enviarla por email directamente a alguien numerada 2, los cuadros de email y nombre del destinatario numerados 3 y 4, y Añadir al carrito numerado 5",
+      "de": "Die Geschenkkartenseite des Shops: ein Betrag rot umrandet und mit 1 nummeriert, das Kästchen Direkt per E-Mail an jemanden senden mit 2, die Felder für E-Mail und Name des Empfängers mit 3 und 4 und In den Warenkorb mit 5",
+      "pt-BR": "A página de vale-presente da loja: um valor destacado em vermelho e numerado 1, a caixa Enviar por e-mail direto para alguém numerada 2, os campos de e-mail e nome do destinatário numerados 3 e 4, e Adicionar ao carrinho numerado 5",
+      "hi": "स्टोर का गिफ़्ट कार्ड पेज: एक राशि लाल बॉक्स में और नंबर 1 के साथ, किसी को सीधे ईमेल करें टिक बॉक्स नंबर 2, प्राप्तकर्ता के ईमेल और नाम के बॉक्स नंबर 3 और 4, और कार्ट में जोड़ें नंबर 5",
+      "zh-CN": "商店的礼品卡页面：一个金额以红框标示并编号 1，“直接通过邮件发给某人”勾选框编号 2，收件人邮箱和姓名输入框编号 3 和 4，“加入购物车”编号 5",
+      "zh-TW": "商店的禮品卡頁面：一個金額以紅框標示並編號 1，「直接以電子郵件寄給某人」核取方塊編號 2，收件人電子郵件與姓名欄位編號 3 和 4，「加入購物車」編號 5",
+      "ja": "ストアのギフトカードページ。金額が赤い枠と番号1、「直接メールで送る」のチェックボックスが番号2、受取人のメールアドレスと名前の欄が番号3と4、「カートに追加」が番号5で示されている"
+    }
+  },
+  "shareRow": {
+    "src": "/guides/g6-share-row.png",
+    "alt": {
+      "en": "The Share row at the top of a registry, with the Share button boxed in red and numbered 1, beside the WhatsApp, Text and Email buttons",
+      "fr": "La rangée Partager en haut d'une liste, avec le bouton Partager encadré en rouge et numéroté 1, à côté des boutons WhatsApp, SMS et E-mail",
+      "es": "La fila Compartir en la parte superior de un registro, con el botón Compartir enmarcado en rojo y numerado 1, junto a los botones WhatsApp, Mensaje y Correo",
+      "de": "Die Zeile Teilen oben auf einer Liste, mit dem Button Teilen rot umrandet und mit 1 nummeriert, neben den Buttons WhatsApp, SMS und E-Mail",
+      "pt-BR": "A linha Compartilhar no topo de uma lista, com o botão Compartilhar destacado em vermelho e numerado 1, ao lado dos botões WhatsApp, Mensagem e E-mail",
+      "hi": "रजिस्ट्री के ऊपर शेयर की पंक्ति, शेयर बटन लाल बॉक्स में और नंबर 1 के साथ, WhatsApp, टेक्स्ट और ईमेल बटनों के बगल में",
+      "zh-CN": "清单顶部的分享行，“分享”按钮以红框标示并编号 1，旁边是 WhatsApp、短信和邮件按钮",
+      "zh-TW": "清單頂部的分享列，「分享」按鈕以紅框標示並編號 1，旁邊是 WhatsApp、簡訊和電子郵件按鈕",
+      "ja": "リスト上部の共有の列。「共有」ボタンが赤い枠と番号1で示され、隣にWhatsApp、テキスト、メールのボタンが並んでいる"
     }
   }
 };

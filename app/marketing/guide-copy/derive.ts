@@ -76,14 +76,14 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     metaTitle: s("g_meta"),
     description: s("g_desc"),
     sections: [
-      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2"), s("g1_i3")], ["find"]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")])] },
+      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2"), s("g1_i3")], ["find", "findResults"]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")], ["sortFilter", "takenCare"])] },
       {
         title: s("gs2_t"),
         lede: s("gs2_lede"),
         tint: true,
-        steps: [step(s("g3_t"), [s("g3_i1"), s("g3_i2")]), { ...step(s("g4_t"), [s("g4_i1"), s("g4_i2"), s("g4_i3")]), ...(locale === "en" ? { img: { src: GUEST_SHOT_SRC, alt: GUEST_SHOT_ALT.en } } : { alts: [GUEST_SHOT_ALT[locale]] }) }, step(s("g5_t"), [s("g5_i1"), s("g5_i2")], ["chip"])],
+        steps: [step(s("g3_t"), [s("g3_i1"), s("g3_i2")]), { ...step(s("g4_t"), [s("g4_i1"), s("g4_i2"), s("g4_i3")]), ...(locale === "en" ? { img: { src: GUEST_SHOT_SRC, alt: GUEST_SHOT_ALT.en } } : { alts: [GUEST_SHOT_ALT[locale]] }) }, step(s("g5_t"), [s("g5_i1"), s("g5_i2")], ["chip", "giftCardPage"])],
       },
-      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")], ["remind"])] },
+      { title: s("gs3_t"), lede: s("gs3_lede"), steps: [step(s("g6_t"), [s("g6_i1"), s("g6_i2")], ["remind", "shareRow"])] },
     ],
     faqTitle: raw.registry.faqTitle,
     faq: [1, 2, 3].map((n) => ({ q: s(`q${n}`), a: s(`a${n}`) })),
@@ -92,7 +92,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
   const registry: GuideDoc = {
     ...raw.registry,
     sections: raw.registry.sections.map((sec, i) =>
-      i === 2 ? { ...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]), steps: [...withShot(sec, 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
+      i === 2 ? { ...withShot(withShot(sec, 3, ["shipSetup"]), 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]), steps: [...withShot(withShot(sec, 3, ["shipSetup"]), 1, ["partnerDialog", "prefsBar", "partnerForm", "partnerRemove"]).steps, step(s("qr_t"), [s("qr_i1"), s("qr_i2")], ["qr", "mylink", "myregs"])] } : i === 3 ? withShot(sec, 0, manageKeys) : sec,
     ),
   };
 
