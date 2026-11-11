@@ -177,8 +177,29 @@ const fillLabels = (html: string, locale: Locale) =>
 
 // A red arrow between each screenshot, so a step reads as one connected path.
 const SHOT_ARROW = `<svg class="shot-arrow" viewBox="0 0 24 40" aria-hidden="true" focusable="false"><path d="M12 0v28M3 22l9 14 9-14" fill="none" stroke="#e61e1e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+// Path images that start with a left-hand panel (the menu, say): the arrow into them points at that
+// panel, not at the middle of the image. [image width, x of the first panel's centre], in pixels.
+const ENTRY_PANEL: Record<string, [number, number]> = {
+  "/guides/p11-open-apps.png": [1734, 194],
+  "/guides/p14-gift-card-path.png": [1514, 191],
+  "/guides/p14-import-path.png": [1416, 200],
+  "/guides/p14-order-processing-path.png": [1099, 144],
+  "/guides/p15-product-panel-path.png": [1541, 389],
+  "/guides/p16-customer-panel-path.png": [1545, 146],
+  "/guides/p16-order-panel-path.png": [1720, 146],
+  "/guides/p17-flow-path.png": [1700, 193],
+  "/guides/p18-theme-block-path.png": [1523, 95],
+  "/guides/p19-cart-block-path.png": [1581, 200],
+  "/guides/p20-menu-item-path.png": [1551, 134],
+};
+const arrowInto = (src: string) => {
+  const e = ENTRY_PANEL[src];
+  if (!e) return SHOT_ARROW;
+  const f = (e[1] / e[0]).toFixed(4);
+  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
+};
 const guideShots = (list: Shot[]) =>
-  list.map((i) => `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join(SHOT_ARROW);
+  list.map((i, n) => (n ? arrowInto(i.src) : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`).join("");
 
 function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
   return `<div class="steps">${list
