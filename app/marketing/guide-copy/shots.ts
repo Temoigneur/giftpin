@@ -492,6 +492,20 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Shopify管理画面からテーマエディタまでの手順：「オンラインストア」が番号1、テーマの「テーマを編集」が番号2、ページ選択の「ホームページ」が番号3、続いて「商品」が番号4、「デフォルト商品」が番号5、「商品情報」が番号6、「ブロックを追加」が番号7、「アプリ」タブが番号8、Save for laterが番号9、もう一度ページ選択（10）で「カート」（11）を選ぶ"
     }
   },
+  "cartPath": {
+    "src": "/guides/p19-cart-block-path.png",
+    "alt": {
+      "en": "The theme editor's Cart page, under Template: Add section numbered 1, the Apps tab numbered 2, Giftpin's Saved items numbered 3, then Save at the top right numbered 4",
+      "fr": "La page Panier de l'éditeur de thème, sous Modèle : Ajouter une section numéroté 1, l'onglet Applications numéroté 2, Saved items de Giftpin numéroté 3, puis Enregistrer en haut à droite numéroté 4",
+      "es": "La página Carrito del editor de temas, en Plantilla: Añadir sección numerado 1, la pestaña Aplicaciones numerada 2, Saved items de Giftpin numerado 3 y luego Guardar arriba a la derecha numerado 4",
+      "de": "Die Warenkorbseite im Theme-Editor, unter Vorlage: Abschnitt hinzufügen mit 1, der Tab Apps mit 2, Saved items von Giftpin mit 3, dann Speichern oben rechts mit 4",
+      "pt-BR": "A página Carrinho do editor de temas, em Modelo: Adicionar seção numerado 1, a aba Apps numerada 2, Saved items do Giftpin numerado 3 e depois Salvar no canto superior direito numerado 4",
+      "hi": "थीम एडिटर का कार्ट पेज, टेम्पलेट के नीचे: सेक्शन जोड़ें नंबर 1, ऐप्स टैब नंबर 2, Giftpin का Saved items नंबर 3, फिर ऊपर दाईं ओर सेव नंबर 4",
+      "zh-CN": "主题编辑器的购物车页面，在「模板」下：「添加区段」编号 1，「应用」标签编号 2，Giftpin 的 Saved items 编号 3，然后右上角的「保存」编号 4",
+      "zh-TW": "佈景主題編輯器的購物車頁面，在「範本」下：「新增區段」編號 1，「應用程式」分頁編號 2，Giftpin 的 Saved items 編號 3，然後右上角的「儲存」編號 4",
+      "ja": "テーマエディタのカートページの「テンプレート」内：「セクションを追加」が番号1、「アプリ」タブが番号2、GiftpinのSaved itemsが番号3、右上の「保存」が番号4"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
