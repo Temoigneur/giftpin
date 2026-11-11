@@ -381,5 +381,5 @@ const CSS = `
 .sec[id]{scroll-margin-top:80px}
 .shot-cap{margin:10px 0 0; padding:8px 12px; border-left:4px solid #e61e1e; background:rgba(230,30,30,.07); border-radius:6px; font-weight:600; font-size:.95em}
 .shot-arrow{display:block; width:24px; height:40px; margin:6px auto 0}
-.shot{display:block; max-width:100%; height:auto; margin-top:14px; border:1px solid var(--line); border-radius:12px}
+.shot{display:block; max-width:100%; height:auto; margin:14px auto 0; border:1px solid var(--line); border-radius:12px}
 `;
