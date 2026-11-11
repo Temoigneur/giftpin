@@ -143,17 +143,17 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     }
   },
   "overviewTheme": {
-    "src": "/guides/m3-overview-theme.png",
+    "src": "/guides/p13-overview-theme.png",
     "alt": {
-      "en": "The Add Giftpin to your theme card on the Overview page, with the Add button to product pages, Add registry links and Add heart to product pages buttons boxed in red",
-      "fr": "La carte Ajouter Giftpin à votre thème sur la page Aperçu, avec les boutons pour les pages produit, les liens de liste et le cœur encadrés en rouge",
-      "es": "La tarjeta Añadir Giftpin a tu tema en la página de Resumen, con los botones de producto, enlaces de lista y corazón enmarcados en rojo",
-      "de": "Die Karte „Giftpin zu Ihrem Theme hinzufügen“ auf der Übersicht, die Buttons für Produktseiten, Listen-Links und Herz sind rot umrandet",
-      "pt-BR": "O cartão Adicionar o Giftpin ao seu tema na página Visão geral, com os botões de página de produto, links de lista e coração destacados em vermelho",
-      "hi": "ओवरव्यू पेज पर Giftpin को अपनी थीम में जोड़ें कार्ड, प्रोडक्ट पेज बटन, रजिस्ट्री लिंक और हार्ट बटन लाल बॉक्स में",
-      "zh-CN": "“概览”页面上的“将 Giftpin 添加到主题”卡片，商品页按钮、清单链接和爱心按钮用红框标出",
-      "zh-TW": "「總覽」頁面上的「將 Giftpin 加入佈景主題」卡片，商品頁按鈕、清單連結和愛心按鈕以紅框標示",
-      "ja": "概要ページの「テーマにGiftpinを追加」カード。商品ページ用ボタン、リストのリンク、ハートのボタンが赤い枠で示されている"
+      "en": "The Add Giftpin to your theme card on Overview with its four buttons boxed in red and numbered in order: Add button to product pages 1, Add registry links 2, Add heart to product pages 3, Add saved items to the cart page 4",
+      "fr": "La carte Ajouter Giftpin à votre thème sur l'Aperçu, avec ses quatre boutons encadrés en rouge et numérotés dans l'ordre : Ajouter le bouton aux pages produit 1, Ajouter les liens de registre 2, Ajouter le cœur aux pages produit 3, Ajouter les articles enregistrés à la page panier 4",
+      "es": "La tarjeta Añade Giftpin a tu tema en el Resumen, con sus cuatro botones enmarcados en rojo y numerados en orden: Añadir botón a páginas de producto 1, Añadir enlaces de registro 2, Añadir corazón a páginas de producto 3, Añadir artículos guardados a la página del carrito 4",
+      "de": "Die Karte Giftpin zu Ihrem Theme hinzufügen auf der Übersicht, mit vier rot umrandeten und der Reihe nach nummerierten Buttons: Button zu Produktseiten hinzufügen 1, Listen-Links hinzufügen 2, Herz zu Produktseiten hinzufügen 3, Gemerkte Artikel zur Warenkorbseite hinzufügen 4",
+      "pt-BR": "O cartão Adicione o Giftpin ao seu tema na Visão geral, com seus quatro botões destacados em vermelho e numerados em ordem: Adicionar botão às páginas de produto 1, Adicionar links de lista 2, Adicionar coração às páginas de produto 3, Adicionar itens salvos à página do carrinho 4",
+      "hi": "ओवरव्यू पर 'अपनी थीम में Giftpin जोड़ें' कार्ड, चारों बटन लाल बॉक्स में और क्रम से नंबर: प्रोडक्ट पेज पर बटन जोड़ें 1, रजिस्ट्री लिंक जोड़ें 2, प्रोडक्ट पेज पर दिल जोड़ें 3, कार्ट पेज पर सहेजे आइटम जोड़ें 4",
+      "zh-CN": "“概览”上的“将 Giftpin 添加到主题”卡片，四个按钮依次以红框标示并编号：将按钮添加到商品页 1、添加清单链接 2、将爱心添加到商品页 3、将已收藏商品添加到购物车页 4",
+      "zh-TW": "「總覽」上的「將 Giftpin 加入佈景主題」卡片，四個按鈕依序以紅框標示並編號：將按鈕加入商品頁 1、加入清單連結 2、將愛心加入商品頁 3、將已收藏商品加入購物車頁 4",
+      "ja": "概要の「テーマにGiftpinを追加」カード。4つのボタンが赤い枠で順に番号付けされている：商品ページにボタンを追加 1、リストのリンクを追加 2、商品ページにハートを追加 3、保存済みアイテムをカートページに追加 4"
     }
   },
   "settingsSaveTop": {
@@ -352,6 +352,174 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "Flowの「トリガーを選択」画面。Giftpinアプリが赤い枠で、3つのトリガー（Registry created、Registry event coming up、Registry gift bought）も赤い枠で示されている"
     }
   },
+  "navPlan": {
+    "src": "/guides/p12-nav-plan.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Plan boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Forfait encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Plan enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Tarif rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Plano destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, प्लान लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「套餐」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「方案」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「プラン」が赤い枠と番号1で示されている"
+    }
+  },
+  "planFree": {
+    "src": "/guides/p12-plan-free.png",
+    "alt": {
+      "en": "The Plan page on the Free plan, listing what Pro adds, with the Upgrade to Pro button boxed in red and numbered 2",
+      "fr": "La page Forfait sur Gratuit, listant ce que Pro ajoute, avec le bouton Passer à Pro encadré en rouge et numéroté 2",
+      "es": "La página de Plan en el plan Gratis, con lo que añade Pro y el botón Pasar a Pro enmarcado en rojo y numerado 2",
+      "de": "Die Seite Tarif im Free-Tarif mit den Pro-Zusätzen und dem Button Auf Pro upgraden rot umrandet und mit 2 nummeriert",
+      "pt-BR": "A página do Plano no plano Grátis, listando o que o Pro acrescenta, com o botão Assinar Pro destacado em vermelho e numerado 2",
+      "hi": "फ्री प्लान पर प्लान पेज, Pro में क्या जुड़ता है, और Pro में अपग्रेड करें बटन लाल बॉक्स में नंबर 2 के साथ",
+      "zh-CN": "免费套餐下的“套餐”页面，列出 Pro 增加的功能，“升级到 Pro”按钮以红框标示并编号 2",
+      "zh-TW": "免費方案下的「方案」頁面，列出 Pro 增加的功能，「升級至 Pro」按鈕以紅框標示並編號 2",
+      "ja": "無料プランのプランページ。Proで追加される内容と、赤い枠と番号2で示された「Proにアップグレード」ボタン"
+    }
+  },
+  "giftPath": {
+    "src": "/guides/p14-gift-card-path.png",
+    "alt": {
+      "en": "Shopify admin menus: Products boxed and numbered 1, an arrow to the Products submenu with Gift cards boxed and numbered 2, and an arrow down to the Gift cards page with the Add gift card product button boxed and numbered 3",
+      "fr": "Menus de l'admin Shopify : Produits encadré et numéroté 1, une flèche vers le sous-menu Produits avec Cartes cadeaux encadré et numéroté 2, et une flèche vers la page Cartes cadeaux avec le bouton Ajouter un produit carte cadeau encadré et numéroté 3",
+      "es": "Menús del admin de Shopify: Productos enmarcado y numerado 1, una flecha al submenú de Productos con Tarjetas de regalo enmarcado y numerado 2, y una flecha a la página Tarjetas de regalo con el botón Añadir producto de tarjeta de regalo enmarcado y numerado 3",
+      "de": "Menüs im Shopify-Admin: Produkte umrandet und mit 1 nummeriert, ein Pfeil zum Untermenü Produkte mit Geschenkgutscheine umrandet und mit 2 nummeriert, und ein Pfeil zur Seite Geschenkgutscheine mit dem Button Geschenkgutschein-Produkt hinzufügen umrandet und mit 3 nummeriert",
+      "pt-BR": "Menus do admin da Shopify: Produtos destacado e numerado 1, uma seta para o submenu Produtos com Cartões-presente destacado e numerado 2, e uma seta para a página Cartões-presente com o botão Adicionar produto de cartão-presente destacado e numerado 3",
+      "hi": "Shopify एडमिन के मेनू: प्रोडक्ट्स लाल बॉक्स में नंबर 1, तीर प्रोडक्ट्स सबमेनू की ओर जहाँ गिफ्ट कार्ड्स नंबर 2 के साथ है, और तीर गिफ्ट कार्ड्स पेज की ओर जहाँ गिफ्ट कार्ड प्रोडक्ट जोड़ें बटन नंबर 3 के साथ है",
+      "zh-CN": "Shopify 后台菜单：「商品」以红框标示并编号 1，箭头指向商品子菜单，其中「礼品卡」编号 2，再用箭头指向礼品卡页面，其中「添加礼品卡商品」按钮编号 3",
+      "zh-TW": "Shopify 後台選單：「商品」以紅框標示並編號 1，箭頭指向商品子選單，其中「禮品卡」編號 2，再以箭頭指向禮品卡頁面，其中「新增禮品卡商品」按鈕編號 3",
+      "ja": "Shopify管理画面のメニュー：「商品」が赤い枠と番号1、矢印の先の商品サブメニューで「ギフトカード」が番号2、さらに矢印の先のギフトカードページで「ギフトカード商品を追加」ボタンが番号3で示されている"
+    }
+  },
+  "orderPath": {
+    "src": "/guides/p14-order-processing-path.png",
+    "alt": {
+      "en": "Shopify admin: Settings boxed and numbered 1, an arrow to the Settings menu with General boxed and numbered 2, and an arrow to Order processing with Automatically fulfill only the gift cards of the order boxed and numbered 3, then the Save button boxed and numbered 4",
+      "fr": "Admin Shopify : Paramètres encadré et numéroté 1, une flèche vers le menu Paramètres avec Général encadré et numéroté 2, puis une flèche vers Traitement des commandes avec l'option de ne traiter automatiquement que les cartes cadeaux encadrée et numérotée 3, puis le bouton Enregistrer encadré et numéroté 4",
+      "es": "Admin de Shopify: Configuración enmarcado y numerado 1, una flecha al menú de Configuración con General enmarcado y numerado 2, y una flecha a Procesamiento de pedidos con la opción de cumplir automáticamente solo las tarjetas de regalo enmarcada y numerada 3, y el botón Guardar enmarcado y numerado 4",
+      "de": "Shopify-Admin: Einstellungen umrandet und mit 1 nummeriert, ein Pfeil zum Einstellungsmenü mit Allgemein umrandet und mit 2 nummeriert, und ein Pfeil zu Bestellabwicklung mit der Option, nur die Geschenkgutscheine automatisch auszuführen, umrandet und mit 3 nummeriert, dann der Button Speichern umrandet und mit 4 nummeriert",
+      "pt-BR": "Admin da Shopify: Configurações destacado e numerado 1, uma seta para o menu Configurações com Geral destacado e numerado 2, e uma seta para Processamento de pedidos com a opção de atender automaticamente apenas os cartões-presente destacada e numerada 3, depois o botão Salvar destacado e numerado 4",
+      "hi": "Shopify एडमिन: सेटिंग्स लाल बॉक्स में नंबर 1, तीर सेटिंग्स मेनू की ओर जहाँ जनरल नंबर 2 के साथ है, और तीर ऑर्डर प्रोसेसिंग की ओर जहाँ केवल गिफ्ट कार्ड अपने आप फुलफिल करने का विकल्प नंबर 3 के साथ है, फिर सेव बटन नंबर 4 के साथ",
+      "zh-CN": "Shopify 后台：「设置」以红框标示并编号 1，箭头指向设置菜单，其中「常规」编号 2，再指向「订单处理」，其中「仅自动履行订单中的礼品卡」选项编号 3，然后是「保存」按钮，编号 4",
+      "zh-TW": "Shopify 後台：「設定」以紅框標示並編號 1，箭頭指向設定選單，其中「一般」編號 2，再指向「訂單處理」，其中「僅自動出貨訂單中的禮品卡」選項編號 3，接著是「儲存」按鈕，編號 4",
+      "ja": "Shopify管理画面：「設定」が赤い枠と番号1、矢印の先の設定メニューで「一般」が番号2、さらに「注文処理」で「注文のギフトカードのみを自動的に処理」が番号3、続いて「保存」ボタンが番号4で示されている"
+    }
+  },
+  "importPath": {
+    "src": "/guides/p14-import-path.png",
+    "alt": {
+      "en": "Shopify admin left menu with Giftpin Gift Registry boxed and numbered 1, an arrow to Giftpin's menu with Registries boxed and numbered 2, and an arrow down to the Registries page with the Import registries button boxed and numbered 3",
+      "fr": "Menu de gauche de l'admin Shopify avec Giftpin Gift Registry encadré et numéroté 1, une flèche vers le menu de Giftpin avec Registres encadré et numéroté 2, et une flèche vers la page Registres avec le bouton Importer des registres encadré et numéroté 3",
+      "es": "Menú izquierdo del admin de Shopify con Giftpin Gift Registry enmarcado y numerado 1, una flecha al menú de Giftpin con Registros enmarcado y numerado 2, y una flecha a la página Registros con el botón Importar registros enmarcado y numerado 3",
+      "de": "Linkes Menü im Shopify-Admin mit Giftpin Gift Registry umrandet und mit 1 nummeriert, ein Pfeil zum Giftpin-Menü mit Listen umrandet und mit 2 nummeriert, und ein Pfeil zur Seite Listen mit dem Button Listen importieren umrandet und mit 3 nummeriert",
+      "pt-BR": "Menu à esquerda do admin da Shopify com Giftpin Gift Registry destacado e numerado 1, uma seta para o menu do Giftpin com Listas destacado e numerado 2, e uma seta para a página Listas com o botão Importar listas destacado e numerado 3",
+      "hi": "Shopify एडमिन का बायाँ मेनू, Giftpin Gift Registry लाल बॉक्स में नंबर 1, तीर Giftpin के मेनू की ओर जहाँ रजिस्ट्रियाँ नंबर 2 के साथ है, और तीर रजिस्ट्रियाँ पेज की ओर जहाँ रजिस्ट्रियाँ इम्पोर्ट करें बटन नंबर 3 के साथ है",
+      "zh-CN": "Shopify 后台左侧菜单，Giftpin Gift Registry 以红框标示并编号 1，箭头指向 Giftpin 菜单，其中「礼物清单」编号 2，再指向礼物清单页面，其中「导入礼物清单」按钮编号 3",
+      "zh-TW": "Shopify 後台左側選單，Giftpin Gift Registry 以紅框標示並編號 1，箭頭指向 Giftpin 選單，其中「禮物清單」編號 2，再指向禮物清單頁面，其中「匯入禮物清單」按鈕編號 3",
+      "ja": "Shopify管理画面の左メニューでGiftpin Gift Registryが赤い枠と番号1、矢印の先のGiftpinメニューで「リスト」が番号2、さらに矢印の先のリストページで「リストをインポート」ボタンが番号3で示されている"
+    }
+  },
+  "productPanel": {
+    "src": "/guides/p15-product-panel-path.png",
+    "alt": {
+      "en": "A product page in the Shopify admin: More actions boxed and numbered 1, an arrow to the open menu with Giftpin registry boxed and numbered 2, and the panel that opens listing the registries that include the product, with Done boxed and numbered 3",
+      "fr": "Une page produit de l'admin Shopify : Autres actions encadré et numéroté 1, une flèche vers le menu ouvert avec Giftpin registry encadré et numéroté 2, et le panneau qui s'ouvre avec la liste des registres contenant le produit, Terminé encadré et numéroté 3",
+      "es": "Una página de producto del admin de Shopify: Más acciones enmarcado y numerado 1, una flecha al menú abierto con Giftpin registry enmarcado y numerado 2, y el panel que se abre con los registros que incluyen el producto, con Listo enmarcado y numerado 3",
+      "de": "Eine Produktseite im Shopify-Admin: Weitere Aktionen umrandet und mit 1 nummeriert, ein Pfeil zum geöffneten Menü mit Giftpin registry umrandet und mit 2 nummeriert, und das sich öffnende Fenster mit den Listen, die das Produkt enthalten, mit Fertig umrandet und mit 3 nummeriert",
+      "pt-BR": "Uma página de produto do admin da Shopify: Mais ações destacado e numerado 1, uma seta para o menu aberto com Giftpin registry destacado e numerado 2, e o painel que abre listando as listas que incluem o produto, com Concluído destacado e numerado 3",
+      "hi": "Shopify एडमिन में एक प्रोडक्ट पेज: और कार्रवाइयाँ लाल बॉक्स में नंबर 1, तीर खुले मेनू की ओर जहाँ Giftpin registry नंबर 2 के साथ है, और खुलने वाला पैनल जिसमें प्रोडक्ट वाली रजिस्ट्रियाँ दिखती हैं, हो गया नंबर 3 के साथ",
+      "zh-CN": "Shopify 后台的商品页面：「更多操作」以红框标示并编号 1，箭头指向展开的菜单，其中 Giftpin registry 编号 2，以及打开的面板，列出包含该商品的礼物清单，「完成」编号 3",
+      "zh-TW": "Shopify 後台的商品頁面：「更多動作」以紅框標示並編號 1，箭頭指向展開的選單，其中 Giftpin registry 編號 2，以及開啟的面板，列出包含該商品的禮物清單，「完成」編號 3",
+      "ja": "Shopify管理画面の商品ページ：「その他の操作」が赤い枠と番号1、矢印の先の開いたメニューでGiftpin registryが番号2、開いたパネルにはこの商品を含むリストが並び、「完了」が番号3で示されている"
+    }
+  },
+  "orderPanel": {
+    "src": "/guides/p16-order-panel-path.png",
+    "alt": {
+      "en": "Shopify admin: Orders boxed and numbered 1, an arrow to the orders list with an order boxed and numbered 2, then the order page's More actions button numbered 3, the open menu with Giftpin registry boxed and numbered 4, and the panel showing which registry the order was credited to, with Done numbered 5. The buyer's name is covered",
+      "fr": "Admin Shopify : Commandes encadré et numéroté 1, une flèche vers la liste des commandes avec une commande encadrée et numérotée 2, puis le bouton Autres actions de la commande numéroté 3, le menu ouvert avec Giftpin registry encadré et numéroté 4, et le panneau indiquant à quel registre la commande a été créditée, Terminé numéroté 5. Le nom de l'acheteur est masqué",
+      "es": "Admin de Shopify: Pedidos enmarcado y numerado 1, una flecha a la lista de pedidos con un pedido enmarcado y numerado 2, luego el botón Más acciones del pedido numerado 3, el menú abierto con Giftpin registry enmarcado y numerado 4, y el panel que muestra a qué registro se acreditó el pedido, con Listo numerado 5. El nombre del comprador está tapado",
+      "de": "Shopify-Admin: Bestellungen umrandet und mit 1 nummeriert, ein Pfeil zur Bestellliste mit einer umrandeten, mit 2 nummerierten Bestellung, dann der Button Weitere Aktionen der Bestellung mit 3, das geöffnete Menü mit Giftpin registry umrandet und mit 4 nummeriert, und das Fenster, das zeigt, welcher Liste die Bestellung gutgeschrieben wurde, mit Fertig als 5. Der Name des Käufers ist abgedeckt",
+      "pt-BR": "Admin da Shopify: Pedidos destacado e numerado 1, uma seta para a lista de pedidos com um pedido destacado e numerado 2, depois o botão Mais ações do pedido numerado 3, o menu aberto com Giftpin registry destacado e numerado 4, e o painel que mostra a qual lista o pedido foi creditado, com Concluído numerado 5. O nome do comprador está coberto",
+      "hi": "Shopify एडमिन: ऑर्डर लाल बॉक्स में नंबर 1, तीर ऑर्डर सूची की ओर जहाँ एक ऑर्डर नंबर 2 के साथ है, फिर ऑर्डर पेज का और कार्रवाइयाँ बटन नंबर 3, खुला मेनू जिसमें Giftpin registry नंबर 4 के साथ है, और वह पैनल जो दिखाता है कि ऑर्डर किस रजिस्ट्री को क्रेडिट हुआ, हो गया नंबर 5। खरीदार का नाम ढका हुआ है",
+      "zh-CN": "Shopify 后台：「订单」以红框标示并编号 1，箭头指向订单列表，其中一个订单编号 2，然后是订单页的「更多操作」按钮编号 3，展开菜单中 Giftpin registry 编号 4，以及显示该订单记入哪个礼物清单的面板，「完成」编号 5。买家姓名已遮盖",
+      "zh-TW": "Shopify 後台：「訂單」以紅框標示並編號 1，箭頭指向訂單列表，其中一筆訂單編號 2，接著是訂單頁的「更多動作」按鈕編號 3，展開選單中 Giftpin registry 編號 4，以及顯示該訂單記入哪個禮物清單的面板，「完成」編號 5。買家姓名已遮蓋",
+      "ja": "Shopify管理画面：「注文」が赤い枠と番号1、矢印の先の注文一覧で注文が番号2、続いて注文ページの「その他の操作」が番号3、開いたメニューでGiftpin registryが番号4、この注文がどのリストに反映されたかを示すパネルで「完了」が番号5。購入者の名前は伏せてある"
+    }
+  },
+  "customerPanel": {
+    "src": "/guides/p16-customer-panel-path.png",
+    "alt": {
+      "en": "Shopify admin: Customers boxed and numbered 1, an arrow to a customer page with More actions numbered 2, the open menu with Giftpin registry boxed and numbered 3, and the panel listing their registries and the gifts they bought, with Done numbered 4. A buyer's name is covered",
+      "fr": "Admin Shopify : Clients encadré et numéroté 1, une flèche vers une fiche client avec Autres actions numéroté 2, le menu ouvert avec Giftpin registry encadré et numéroté 3, et le panneau listant ses registres et les cadeaux achetés, Terminé numéroté 4. Le nom d'un acheteur est masqué",
+      "es": "Admin de Shopify: Clientes enmarcado y numerado 1, una flecha a la página de un cliente con Más acciones numerado 2, el menú abierto con Giftpin registry enmarcado y numerado 3, y el panel con sus registros y los regalos que compró, con Listo numerado 4. El nombre de un comprador está tapado",
+      "de": "Shopify-Admin: Kunden umrandet und mit 1 nummeriert, ein Pfeil zur Kundenseite mit Weitere Aktionen als 2, das geöffnete Menü mit Giftpin registry umrandet und mit 3 nummeriert, und das Fenster mit den Listen des Kunden und den gekauften Geschenken, Fertig als 4. Der Name eines Käufers ist abgedeckt",
+      "pt-BR": "Admin da Shopify: Clientes destacado e numerado 1, uma seta para a página de um cliente com Mais ações numerado 2, o menu aberto com Giftpin registry destacado e numerado 3, e o painel com as listas dele e os presentes que comprou, com Concluído numerado 4. O nome de um comprador está coberto",
+      "hi": "Shopify एडमिन: ग्राहक लाल बॉक्स में नंबर 1, तीर ग्राहक पेज की ओर जहाँ और कार्रवाइयाँ नंबर 2 के साथ है, खुला मेनू जिसमें Giftpin registry नंबर 3 के साथ है, और पैनल जिसमें उनकी रजिस्ट्रियाँ और खरीदे गए उपहार दिखते हैं, हो गया नंबर 4। एक खरीदार का नाम ढका हुआ है",
+      "zh-CN": "Shopify 后台：「客户」以红框标示并编号 1，箭头指向客户页面，「更多操作」编号 2，展开菜单中 Giftpin registry 编号 3，以及列出其礼物清单和所购礼物的面板，「完成」编号 4。一位买家的姓名已遮盖",
+      "zh-TW": "Shopify 後台：「顧客」以紅框標示並編號 1，箭頭指向顧客頁面，「更多動作」編號 2，展開選單中 Giftpin registry 編號 3，以及列出其禮物清單與所購禮物的面板，「完成」編號 4。一位買家的姓名已遮蓋",
+      "ja": "Shopify管理画面：「顧客」が赤い枠と番号1、矢印の先の顧客ページで「その他の操作」が番号2、開いたメニューでGiftpin registryが番号3、その顧客のリストと購入したギフトを示すパネルで「完了」が番号4。購入者の名前は伏せてある"
+    }
+  },
+  "flowPath": {
+    "src": "/guides/p17-flow-path.png",
+    "alt": {
+      "en": "Shopify admin steps to a Flow trigger: Apps boxed and numbered 1, an arrow to the Apps list with Flow boxed and numbered 2, the Workflows page with Create workflow numbered 3, Select a trigger numbered 4, the Giftpin: Registry & Wishlist app numbered 5, and its three triggers with Registry created numbered 6 and added to the workflow. The developer's name is covered",
+      "fr": "Étapes de l'admin Shopify vers un déclencheur Flow : Applications encadré et numéroté 1, une flèche vers la liste des applications avec Flow encadré et numéroté 2, la page Workflows avec Créer un workflow numéroté 3, Sélectionner un déclencheur numéroté 4, l'application Giftpin: Registry & Wishlist numérotée 5, et ses trois déclencheurs avec Registry created numéroté 6 puis ajouté au workflow. Le nom du développeur est masqué",
+      "es": "Pasos del admin de Shopify hasta un activador de Flow: Aplicaciones enmarcado y numerado 1, una flecha a la lista de aplicaciones con Flow enmarcado y numerado 2, la página Workflows con Crear workflow numerado 3, Seleccionar un activador numerado 4, la aplicación Giftpin: Registry & Wishlist numerada 5, y sus tres activadores con Registry created numerado 6 y añadido al workflow. El nombre del desarrollador está tapado",
+      "de": "Schritte im Shopify-Admin zu einem Flow-Trigger: Apps umrandet und mit 1 nummeriert, ein Pfeil zur App-Liste mit Flow umrandet und mit 2 nummeriert, die Seite Workflows mit Workflow erstellen als 3, Trigger auswählen als 4, die App Giftpin: Registry & Wishlist als 5 und ihre drei Trigger mit Registry created als 6, danach dem Workflow hinzugefügt. Der Name des Entwicklers ist abgedeckt",
+      "pt-BR": "Etapas do admin da Shopify até um gatilho do Flow: Apps destacado e numerado 1, uma seta para a lista de apps com Flow destacado e numerado 2, a página Workflows com Criar workflow numerado 3, Selecionar um gatilho numerado 4, o app Giftpin: Registry & Wishlist numerado 5, e seus três gatilhos com Registry created numerado 6 e adicionado ao workflow. O nome do desenvolvedor está coberto",
+      "hi": "Shopify एडमिन से Flow ट्रिगर तक के चरण: ऐप्स लाल बॉक्स में नंबर 1, तीर ऐप्स की सूची की ओर जहाँ Flow नंबर 2 के साथ है, Workflows पेज पर Create workflow नंबर 3, Select a trigger नंबर 4, ऐप Giftpin: Registry & Wishlist नंबर 5, और इसके तीन ट्रिगर जिनमें Registry created नंबर 6 के साथ वर्कफ़्लो में जुड़ा है। डेवलपर का नाम ढका हुआ है",
+      "zh-CN": "从 Shopify 后台到 Flow 触发器的步骤：「应用」以红框标示并编号 1，箭头指向应用列表，其中 Flow 编号 2，Workflows 页面上的「创建工作流」编号 3，「选择触发器」编号 4，应用 Giftpin: Registry & Wishlist 编号 5，以及它的三个触发器，其中 Registry created 编号 6 并已添加到工作流。开发者姓名已遮盖",
+      "zh-TW": "從 Shopify 後台到 Flow 觸發條件的步驟：「應用程式」以紅框標示並編號 1，箭頭指向應用程式清單，其中 Flow 編號 2，Workflows 頁面上的「建立工作流程」編號 3，「選取觸發條件」編號 4，應用程式 Giftpin: Registry & Wishlist 編號 5，以及它的三個觸發條件，其中 Registry created 編號 6 並已加入工作流程。開發者姓名已遮蓋",
+      "ja": "Shopify管理画面からFlowのトリガーまでの手順：「アプリ」が赤い枠と番号1、矢印の先のアプリ一覧で「Flow」が番号2、Workflowsページの「ワークフローを作成」が番号3、「トリガーを選択」が番号4、アプリ「Giftpin: Registry & Wishlist」が番号5、その3つのトリガーのうちRegistry createdが番号6で、ワークフローに追加された状態。開発者名は伏せてある"
+    }
+  },
+  "themePath": {
+    "src": "/guides/p18-theme-block-path.png",
+    "alt": {
+      "en": "Shopify admin steps to the theme editor: Online Store numbered 1, Edit theme on your theme numbered 2, the page picker Home page numbered 3 then Products numbered 4, Default product numbered 5, Product information numbered 6, Add block numbered 7, the Apps tab numbered 8, Save for later numbered 9, then the page picker again (10) to choose Cart (11)",
+      "fr": "Étapes de l'admin Shopify vers l'éditeur de thème : Boutique en ligne numéroté 1, Modifier le thème sur votre thème numéroté 2, le sélecteur de page Page d'accueil numéroté 3 puis Produits numéroté 4, Produit par défaut numéroté 5, Informations produit numéroté 6, Ajouter un bloc numéroté 7, l'onglet Applications numéroté 8, Save for later numéroté 9, puis de nouveau le sélecteur de page (10) pour choisir Panier (11)",
+      "es": "Pasos del admin de Shopify al editor de temas: Tienda online numerado 1, Editar tema en tu tema numerado 2, el selector de página Página de inicio numerado 3 y luego Productos numerado 4, Producto predeterminado numerado 5, Información del producto numerado 6, Añadir bloque numerado 7, la pestaña Aplicaciones numerada 8, Save for later numerado 9, y otra vez el selector de página (10) para elegir Carrito (11)",
+      "de": "Schritte im Shopify-Admin zum Theme-Editor: Onlineshop mit 1, Theme bearbeiten bei Ihrem Theme mit 2, die Seitenauswahl Startseite mit 3 und dann Produkte mit 4, Standardprodukt mit 5, Produktinformationen mit 6, Block hinzufügen mit 7, der Tab Apps mit 8, Save for later mit 9, danach erneut die Seitenauswahl (10), um Warenkorb (11) zu wählen",
+      "pt-BR": "Etapas do admin da Shopify até o editor de temas: Loja virtual numerado 1, Editar tema no seu tema numerado 2, o seletor de página Página inicial numerado 3 e depois Produtos numerado 4, Produto padrão numerado 5, Informações do produto numerado 6, Adicionar bloco numerado 7, a aba Apps numerada 8, Save for later numerado 9, e de novo o seletor de página (10) para escolher Carrinho (11)",
+      "hi": "Shopify एडमिन से थीम एडिटर तक के चरण: ऑनलाइन स्टोर नंबर 1, आपकी थीम पर थीम एडिट करें नंबर 2, पेज चयनकर्ता में होम पेज नंबर 3 फिर प्रोडक्ट्स नंबर 4, डिफ़ॉल्ट प्रोडक्ट नंबर 5, प्रोडक्ट जानकारी नंबर 6, ब्लॉक जोड़ें नंबर 7, ऐप्स टैब नंबर 8, Save for later नंबर 9, फिर दोबारा पेज चयनकर्ता (10) में कार्ट (11) चुनना",
+      "zh-CN": "从 Shopify 后台到主题编辑器的步骤：「在线商店」编号 1，主题上的「编辑主题」编号 2，页面选择器「首页」编号 3，然后「商品」编号 4，「默认商品」编号 5，「商品信息」编号 6，「添加区块」编号 7，「应用」标签编号 8，Save for later 编号 9，再次打开页面选择器（10）选择「购物车」（11）",
+      "zh-TW": "從 Shopify 後台到佈景主題編輯器的步驟：「線上商店」編號 1，佈景主題上的「編輯佈景主題」編號 2，頁面選擇器「首頁」編號 3，接著「商品」編號 4，「預設商品」編號 5，「商品資訊」編號 6，「新增區塊」編號 7，「應用程式」分頁編號 8，Save for later 編號 9，再次開啟頁面選擇器（10）選擇「購物車」（11）",
+      "ja": "Shopify管理画面からテーマエディタまでの手順：「オンラインストア」が番号1、テーマの「テーマを編集」が番号2、ページ選択の「ホームページ」が番号3、続いて「商品」が番号4、「デフォルト商品」が番号5、「商品情報」が番号6、「ブロックを追加」が番号7、「アプリ」タブが番号8、Save for laterが番号9、もう一度ページ選択（10）で「カート」（11）を選ぶ"
+    }
+  },
+  "cartPath": {
+    "src": "/guides/p19-cart-block-path.png",
+    "alt": {
+      "en": "The theme editor's Cart page, under Template: Add section numbered 1, the Apps tab numbered 2, Giftpin's Saved items numbered 3, then Save at the top right numbered 4",
+      "fr": "La page Panier de l'éditeur de thème, sous Modèle : Ajouter une section numéroté 1, l'onglet Applications numéroté 2, Saved items de Giftpin numéroté 3, puis Enregistrer en haut à droite numéroté 4",
+      "es": "La página Carrito del editor de temas, en Plantilla: Añadir sección numerado 1, la pestaña Aplicaciones numerada 2, Saved items de Giftpin numerado 3 y luego Guardar arriba a la derecha numerado 4",
+      "de": "Die Warenkorbseite im Theme-Editor, unter Vorlage: Abschnitt hinzufügen mit 1, der Tab Apps mit 2, Saved items von Giftpin mit 3, dann Speichern oben rechts mit 4",
+      "pt-BR": "A página Carrinho do editor de temas, em Modelo: Adicionar seção numerado 1, a aba Apps numerada 2, Saved items do Giftpin numerado 3 e depois Salvar no canto superior direito numerado 4",
+      "hi": "थीम एडिटर का कार्ट पेज, टेम्पलेट के नीचे: सेक्शन जोड़ें नंबर 1, ऐप्स टैब नंबर 2, Giftpin का Saved items नंबर 3, फिर ऊपर दाईं ओर सेव नंबर 4",
+      "zh-CN": "主题编辑器的购物车页面，在「模板」下：「添加区段」编号 1，「应用」标签编号 2，Giftpin 的 Saved items 编号 3，然后右上角的「保存」编号 4",
+      "zh-TW": "佈景主題編輯器的購物車頁面，在「範本」下：「新增區段」編號 1，「應用程式」分頁編號 2，Giftpin 的 Saved items 編號 3，然後右上角的「儲存」編號 4",
+      "ja": "テーマエディタのカートページの「テンプレート」内：「セクションを追加」が番号1、「アプリ」タブが番号2、GiftpinのSaved itemsが番号3、右上の「保存」が番号4"
+    }
+  },
+  "menuPath": {
+    "src": "/guides/p20-menu-item-path.png",
+    "alt": {
+      "en": "For vintage themes: Content numbered 1, Menus numbered 2, Main menu numbered 3, Add menu item numbered 4, the Label (Gift registry, 5) and Link (/apps/registry, 6) fields, the /apps/registry suggestion numbered 7, then Save numbered 8",
+      "fr": "Pour les thèmes anciens : Contenu numéroté 1, Menus numéroté 2, Menu principal numéroté 3, Ajouter un élément de menu numéroté 4, les champs Libellé (Gift registry, 5) et Lien (/apps/registry, 6), la suggestion /apps/registry numérotée 7, puis Enregistrer numéroté 8",
+      "es": "Para temas antiguos: Contenido numerado 1, Menús numerado 2, Menú principal numerado 3, Añadir elemento de menú numerado 4, los campos Etiqueta (Gift registry, 5) y Enlace (/apps/registry, 6), la sugerencia /apps/registry numerada 7 y luego Guardar numerado 8",
+      "de": "Für ältere Themes: Inhalte mit 1, Menüs mit 2, Hauptmenü mit 3, Menüpunkt hinzufügen mit 4, die Felder Bezeichnung (Gift registry, 5) und Link (/apps/registry, 6), der Vorschlag /apps/registry mit 7, danach Speichern mit 8",
+      "pt-BR": "Para temas antigos: Conteúdo numerado 1, Menus numerado 2, Menu principal numerado 3, Adicionar item de menu numerado 4, os campos Rótulo (Gift registry, 5) e Link (/apps/registry, 6), a sugestão /apps/registry numerada 7 e depois Salvar numerado 8",
+      "hi": "पुरानी थीम के लिए: कंटेंट नंबर 1, मेन्यू नंबर 2, मेन मेन्यू नंबर 3, मेन्यू आइटम जोड़ें नंबर 4, लेबल (Gift registry, 5) और लिंक (/apps/registry, 6) फ़ील्ड, सुझाव /apps/registry नंबर 7, फिर सेव नंबर 8",
+      "zh-CN": "旧版主题：「内容」编号 1，「菜单」编号 2，「主菜单」编号 3，「添加菜单项」编号 4，「标签」（Gift registry，5）和「链接」（/apps/registry，6）字段，建议项 /apps/registry 编号 7，然后「保存」编号 8",
+      "zh-TW": "舊式佈景主題：「內容」編號 1，「選單」編號 2，「主選單」編號 3，「新增選單項目」編號 4，「標籤」（Gift registry，5）與「連結」（/apps/registry，6）欄位，建議項 /apps/registry 編號 7，然後「儲存」編號 8",
+      "ja": "古いテーマの場合：「コンテンツ」が番号1、「メニュー」が番号2、「メインメニュー」が番号3、「メニュー項目を追加」が番号4、「ラベル」（Gift registry、5）と「リンク」（/apps/registry、6）の欄、候補の/apps/registryが番号7、最後に「保存」が番号8"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
@@ -518,6 +686,34 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-CN": "分析图表（已创建的礼物清单、已添加的商品、已记入的礼物），「下载 CSV」按钮以红框标示并编号 2",
       "zh-TW": "分析圖表（已建立的禮物清單、已加入的商品、已記入的禮物），「下載 CSV」按鈕以紅框標示並編號 2",
       "ja": "分析のグラフ（作成されたリスト、追加された商品、反映されたギフト）。「CSVをダウンロード」ボタンが赤い枠と番号2で示されている"
+    }
+  },
+  "openApps": {
+    "src": "/guides/p11-open-apps.png",
+    "alt": {
+      "en": "Shopify admin's left menu with Apps boxed in red and numbered 1, and an arrow to the Apps list where Giftpin Gift Registry is boxed and numbered 2",
+      "fr": "Le menu de gauche de l'admin Shopify avec Applications encadré en rouge et numéroté 1, et une flèche vers la liste des applications où Giftpin Gift Registry est encadré et numéroté 2",
+      "es": "El menú izquierdo del admin de Shopify con Aplicaciones enmarcado en rojo y numerado 1, y una flecha hacia la lista de aplicaciones donde Giftpin Gift Registry está enmarcado y numerado 2",
+      "de": "Das linke Menü im Shopify-Admin mit Apps rot umrandet und mit 1 nummeriert, und ein Pfeil zur App-Liste, in der Giftpin Gift Registry umrandet und mit 2 nummeriert ist",
+      "pt-BR": "O menu à esquerda do admin da Shopify com Apps destacado em vermelho e numerado 1, e uma seta para a lista de apps onde Giftpin Gift Registry está destacado e numerado 2",
+      "hi": "Shopify एडमिन का बायाँ मेनू, ऐप्स लाल बॉक्स में और नंबर 1 के साथ, और एक तीर ऐप्स की सूची की ओर जहाँ Giftpin Gift Registry लाल बॉक्स में और नंबर 2 के साथ है",
+      "zh-CN": "Shopify 后台左侧菜单，「应用」以红框标示并编号 1，箭头指向应用列表，其中 Giftpin Gift Registry 以红框标示并编号 2",
+      "zh-TW": "Shopify 後台左側選單，「應用程式」以紅框標示並編號 1，箭頭指向應用程式清單，其中 Giftpin Gift Registry 以紅框標示並編號 2",
+      "ja": "Shopify管理画面の左メニュー。「アプリ」が赤い枠と番号1で示され、矢印の先のアプリ一覧でGiftpin Gift Registryが赤い枠と番号2で示されている"
+    }
+  },
+  "navOverview": {
+    "src": "/guides/p11-nav-overview.png",
+    "alt": {
+      "en": "Giftpin's menu under Apps in the Shopify admin with Overview boxed in red and numbered 1",
+      "fr": "Le menu de Giftpin sous Applications dans l'admin Shopify avec Aperçu encadré en rouge et numéroté 1",
+      "es": "El menú de Giftpin en Aplicaciones del admin de Shopify con Resumen enmarcado en rojo y numerado 1",
+      "de": "Das Giftpin-Menü unter Apps im Shopify-Admin mit Übersicht rot umrandet und mit 1 nummeriert",
+      "pt-BR": "O menu do Giftpin em Apps no admin da Shopify com Visão geral destacado em vermelho e numerado 1",
+      "hi": "Shopify एडमिन में ऐप्स के नीचे Giftpin का मेनू, ओवरव्यू लाल बॉक्स में और नंबर 1 के साथ",
+      "zh-CN": "Shopify 后台「应用」下的 Giftpin 菜单，「概览」以红框标示并编号 1",
+      "zh-TW": "Shopify 後台「應用程式」下的 Giftpin 選單，「總覽」以紅框標示並編號 1",
+      "ja": "Shopify管理画面のアプリ内のGiftpinメニュー。「概要」が赤い枠と番号1で示されている"
     }
   },
   "navRegistries": {

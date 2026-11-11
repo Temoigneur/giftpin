@@ -38,7 +38,7 @@ export const en: RawGuideCopy = {
               "Then click <b>{{admin.theme.savedAdd}}</b>. This adds a <b>Saved items</b> list to your cart page, so shoppers can find what they hearted. Press <b>Save</b>.",
               "These two are not switched on automatically. Until you add them in the theme editor and press <b>Save</b>, shoppers won't see a heart. Hearts are kept in the shopper's own browser, with no account, so the list is empty on a new device.",
               "Prefer to place them by hand? In the theme editor, open the page, click <b>Add block</b> (or <b>Add section</b>), open the <b>Apps</b> group and choose <b>Save for later</b> or <b>Saved items</b>.",
-              "Using a vintage (pre-Online Store 2.0) theme? The blocks won't work there, but your registry pages still do: add a menu item pointing to <b>/apps/registry</b> in <b>Online Store → Navigation</b>.",
+              "Using a vintage (pre-Online Store 2.0) theme? The blocks won't work there, but your registry pages still do: add a menu item pointing to <b>/apps/registry</b> in <b>Content → Menus</b>.",
             ],
             img: [
               { src: "/guides/m1-overview.png", alt: "Giftpin's Overview page with the Add Giftpin to your theme card, the Add button to product pages and Add registry links buttons" },

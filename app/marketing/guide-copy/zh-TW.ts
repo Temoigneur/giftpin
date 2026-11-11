@@ -7,7 +7,7 @@ export const zhTW: RawGuideCopy = {
     language: "語言",
     shotsNote: "截圖顯示的是畫面的英文版本。",
     shopifyNote:
-      "Shopify 的畫面名稱（例如 Online Store → Navigation）以英文標示，與英文版 Shopify 後台一致。在您的語言中，這些名稱可能會顯示為翻譯後的文字。",
+      "Shopify 的畫面名稱（例如 Content → Menus）以英文標示，與英文版 Shopify 後台一致。在您的語言中，這些名稱可能會顯示為翻譯後的文字。",
     finalCta: "準備好為您的顧客提供禮物清單了嗎？",
   },
 
@@ -39,7 +39,7 @@ export const zhTW: RawGuideCopy = {
               "接著點選 <b>{{admin.theme.savedAdd}}</b>。這會在您的購物車頁面加入 <b>Saved items</b> 清單，讓顧客找到他們按過愛心的商品。按下 <b>Save</b>。",
               "這兩項不會自動啟用。在您於佈景主題編輯器中加入並按下 <b>Save</b> 之前，顧客不會看到愛心。愛心保存在顧客自己的瀏覽器中，不需要帳號，所以在新裝置上清單會是空的。",
               "想自己手動放置嗎？在佈景主題編輯器中開啟頁面，點選 <b>Add block</b>（或 <b>Add section</b>），開啟 <b>Apps</b> 群組，然後選擇 <b>Save for later</b> 或 <b>Saved items</b>。",
-              "使用的是舊式（Online Store 2.0 之前）的佈景主題嗎？區塊在其中無法運作，但您的禮物清單頁面仍可使用：請在 <b>Online Store → Navigation</b> 中新增一個指向 <b>/apps/registry</b> 的選單項目。",
+              "使用的是舊式（Online Store 2.0 之前）的佈景主題嗎？區塊在其中無法運作，但您的禮物清單頁面仍可使用：請在 <b>Content → Menus</b> 中新增一個指向 <b>/apps/registry</b> 的選單項目。",
             ],
             alts: [
               "Giftpin 的總覽頁面，顯示「將 Giftpin 加入您的佈景主題」卡片，以及將按鈕加入商品頁面和加入禮物清單連結的按鈕",

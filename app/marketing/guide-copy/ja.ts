@@ -7,7 +7,7 @@ export const ja: RawGuideCopy = {
     language: "言語",
     shotsNote: "スクリーンショットは英語版の画面です。",
     shopifyNote:
-      "Shopifyの画面名（たとえば Online Store → Navigation）は、英語版のShopify管理画面と同じく英語で表記しています。お使いの言語では翻訳されて表示されることがあります。",
+      "Shopifyの画面名（たとえば Content → Menus）は、英語版のShopify管理画面と同じく英語で表記しています。お使いの言語では翻訳されて表示されることがあります。",
     finalCta: "お客様にギフトリストを提供しませんか？",
   },
 
@@ -39,7 +39,7 @@ export const ja: RawGuideCopy = {
               "次に <b>{{admin.theme.savedAdd}}</b> をクリックします。カートページに <b>Saved items</b> リストが追加され、お客様がハートを付けた商品を見つけられます。<b>Save</b> を押してください。",
               "この2つは自動では有効になりません。テーマエディタで追加して <b>Save</b> を押すまで、お客様にハートは表示されません。ハートはお客様のブラウザ内に保存され、アカウントは不要です。そのため、新しい端末ではリストが空になります。",
               "自分で配置したい場合は、テーマエディタでページを開き、<b>Add block</b>（または <b>Add section</b>）をクリックして、<b>Apps</b> グループから <b>Save for later</b> または <b>Saved items</b> を選びます。",
-              "古いテーマ（Online Store 2.0より前）をお使いですか？ブロックは動作しませんが、ギフトリストのページは使えます。<b>Online Store → Navigation</b> で、<b>/apps/registry</b> を指すメニュー項目を追加してください。",
+              "古いテーマ（Online Store 2.0より前）をお使いですか？ブロックは動作しませんが、ギフトリストのページは使えます。<b>Content → Menus</b> で、<b>/apps/registry</b> を指すメニュー項目を追加してください。",
             ],
             alts: [
               "テーマにGiftpinを追加するカードと、商品ページへのボタン追加・リストへのリンク追加ボタンがあるGiftpinの概要ページ",

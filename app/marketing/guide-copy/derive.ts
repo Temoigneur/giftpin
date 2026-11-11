@@ -10,6 +10,9 @@ import { SHOTS } from "./shots";
  * /registry-guide and /guest-guide. Images stay with the steps they were
  * written for; the new steps carry none, so every language has the same shape.
  */
+/** Shots of Giftpin's own left menu: each is preceded by the Apps → Giftpin click. */
+const NAV_KEYS = new Set(["navRegistries", "navSettings", "navPromotions", "navAnalytics", "navInStore", "navPlan", "navOverview"]);
+
 export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
   const s = (k: string) => x[k] as string;
   const h1 = (k: string) => {
@@ -24,13 +27,42 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     steps: [1, 2, 3, 4].map((n): Step => ({ title: s(`hub${n}_t`), items: [s(`hub${n}_i`)] })),
   };
   // Real screens with the buttons boxed and numbered in the images.
-  const withShot = (sec: typeof get, at: number, keys: string[]): typeof get => ({
+  const withNav = (keys: string[]) => keys.flatMap((k, i) => (NAV_KEYS.has(k) && keys[i - 1] !== "openApps" ? ["openApps", k] : [k]));
+  const withShot = (sec: typeof get, at: number, keys0: string[]): typeof get => ({
     ...sec,
     steps: sec.steps.map((st, i) =>
       i === at
-        ? { ...st, ...(locale === "en" ? { img: keys.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: keys.map((k) => SHOTS[k].alt[locale]) }) }
+        ? { ...st, ...(locale === "en" ? { img: withNav(keys0).map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) } : { alts: withNav(keys0).map((k) => SHOTS[k].alt[locale]) }) }
         : st,
     ),
+  });
+  // Put the left-menu click (a real shot of Giftpin's menu with the item boxed) before a step's own shots.
+  const menuFirst = (sec: typeof get, at: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      const keys = NAV_KEYS.has(key) ? ["openApps", key] : [key];
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? st.img : st.img ? [st.img] : [];
+        return { ...st, img: [...keys.map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })), ...list] };
+      }
+      return { ...st, alts: [...keys.map((k) => SHOTS[k].alt[locale]), ...(st.alts ?? [])] };
+    }),
+  });
+  // Put a real shot at a given position in a step's own list (en: images, others: alts).
+  const insertShot = (sec: typeof get, at: number, pos: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? [...st.img] : st.img ? [st.img] : [];
+        list.splice(pos, 0, { src: SHOTS[key].src, alt: SHOTS[key].alt.en });
+        return { ...st, img: list };
+      }
+      const alts = [...(st.alts ?? [])];
+      alts.splice(pos, 0, SHOTS[key].alt[locale]);
+      return { ...st, alts };
+    }),
   });
   // Replace one existing image in a step (the old Overview shot) with a new real one.
   const swapShot = (sec: typeof get, at: number, imgAt: number, key: string): typeof get => ({
@@ -47,8 +79,8 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
       return { ...st, alts };
     }),
   });
-  const getWithShots = swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme");
-  const saveWithShots = withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]);
+  const getWithShots = insertShot(insertShot(insertShot(menuFirst(menuFirst(swapShot(withShot(get, 0, ["installStore", "installApprove"]), 1, 0, "overviewTheme"), 2, "navRegistries"), 1, "navOverview"), 1, 3, "themePath"), 1, 4, "cartPath"), 1, 6, "menuPath");
+  const saveWithShots = menuFirst(menuFirst(menuFirst(withShot(withShot(save, 0, ["themeSave"]), 1, ["settingsSaveTop", "settingsSaveBottom", "settingsSaveFunds"]), 1, "navSettings"), 2, "navInStore"), 2, "navPromotions");
   const manageKeys = ["manageSaveSettings", "manageSettingsSaved", "manageSaveShip", "manageShipSaved", "manageItemUpdate"];
   const saveAll = withShot(saveWithShots, 3, manageKeys);
   const setup: GuideDoc = { ...raw.setup, lede: s("setup_lede"), description: s("setup_desc"), sections: [hub, getWithShots, saveAll] };
@@ -100,5 +132,17 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     ...more,
     steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
-  return { ui: raw.ui, setup, customize: sub("c", [withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"])]), pro: sub("p", [withShot(withShot(withShot(withShot(withShot(pro, 0, ["cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"])]), registry, guest };
+  const makeS = menuFirst(menuFirst(menuFirst(menuFirst(menuFirst(menuFirst(withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), 0, "navSettings"), 1, "navSettings"), 2, "navSettings"), 3, "navSettings"), 4, "navSettings"), 5, "navSettings");
+  const moreS = menuFirst(menuFirst(withShot(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flowPath"]), 1, ["productPanel", "orderPanel", "customerPanel"]), 3, "navSettings"), 0, "importPath");
+  const proS = insertShot(insertShot(menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["navPlan", "planFree", "cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings"), 1, 0, "giftPath"), 1, 2, "orderPath");
+  // One run in the order a store owner does things: Pro-only steps sit after Start Pro, and the Languages step follows the look-and-language step.
+  const [mkOcc, mkExt, mkSold, mkLook, mkPriv, mkPerks] = makeS.steps;
+  const [moImport, moPanels, moFlow, moLang] = moreS.steps;
+  const [prStart, ...prRest] = proS.steps;
+  const customizeSections = [
+    { ...makeS, steps: [mkOcc, mkExt, mkSold, mkLook, moLang, mkPriv] },
+    { ...moreS, steps: [moImport, moPanels] },
+  ];
+  const proSections = [{ ...proS, steps: [prStart, mkPerks, ...prRest, moFlow] }];
+  return { ui: raw.ui, setup, customize: sub("c", customizeSections), pro: sub("p", proSections), registry, guest };
 }

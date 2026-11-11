@@ -7,7 +7,7 @@ export const ptBR: RawGuideCopy = {
     language: "Idioma",
     shotsNote: "As capturas de tela mostram a versão em inglês das telas.",
     shopifyNote:
-      "Os nomes das telas da Shopify (por exemplo, Online Store → Navigation) aparecem em inglês, como no painel da Shopify em inglês. No seu idioma, eles podem aparecer traduzidos.",
+      "Os nomes das telas da Shopify (por exemplo, Content → Menus) aparecem em inglês, como no painel da Shopify em inglês. No seu idioma, eles podem aparecer traduzidos.",
     finalCta: "Pronto para oferecer uma lista de presentes aos seus clientes?",
   },
 
@@ -39,7 +39,7 @@ export const ptBR: RawGuideCopy = {
               "Depois clique em <b>{{admin.theme.savedAdd}}</b>. Isso adiciona uma lista <b>Saved items</b> à sua página do carrinho, para que os compradores encontrem o que marcaram com o coração. Pressione <b>Save</b>.",
               "Esses dois não são ativados automaticamente. Até você adicioná-los no editor de temas e pressionar <b>Save</b>, os compradores não verão nenhum coração. Os corações ficam guardados no próprio navegador do comprador, sem conta, então a lista aparece vazia em um dispositivo novo.",
               "Prefere posicioná-los à mão? No editor de temas, abra a página, clique em <b>Add block</b> (ou <b>Add section</b>), abra o grupo <b>Apps</b> e escolha <b>Save for later</b> ou <b>Saved items</b>.",
-              "Usa um tema antigo (anterior ao Online Store 2.0)? Os blocos não funcionam nele, mas as suas páginas de lista funcionam: adicione um item de menu que aponte para <b>/apps/registry</b> em <b>Online Store → Navigation</b>.",
+              "Usa um tema antigo (anterior ao Online Store 2.0)? Os blocos não funcionam nele, mas as suas páginas de lista funcionam: adicione um item de menu que aponte para <b>/apps/registry</b> em <b>Content → Menus</b>.",
             ],
             alts: [
               "A página Visão geral do Giftpin com o cartão Adicionar o Giftpin ao seu tema e os botões para adicionar o botão às páginas de produto e os links de lista",
