@@ -76,7 +76,7 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     metaTitle: s("g_meta"),
     description: s("g_desc"),
     sections: [
-      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2"), s("g1_i3")], ["find", "findResults"]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")])] },
+      { title: s("gs1_t"), lede: s("gs1_lede"), steps: [step(s("g1_t"), [s("g1_i1"), s("g1_i2"), s("g1_i3")], ["find", "findResults"]), step(s("g2_t"), [s("g2_i1"), s("g2_i2")], ["sortFilter"])] },
       {
         title: s("gs2_t"),
         lede: s("gs2_lede"),

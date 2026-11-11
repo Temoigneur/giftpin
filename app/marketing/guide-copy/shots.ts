@@ -967,5 +967,19 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "zh-TW": "搜尋結果，清單名稱連結以紅框標示並編號 3",
       "ja": "検索結果。リスト名のリンクが赤い枠と番号3で示されている"
     }
+  },
+  "sortFilter": {
+    "src": "/guides/g2-sort-filter.png",
+    "alt": {
+      "en": "A registry's list tools: the Sort menu open and boxed in red and numbered 1, and the Only show what's still needed tick box boxed and numbered 2",
+      "fr": "Les outils de la liste : le menu Trier ouvert, encadré en rouge et numéroté 1, et la case Afficher seulement ce qui reste à offrir encadrée et numérotée 2",
+      "es": "Las herramientas de la lista: el menú Ordenar abierto, enmarcado en rojo y numerado 1, y la casilla Mostrar solo lo que aún falta enmarcada y numerada 2",
+      "de": "Die Listenwerkzeuge: das geöffnete Menü Sortieren, rot umrandet und mit 1 nummeriert, und das Kästchen Nur noch Benötigtes anzeigen, umrandet und mit 2 nummeriert",
+      "pt-BR": "As ferramentas da lista: o menu Ordenar aberto, destacado em vermelho e numerado 1, e a caixa Mostrar só o que ainda falta destacada e numerada 2",
+      "hi": "सूची के टूल: खुला हुआ क्रम चुनें मेनू लाल बॉक्स में और नंबर 1 के साथ, और केवल वही दिखाएँ जो अभी चाहिए वाला टिक बॉक्स नंबर 2 के साथ",
+      "zh-CN": "清单工具：展开的“排序”菜单以红框标示并编号 1，“只显示仍需要的”勾选框以红框标示并编号 2",
+      "zh-TW": "清單工具：展開的「排序」選單以紅框標示並編號 1，「只顯示仍需要的」核取方塊以紅框標示並編號 2",
+      "ja": "リストのツール。開いた「並べ替え」メニューが赤い枠と番号1、「まだ必要なものだけ表示」のチェックボックスが赤い枠と番号2で示されている"
+    }
   }
 };
