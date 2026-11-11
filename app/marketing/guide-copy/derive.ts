@@ -44,6 +44,21 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
       return { ...st, alts: [SHOTS[key].alt[locale], ...(st.alts ?? [])] };
     }),
   });
+  // Put a real shot at a given position in a step's own list (en: images, others: alts).
+  const insertShot = (sec: typeof get, at: number, pos: number, key: string): typeof get => ({
+    ...sec,
+    steps: sec.steps.map((st, i) => {
+      if (i !== at) return st;
+      if (locale === "en") {
+        const list = Array.isArray(st.img) ? [...st.img] : st.img ? [st.img] : [];
+        list.splice(pos, 0, { src: SHOTS[key].src, alt: SHOTS[key].alt.en });
+        return { ...st, img: list };
+      }
+      const alts = [...(st.alts ?? [])];
+      alts.splice(pos, 0, SHOTS[key].alt[locale]);
+      return { ...st, alts };
+    }),
+  });
   // Replace one existing image in a step (the old Overview shot) with a new real one.
   const swapShot = (sec: typeof get, at: number, imgAt: number, key: string): typeof get => ({
     ...sec,
@@ -113,8 +128,8 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     steps: more.steps.map((st, i) => (i === 2 ? { ...st, items: [s("flow_i0"), ...st.items] } : i === 1 ? { ...st, ...(locale === "en" ? { img: { src: SHOTS.panel.src, alt: SHOTS.panel.alt.en } } : { alts: [SHOTS.panel.alt[locale]] }) } : st)),
   };
   const makeS = menuFirst(withShot(withShot(withShot(withShot(make, 1, ["extItems"]), 2, ["soldOut"]), 4, ["privacy"]), 5, ["perks"]), 0, "navSettings");
-  const moreS = menuFirst(menuFirst(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"]), 3, "navSettings"), 0, "navRegistries");
-  const proS = menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["navPlan", "planFree", "cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings");
+  const moreS = menuFirst(menuFirst(withShot(withShot(withShot(withPanel, 3, ["language"]), 0, ["import"]), 2, ["flow"]), 3, "navSettings"), 0, "importPath");
+  const proS = insertShot(insertShot(menuFirst(withShot(withShot(withShot(withShot(withShot(pro, 0, ["navPlan", "planFree", "cancelPro"]), 3, ["navSettings", "afterEvent", "emails", "runNow"]), 4, ["navPromotions", "newPromotion", "yourPromotions", "navDiscounts", "discountsList"]), 5, ["navAnalytics", "analytics", "navRegistries", "exportCsv"]), 6, ["navInStore", "inStore", "posSettings", "posSettingsChannels", "posSettingsBack", "posProducts", "posProductRow", "posPublishing", "posPublishDialog", "posProductSave", "posMenu", "posEdit", "posAddTile", "posTile", "posPhoneSearch", "barProducts", "barRow", "barChip", "barField", "barSave", "scanCam", "scanType", "scanFound", "scanDone"]), 2, "navSettings"), 1, 0, "giftPath"), 1, 2, "orderPath");
   // One run in the order a store owner does things: Pro-only steps sit after Start Pro, and the Languages step follows the look-and-language step.
   const [mkOcc, mkExt, mkSold, mkLook, mkPriv, mkPerks] = makeS.steps;
   const [moImport, moPanels, moFlow, moLang] = moreS.steps;

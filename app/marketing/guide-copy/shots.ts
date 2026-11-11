@@ -380,6 +380,48 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
       "ja": "無料プランのプランページ。Proで追加される内容と、赤い枠と番号2で示された「Proにアップグレード」ボタン"
     }
   },
+  "giftPath": {
+    "src": "/guides/p14-gift-card-path.png",
+    "alt": {
+      "en": "Shopify admin menus: Products boxed and numbered 1, an arrow to the Products submenu with Gift cards boxed and numbered 2, and an arrow down to the Gift cards page with the Add gift card product button boxed and numbered 3",
+      "fr": "Menus de l'admin Shopify : Produits encadré et numéroté 1, une flèche vers le sous-menu Produits avec Cartes cadeaux encadré et numéroté 2, et une flèche vers la page Cartes cadeaux avec le bouton Ajouter un produit carte cadeau encadré et numéroté 3",
+      "es": "Menús del admin de Shopify: Productos enmarcado y numerado 1, una flecha al submenú de Productos con Tarjetas de regalo enmarcado y numerado 2, y una flecha a la página Tarjetas de regalo con el botón Añadir producto de tarjeta de regalo enmarcado y numerado 3",
+      "de": "Menüs im Shopify-Admin: Produkte umrandet und mit 1 nummeriert, ein Pfeil zum Untermenü Produkte mit Geschenkgutscheine umrandet und mit 2 nummeriert, und ein Pfeil zur Seite Geschenkgutscheine mit dem Button Geschenkgutschein-Produkt hinzufügen umrandet und mit 3 nummeriert",
+      "pt-BR": "Menus do admin da Shopify: Produtos destacado e numerado 1, uma seta para o submenu Produtos com Cartões-presente destacado e numerado 2, e uma seta para a página Cartões-presente com o botão Adicionar produto de cartão-presente destacado e numerado 3",
+      "hi": "Shopify एडमिन के मेनू: प्रोडक्ट्स लाल बॉक्स में नंबर 1, तीर प्रोडक्ट्स सबमेनू की ओर जहाँ गिफ्ट कार्ड्स नंबर 2 के साथ है, और तीर गिफ्ट कार्ड्स पेज की ओर जहाँ गिफ्ट कार्ड प्रोडक्ट जोड़ें बटन नंबर 3 के साथ है",
+      "zh-CN": "Shopify 后台菜单：「商品」以红框标示并编号 1，箭头指向商品子菜单，其中「礼品卡」编号 2，再用箭头指向礼品卡页面，其中「添加礼品卡商品」按钮编号 3",
+      "zh-TW": "Shopify 後台選單：「商品」以紅框標示並編號 1，箭頭指向商品子選單，其中「禮品卡」編號 2，再以箭頭指向禮品卡頁面，其中「新增禮品卡商品」按鈕編號 3",
+      "ja": "Shopify管理画面のメニュー：「商品」が赤い枠と番号1、矢印の先の商品サブメニューで「ギフトカード」が番号2、さらに矢印の先のギフトカードページで「ギフトカード商品を追加」ボタンが番号3で示されている"
+    }
+  },
+  "orderPath": {
+    "src": "/guides/p14-order-processing-path.png",
+    "alt": {
+      "en": "Shopify admin: Settings boxed and numbered 1, an arrow to the Settings menu with General boxed and numbered 2, and an arrow to Order processing with Automatically fulfill only the gift cards of the order boxed and numbered 3, then the Save button boxed and numbered 4",
+      "fr": "Admin Shopify : Paramètres encadré et numéroté 1, une flèche vers le menu Paramètres avec Général encadré et numéroté 2, puis une flèche vers Traitement des commandes avec l'option de ne traiter automatiquement que les cartes cadeaux encadrée et numérotée 3, puis le bouton Enregistrer encadré et numéroté 4",
+      "es": "Admin de Shopify: Configuración enmarcado y numerado 1, una flecha al menú de Configuración con General enmarcado y numerado 2, y una flecha a Procesamiento de pedidos con la opción de cumplir automáticamente solo las tarjetas de regalo enmarcada y numerada 3, y el botón Guardar enmarcado y numerado 4",
+      "de": "Shopify-Admin: Einstellungen umrandet und mit 1 nummeriert, ein Pfeil zum Einstellungsmenü mit Allgemein umrandet und mit 2 nummeriert, und ein Pfeil zu Bestellabwicklung mit der Option, nur die Geschenkgutscheine automatisch auszuführen, umrandet und mit 3 nummeriert, dann der Button Speichern umrandet und mit 4 nummeriert",
+      "pt-BR": "Admin da Shopify: Configurações destacado e numerado 1, uma seta para o menu Configurações com Geral destacado e numerado 2, e uma seta para Processamento de pedidos com a opção de atender automaticamente apenas os cartões-presente destacada e numerada 3, depois o botão Salvar destacado e numerado 4",
+      "hi": "Shopify एडमिन: सेटिंग्स लाल बॉक्स में नंबर 1, तीर सेटिंग्स मेनू की ओर जहाँ जनरल नंबर 2 के साथ है, और तीर ऑर्डर प्रोसेसिंग की ओर जहाँ केवल गिफ्ट कार्ड अपने आप फुलफिल करने का विकल्प नंबर 3 के साथ है, फिर सेव बटन नंबर 4 के साथ",
+      "zh-CN": "Shopify 后台：「设置」以红框标示并编号 1，箭头指向设置菜单，其中「常规」编号 2，再指向「订单处理」，其中「仅自动履行订单中的礼品卡」选项编号 3，然后是「保存」按钮，编号 4",
+      "zh-TW": "Shopify 後台：「設定」以紅框標示並編號 1，箭頭指向設定選單，其中「一般」編號 2，再指向「訂單處理」，其中「僅自動出貨訂單中的禮品卡」選項編號 3，接著是「儲存」按鈕，編號 4",
+      "ja": "Shopify管理画面：「設定」が赤い枠と番号1、矢印の先の設定メニューで「一般」が番号2、さらに「注文処理」で「注文のギフトカードのみを自動的に処理」が番号3、続いて「保存」ボタンが番号4で示されている"
+    }
+  },
+  "importPath": {
+    "src": "/guides/p14-import-path.png",
+    "alt": {
+      "en": "Shopify admin left menu with Giftpin Gift Registry boxed and numbered 1, an arrow to Giftpin's menu with Registries boxed and numbered 2, and an arrow down to the Registries page with the Import registries button boxed and numbered 3",
+      "fr": "Menu de gauche de l'admin Shopify avec Giftpin Gift Registry encadré et numéroté 1, une flèche vers le menu de Giftpin avec Registres encadré et numéroté 2, et une flèche vers la page Registres avec le bouton Importer des registres encadré et numéroté 3",
+      "es": "Menú izquierdo del admin de Shopify con Giftpin Gift Registry enmarcado y numerado 1, una flecha al menú de Giftpin con Registros enmarcado y numerado 2, y una flecha a la página Registros con el botón Importar registros enmarcado y numerado 3",
+      "de": "Linkes Menü im Shopify-Admin mit Giftpin Gift Registry umrandet und mit 1 nummeriert, ein Pfeil zum Giftpin-Menü mit Listen umrandet und mit 2 nummeriert, und ein Pfeil zur Seite Listen mit dem Button Listen importieren umrandet und mit 3 nummeriert",
+      "pt-BR": "Menu à esquerda do admin da Shopify com Giftpin Gift Registry destacado e numerado 1, uma seta para o menu do Giftpin com Listas destacado e numerado 2, e uma seta para a página Listas com o botão Importar listas destacado e numerado 3",
+      "hi": "Shopify एडमिन का बायाँ मेनू, Giftpin Gift Registry लाल बॉक्स में नंबर 1, तीर Giftpin के मेनू की ओर जहाँ रजिस्ट्रियाँ नंबर 2 के साथ है, और तीर रजिस्ट्रियाँ पेज की ओर जहाँ रजिस्ट्रियाँ इम्पोर्ट करें बटन नंबर 3 के साथ है",
+      "zh-CN": "Shopify 后台左侧菜单，Giftpin Gift Registry 以红框标示并编号 1，箭头指向 Giftpin 菜单，其中「礼物清单」编号 2，再指向礼物清单页面，其中「导入礼物清单」按钮编号 3",
+      "zh-TW": "Shopify 後台左側選單，Giftpin Gift Registry 以紅框標示並編號 1，箭頭指向 Giftpin 選單，其中「禮物清單」編號 2，再指向禮物清單頁面，其中「匯入禮物清單」按鈕編號 3",
+      "ja": "Shopify管理画面の左メニューでGiftpin Gift Registryが赤い枠と番号1、矢印の先のGiftpinメニューで「リスト」が番号2、さらに矢印の先のリストページで「リストをインポート」ボタンが番号3で示されている"
+    }
+  },
   "cancelPro": {
     "src": "/guides/p1-cancel-pro.png",
     "alt": {
