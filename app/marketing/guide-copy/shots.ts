@@ -143,17 +143,17 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     }
   },
   "overviewTheme": {
-    "src": "/guides/m3-overview-theme.png",
+    "src": "/guides/p13-overview-theme.png",
     "alt": {
-      "en": "The Add Giftpin to your theme card on the Overview page, with the Add button to product pages, Add registry links and Add heart to product pages buttons boxed in red",
-      "fr": "La carte Ajouter Giftpin à votre thème sur la page Aperçu, avec les boutons pour les pages produit, les liens de liste et le cœur encadrés en rouge",
-      "es": "La tarjeta Añadir Giftpin a tu tema en la página de Resumen, con los botones de producto, enlaces de lista y corazón enmarcados en rojo",
-      "de": "Die Karte „Giftpin zu Ihrem Theme hinzufügen“ auf der Übersicht, die Buttons für Produktseiten, Listen-Links und Herz sind rot umrandet",
-      "pt-BR": "O cartão Adicionar o Giftpin ao seu tema na página Visão geral, com os botões de página de produto, links de lista e coração destacados em vermelho",
-      "hi": "ओवरव्यू पेज पर Giftpin को अपनी थीम में जोड़ें कार्ड, प्रोडक्ट पेज बटन, रजिस्ट्री लिंक और हार्ट बटन लाल बॉक्स में",
-      "zh-CN": "“概览”页面上的“将 Giftpin 添加到主题”卡片，商品页按钮、清单链接和爱心按钮用红框标出",
-      "zh-TW": "「總覽」頁面上的「將 Giftpin 加入佈景主題」卡片，商品頁按鈕、清單連結和愛心按鈕以紅框標示",
-      "ja": "概要ページの「テーマにGiftpinを追加」カード。商品ページ用ボタン、リストのリンク、ハートのボタンが赤い枠で示されている"
+      "en": "The Add Giftpin to your theme card on Overview with its four buttons boxed in red and numbered in order: Add button to product pages 1, Add registry links 2, Add heart to product pages 3, Add saved items to the cart page 4",
+      "fr": "La carte Ajouter Giftpin à votre thème sur l'Aperçu, avec ses quatre boutons encadrés en rouge et numérotés dans l'ordre : Ajouter le bouton aux pages produit 1, Ajouter les liens de registre 2, Ajouter le cœur aux pages produit 3, Ajouter les articles enregistrés à la page panier 4",
+      "es": "La tarjeta Añade Giftpin a tu tema en el Resumen, con sus cuatro botones enmarcados en rojo y numerados en orden: Añadir botón a páginas de producto 1, Añadir enlaces de registro 2, Añadir corazón a páginas de producto 3, Añadir artículos guardados a la página del carrito 4",
+      "de": "Die Karte Giftpin zu Ihrem Theme hinzufügen auf der Übersicht, mit vier rot umrandeten und der Reihe nach nummerierten Buttons: Button zu Produktseiten hinzufügen 1, Listen-Links hinzufügen 2, Herz zu Produktseiten hinzufügen 3, Gemerkte Artikel zur Warenkorbseite hinzufügen 4",
+      "pt-BR": "O cartão Adicione o Giftpin ao seu tema na Visão geral, com seus quatro botões destacados em vermelho e numerados em ordem: Adicionar botão às páginas de produto 1, Adicionar links de lista 2, Adicionar coração às páginas de produto 3, Adicionar itens salvos à página do carrinho 4",
+      "hi": "ओवरव्यू पर 'अपनी थीम में Giftpin जोड़ें' कार्ड, चारों बटन लाल बॉक्स में और क्रम से नंबर: प्रोडक्ट पेज पर बटन जोड़ें 1, रजिस्ट्री लिंक जोड़ें 2, प्रोडक्ट पेज पर दिल जोड़ें 3, कार्ट पेज पर सहेजे आइटम जोड़ें 4",
+      "zh-CN": "“概览”上的“将 Giftpin 添加到主题”卡片，四个按钮依次以红框标示并编号：将按钮添加到商品页 1、添加清单链接 2、将爱心添加到商品页 3、将已收藏商品添加到购物车页 4",
+      "zh-TW": "「總覽」上的「將 Giftpin 加入佈景主題」卡片，四個按鈕依序以紅框標示並編號：將按鈕加入商品頁 1、加入清單連結 2、將愛心加入商品頁 3、將已收藏商品加入購物車頁 4",
+      "ja": "概要の「テーマにGiftpinを追加」カード。4つのボタンが赤い枠で順に番号付けされている：商品ページにボタンを追加 1、リストのリンクを追加 2、商品ページにハートを追加 3、保存済みアイテムをカートページに追加 4"
     }
   },
   "settingsSaveTop": {
