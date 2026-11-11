@@ -404,18 +404,19 @@ const CSS = `
 .guide-cols{display:block}
 .toc{display:none}
 .step,.sec{scroll-margin-top:90px}
-@media (min-width:1000px){
-  .guide-cols{display:grid; grid-template-columns:270px minmax(0,1fr); align-items:start; max-width:1500px; margin:0 auto}
-  .toc{display:block; position:sticky; top:84px; max-height:calc(100vh - 104px); overflow:auto; margin:28px 0 0 20px; padding:14px 12px; border:1px solid var(--line); border-radius:14px; background:var(--surface); font-size:14px; line-height:1.35}
-  .toc b{display:block; margin:0 0 8px 6px}
+@media (min-width:1200px){
+  .guide-cols{display:grid; grid-template-columns:360px minmax(0,1fr); align-items:start}
+  .toc{display:block; position:sticky; top:76px; max-height:calc(100vh - 92px); overflow:auto; margin:14px 0 0 14px; padding:20px 14px 18px; border:1px solid var(--line); border-radius:16px; background:var(--surface); box-shadow:0 1px 2px rgba(24,22,56,.05),0 8px 24px rgba(24,22,56,.06); font-size:18px; line-height:1.35; scrollbar-width:thin}
+  .toc b{display:block; margin:0 0 12px 10px; font-size:13px; letter-spacing:.08em; text-transform:uppercase; opacity:.6}
   .toc ul,.toc ol{list-style:none; margin:0; padding:0}
-  .toc ol{margin:2px 0 8px 6px}
-  .toc a{display:flex; gap:8px; padding:5px 8px; border-radius:8px; text-decoration:none; color:inherit}
+  .toc .toc-sec+.toc-sec{margin-top:10px}
+  .toc ol{margin:2px 0 4px 12px; padding-left:8px; border-left:2px solid var(--line)}
+  .toc a{display:flex; gap:10px; padding:7px 10px; border-radius:10px; text-decoration:none; color:inherit; transition:background .15s}
   .toc .toc-sec>a{font-weight:700}
-  .toc ol a{font-weight:400; opacity:.85}
-  .toc a span{flex:none; min-width:1.4em; color:var(--accent); font-weight:700}
+  .toc ol a{font-weight:400; font-size:16.5px; opacity:.88}
+  .toc a span{flex:none; min-width:1.7em; color:var(--accent); font-weight:700}
   .toc a:hover{background:rgba(109,58,232,.08)}
-  .toc a.on{background:rgba(109,58,232,.14); opacity:1; font-weight:600}
+  .toc a.on{background:rgba(109,58,232,.12); box-shadow:inset 3px 0 0 var(--accent); opacity:1; font-weight:600}
 }
 .dm-toc{border-top:1px solid var(--line); padding-top:10px}
 .dm-toc a{border:0; padding:4px 2px; text-decoration:underline}
