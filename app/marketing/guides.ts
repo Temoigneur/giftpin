@@ -199,19 +199,21 @@ const arrowInto = (src: string) => {
   return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
 };
 // Shots that only show what someone else will see: a caption says so, so nobody waits for the box to open.
-const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard"> = {
+const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard" | "seeProduct" | "seeManageOwn"> = {
+  "/guides/m3-product-page.png": "seeProduct",
+  "/guides/m6-manage-save-settings.png": "seeManageOwn",
   "/guides/m9-cash-fund.png": "seeManage",
   "/guides/m10-gift-card-page.png": "seeGiftCard",
 };
-const guideShots = (list: Shot[], locale: Locale) =>
+const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
   list
     .map((i, n) => {
-      const cap = PREVIEW_SHOTS[i.src];
+      const cap = merchant || i.src.includes("m9-") ? PREVIEW_SHOTS[i.src] : undefined;
       return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`;
     })
     .join("");
 
-function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null): string {
+function guideSteps(list: Step[], english: Step[], locale: Locale, first: number | null, merchant: boolean): string {
   return `<div class="steps">${list
     .map((st, i) => {
       const base = english[i]?.img;
@@ -219,7 +221,7 @@ function guideSteps(list: Step[], english: Step[], locale: Locale, first: number
       const shown = locale === "en" ? imgs : imgs.map((im, n) => ({ src: im.src, alt: st.alts?.[n] ?? im.alt }));
       return `<div class="card rise step"${st.id ? ` id="${esc(st.id)}"` : ""}>
   <span class="step-n${first === null ? " step-dot" : ""}">${first === null ? "•" : first + i}</span>
-  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown, locale)}</div>
+  <div><h3>${esc(st.title)}</h3><ol>${st.items.map((it) => `<li>${fillLabels(it, locale)}</li>`).join("")}</ol>${guideShots(shown, locale, merchant)}</div>
 </div>`;
     })
     .join("")}</div>`;
@@ -302,7 +304,7 @@ ${hero(`${icon(page.icon)} ${esc(doc.eyebrow)} <span class="aud aud-${merchant ?
 ${docsMenu(kind, locale, doc.sections)}
 ${notes.length ? `<div class="wrap"><p class="fine-note">${notes.map(esc).join(" ")}</p></div>` : ""}
 ${doc.sections
-  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale, merchant ? (nums.starts[i] ?? null) : 1), sec.tint, `s${i + 1}`))
+  .map((sec, i) => section(sec.title, sec.lede ?? "", guideSteps(sec.steps, engDoc.sections[i].steps, locale, merchant ? (nums.starts[i] ?? null) : 1, merchant), sec.tint, `s${i + 1}`))
   .join("\n")}
 ${nextLink}
 ${doc.faq.length ? section(doc.faqTitle, "", faqList(doc.faq), !doc.sections[doc.sections.length - 1].tint) : ""}
