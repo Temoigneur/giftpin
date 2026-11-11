@@ -12,7 +12,7 @@ import { eventHeroArt, eventHeroImage } from "../../shared/event-art";
 import { REGISTRIES_STORAGE_KEY, LEGACY_REGISTRIES_STORAGE_KEY } from "../../shared/storage-keys";
 import { COUNTRIES, normalizeCountry, retailerSearchLinks, retailersByShelf, shelfForIdea, type Shelf } from "../../shared/retailers";
 import { affiliateEnabled } from "../../lib/affiliate";
-import { PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
+import { DISTRICT_COUNTRIES, POSTAL_LABEL_KEYS, PROVINCES, SHIPPING_COUNTRIES } from "../../shared/shipping-address";
 import { renderPerks, renderLanguagePicker } from "./create-page";
 import { isSoldOutStoreItem } from "../../lib/stock";
 import { qrSvg } from "./qr";
@@ -448,7 +448,12 @@ function renderShipping(data: ManagePageData, setup = false): string {
     </div>`,
       )
       .join("")}
-    ${input("zip", T(country === "US" ? "manage.ship.zip" : "manage.ship.postal"), "postal-code")}
+    <div class="js-ship-district"${DISTRICT_COUNTRIES.includes(country) ? "" : " hidden"}>
+    <label for="${id}-district">${T("manage.ship.district")}</label>
+    <input id="${id}-district" type="text" name="district" autocomplete="address-level3" maxlength="120" value="${escapeAttr(a.district ?? "")}"${DISTRICT_COUNTRIES.includes(country) ? "" : " disabled"}>
+    </div>
+    <label for="${id}-zip" class="js-ship-zip-label" data-default="${escapeAttr(T("manage.ship.postal"))}" data-labels="${escapeAttr(JSON.stringify(Object.fromEntries(Object.entries(POSTAL_LABEL_KEYS).map(([c, k]) => [c, T(k)]))))}" data-district="${DISTRICT_COUNTRIES.join(",")}">${T(POSTAL_LABEL_KEYS[country] ?? "manage.ship.postal")}</label>
+    <input id="${id}-zip" type="text" name="zip" autocomplete="postal-code" maxlength="120" value="${escapeAttr(a.zip ?? "")}">
     ${input("phone", T("manage.ship.phone"), "tel", true, "tel")}
   </fieldset>
   <div class="row" style="margin-top:18px">
@@ -1113,6 +1118,9 @@ function manageScript(): string {
         var on=r.getAttribute('data-country')===countrySel.value;
         r.hidden=!on;r.querySelector('select').disabled=!on;
       });
+      var zl=ship.querySelector('.js-ship-zip-label'),dist=ship.querySelector('.js-ship-district');
+      if(zl){var labels=JSON.parse(zl.getAttribute('data-labels')||'{}');zl.textContent=labels[countrySel.value]||zl.getAttribute('data-default');}
+      if(dist&&zl){var on2=zl.getAttribute('data-district').split(',').indexOf(countrySel.value)>-1;dist.hidden=!on2;dist.querySelector('input').disabled=!on2;}
     });
   });
   // A link to #ship or #partner (a save, an email) opens the panel they're in.
