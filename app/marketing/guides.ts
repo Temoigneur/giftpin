@@ -198,6 +198,8 @@ const ENTRY_PANEL_LOCALE: Record<string, [number, number]> = {
   "/guides/es/p18-theme-block-path.png": [1500, 187],
   "/guides/es/p19-cart-block-path.png": [1581, 220],
   "/guides/es/p20-menu-item-path.png": [1551, 155],
+  "/guides/es/p15-product-panel-path.png": [1541, 469],
+  "/guides/es/p16-customer-panel-path.png": [1545, 155],
 };
 const arrowInto = (src: string, locale: Locale) => {
   const e = ENTRY_PANEL_LOCALE[localizedShot(src, locale)] ?? ENTRY_PANEL[src];

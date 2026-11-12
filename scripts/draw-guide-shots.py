@@ -20,6 +20,14 @@ os.makedirs(out_dir, exist_ok=True)
 FONT = next((p for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if os.path.exists(p)), None)
 
 
+# Names and emails that must not be published are covered with grey boxes (as in the English images).
+# "redactions": {"<plate>": [[x, y, w, h], ...]} in plate pixels.
+def load_plate(name):
+    im = Image.open(f"{root}/docs/screenshots/raw/{lang}/{name}.png").convert("RGB")
+    for x, y, w, h in full.get("redactions", {}).get(name, []):
+        ImageDraw.Draw(im).rectangle([x, y, x + w, y + h], fill=(200, 200, 200))
+    return im
+
 def badge(d, f, n, cx, cy):
     if not n:
         return
@@ -54,7 +62,7 @@ for name, spec in full.get("composites", {}).items():
     d = ImageDraw.Draw(im)
     f = ImageFont.truetype(FONT, 20) if FONT else ImageFont.load_default()
     for pn in spec["panels"]:
-        plate = Image.open(f"{root}/docs/screenshots/raw/{lang}/{pn['plate']}.png").convert("RGB")
+        plate = load_plate(pn["plate"])
         x, y, w, h = pn["crop"]
         s = pn["w"] / w
         pw, ph = pn["w"], round(h * s)
@@ -73,7 +81,7 @@ for name, spec in full.get("composites", {}).items():
     print("wrote", f"public/guides/{lang}/{name}", im.size)
 
 for name, spec in manifest.items():
-    plate = Image.open(f"{root}/docs/screenshots/raw/{lang}/{spec['plate']}.png").convert("RGB")
+    plate = load_plate(spec["plate"])
     x, y, w, h = spec["crop"]
     en_w = Image.open(f"{root}/public/guides/{name}").width
     s = en_w / w
