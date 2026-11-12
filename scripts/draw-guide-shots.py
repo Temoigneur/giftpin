@@ -21,6 +21,8 @@ FONT = next((p for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
 
 
 def badge(d, f, n, cx, cy):
+    if not n:
+        return
     d.ellipse([cx - 14, cy - 14, cx + 14, cy + 14], fill=RED, outline=(255, 255, 255), width=2)
     d.text((cx, cy), str(n), fill="white", font=f, anchor="mm")
 
@@ -70,8 +72,6 @@ for name, spec in manifest.items():
     for n, bx, by, bw, bh in spec["boxes"]:
         r = [(bx - x) * s, (by - y) * s, (bx - x + bw) * s, (by - y + bh) * s]
         d.rounded_rectangle(r, radius=10, outline=RED, width=4)
-        cx, cy = r[0] + 4, r[1] + 2
-        d.ellipse([cx - 14, cy - 14, cx + 14, cy + 14], fill=RED, outline=(255, 255, 255), width=2)
-        d.text((cx, cy), str(n), fill="white", font=f, anchor="mm")
+        badge(d, f, n, r[0] + 4, r[1] + 2)
     im.save(f"{out_dir}/{name}", optimize=True)
     print("wrote", f"public/guides/{lang}/{name}", im.size)
