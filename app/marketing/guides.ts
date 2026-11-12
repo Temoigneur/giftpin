@@ -4,6 +4,7 @@ import { LANDING_COPY, fill } from "./site-copy";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { GUIDE_COPY, type Shot, type Step } from "./guide-copy";
 import { DOCS_UI } from "./guide-copy/docs-ui";
+import { MENU_SIZE } from "./guide-copy/menu-sizes";
 import { localizedShot } from "./guide-copy/localized-shots";
 import { LOCALES, t, type Locale, type MessageKey } from "../shared/i18n";
 import { SITE_URL } from "./config";
@@ -202,10 +203,11 @@ const ENTRY_PANEL_LOCALE: Record<string, [number, number]> = {
   "/guides/es/p16-customer-panel-path.png": [1545, 155],
 };
 const arrowInto = (src: string, locale: Locale) => {
-  const e = ENTRY_PANEL_LOCALE[localizedShot(src, locale)] ?? ENTRY_PANEL[src];
+  const file = localizedShot(src, locale);
+  const e = ENTRY_PANEL_LOCALE[file] ?? ENTRY_PANEL[src];
   if (!e) return SHOT_ARROW;
   const f = (e[1] / e[0]).toFixed(4);
-  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
+  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${MENU_SIZE[file] ?? e[0]}px) * ${f} - 12px)"`);
 };
 // Shots that only show what someone else will see: a caption says so, so nobody waits for the box to open.
 const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard" | "seeProduct" | "seeManageOwn"> = {
@@ -214,19 +216,13 @@ const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard" | "seeProduct" |
   "/guides/m9-cash-fund.png": "seeManage",
   "/guides/m10-gift-card-page.png": "seeGiftCard",
 };
-// Crops of Shopify's left menu. They come in many widths, so they are all shown at one size.
-const MENU_SHOTS = new Set(
-  [
-    "p3-nav-settings", "p4-nav-promotions", "p5-nav-discounts", "p6-nav-analytics", "p7-nav-registries", "p8-nav-instore",
-    "p9-pos-menu", "p9-products", "p9-settings", "p9-settings-channels", "p11-click-giftpin", "p12-nav-plan",
-    "p21-nav-apps", "p21-nav-giftpin", "p21-nav-overview-click",
-  ].map((n) => `/guides/${n}.png`),
-);
+// Shopify's left menu is shown at the same size in every image, so the images that contain it get an explicit width.
+const menuWidth = (file: string) => (MENU_SIZE[file] ? `style="width:min(100%,${MENU_SIZE[file]}px)" ` : "");
 const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
   list
     .map((i, n) => {
       const cap = merchant || i.src.includes("m9-") ? PREVIEW_SHOTS[i.src] : undefined;
-      return (n ? arrowInto(i.src, locale) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot${MENU_SHOTS.has(i.src) ? " shot-menu" : ""}" src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
+      return (n ? arrowInto(i.src, locale) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" ${menuWidth(localizedShot(i.src, locale))}src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
     })
     .join("");
 
@@ -449,6 +445,5 @@ const CSS = `
 .sec[id]{scroll-margin-top:80px}
 .shot-cap{margin:10px 0 0; padding:8px 12px; border-left:4px solid #e61e1e; background:rgba(230,30,30,.07); border-radius:6px; font-weight:600; font-size:.95em}
 .shot-arrow{display:block; width:24px; height:40px; margin:6px auto 0}
-.shot-menu{width:min(100%,260px)}
 .shot{display:block; max-width:100%; height:auto; margin:14px auto 0; border:1px solid var(--line); border-radius:12px}
 `;
