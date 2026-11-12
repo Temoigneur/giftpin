@@ -7,7 +7,15 @@ import type { Locale } from "../../shared/i18n";
  * screenshot at a time. A test checks this list against the files on disk.
  */
 export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
-  es: ["p21-nav-apps.png", "p21-nav-giftpin.png", "p21-nav-overview-click.png"],
+  es: [
+    "p13-overview-theme.png",
+    "p18-theme-block-path.png",
+    "p19-cart-block-path.png",
+    "p20-menu-item-path.png",
+    "p21-nav-apps.png",
+    "p21-nav-giftpin.png",
+    "p21-nav-overview-click.png",
+  ],
 };
 
 /** The screenshot to show: the locale's own file when there is one, else the English file. */
