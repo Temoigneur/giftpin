@@ -9,6 +9,10 @@ import type { Locale } from "../../shared/i18n";
 export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
   es: [
     "c6-import.png",
+    "g1-find-empty.png",
+    "g2-reminder.png",
+    "g3-taken-care-of.png",
+    "g6-share-row.png",
     "m11-settings-gift-card.png",
     "m12-qr-code.png",
     "m13-my-registries-link.png",
