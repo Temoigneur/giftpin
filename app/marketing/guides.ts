@@ -4,6 +4,7 @@ import { LANDING_COPY, fill } from "./site-copy";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { GUIDE_COPY, type Shot, type Step } from "./guide-copy";
 import { DOCS_UI } from "./guide-copy/docs-ui";
+import { localizedShot } from "./guide-copy/localized-shots";
 import { LOCALES, t, type Locale, type MessageKey } from "../shared/i18n";
 import { SITE_URL } from "./config";
 
@@ -209,7 +210,7 @@ const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
   list
     .map((i, n) => {
       const cap = merchant || i.src.includes("m9-") ? PREVIEW_SHOTS[i.src] : undefined;
-      return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(i.src)}" alt="${esc(i.alt)}" loading="lazy">`;
+      return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
     })
     .join("");
 
