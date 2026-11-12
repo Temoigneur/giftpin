@@ -385,7 +385,7 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     "alt": {
       "en": "Shopify admin menus: Products boxed and numbered 1, an arrow to the Products submenu with Gift cards boxed and numbered 2, and an arrow down to the Gift cards page with the Add gift card product button boxed and numbered 3",
       "fr": "Menus de l'admin Shopify : Produits encadré et numéroté 1, une flèche vers le sous-menu Produits avec Cartes cadeaux encadré et numéroté 2, et une flèche vers la page Cartes cadeaux avec le bouton Ajouter un produit carte cadeau encadré et numéroté 3",
-      "es": "Menús del admin de Shopify: Productos enmarcado y numerado 1, una flecha al submenú de Productos con Tarjetas de regalo enmarcado y numerado 2, y una flecha a la página Tarjetas de regalo con el botón Añadir producto de tarjeta de regalo enmarcado y numerado 3",
+      "es": "Menús del admin de Shopify: Productos enmarcado y numerado 1, una flecha al submenú de Productos con Tarjetas de regalo enmarcado y numerado 2, y una flecha a la página Tarjetas de regalo con el botón Agregar producto de tarjeta de regalo enmarcado y numerado 3",
       "de": "Menüs im Shopify-Admin: Produkte umrandet und mit 1 nummeriert, ein Pfeil zum Untermenü Produkte mit Geschenkgutscheine umrandet und mit 2 nummeriert, und ein Pfeil zur Seite Geschenkgutscheine mit dem Button Geschenkgutschein-Produkt hinzufügen umrandet und mit 3 nummeriert",
       "pt-BR": "Menus do admin da Shopify: Produtos destacado e numerado 1, uma seta para o submenu Produtos com Cartões-presente destacado e numerado 2, e uma seta para a página Cartões-presente com o botão Adicionar produto de cartão-presente destacado e numerado 3",
       "hi": "Shopify एडमिन के मेनू: प्रोडक्ट्स लाल बॉक्स में नंबर 1, तीर प्रोडक्ट्स सबमेनू की ओर जहाँ गिफ्ट कार्ड्स नंबर 2 के साथ है, और तीर गिफ्ट कार्ड्स पेज की ओर जहाँ गिफ्ट कार्ड प्रोडक्ट जोड़ें बटन नंबर 3 के साथ है",
@@ -959,7 +959,7 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     "alt": {
       "en": "Shopify admin: “Edit Point of Sale” boxed in red and numbered 14",
       "fr": "Admin Shopify: « Edit Point of Sale » encadré en rouge et numéroté 14",
-      "es": "Admin de Shopify: «Edit Point of Sale» enmarcado en rojo y numerado 14",
+      "es": "Admin de Shopify: la fila «App de POS» en Point of Sale → Configuración, enmarcada en rojo y numerada 14",
       "de": "Shopify-Admin: „Edit Point of Sale“ rot umrandet und mit 14 nummeriert",
       "pt-BR": "Admin da Shopify: “Edit Point of Sale” destacado em vermelho e numerado 14",
       "hi": "Shopify एडमिन: “Edit Point of Sale” लाल बॉक्स में और नंबर 14 के साथ",
@@ -973,7 +973,7 @@ export const SHOTS: Record<string, { src: string; alt: Record<Locale, string> }>
     "alt": {
       "en": "Shopify admin: “Add tile” boxed in red and numbered 15; “Apps” boxed in red and numbered 16; “Giftpin Gift Registry” boxed in red and numbered 17",
       "fr": "Admin Shopify: « Add tile » encadré en rouge et numéroté 15; « Apps » encadré en rouge et numéroté 16; « Giftpin Gift Registry » encadré en rouge et numéroté 17",
-      "es": "Admin de Shopify: «Add tile» enmarcado en rojo y numerado 15; «Apps» enmarcado en rojo y numerado 16; «Giftpin Gift Registry» enmarcado en rojo y numerado 17",
+      "es": "Admin de Shopify: «Agregar recuadro» enmarcado en rojo y numerado 15; «Apps» enmarcado en rojo y numerado 16; «Giftpin Gift Registry» enmarcado en rojo y numerado 17",
       "de": "Shopify-Admin: „Add tile“ rot umrandet und mit 15 nummeriert; „Apps“ rot umrandet und mit 16 nummeriert; „Giftpin Gift Registry“ rot umrandet und mit 17 nummeriert",
       "pt-BR": "Admin da Shopify: “Add tile” destacado em vermelho e numerado 15; “Apps” destacado em vermelho e numerado 16; “Giftpin Gift Registry” destacado em vermelho e numerado 17",
       "hi": "Shopify एडमिन: “Add tile” लाल बॉक्स में और नंबर 15 के साथ; “Apps” लाल बॉक्स में और नंबर 16 के साथ; “Giftpin Gift Registry” लाल बॉक्स में और नंबर 17 के साथ",

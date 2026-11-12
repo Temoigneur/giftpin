@@ -169,7 +169,7 @@ export const es: RawGuideCopy = {
           {
             title: "Regalos en grupo y fondos",
             items: [
-              "En tu administración de Shopify, ve a <b>Products → Gift cards</b> y haz clic en <b>Add a gift card product</b>.",
+              "En tu administración de Shopify, ve a <b>Productos → Tarjetas de regalo</b> y haz clic en <b>Agregar producto de tarjeta de regalo</b>.",
               "Ponle un título y algunos importes, como 25, 50 y 100. Para venderla en giftpin.app, al menos uno debe ser de 500 o menos, en la moneda de tu tienda. Deja marcado <b>Online Store</b> en <b>Sales channels and apps</b> y haz clic en <b>Save gift card product</b>.",
               "En <b>Settings → General → Order processing</b>, elige <b>Automatically fulfill only the gift cards</b>. Shopify solo envía una tarjeta de regalo cuando se completa su pedido.",
               "En Giftpin, abre <b>{{admin.nav.settings}}</b>. Si ya estaba abierta, recarga la página para que aparezca la nueva tarjeta de regalo. En <b>{{admin.set.funds}}</b>, elige tu tarjeta de regalo en <b>{{admin.set.fundsPick}}</b> y pulsa el <b>{{admin.set.save}}</b> de esa sección.",
@@ -215,7 +215,7 @@ export const es: RawGuideCopy = {
             title: "Modo en tienda y Shopify POS",
             items: [
               "Abre <b>{{admin.nav.inStore}}</b> en el menú de Giftpin para encontrar la lista de un cliente o crearla por él en el mostrador.",
-              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale</b>, luego el editor de POS, elige <b>Add tile → Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale. Después haz clic en <b>Save</b> arriba a la derecha de la pantalla, o el icono no aparecerá.",
+              "Para cobrar regalos de lista en Shopify POS, añade el icono de Giftpin: en tu administrador de Shopify, abre <b>Point of Sale → Configuración → App de POS</b> para abrir el editor de POS, elige <b>Agregar recuadro → Apps</b> y selecciona Giftpin. Los productos deben estar publicados en el canal Point of Sale. Después haz clic en <b>Guardar</b> arriba a la derecha de la pantalla, o el icono no aparecerá.",
               "Quienes crean listas también pueden escanear con el teléfono el código de barras de un producto en tu tienda para añadirlo: abren <b>{{manage.scan.open}}</b> en su página de gestión. Hacen falta códigos de barras (o SKU) en tus productos, y funciona mejor con un solo código bien encuadrado.",
             ],
           },
