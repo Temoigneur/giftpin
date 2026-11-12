@@ -193,8 +193,14 @@ const ENTRY_PANEL: Record<string, [number, number]> = {
   "/guides/p19-cart-block-path.png": [1581, 200],
   "/guides/p20-menu-item-path.png": [1551, 134],
 };
-const arrowInto = (src: string) => {
-  const e = ENTRY_PANEL[src];
+// Same, for the Spanish files drawn from Chrome plates (their first panel sits elsewhere).
+const ENTRY_PANEL_LOCALE: Record<string, [number, number]> = {
+  "/guides/es/p18-theme-block-path.png": [1500, 187],
+  "/guides/es/p19-cart-block-path.png": [1581, 220],
+  "/guides/es/p20-menu-item-path.png": [1551, 155],
+};
+const arrowInto = (src: string, locale: Locale) => {
+  const e = ENTRY_PANEL_LOCALE[localizedShot(src, locale)] ?? ENTRY_PANEL[src];
   if (!e) return SHOT_ARROW;
   const f = (e[1] / e[0]).toFixed(4);
   return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
@@ -210,7 +216,7 @@ const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
   list
     .map((i, n) => {
       const cap = merchant || i.src.includes("m9-") ? PREVIEW_SHOTS[i.src] : undefined;
-      return (n ? arrowInto(i.src) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
+      return (n ? arrowInto(i.src, locale) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
     })
     .join("");
 
