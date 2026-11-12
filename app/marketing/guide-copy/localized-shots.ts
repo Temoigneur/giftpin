@@ -10,7 +10,9 @@ export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
   es: [
     "c3-privacy.png",
     "c6-import.png",
+    "g1-chip-in.png",
     "g1-find-empty.png",
+    "g1-find-results.png",
     "g2-reminder.png",
     "g3-taken-care-of.png",
     "g6-share-row.png",
