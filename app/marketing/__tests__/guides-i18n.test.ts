@@ -90,14 +90,14 @@ describe("guide pages in each language", () => {
       // The label comes from the app's own dictionary for that language.
       expect(html).toContain("<b>" + { en: "Save", fr: "Enregistrer", es: "Guardar", de: "Speichern", "pt-BR": "Salvar", hi: "सेव करें", "zh-CN": "保存", "zh-TW": "儲存", ja: "保存" }[locale] + "</b>");
       // Screenshots are shared (or the locale's own file, when it has one), with the right-language alt text.
-      expect(html).toMatch(/\/guides\/(es\/|fr\/)?p13-overview-theme\.png/);
+      expect(html).toMatch(/\/guides\/(es\/|fr\/|hi\/)?p13-overview-theme\.png/);
     });
 
     it(`/registry-guide?lang=${locale} renders in ${locale}`, async () => {
       const { html } = await get(registryGuideLoader, "/registry-guide", { query: locale === "en" ? "" : `?lang=${locale}` });
       expect(html).toContain(`<html lang="${locale}">`);
       expect(html).not.toContain("{{");
-      expect(html).toMatch(/\/guides\/(es\/|fr\/)?r1-start\.png/);
+      expect(html).toMatch(/\/guides\/(es\/|fr\/|hi\/)?r1-start\.png/);
     });
 
     it(`/setup/customize, /setup/pro and /guest-guide?lang=${locale} render in ${locale} with every label filled in`, async () => {
