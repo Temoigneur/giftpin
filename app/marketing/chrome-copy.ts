@@ -344,7 +344,7 @@ export const FLAGS: Record<Locale, string> = {
   de: flag(`<rect width="24" height="5.34" fill="#000"/><rect y="5.33" width="24" height="5.34" fill="#dd0000"/><rect y="10.66" width="24" height="5.34" fill="#ffce00"/>`),
   "pt-BR": flag(`<rect width="24" height="16" fill="#009c3b"/><path d="M12 2.2L22 8 12 13.8 2 8z" fill="#ffdf00"/><circle cx="12" cy="8" r="3.3" fill="#002776"/>`),
   hi: flag(`<rect width="24" height="5.34" fill="#ff9933"/><rect y="5.33" width="24" height="5.34" fill="#fff"/><rect y="10.66" width="24" height="5.34" fill="#138808"/><circle cx="12" cy="8" r="2" fill="none" stroke="#000080" stroke-width=".5"/>`),
-  "zh-CN": flag(`<rect width="24" height="16" fill="#de2910"/><path d="M4 2l1 3h3l-2.4 1.8.9 3L4 8 1.5 9.8l.9-3L0 5h3z" fill="#ffde00" transform="translate(2 0)"/>`),
+  "zh-CN": flag(`<rect width="24" height="16" fill="#de2910"/><path d="M4.00 1.60L4.54 3.26L6.28 3.26L4.87 4.28L5.41 5.94L4.00 4.92L2.59 5.94L3.13 4.28L1.72 3.26L3.46 3.26zM7.31 2.01L7.70 1.57L7.40 1.07L7.93 1.30L8.31 0.86L8.26 1.44L8.80 1.67L8.23 1.80L8.18 2.38L7.88 1.88zM8.81 3.31L9.33 3.06L9.25 2.48L9.65 2.90L10.17 2.64L9.90 3.16L10.31 3.57L9.73 3.47L9.46 3.99L9.38 3.41zM8.83 5.38L9.41 5.36L9.57 4.80L9.77 5.35L10.35 5.33L9.89 5.68L10.09 6.23L9.61 5.91L9.15 6.26L9.31 5.70zM7.38 6.70L7.92 6.91L8.28 6.45L8.26 7.03L8.80 7.24L8.24 7.39L8.21 7.97L7.89 7.49L7.33 7.64L7.69 7.19z" fill="#ffde00"/>`),
   "zh-TW": flag(`<rect width="24" height="16" fill="#fe0000"/><rect width="12" height="8" fill="#000095"/><circle cx="6" cy="4" r="2.4" fill="#fff"/>`),
   ja: flag(`<rect width="24" height="16" fill="#fff"/><circle cx="12" cy="8" r="4.8" fill="#bc002d"/>`),
 };
