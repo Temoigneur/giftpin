@@ -13,8 +13,11 @@ from PIL import Image, ImageDraw, ImageFont
 RED = (230, 30, 30)
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 lang = sys.argv[1]
-full = json.load(open(f"{root}/docs/screenshots/manifest.json"))
+# A language-specific manifest (manifest.<lang>.json) replaces the shared one: boxes depend on each language's text.
+_mp = f"{root}/docs/screenshots/manifest.{lang}.json"
+full = json.load(open(_mp if os.path.exists(_mp) else f"{root}/docs/screenshots/manifest.json"))
 manifest = full["shots"]
+full.setdefault("composites", {}); full.setdefault("stitches", {})
 out_dir = f"{root}/public/guides/{lang}"
 os.makedirs(out_dir, exist_ok=True)
 FONT = next((p for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if os.path.exists(p)), None)

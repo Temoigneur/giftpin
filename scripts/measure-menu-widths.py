@@ -32,7 +32,7 @@ def panel_width(path):
     return w
 
 out = {}
-for sub, prefix in (("", "/guides/"), ("es/", "/guides/es/")):
+for sub, prefix in (("", "/guides/"), ("es/", "/guides/es/"), ("fr/", "/guides/fr/"), ("hi/", "/guides/hi/")):
     for n in NAMES:
         p = f"{root}/public/guides/{sub}{n}.png"
         if not os.path.exists(p):
