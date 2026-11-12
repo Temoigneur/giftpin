@@ -97,7 +97,7 @@ describe("guide pages in each language", () => {
       const { html } = await get(registryGuideLoader, "/registry-guide", { query: locale === "en" ? "" : `?lang=${locale}` });
       expect(html).toContain(`<html lang="${locale}">`);
       expect(html).not.toContain("{{");
-      expect(html).toContain("/guides/r1-start.png");
+      expect(html).toMatch(/\/guides\/(es\/)?r1-start\.png/);
     });
 
     it(`/setup/customize, /setup/pro and /guest-guide?lang=${locale} render in ${locale} with every label filled in`, async () => {

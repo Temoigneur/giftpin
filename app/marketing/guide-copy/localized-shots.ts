@@ -9,7 +9,14 @@ import type { Locale } from "../../shared/i18n";
 export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
   es: [
     "c6-import.png",
+    "g1-find-empty.png",
+    "g2-reminder.png",
+    "g3-taken-care-of.png",
+    "g6-share-row.png",
     "m11-settings-gift-card.png",
+    "m12-qr-code.png",
+    "m13-my-registries-link.png",
+    "m14-my-registries.png",
     "m5-occasions.png",
     "m6-appearance.png",
     "p11-open-apps.png",
@@ -54,6 +61,15 @@ export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
     "p9-settings-back.png",
     "p9-settings-channels.png",
     "p9-settings.png",
+    "r1-start.png",
+    "r10-guest-view.png",
+    "r2-partner-form.png",
+    "r2-prefs-bar.png",
+    "r3-share.png",
+    "r4-ship-setup.png",
+    "r7-item.png",
+    "r8-ship.png",
+    "r9-privacy.png",
   ],
 };
 
