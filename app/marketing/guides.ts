@@ -201,6 +201,8 @@ const ENTRY_PANEL_LOCALE: Record<string, [number, number]> = {
   "/guides/es/p20-menu-item-path.png": [1551, 155],
   "/guides/es/p15-product-panel-path.png": [1541, 469],
   "/guides/es/p16-customer-panel-path.png": [1545, 155],
+  "/guides/es/p16-order-panel-path.png": [1720, 164],
+  "/guides/es/p17-flow-path.png": [1700, 100],
 };
 const arrowInto = (src: string, locale: Locale) => {
   const file = localizedShot(src, locale);

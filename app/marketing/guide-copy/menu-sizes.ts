@@ -6,6 +6,8 @@ export const MENU_SIZE: Record<string, number> = {
   "/guides/es/p14-import-path.png": 657, // native 1416, menu 388
   "/guides/es/p14-order-processing-path.png": 684, // native 1099, menu 289
   "/guides/es/p16-customer-panel-path.png": 1104, // native 1545, menu 252
+  "/guides/es/p16-order-panel-path.png": 1002, // native 1720, menu 309
+  "/guides/es/p17-flow-path.png": 807, // native 1700, menu 379
   "/guides/es/p18-theme-block-path.png": 765, // native 1500, menu 353
   "/guides/es/p20-menu-item-path.png": 966, // native 1551, menu 289
   "/guides/es/p21-nav-apps.png": 181, // native 388, menu 386
