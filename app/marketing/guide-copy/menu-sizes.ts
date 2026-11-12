@@ -30,6 +30,8 @@ export const MENU_SIZE: Record<string, number> = {
   "/guides/fr/p14-gift-card-path.png": 827, // native 900, menu 196
   "/guides/fr/p14-import-path.png": 761, // native 1416, menu 335
   "/guides/fr/p14-order-processing-path.png": 794, // native 1099, menu 249
+  "/guides/fr/p16-customer-panel-path.png": 962, // native 1545, menu 289
+  "/guides/fr/p16-order-panel-path.png": 1002, // native 1720, menu 309
   "/guides/fr/p17-flow-path.png": 930, // native 1700, menu 329
   "/guides/fr/p18-theme-block-path.png": 879, // native 1500, menu 307
   "/guides/fr/p20-menu-item-path.png": 1108, // native 1551, menu 252
