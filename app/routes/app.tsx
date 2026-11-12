@@ -1,5 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { useEffect } from "react";
+import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
@@ -73,6 +74,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
   const t = useAdminT();
+  const { pathname } = useLocation();
+
+  // Which admin section the merchant opened, for Giftpin's own usage counts
+  // (app/routes/app.track.tsx). Fire and forget: a failed count changes nothing.
+  useEffect(() => {
+    const send = async () => {
+      try {
+        const bridge = (window as unknown as { shopify?: { idToken?: () => Promise<string> } }).shopify;
+        const token = bridge?.idToken ? await bridge.idToken() : "";
+        await fetch("/app/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ path: pathname }),
+          keepalive: true,
+        });
+      } catch {
+        // Not worth bothering the merchant about.
+      }
+    };
+    void send();
+  }, [pathname]);
 
   return (
     <AppProvider embedded apiKey={apiKey}>

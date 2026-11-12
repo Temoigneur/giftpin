@@ -91,6 +91,7 @@ describe("renderOps", () => {
           domain: "evil.myshopify.com", name: "<script>alert(1)</script>", plan: "free", devStore: false,
           installedAt: new Date("2026-10-01"), uninstalledAt: null, currency: "CAD",
           activeRegistries: 3, registriesCreated: 1, registryViews: 80, createPageViews: 5, cartAdds: 2, externalClicks: 1,
+          shares: { share: 2, copy: 3, qr: 1 }, adminViews: { settings: 2, registries: 9 },
           giftsFromStore: 1, registrySales: 50, newCustomers: 1, storeOrders: 10, storeSales: 1000,
           registrySharePercent: 5, lastRegistryAt: null, upgradeCandidate: true,
         },
@@ -101,5 +102,8 @@ describe("renderOps", () => {
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("Nudge to Pro");
     expect(html).toContain("noindex");
+    // Link shares total, then share · copy · QR; admin sections busiest first.
+    expect(html).toContain("6<br><small>2 · 3 · 1</small>");
+    expect(html).toContain("registries 9 · settings 2");
   });
 });

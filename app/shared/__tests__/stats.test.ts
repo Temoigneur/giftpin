@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLikelyBot, statDay } from "../stats";
+import { MANAGE_CLICK_METRICS, STAT_METRICS, adminSectionOf, isLikelyBot, statDay } from "../stats";
 
 describe("isLikelyBot", () => {
   it("lets real phone and desktop browsers through", () => {
@@ -31,5 +31,25 @@ describe("statDay", () => {
   it("is UTC midnight of the given moment", () => {
     expect(statDay(new Date("2026-11-02T23:59:59.999Z")).toISOString()).toBe("2026-11-02T00:00:00.000Z");
     expect(statDay(new Date("2026-11-03T00:00:00.000Z")).toISOString()).toBe("2026-11-03T00:00:00.000Z");
+  });
+});
+
+describe("adminSectionOf", () => {
+  it("maps admin paths to a fixed list of sections", () => {
+    expect(adminSectionOf("/app")).toBe("overview");
+    expect(adminSectionOf("/app/")).toBe("overview");
+    expect(adminSectionOf("/app/registries")).toBe("registries");
+    expect(adminSectionOf("/app/registries/abc123")).toBe("registries");
+    expect(adminSectionOf("/app/in-store")).toBe("in-store");
+    expect(adminSectionOf("/app/whatever-new")).toBe("other");
+    expect(adminSectionOf("/somewhere")).toBe("other");
+  });
+});
+
+describe("MANAGE_CLICK_METRICS", () => {
+  it("only knows share, copy and qr, and none of them is an inherited property", () => {
+    expect(Object.keys(MANAGE_CLICK_METRICS).sort()).toEqual(["copy", "qr", "share"]);
+    expect(MANAGE_CLICK_METRICS.share).toBe(STAT_METRICS.registryShare);
+    expect(Object.hasOwn(MANAGE_CLICK_METRICS, "toString")).toBe(false);
   });
 });

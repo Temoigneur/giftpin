@@ -12,7 +12,7 @@ import { cached, registryCacheKey } from "../lib/cache.server";
 import { withLocale, overrideLocale } from "../lib/i18n.server";
 import { currentLocale, isLocale, registryLanguageFrom, t, type MessageKey } from "../shared/i18n";
 import { bumpStat, countView } from "../models/stats.server";
-import { STAT_METRICS } from "../shared/stats";
+import { MANAGE_CLICK_METRICS, STAT_METRICS } from "../shared/stats";
 import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models/shop.server";
 import { isDatelessOccasion } from "../shared/settings";
 import {
@@ -981,6 +981,8 @@ async function handlePost(
       return deleteAction(request, ctx, brand);
     case "remind":
       return remindAction(request, ctx, shop);
+    case "track":
+      return trackClickAction(request, ctx);
     default:
       return new Response("Not found", { status: 404 });
   }
@@ -1978,6 +1980,31 @@ async function remindAction(request: Request, ctx: ProxyContext, shop: ShopRecor
 
   await addGuestReminder(registry.id, email);
   return json({ ok: true });
+}
+
+/**
+ * POST /track?t=... from the manage page: a registrant shared, copied or
+ * QR-coded their guest link. Those happen in the browser with no request of
+ * their own, so the page reports them here. Only a name from
+ * MANAGE_CLICK_METRICS is counted, only for the registry the token opens,
+ * and nothing about the person is kept (DailyStat holds counts only).
+ * Always answers 204 so a failed count never shows the registrant an error.
+ */
+async function trackClickAction(request: Request, ctx: ProxyContext): Promise<Response> {
+  const done = new Response(null, { status: 204 });
+  let name = "";
+  try {
+    const body = (await request.json()) as { click?: unknown };
+    name = typeof body.click === "string" ? body.click : "";
+  } catch {
+    return done;
+  }
+  const metric = Object.hasOwn(MANAGE_CLICK_METRICS, name) ? MANAGE_CLICK_METRICS[name] : undefined;
+  if (!metric) return done;
+  const registry = await requireManage(ctx);
+  if (!registry) return done;
+  void bumpStat(registry.shopId, metric, { registryId: registry.id });
+  return done;
 }
 
 async function deleteAction(request: Request, ctx: ProxyContext, brand: Brand): Promise<Response> {

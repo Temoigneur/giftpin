@@ -13,7 +13,8 @@ export function pricingHtml(): string {
   const loc = siteLocale();
   const k = SITE_COPY[loc].pricing;
   const vars = siteVars(loc);
-  const c = cta();
+  const c = cta("pricing_free");
+  const cPro = cta("pricing_pro");
   const li = (t: string) => `<li>${icon("check")}<span>${t}</span></li>`;
   const free = freeFeatures(loc);
   const pro = proFeatures(loc);
@@ -53,7 +54,7 @@ export function pricingHtml(): string {
       <p class="for">${k.proFor}</p>
       <p class="price">${PRICE} <small>${k.perMonth}</small></p>
       <p class="sub">${k.billedUsd}</p>
-      <a class="btn dark block" href="${esc(c.href)}">${c.isInstall ? fill(k.startTrial, vars) : c.label}</a>
+      <a class="btn dark block" href="${esc(cPro.href)}">${c.isInstall ? fill(k.startTrial, vars) : c.label}</a>
       <ul>${li(`<strong>${k.everythingFree}</strong>`)}${pro.map((f) => li(`${esc(f.title)}<small>${esc(f.detail)}</small>`)).join("")}</ul>
     </article>
   </div>

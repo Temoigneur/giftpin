@@ -112,7 +112,7 @@ const HTML = `<!doctype html>
     <a class="home" href="/"><img src="/brand/giftpin-icon-64.png" alt="" width="32" height="32">Giftpin</a>
     <p class="eyebrow">Giftpin · Gift Registry for Shopify</p>
     <h1>Privacy Policy</h1>
-    <p class="meta">Effective 23 September 2026</p>
+    <p class="meta">Effective 12 November 2026</p>
     <p class="lede">Giftpin is a gift-registry app for Shopify stores. This
       page explains what information the app and its browser extension
       handle, why, and what happens to it — for merchants who install
@@ -249,6 +249,25 @@ const HTML = `<!doctype html>
       third parties except service providers needed to run the app
       (hosting, database, and email delivery), each bound to use it only to
       provide that service.</p>
+    <p><strong>Our own website.</strong> giftpin.app (the pages about
+      Giftpin, its guides and the gift card directory) uses Google Analytics
+      to count visits and which buttons are pressed, such as "Install" or a
+      language choice. It sets Google Analytics cookies and Google sees
+      standard request details, under
+      <a href="https://policies.google.com/privacy">Google's privacy policy</a>.
+      For visitors in the EU, EEA, UK and Switzerland those cookies are off,
+      and they are off for anyone whose browser sends a Global Privacy
+      Control signal. Google Signals and ad personalisation are off for
+      everyone, and no names, emails or typed text are sent. Google
+      Analytics is <strong>not</strong> used on merchants' stores, on
+      registry pages, or inside the Giftpin app in Shopify admin.</p>
+    <p><strong>Usage counts inside the app.</strong> To learn which parts
+      of Giftpin are used, Giftpin counts, per store and per day, how often
+      each section of the app is opened in Shopify admin and how often a
+      registrant shares, copies or shows a QR code for their registry link.
+      Like the visit counts in section 02, these are totals only: no staff
+      member, guest, IP address, cookie or device identifier is stored with
+      them.</p>
   </section>
 
   <section id="retention">
