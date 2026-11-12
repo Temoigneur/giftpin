@@ -20,7 +20,17 @@ os.makedirs(out_dir, exist_ok=True)
 FONT = next((p for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if os.path.exists(p)), None)
 
 
+# Names and emails that must not be published are covered with grey boxes (as in the English images).
+# "redactions": {"<plate>": [[x, y, w, h], ...]} in plate pixels.
+def load_plate(name):
+    im = Image.open(f"{root}/docs/screenshots/raw/{lang}/{name}.png").convert("RGB")
+    for x, y, w, h in full.get("redactions", {}).get(name, []):
+        ImageDraw.Draw(im).rectangle([x, y, x + w, y + h], fill=(200, 200, 200))
+    return im
+
 def badge(d, f, n, cx, cy):
+    if not n:
+        return
     d.ellipse([cx - 14, cy - 14, cx + 14, cy + 14], fill=RED, outline=(255, 255, 255), width=2)
     d.text((cx, cy), str(n), fill="white", font=f, anchor="mm")
 
@@ -35,13 +45,24 @@ def arrow(d, pts):
     r = (x1 - L * math.cos(a + 0.5), y1 - L * math.sin(a + 0.5))
     d.polygon([tip, l, r], fill=RED)
 
+# Plates taller than one screen are stitched from two real captures of the same page:
+# "stitches": {"<name>": [[plate, y0, y1], ...]} stacks the rows y0..y1 of each plate, in order.
+for name, parts in full.get("stitches", {}).items():
+    rows = [Image.open(f"{root}/docs/screenshots/raw/{lang}/{pl}.png").convert("RGB").crop((0, a, 1568, b)) for pl, a, b in parts]
+    st = Image.new("RGB", (1568, sum(r.height for r in rows)))
+    yy = 0
+    for r in rows:
+        st.paste(r, (0, yy))
+        yy += r.height
+    st.save(f"{root}/docs/screenshots/raw/{lang}/{name}.png")
+
 for name, spec in full.get("composites", {}).items():
     W, H = spec["size"]
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
     f = ImageFont.truetype(FONT, 20) if FONT else ImageFont.load_default()
     for pn in spec["panels"]:
-        plate = Image.open(f"{root}/docs/screenshots/raw/{lang}/{pn['plate']}.png").convert("RGB")
+        plate = load_plate(pn["plate"])
         x, y, w, h = pn["crop"]
         s = pn["w"] / w
         pw, ph = pn["w"], round(h * s)
@@ -60,7 +81,7 @@ for name, spec in full.get("composites", {}).items():
     print("wrote", f"public/guides/{lang}/{name}", im.size)
 
 for name, spec in manifest.items():
-    plate = Image.open(f"{root}/docs/screenshots/raw/{lang}/{spec['plate']}.png").convert("RGB")
+    plate = load_plate(spec["plate"])
     x, y, w, h = spec["crop"]
     en_w = Image.open(f"{root}/public/guides/{name}").width
     s = en_w / w
@@ -70,8 +91,6 @@ for name, spec in manifest.items():
     for n, bx, by, bw, bh in spec["boxes"]:
         r = [(bx - x) * s, (by - y) * s, (bx - x + bw) * s, (by - y + bh) * s]
         d.rounded_rectangle(r, radius=10, outline=RED, width=4)
-        cx, cy = r[0] + 4, r[1] + 2
-        d.ellipse([cx - 14, cy - 14, cx + 14, cy + 14], fill=RED, outline=(255, 255, 255), width=2)
-        d.text((cx, cy), str(n), fill="white", font=f, anchor="mm")
+        badge(d, f, n, r[0] + 4, r[1] + 2)
     im.save(f"{out_dir}/{name}", optimize=True)
     print("wrote", f"public/guides/{lang}/{name}", im.size)

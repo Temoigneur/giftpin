@@ -4,6 +4,7 @@ import { LANDING_COPY, fill } from "./site-copy";
 import { GIFT_CARD_FEE_HOLD_DAYS, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS } from "../shared/plans";
 import { GUIDE_COPY, type Shot, type Step } from "./guide-copy";
 import { DOCS_UI } from "./guide-copy/docs-ui";
+import { MENU_SIZE } from "./guide-copy/menu-sizes";
 import { localizedShot } from "./guide-copy/localized-shots";
 import { LOCALES, t, type Locale, type MessageKey } from "../shared/i18n";
 import { SITE_URL } from "./config";
@@ -198,12 +199,17 @@ const ENTRY_PANEL_LOCALE: Record<string, [number, number]> = {
   "/guides/es/p18-theme-block-path.png": [1500, 187],
   "/guides/es/p19-cart-block-path.png": [1581, 220],
   "/guides/es/p20-menu-item-path.png": [1551, 155],
+  "/guides/es/p15-product-panel-path.png": [1541, 469],
+  "/guides/es/p16-customer-panel-path.png": [1545, 155],
+  "/guides/es/p16-order-panel-path.png": [1720, 164],
+  "/guides/es/p17-flow-path.png": [1700, 100],
 };
 const arrowInto = (src: string, locale: Locale) => {
-  const e = ENTRY_PANEL_LOCALE[localizedShot(src, locale)] ?? ENTRY_PANEL[src];
+  const file = localizedShot(src, locale);
+  const e = ENTRY_PANEL_LOCALE[file] ?? ENTRY_PANEL[src];
   if (!e) return SHOT_ARROW;
   const f = (e[1] / e[0]).toFixed(4);
-  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${e[0]}px) * ${f} - 12px)"`);
+  return SHOT_ARROW.replace('class="shot-arrow"', `class="shot-arrow" style="margin-left:calc(min(100%, ${MENU_SIZE[file] ?? e[0]}px) * ${f} - 12px)"`);
 };
 // Shots that only show what someone else will see: a caption says so, so nobody waits for the box to open.
 const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard" | "seeProduct" | "seeManageOwn"> = {
@@ -212,11 +218,13 @@ const PREVIEW_SHOTS: Record<string, "seeManage" | "seeGiftCard" | "seeProduct" |
   "/guides/m9-cash-fund.png": "seeManage",
   "/guides/m10-gift-card-page.png": "seeGiftCard",
 };
+// Shopify's left menu is shown at the same size in every image, so the images that contain it get an explicit width.
+const menuWidth = (file: string) => (MENU_SIZE[file] ? `style="width:min(100%,${MENU_SIZE[file]}px)" ` : "");
 const guideShots = (list: Shot[], locale: Locale, merchant: boolean) =>
   list
     .map((i, n) => {
       const cap = merchant || i.src.includes("m9-") ? PREVIEW_SHOTS[i.src] : undefined;
-      return (n ? arrowInto(i.src, locale) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
+      return (n ? arrowInto(i.src, locale) : "") + (cap ? `<p class="shot-cap">${esc(DOCS_UI[locale][cap])}</p>` : "") + `<img class="shot" ${menuWidth(localizedShot(i.src, locale))}src="${esc(localizedShot(i.src, locale))}" alt="${esc(i.alt)}" loading="lazy">`;
     })
     .join("");
 
