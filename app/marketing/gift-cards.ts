@@ -34,7 +34,7 @@ function storeCard(store: DirectoryStore, buy: string): string {
   <h3>${esc(store.name)}</h3>
   ${store.blurb ? `<p>${esc(store.blurb)}</p>` : ""}
   <p class="gc-amounts">${esc(amounts)}</p>
-  <a class="btn dark" href="${esc(href)}" rel="noopener">${esc(buy)}</a>
+  <a class="btn dark" href="${esc(href)}" rel="noopener" data-store="${esc(store.domain)}">${esc(buy)}</a>
 </div>`;
 }
 

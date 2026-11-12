@@ -1,6 +1,6 @@
 import { EVENT_TYPES } from "../shared/settings";
 import { t, type MessageKey } from "../shared/i18n";
-import { APP_STORE_URL, SITE_URL, holidayPromoOn } from "./config";
+import { SITE_URL, appStoreHref, holidayPromoOn } from "./config";
 import { faqGroups, faqList } from "./faq-copy";
 import { cta, demoVideo, esc, finalCta, icon, localeMeta, siteLocale, sitePage } from "./layout";
 import { PRICE, PRO_NAME, foundingOffer, proFeatures, siteVars } from "./plans-copy";
@@ -15,8 +15,8 @@ export function homeHtml(now: Date = new Date()): string {
   const loc = siteLocale();
   const k = SITE_COPY[loc].home;
   const vars = siteVars(loc);
-  const f = (s: string) => fill(s, { ...vars, appStore: esc(APP_STORE_URL) });
-  const c = cta();
+  const f = (s: string) => fill(s, { ...vars, appStore: esc(appStoreHref("trust")) });
+  const c = cta("hero");
   const occasions = EVENT_TYPES.filter((o) => o.value !== "other");
   const groups = faqGroups(loc);
   const byId = (id: string) => groups.find((g) => g.id === id)!.items;

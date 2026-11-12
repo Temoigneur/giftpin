@@ -51,6 +51,15 @@ function date(d: Date | null): string {
   return d ? d.toISOString().slice(0, 10) : "–";
 }
 
+/** "registries 12 · settings 3", busiest first. */
+export function adminViewsCell(views: OpsShopRow["adminViews"]): string {
+  const parts = Object.entries(views)
+    .filter(([, n]) => (n ?? 0) > 0)
+    .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+    .map(([sec, n]) => `${esc(sec)} ${n}`);
+  return parts.length ? `<small>${parts.join(" · ")}</small>` : "–";
+}
+
 export function renderOps(shops: OpsShopRow[], days: number): string {
   const live = shops.filter((s) => !s.uninstalledAt && !s.devStore);
   const sum = (key: "registryViews" | "registriesCreated" | "giftsFromStore") => live.reduce((n, s) => n + s[key], 0);
@@ -69,6 +78,8 @@ export function renderOps(shops: OpsShopRow[], days: number): string {
 <td class="n">${s.createPageViews}</td>
 <td class="n">${s.cartAdds}</td>
 <td class="n">${s.externalClicks}</td>
+<td class="n">${s.shares.share + s.shares.copy + s.shares.qr}<br><small>${s.shares.share} · ${s.shares.copy} · ${s.shares.qr}</small></td>
+<td>${adminViewsCell(s.adminViews)}</td>
 <td class="n">${s.giftsFromStore}</td>
 <td class="n">${money(s.registrySales, s.currency)}</td>
 <td class="n">${s.newCustomers}</td>
@@ -97,7 +108,7 @@ h1{font-size:20px;margin:0 0 4px}
 .card{background:#fff;border:1px solid #e3e5ef;border-radius:10px;padding:10px 14px;min-width:130px}
 .card b{display:block;font-size:22px}
 .wrap{overflow-x:auto;background:#fff;border:1px solid #e3e5ef;border-radius:10px}
-table{border-collapse:collapse;width:100%;min-width:1100px}
+table{border-collapse:collapse;width:100%;min-width:1300px}
 th,td{padding:8px 10px;border-bottom:1px solid #eef0f6;text-align:left;vertical-align:top}
 th{font-size:12px;color:#555;background:#fafbfe;position:sticky;top:0}
 td.n,th.n{text-align:right;white-space:nowrap}
@@ -125,16 +136,19 @@ p.note{color:#555;max-width:900px}
 <th class="n">Active registries</th><th class="n">Registries created</th>
 <th class="n">Registry views</th><th class="n">Create-page views</th>
 <th class="n">Add to cart</th><th class="n">Clicks to other stores</th>
+<th class="n">Link shares<br><small>share · copy · QR</small></th><th>Admin opens</th>
 <th class="n">Gifts bought in store</th><th class="n">Registry sales</th><th class="n">New customers</th>
 <th class="n">All store orders</th><th class="n">Registry share</th><th>Last registry</th>
 </tr></thead>
 <tbody>
-${rows || '<tr><td colspan="15">No stores yet.</td></tr>'}
+${rows || '<tr><td colspan="17">No stores yet.</td></tr>'}
 </tbody>
 </table></div>
 <p class="note">Last ${days} days, UTC. Views and clicks skip bots and link previews. "All store orders" is every order
 the store took (gross, before refunds), counted from the day this page shipped, so "Registry share" is only
-meaningful for periods after that. Highlighted rows are Free stores with a registry sale, 50+ registry views or 3+ active
+meaningful for periods after that. "Link shares" and "Admin opens" count from the day they shipped (Nov 2026):
+presses of Share, Copy link and QR code on registrants' manage pages, and how often the store's staff opened each
+section of Giftpin in Shopify admin. Highlighted rows are Free stores with a registry sale, 50+ registry views or 3+ active
 registries. Totals in the cards leave out dev stores and uninstalled stores.</p>
 </body>
 </html>`;

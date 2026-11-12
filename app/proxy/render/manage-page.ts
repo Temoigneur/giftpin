@@ -1206,6 +1206,9 @@ function manageScript(): string {
     return saveDirtyItems(skipId).then(function(ok){if(ok)location.reload();});
   }
   function post(path,body){return fetch(cfg.actionUrl+path+'?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(res){if(res&&res.ok)syncVersion();return res;})}
+  // Counts a share, copy or QR press for the store's numbers. Fire and forget:
+  // it never waits, never retries and never shows an error.
+  function track(click){try{fetch(cfg.actionUrl+'/track?t='+encodeURIComponent(cfg.token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({click:click}),keepalive:true}).catch(function(){});}catch(_){}}
 
   // Pick up changes made elsewhere (the browser extension, the storefront
   // button, a guest buying something) without a manual refresh: poll the
@@ -1577,6 +1580,7 @@ function manageScript(): string {
     // the person closing it falls back to our list too.
     var share=e.target.closest('.js-share');
     if(share){
+      track('share');
       var menu=document.querySelector('.js-share-menu');
       var showMenu=function(){if(menu)menu.hidden=false;};
       var phone=window.matchMedia&&matchMedia('(hover:none) and (pointer:coarse)').matches;
@@ -1590,12 +1594,12 @@ function manageScript(): string {
     if(qrToggle){
       var qr=document.getElementById('share-qr');qr.hidden=!qr.hidden;
       qrToggle.setAttribute('aria-expanded',String(!qr.hidden));
-      if(!qr.hidden)pngQr(qr);
+      if(!qr.hidden){pngQr(qr);track('qr');}
       return;
     }
     var shareCopy=e.target.closest('.js-share-copy');
     if(shareCopy){
-      copyLink(shareCopy.dataset.url,function(){shareCopy.textContent=X.linkCopied;});
+      copyLink(shareCopy.dataset.url,function(){shareCopy.textContent=X.linkCopied;track('copy');});
     }
   });
   // Swap the SVG download for a 1024px PNG, which more apps accept. If the

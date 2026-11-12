@@ -20,9 +20,38 @@ export const STAT_METRICS = {
   giftCardPageView: "gift_card_page_view",
   /** Every order the store took, registry or not. `value` holds the total. */
   storeOrder: "store_order",
+  /** A registrant pressed Share (phone share sheet, or the email/text list) on their manage page. */
+  registryShare: "registry_share",
+  /** A registrant copied their guest link on the manage page. */
+  registryLinkCopy: "registry_link_copy",
+  /** A registrant opened the QR code for their guest link. */
+  registryQrOpen: "registry_qr_open",
 } as const;
 
-export type StatMetric = (typeof STAT_METRICS)[keyof typeof STAT_METRICS];
+/**
+ * Sections of the embedded admin, counted when a merchant opens one, so
+ * Giftpin's /ops view shows which parts of the app stores actually use.
+ * Anything else under /app counts as "other".
+ */
+export const ADMIN_SECTIONS = ["overview", "registries", "promotions", "analytics", "in-store", "settings", "billing", "import", "other"] as const;
+export type AdminSection = (typeof ADMIN_SECTIONS)[number];
+
+/** The section an admin path belongs to: "/app" is overview, "/app/registries/abc" is registries. */
+export function adminSectionOf(pathname: string): AdminSection {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts[0] !== "app") return "other";
+  const head = parts[1] ?? "overview";
+  return (ADMIN_SECTIONS as readonly string[]).includes(head) ? (head as AdminSection) : "other";
+}
+
+export type StatMetric = (typeof STAT_METRICS)[keyof typeof STAT_METRICS] | `admin_view_${AdminSection}`;
+
+/** Registrant clicks the manage page reports by name (POST /track). Anything else is ignored. */
+export const MANAGE_CLICK_METRICS: Record<string, StatMetric> = {
+  share: STAT_METRICS.registryShare,
+  copy: STAT_METRICS.registryLinkCopy,
+  qr: STAT_METRICS.registryQrOpen,
+};
 
 /**
  * Crawlers, link unfurlers (WhatsApp, iMessage, Slack previews of a shared

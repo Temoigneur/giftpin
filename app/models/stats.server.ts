@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import db from "../db.server";
-import { STAT_METRICS, isLikelyBot, statDay, type StatMetric } from "../shared/stats";
+import { ADMIN_SECTIONS, STAT_METRICS, isLikelyBot, statDay, type AdminSection, type StatMetric } from "../shared/stats";
 
 /**
  * Daily counters: registry page views, guest actions and the store's own
@@ -86,6 +86,10 @@ export interface OpsShopRow {
   createPageViews: number;
   cartAdds: number;
   externalClicks: number;
+  /** Registrant presses on the manage page: Share, Copy link, QR code. */
+  shares: { share: number; copy: number; qr: number };
+  /** Times a merchant opened each admin section. Sections never opened are left out. */
+  adminViews: Partial<Record<AdminSection, number>>;
   giftsFromStore: number;
   registrySales: number;
   newCustomers: number;
@@ -150,6 +154,14 @@ export async function opsOverview(days = 30): Promise<{ since: Date; shops: OpsS
       createPageViews: stat(shop.id, STAT_METRICS.createPageView)?.count ?? 0,
       cartAdds: stat(shop.id, STAT_METRICS.cartAdd)?.count ?? 0,
       externalClicks: stat(shop.id, STAT_METRICS.externalClick)?.count ?? 0,
+      shares: {
+        share: stat(shop.id, STAT_METRICS.registryShare)?.count ?? 0,
+        copy: stat(shop.id, STAT_METRICS.registryLinkCopy)?.count ?? 0,
+        qr: stat(shop.id, STAT_METRICS.registryQrOpen)?.count ?? 0,
+      },
+      adminViews: Object.fromEntries(
+        ADMIN_SECTIONS.map((sec) => [sec, stat(shop.id, `admin_view_${sec}`)?.count ?? 0] as const).filter(([, n]) => n > 0),
+      ),
       giftsFromStore: mine.reduce((sum, p) => sum + p.qty, 0),
       registrySales,
       newCustomers: newCustomerOrders.size,

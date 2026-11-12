@@ -1,4 +1,4 @@
-import { APP_STORE_URL, DEMO_VIDEO_URL, SITE_URL, holidayPromoOn } from "./config";
+import { APP_STORE_URL, DEMO_VIDEO_URL, GA_MEASUREMENT_ID, SITE_URL, appStoreHref, holidayPromoOn } from "./config";
 import { CHROME, FLAGS, LANG_COOKIE, LOCALES, LOCALE_NAMES, siteLocaleFromRequest } from "./chrome-copy";
 import type { Locale } from "../shared/i18n";
 
@@ -42,11 +42,14 @@ export function renderFor(request: Request, render: () => string): Response {
   }
 }
 
-/** Primary call to action: the App Store listing once it exists. */
-export function cta(): { href: string; label: string; note: string; isInstall: boolean } {
+/**
+ * Primary call to action: the App Store listing once it exists. `placement`
+ * names the button in the link's utm_content and the install_click event.
+ */
+export function cta(placement = "body"): { href: string; label: string; note: string; isInstall: boolean } {
   const c = CHROME[activeLocale];
   return APP_STORE_URL
-    ? { href: APP_STORE_URL, label: c.install, note: c.installNote, isInstall: true }
+    ? { href: appStoreHref(placement), label: c.install, note: c.installNote, isInstall: true }
     : { href: EARLY_ACCESS, label: c.early, note: c.earlyNote, isInstall: false };
 }
 
@@ -105,7 +108,8 @@ export function sitePage(opts: {
   alternates?: { lang: string; href: string }[];
 }): string {
   const url = `${SITE_URL}${opts.path}${opts.query ?? ""}`;
-  const c = cta();
+  const c = cta("header");
+  const m = cta("menu");
   const loc = activeLocale;
   const ch = CHROME[loc];
   // Keep the visitor's language as they move around the site.
@@ -158,6 +162,7 @@ ${(opts.alternates ?? []).map((a) => `<link rel="alternate" hreflang="${esc(a.la
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <style>${CSS}${opts.css ?? ""}</style>
 <script>document.documentElement.classList.add("js")</script>
+${analyticsHead()}
 ${ld}
 </head>
 <body>
@@ -170,7 +175,7 @@ ${ld}
     <a class="btn sm dark hide-sm" href="${esc(c.href)}">${c.label}</a>
     <details class="menu">
       <summary aria-label="${esc(ch.menu)}">${icon("menu")}</summary>
-      <nav aria-label="${esc(ch.navLabel)}">${links}${picker()}<a class="btn dark" href="${esc(c.href)}">${c.label}</a></nav>
+      <nav aria-label="${esc(ch.navLabel)}">${links}${picker()}<a class="btn dark" href="${esc(m.href)}">${m.label}</a></nav>
     </details>
   </div>
 </header>
@@ -208,6 +213,7 @@ ${opts.body}
   document.querySelectorAll(".menu nav a").forEach(function(a){a.addEventListener("click",function(){a.closest("details").open=false})});
 })();
 </script>
+${analyticsClicks()}
 </body>
 </html>
 `;
@@ -215,7 +221,7 @@ ${opts.body}
 
 /** Final gradient band shared by every page. */
 export function finalCta(heading = "Give your customers the registry they actually want."): string {
-  const c = cta();
+  const c = cta("final");
   return `<section class="final">
   <div class="wrap rise">
     <h2>${heading}</h2>
@@ -226,6 +232,75 @@ export function finalCta(heading = "Give your customers the registry they actual
     </div>
   </div>
 </section>`;
+}
+
+/**
+ * EEA, UK and Swiss visitors: Google Analytics starts with analytics cookies
+ * off (Consent Mode "denied"), because the site has no consent banner. Google
+ * picks the region from the visitor's IP. Everyone else is counted normally,
+ * unless their browser sends Global Privacy Control. Ads and ad
+ * personalisation are off for everyone: the site runs no Google Ads tags.
+ */
+export const CONSENT_DENIED_REGIONS = [
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT",
+  "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO", "GB", "CH",
+];
+
+/** The GA4 tag, with consent defaults set before it loads. Empty when GA_MEASUREMENT_ID is. */
+export function analyticsHead(): string {
+  if (!GA_MEASUREMENT_ID) return "";
+  const id = esc(GA_MEASUREMENT_ID);
+  return `<script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+var gpOff=navigator.globalPrivacyControl===true;
+gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:gpOff?"denied":"granted"});
+gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"denied",region:${JSON.stringify(CONSENT_DENIED_REGIONS)}});
+gtag("js",new Date());
+gtag("config","${id}",{allow_google_signals:false,allow_ad_personalization_signals:false});
+</script>`;
+}
+
+/**
+ * Click events for GA4 (see docs/analytics.md for the list and what to
+ * register in GA). One delegated listener, so new buttons are covered without
+ * touching this. Sends no names, emails or typed text: only which button, where
+ * on the page, and the page's language. Placement comes from data-placement,
+ * else the part of the page the link sits in.
+ */
+export function analyticsClicks(): string {
+  if (!GA_MEASUREMENT_ID) return "";
+  return `<script>
+(function(){
+  if(typeof gtag!=="function")return;
+  var lang=document.documentElement.lang||"en";
+  function ev(name,p){p=p||{};p.page_lang=lang;gtag("event",name,p);}
+  function place(el){
+    var d=el.getAttribute("data-placement");if(d)return d;
+    var map=[[".site-top .menu","menu"],[".site-top","header"],[".final","final"],[".hero","hero"],[".foot","footer"],[".faq","faq"]];
+    for(var i=0;i<map.length;i++){if(el.closest(map[i][0]))return map[i][1];}
+    return "body";
+  }
+  function path(h){return h.split(/[?#]/)[0]||"/";}
+  document.addEventListener("click",function(e){
+    var t=e.target&&e.target.closest?e.target.closest("a,summary"):null;if(!t)return;
+    if(t.tagName==="SUMMARY"){
+      var d=t.parentElement;
+      if(d&&!d.open&&d.closest(".faq"))ev("faq_open",{placement:place(t),faq_question:t.textContent.trim().slice(0,100)});
+      else if(d&&!d.open&&d.classList.contains("lang-menu"))ev("lang_menu_open",{placement:place(d)});
+      return;
+    }
+    var h=t.getAttribute("href")||"";
+    if(h.indexOf("apps.shopify.com")>-1)ev("install_click",{placement:place(t)});
+    else if(t.hasAttribute("data-lang"))ev("lang_switch",{lang_from:lang,lang_to:t.getAttribute("data-lang"),placement:place(t)});
+    else if(t.hasAttribute("data-store"))ev("gift_card_store_click",{store_host:t.getAttribute("data-store")});
+    else if(h.indexOf("mailto:")===0)ev("contact_click",{placement:place(t)});
+    else if(/#demo$/.test(h))ev("demo_click",{placement:place(t)});
+    else if(/^\\/(setup|registry-guide|guest-guide)(\\/|$|[?#])/.test(h))ev("setup_link_click",{placement:place(t),link_path:path(h)});
+    else if(/^\\/pricing([?#]|$)/.test(h))ev("pricing_click",{placement:place(t)});
+  });
+})();
+</script>`;
 }
 
 /**
