@@ -37,6 +37,17 @@ def arrow(d, pts):
     r = (x1 - L * math.cos(a + 0.5), y1 - L * math.sin(a + 0.5))
     d.polygon([tip, l, r], fill=RED)
 
+# Plates taller than one screen are stitched from two real captures of the same page:
+# "stitches": {"<name>": [[plate, y0, y1], ...]} stacks the rows y0..y1 of each plate, in order.
+for name, parts in full.get("stitches", {}).items():
+    rows = [Image.open(f"{root}/docs/screenshots/raw/{lang}/{pl}.png").convert("RGB").crop((0, a, 1568, b)) for pl, a, b in parts]
+    st = Image.new("RGB", (1568, sum(r.height for r in rows)))
+    yy = 0
+    for r in rows:
+        st.paste(r, (0, yy))
+        yy += r.height
+    st.save(f"{root}/docs/screenshots/raw/{lang}/{name}.png")
+
 for name, spec in full.get("composites", {}).items():
     W, H = spec["size"]
     im = Image.new("RGB", (W, H), "white")
