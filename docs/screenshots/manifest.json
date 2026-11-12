@@ -1,0 +1,8 @@
+{
+  "_note": "One entry per finished guide image. plate = raw capture id (docs/screenshots/raw/<lang>/<plate>.png); crop = x,y,w,h in plate pixels; boxes = numbered red boxes in plate pixels. Language-independent except the plates: a new language needs only its own raw plates with the same ids.",
+  "shots": {
+    "p21-nav-apps.png": { "plate": "A1", "crop": [0, 505, 209, 391], "boxes": [[1, 15, 514, 46, 27]] },
+    "p21-nav-giftpin.png": { "plate": "A1", "crop": [0, 505, 209, 391], "boxes": [[1, 12, 548, 185, 30]] },
+    "p21-nav-overview-click.png": { "plate": "A3", "crop": [0, 505, 209, 270], "boxes": [[1, 11, 575, 188, 32]] }
+  }
+}
