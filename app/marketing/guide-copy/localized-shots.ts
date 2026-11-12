@@ -55,6 +55,7 @@ export const LOCALIZED_SHOTS: Partial<Record<Locale, readonly string[]>> = {
     "p9-add-tile.png",
     "p9-edit-pos.png",
     "p9-pos-menu.png",
+    "p9-pos-tile.png",
     "p9-product-row.png",
     "p9-product-save.png",
     "p9-products.png",
