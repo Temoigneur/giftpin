@@ -48,6 +48,29 @@ export const MENU_SIZE: Record<string, number> = {
   "/guides/fr/p9-products.png": 185, // native 384, menu 374
   "/guides/fr/p9-settings-channels.png": 185, // native 424, menu 413
   "/guides/fr/p9-settings.png": 185, // native 386, menu 376
+  "/guides/hi/p11-click-giftpin.png": 210, // native 384, menu 329
+  "/guides/hi/p11-open-apps.png": 744, // native 1380, menu 334
+  "/guides/hi/p12-nav-plan.png": 185, // native 390, menu 380
+  "/guides/hi/p14-gift-card-path.png": 827, // native 900, menu 196
+  "/guides/hi/p14-import-path.png": 761, // native 1416, menu 335
+  "/guides/hi/p16-customer-panel-path.png": 962, // native 1545, menu 289
+  "/guides/hi/p16-order-panel-path.png": 1002, // native 1720, menu 309
+  "/guides/hi/p17-flow-path.png": 930, // native 1700, menu 329
+  "/guides/hi/p18-theme-block-path.png": 879, // native 1500, menu 307
+  "/guides/hi/p20-menu-item-path.png": 1108, // native 1551, menu 252
+  "/guides/hi/p21-nav-apps.png": 185, // native 388, menu 378
+  "/guides/hi/p21-nav-giftpin.png": 185, // native 386, menu 376
+  "/guides/hi/p21-nav-overview-click.png": 185, // native 394, menu 384
+  "/guides/hi/p3-nav-settings.png": 190, // native 209, menu 198
+  "/guides/hi/p4-nav-promotions.png": 191, // native 212, menu 200
+  "/guides/hi/p5-nav-discounts.png": 185, // native 350, menu 341
+  "/guides/hi/p6-nav-analytics.png": 191, // native 344, menu 325
+  "/guides/hi/p7-nav-registries.png": 190, // native 382, menu 361
+  "/guides/hi/p8-nav-instore.png": 191, // native 378, menu 357
+  "/guides/hi/p9-pos-menu.png": 185, // native 376, menu 366
+  "/guides/hi/p9-products.png": 185, // native 384, menu 374
+  "/guides/hi/p9-settings-channels.png": 185, // native 424, menu 413
+  "/guides/hi/p9-settings.png": 185, // native 386, menu 376
   "/guides/p11-click-giftpin.png": 180, // native 384, menu 384
   "/guides/p11-open-apps.png": 800, // native 1734, menu 390
   "/guides/p12-nav-plan.png": 180, // native 390, menu 390
