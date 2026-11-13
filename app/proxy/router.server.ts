@@ -96,6 +96,7 @@ import {
   renderFindPage,
   renderAccountPage,
   renderAccountSignInPage,
+  renderManageSignInPage,
 } from "./render/create-page";
 import { blindIndex } from "../lib/crypto.server";
 import { escapeHtml, formatMoney } from "./render/layout";
@@ -539,15 +540,12 @@ async function managePage(
 
   if (!registry) {
     return page(
-      renderSimplePage(
-        brand,
-        token ? t("server.p.expired.t") : t("server.p.private.t"),
-        token
-          ? t("server.p.expired.m")
-          : t("server.p.private.m"),
-        { label: t("server.p.newLink"), href: ctx.pathPrefix },
-      ),
-      403,
+      renderManageSignInPage({
+        ...brand,
+        actionUrl: ctx.pathPrefix.replace(/\/+$/, ""),
+        expired: Boolean(token),
+      }),
+      token ? 403 : 200,
     );
   }
 

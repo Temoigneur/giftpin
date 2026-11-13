@@ -394,6 +394,23 @@ export function renderAccountSignInPage(data: PageBrand & { actionUrl: string; m
 }
 
 /**
+ * /manage opened without a usable link (the theme's "Manage my gift registry"
+ * button, or an old emailed link). Ask for the email right here instead of
+ * sending them to the create page, and follow this browser's saved My
+ * registries link if it has one.
+ */
+export function renderManageSignInPage(data: PageBrand & { actionUrl: string; expired: boolean }): string {
+  const heading = data.expired ? t("server.p.expired.t") : t("server.p.private.t");
+  return layout(
+    { title: heading, accentColor: data.accentColor, indexable: false, shopName: data.shopName, branding: data.branding },
+    `${data.expired ? "" : followSavedLink(data.actionUrl)}
+     <h1>${escapeHtml(heading)}</h1>
+     <p class="sub">${escapeHtml(data.expired ? t("server.p.expired.m") : t("server.p.private.m"))}</p>
+     ${emailLinkForm(data.actionUrl, null)}`,
+  );
+}
+
+/**
  * One click from a manage page (goes to that registry's own email), or type
  * the email.
  */
