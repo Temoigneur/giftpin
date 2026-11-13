@@ -84,3 +84,13 @@ describe("create page: Email me my registries", () => {
     expect(html).toContain("f.submit()");
   });
 });
+
+describe("renderManageSignInPage", () => {
+  it("asks for an email on the manage page instead of linking to create", async () => {
+    const { renderManageSignInPage } = await import("../create-page");
+    const html = renderManageSignInPage({ shopName: "Shop", accentColor: "#000", actionUrl: "/apps/registry", expired: false });
+    expect(html).toContain('action="/apps/registry/resend"');
+    expect(html).toContain('type="email"');
+    expect(html).not.toContain('href="/apps/registry"');
+  });
+});
