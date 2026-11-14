@@ -30,7 +30,7 @@ import { addInternalItem, removeItem, ItemError } from "../models/item.server";
 
 const SEARCH_QUERY = `#graphql
   query giftpinStoreMatch($query: String!) {
-    products(first: 10, query: $query) {
+    products(first: 25, query: $query) {
       nodes {
         id
         title

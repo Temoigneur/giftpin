@@ -46,7 +46,16 @@ export function matchScore(a: string, b: string): number {
   // only when the shorter one has enough words to be specific.
   const shorter = Math.min(ta.length, tb.length);
   const overlap = shorter >= 3 ? 0.85 * (shared.length / shorter) : 0;
-  let score = Math.max(dice, overlap);
+  // A two-word store title ("Mandoline Slicer") inside a long retailer title
+  // ("OXO Good Grips Chef's Mandoline Slicer 2.0") scores a low Dice and has
+  // too few words for the overlap rule, so a real match was missed. When every
+  // word of a two-word title appears in the other, count it as just above the
+  // threshold. The registrant still confirms it as a "similar item".
+  const shortTokens = ta.length <= tb.length ? ta : tb;
+  const longSet = ta.length <= tb.length ? new Set(tb) : new Set(ta);
+  const contained =
+    shortTokens.length === 2 && shortTokens.every((t) => longSet.has(t)) ? MATCH_THRESHOLD + 0.05 : 0;
+  let score = Math.max(dice, overlap, contained);
 
   const ma = ta.filter(isModelToken);
   const mb = tb.filter(isModelToken);
@@ -81,7 +90,10 @@ export function bestMatch<T extends MatchCandidate>(
 }
 
 /** Search keywords for Shopify's product search: distinctive tokens only, alphanumeric so nothing needs escaping. */
-export function searchTerms(title: string, max = 6): string[] {
+export function searchTerms(title: string, max = 10): string[] {
+  // Ten, not six: a long retailer title has more brand and marketing words than
+  // product words, and longest-first ranking was dropping the product noun
+  // ("knife", "chef") before it reached the store search.
   const tokens = titleTokens(title);
   // Model numbers first (most specific), then the longest words.
   const ranked = [...tokens].sort((x, y) => Number(isModelToken(y)) - Number(isModelToken(x)) || y.length - x.length);
