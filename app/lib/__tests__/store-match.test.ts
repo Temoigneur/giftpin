@@ -45,6 +45,25 @@ describe("bestMatch", () => {
   });
 });
 
+describe("long retailer titles against short store titles", () => {
+  const store = [cand("k", "Chef's Knife"), cand("m", "Mandoline Slicer"), cand("s", "Salad Bowl")];
+
+  it("matches a two-word store title that is fully inside a long retailer title", () => {
+    const hit = bestMatch(store, "Amazon.com: OXO Good Grips Chef's Mandoline Slicer 2.0 : Home & Kitchen");
+    expect(hit?.candidate.id).toBe("m");
+  });
+
+  it("still rejects a different product that shares only one word", () => {
+    expect(bestMatch(store, "Cuisinart Stainless Steel Bread Knife, 9 inch")).toBeNull();
+  });
+
+  it("keeps the product words in the search terms for a long title", () => {
+    const terms = searchTerms("Cuisinart 8-Inch Chef's Knife, Stainless Steel Professional Kitchen Knife with Ergonomic Handle, C77SS-8CF");
+    expect(terms).toContain("knife");
+    expect(terms).toContain("chef");
+  });
+});
+
 describe("searchTerms", () => {
   it("returns only alphanumeric tokens, so they are safe to put in a search query", () => {
     const terms = searchTerms('Acme "Blender" (BV1000) -- OR status:draft');
