@@ -17,7 +17,7 @@ describe("localized guide screenshots", () => {
     LOCALIZED_SHOTS.es = ["p21-nav-apps.png"];
     try {
       expect(localizedShot("/guides/p21-nav-apps.png", "es")).toBe("/guides/es/p21-nav-apps.png");
-      expect(localizedShot("/guides/p21-nav-apps.png", "de")).toBe("/guides/p21-nav-apps.png");
+      expect(localizedShot("/guides/p21-nav-apps.png", "pt-BR")).toBe("/guides/p21-nav-apps.png");
     } finally {
       LOCALIZED_SHOTS.es = before;
     }
@@ -32,8 +32,8 @@ describe("localized guide screenshots", () => {
     }
   });
 
-  it("the setup guide serves Spanish files to Spanish and English files to German", () => {
+  it("the setup guide serves Spanish files to Spanish and English files to Portuguese", () => {
     expect(setupHtml("es")).toContain('src="/guides/es/p21-nav-apps.png"');
-    expect(setupHtml("de")).toContain('src="/guides/p21-nav-apps.png"');
+    expect(setupHtml("pt-BR")).toContain('src="/guides/p21-nav-apps.png"');
   });
 });
