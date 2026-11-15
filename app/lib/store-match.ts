@@ -94,7 +94,9 @@ export function searchTerms(title: string, max = 10): string[] {
   // Ten, not six: a long retailer title has more brand and marketing words than
   // product words, and longest-first ranking was dropping the product noun
   // ("knife", "chef") before it reached the store search.
-  const tokens = titleTokens(title);
+  // Short bare numbers ("66", "12" from "66-Piece ... Service for 12") match sizes
+  // and counts all over a catalogue and bury the real results, so leave them out.
+  const tokens = titleTokens(title).filter((t) => !/^[0-9]{1,3}$/.test(t));
   // Model numbers first (most specific), then the longest words.
   const ranked = [...tokens].sort((x, y) => Number(isModelToken(y)) - Number(isModelToken(x)) || y.length - x.length);
   return ranked.slice(0, max);
@@ -123,16 +125,20 @@ export function sharedNoun(title: string, candidateTitles: string[]): string | n
     for (const t of mine) if (seen.has(t)) counts.set(t, (counts.get(t) ?? 0) + 1);
   }
 
-  let best: string | null = null;
-  let bestCount = 0;
-  for (const [token, count] of counts) {
-    if (count > bestCount || (count === bestCount && best !== null && token.length > best.length)) {
-      best = token;
-      bestCount = count;
-    }
-  }
+  let top = 0;
+  for (const count of counts.values()) top = Math.max(top, count);
+  if (top === 0) return null;
   // A word that turns up in only one of many results is probably a coincidence.
-  if (best && candidateTitles.length >= 4 && bestCount < 2) return null;
+  const floor = candidateTitles.length >= 4 ? 2 : 1;
+  if (top < floor) return null;
+  // Words within one result of the most common count tie, and the longer one wins:
+  // "dinnerware" (2 results) beats "service" (3 results) for a dish set, because
+  // the longer word is usually the kind of product and the short one a modifier.
+  let best: string | null = null;
+  for (const [token, count] of counts) {
+    if (count < Math.max(floor, top - 1)) continue;
+    if (best === null || token.length > best.length || (token.length === best.length && count > (counts.get(best) ?? 0))) best = token;
+  }
   return best;
 }
 

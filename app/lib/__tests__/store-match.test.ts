@@ -112,3 +112,23 @@ describe("titleFromUrl", () => {
     expect(titleFromUrl("not a url")).toBeNull();
   });
 });
+
+describe("a dish set from a retailer whose page we cannot read", () => {
+  const storeResults = [
+    "Hand-Shaped Tumbler Glass Set", "Weighted Mixing Glass", "Vintage-Style Porcelain Tea Service",
+    "Linen & Stone Dinnerware Set, 16 Piece", "Gold Rim Bone China Dinnerware Set, 12 Piece",
+    "Arabesque Porcelain Dinner Service", "Gilt-Edge Porcelain Dinner Service", "Stoneware Baking Dish",
+  ];
+  const title = "Corelle Winter Frost White 66 Piece Glass Dinnerware Set Service for 12";
+
+  it("leaves bare small numbers out of the store search", () => {
+    const terms = searchTerms(title);
+    expect(terms).not.toContain("66");
+    expect(terms).not.toContain("12");
+    expect(terms).toContain("dinnerware");
+  });
+
+  it("suggests the kind of product, dinnerware, not a modifier word like service", () => {
+    expect(sharedNoun(title, storeResults)).toBe("dinnerware");
+  });
+});
