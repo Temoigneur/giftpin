@@ -1300,7 +1300,7 @@ function manageScript(): string {
         :fmt(X.blocked,{domain:res.domain})+(cfg.extension?X.blockedExt:'');
       var img=paste.querySelector('.js-paste-img');
       if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
-      paste.querySelector('[name=title]').value=res.title||'';
+      paste.querySelector('[name=title]').value=res.title||res.guessedTitle||'';
       paste.querySelector('[name=price]').value=res.price||'';
       var m=paste.querySelector('.js-paste-match'),cards=paste.querySelector('.js-paste-match-cards');
       cards.textContent='';

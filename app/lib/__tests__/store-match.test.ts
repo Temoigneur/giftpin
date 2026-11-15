@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchScore, bestMatch, searchTerms, sharedNoun, MATCH_THRESHOLD } from "../store-match";
+import { matchScore, bestMatch, searchTerms, sharedNoun, titleFromUrl, MATCH_THRESHOLD } from "../store-match";
 
 const cand = (id: string, title: string) => ({ id, title, handle: id, variantId: "v" + id });
 
@@ -92,5 +92,23 @@ describe("sharedNoun", () => {
 
   it("ignores a word that turns up in only one of many results", () => {
     expect(sharedNoun("Foo Bar Widget", ["Widget A", "Thing B", "Thing C", "Thing D"])).toBeNull();
+  });
+});
+
+describe("titleFromUrl", () => {
+  it("reads the product name out of a Walmart link", () => {
+    expect(
+      titleFromUrl("https://www.walmart.ca/en/ip/Corelle-Winter-Frost-White-66-Piece-Glass-Dinnerware-Set-Service-for-12/6000199815157?classType=REGULAR&from=/search"),
+    ).toBe("Corelle Winter Frost White 66 Piece Glass Dinnerware Set Service for 12");
+  });
+
+  it("reads an Amazon-style link and ignores the id segments", () => {
+    expect(titleFromUrl("https://www.amazon.ca/Cuisinart-Chefs-Knife-Stainless/dp/B000ABCDEF/ref=sr_1_3")).toBe("Cuisinart Chefs Knife Stainless");
+  });
+
+  it("guesses nothing from an id-only link, a home page or a bad URL", () => {
+    expect(titleFromUrl("https://www.target.com/p/-/A-12345678")).toBeNull();
+    expect(titleFromUrl("https://example.com/")).toBeNull();
+    expect(titleFromUrl("not a url")).toBeNull();
   });
 });
