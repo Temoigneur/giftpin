@@ -278,10 +278,12 @@ export async function getMatchPreview(registryId: string, itemId: string): Promi
     throw new ItemError("There's no store match for that item");
   }
   const shop = item.registry.shop;
-  return loadPreview(shop.domain, shop.currency, {
-    productGid: item.storeMatchProductGid,
-    title: item.storeMatchTitle,
-  });
+  return loadPreview(
+    shop.domain,
+    shop.currency,
+    { productGid: item.storeMatchProductGid, title: item.storeMatchTitle },
+    item.snapshotTitle,
+  );
 }
 
 /**
@@ -335,7 +337,12 @@ async function loadPreview(
   // strip anything else anyway before it goes into a search query.
   const term = target.title.toLowerCase().replace(/[^a-z0-9]/g, "");
   if (!term) throw new ItemError("There's no store match for that item");
-  const words = kindWords(term).map((w) => w.replace(/[^a-z0-9]/g, "")).filter(Boolean);
+  // The kind and its other names, plus the outside item's own distinctive words,
+  // so a product that only shares a word with it (a "white" plate set) is found too.
+  const words = [...new Set([...kindWords(term), ...(context ? searchTerms(context, 6) : [])])]
+    .map((w) => w.replace(/[^a-z0-9]/g, ""))
+    .filter(Boolean)
+    .slice(0, 14);
   const response = await admin.graphql(PREVIEW_QUERY, {
     variables: { query: `status:active AND (${words.join(" OR ")})` },
   });
