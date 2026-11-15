@@ -1,7 +1,7 @@
 import db from "../db.server";
 import { registerHandler } from "./queue.server";
 import { unauthenticated } from "../shopify.server";
-import { bestMatch, searchTerms, sharedNoun, type MatchCandidate } from "./store-match";
+import { bestMatch, kindWords, rankByContext, searchTerms, sharedNoun, type MatchCandidate } from "./store-match";
 import { addInternalItem, removeItem, ItemError } from "../models/item.server";
 
 /**
@@ -55,7 +55,7 @@ const PRODUCT_QUERY = `#graphql
 
 const PREVIEW_QUERY = `#graphql
   query giftpinMatchPreview($query: String!) {
-    products(first: 12, query: $query) {
+    products(first: 50, query: $query) {
       nodes {
         id
         title
@@ -302,6 +302,7 @@ export async function previewStoreMatch(
       shopDomain,
       currency,
       match.kind === "product" ? { productGid: match.productGid, title: match.title } : { productGid: null, title: match.term },
+      title,
     );
     return preview.products.length > 0 ? { match, preview } : null;
   } catch (err) {
@@ -314,6 +315,8 @@ async function loadPreview(
   shopDomain: string,
   currency: string,
   target: { productGid: string | null; title: string },
+  /** The outside item's own title, when known: used to put the closest product first. */
+  context?: string,
 ): Promise<MatchPreview> {
   const { admin } = await unauthenticated.admin(shopDomain);
 
@@ -332,14 +335,17 @@ async function loadPreview(
   // strip anything else anyway before it goes into a search query.
   const term = target.title.toLowerCase().replace(/[^a-z0-9]/g, "");
   if (!term) throw new ItemError("There's no store match for that item");
-  const response = await admin.graphql(PREVIEW_QUERY, { variables: { query: `status:active AND ${term}` } });
+  const words = kindWords(term).map((w) => w.replace(/[^a-z0-9]/g, "")).filter(Boolean);
+  const response = await admin.graphql(PREVIEW_QUERY, {
+    variables: { query: `status:active AND (${words.join(" OR ")})` },
+  });
   const body = (await response.json()) as { data?: { products?: { nodes?: PreviewNode[] } }; errors?: unknown };
   if (body.errors || !body.data?.products) {
     throw new Error(`Admin API preview failed: ${JSON.stringify(body.errors ?? "no data").slice(0, 300)}`);
   }
   const nodes = body.data.products.nodes ?? [];
-  const relevant = nodes.filter((n) => namesKind(n, term)).slice(0, 4);
-  return { kind: "search", title: target.title, products: relevant.map((n) => toPreview(n, currency)) };
+  const relevant = rankByContext(nodes, term, context);
+  return { kind: "search", title: target.title, products: relevant.slice(0, 4).map((n) => toPreview(n, currency)) };
 }
 
 /** Apply the registrant's choice. Throws ItemError with a message fit to show them. */

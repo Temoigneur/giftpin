@@ -173,3 +173,60 @@ export function titleFromUrl(url: string): string | null {
   }
   return best ? best.slice(0, 300) : null;
 }
+
+/** Other words a shopper uses for the same kind of product, so "dinnerware" also finds a plate set. */
+const KIND_WORDS: Record<string, string[]> = {
+  dinnerware: ["dinner", "plate", "plates", "dishes", "tableware", "settings"],
+  tableware: ["dinnerware", "dinner", "plate", "plates", "dishes"],
+  dishes: ["dinnerware", "dinner", "plate", "plates", "tableware"],
+};
+
+const COLOUR_WORDS = new Set([
+  "white", "black", "blue", "red", "green", "grey", "gray", "pink", "gold", "silver", "ivory", "cream",
+  "brown", "yellow", "orange", "purple", "navy", "beige", "teal", "turquoise",
+]);
+
+/** The word plus its other names for the same kind of product. */
+export function kindWords(term: string): string[] {
+  return [term, ...(KIND_WORDS[term] ?? [])];
+}
+
+/** True when the product's title or type names the kind, or one of its other names. */
+export function namesAnyKind(n: { title: string; productType?: string | null }, words: string[]): boolean {
+  const hay = `${n.title} ${n.productType ?? ""}`.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ");
+  return words.some((term) => hay.some((w) => w === term || w === `${term}s` || w === `${term}es`));
+}
+
+/**
+ * How well a store product fits an outside item when we only know the kind of
+ * product it is: a shared colour counts double (a white dish set before a
+ * patterned one), any other shared distinctive word counts once. Small bare
+ * numbers are ignored, so "12 Piece" doesn't pair with "Service for 12".
+ */
+export function contextScore(context: string, n: { title: string; productType?: string | null }): number {
+  const mine = new Set(titleTokens(context).filter((t) => !/^[0-9]{1,3}$/.test(t)));
+  let score = 0;
+  for (const t of titleTokens(`${n.title} ${n.productType ?? ""}`)) {
+    if (!mine.has(t) || /^[0-9]{1,3}$/.test(t)) continue;
+    if (COLOUR_WORDS.has(t)) score += 2;
+    else if (t.length >= 4) score += 1;
+  }
+  return score;
+}
+
+/** Products that name the kind (or another name for it), closest to the outside item first. */
+export function rankByContext<T extends { title: string; productType?: string | null }>(
+  nodes: T[],
+  term: string,
+  context?: string,
+): T[] {
+  const words = kindWords(term);
+  const relevant = nodes.filter((n) => namesAnyKind(n, words));
+  if (!context) return relevant;
+  // A product naming the kind itself ("dinnerware") edges out one that only uses
+  // another name for it ("plates") when the scores are otherwise level.
+  return relevant
+    .map((n, i) => ({ n, i, score: contextScore(context, n) + (namesAnyKind(n, [term]) ? 0.5 : 0) }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .map((x) => x.n);
+}

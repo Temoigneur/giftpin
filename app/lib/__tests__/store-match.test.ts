@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchScore, bestMatch, searchTerms, sharedNoun, titleFromUrl, MATCH_THRESHOLD } from "../store-match";
+import { matchScore, bestMatch, searchTerms, sharedNoun, titleFromUrl, rankByContext, MATCH_THRESHOLD } from "../store-match";
 
 const cand = (id: string, title: string) => ({ id, title, handle: id, variantId: "v" + id });
 
@@ -130,5 +130,30 @@ describe("a dish set from a retailer whose page we cannot read", () => {
 
   it("suggests the kind of product, dinnerware, not a modifier word like service", () => {
     expect(sharedNoun(title, storeResults)).toBe("dinnerware");
+  });
+});
+
+describe("rankByContext", () => {
+  const nodes = [
+    "Olive Leaf Crystal Tumblers, Set of 4",
+    "Linen & Stone Dinnerware Set, 16 Piece",
+    "Hand-Thrown Stoneware Serving Bowl",
+    "Gold Rim Bone China Dinnerware Set, 12 Piece",
+    "Gold Rim Porcelain Dinner Plates, Set of 4",
+    "Royal Crest Blue and White Dinner Plates, Set of 4",
+    "Classic White Porcelain Place Settings, Set of 4",
+  ].map((title) => ({ title, productType: null }));
+  const context = "Corelle Winter Frost White 66-Piece Glass Dinnerware Set, Service for 12";
+
+  it("finds plate and place-setting products for dinnerware, not unrelated glassware", () => {
+    const titles = rankByContext(nodes, "dinnerware").map((n) => n.title);
+    expect(titles).toContain("Classic White Porcelain Place Settings, Set of 4");
+    expect(titles).not.toContain("Olive Leaf Crystal Tumblers, Set of 4");
+    expect(titles).not.toContain("Hand-Thrown Stoneware Serving Bowl");
+  });
+
+  it("puts the white plate sets first for a white dish set", () => {
+    const top = rankByContext(nodes, "dinnerware", context).slice(0, 2).map((n) => n.title);
+    expect(top).toEqual(["Royal Crest Blue and White Dinner Plates, Set of 4", "Classic White Porcelain Place Settings, Set of 4"]);
   });
 });
