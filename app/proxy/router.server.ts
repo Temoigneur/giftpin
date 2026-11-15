@@ -1406,6 +1406,15 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
   if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
+
+  // The registrant typed or edited the name in the paste box: look for a similar
+  // product under it without reading the page again.
+  const typedTitle = typeof body.title === "string" ? body.title.trim().slice(0, 300) : "";
+  if (typedTitle.length >= 3) {
+    const typedMatch = await previewStoreMatch(shop.domain, shop.currency, typedTitle);
+    return json({ ok: true, matchOnly: true, match: typedMatch?.preview ?? null });
+  }
+
   let link: Awaited<ReturnType<typeof previewUrl>>;
   try {
     link = await previewUrl(String(body.url ?? ""));
@@ -1418,9 +1427,12 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
   // address. Use that to look for a similar product and to prefill the name,
   // which the registrant can edit. `found` stays false so the page still says
   // we couldn't read the site.
-  const guessedTitle = link.title ? null : titleFromUrl(link.url);
-  const matchTitle = link.title ?? guessedTitle;
-  const match = matchTitle ? await previewStoreMatch(shop.domain, shop.currency, matchTitle) : null;
+  const urlTitle = titleFromUrl(link.url);
+  const guessedTitle = link.title ? null : urlTitle;
+  // Try the page's own title first, then the name in the address: a bot-check
+  // page can report a title that has nothing to do with the product.
+  let match = link.title ? await previewStoreMatch(shop.domain, shop.currency, link.title) : null;
+  if (!match && urlTitle) match = await previewStoreMatch(shop.domain, shop.currency, urlTitle);
   return json({
     ok: true,
     found: link.title !== null,

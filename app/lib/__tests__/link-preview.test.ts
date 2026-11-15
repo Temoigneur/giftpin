@@ -93,7 +93,7 @@ describe("previewUrl", () => {
 
 describe("looksLikePlaceholderTitle", () => {
   it("flags app shells, bot checks and error pages", () => {
-    for (const t of ["General PDP Template", "Just a moment...", "Access Denied", "Robot Check", "Page Not Found", "", null]) {
+    for (const t of ["General PDP Template", "Just a moment...", "Access Denied", "Robot Check", "Robot or human?", "Page Not Found", "", null]) {
       expect(looksLikePlaceholderTitle(t), String(t)).toBe(true);
     }
   });

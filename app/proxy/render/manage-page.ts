@@ -1284,6 +1284,33 @@ function manageScript(): string {
     paste.querySelector('[name=showMatch]').checked=false;
     paste.querySelectorAll('.js-status').forEach(function(s){s.textContent='';});
   }
+  function showPasteMatch(paste,match){
+    var m=paste.querySelector('.js-paste-match'),cards=paste.querySelector('.js-paste-match-cards');
+    cards.textContent='';
+    if(match&&match.products&&match.products.length){
+      match.products.slice(0,2).forEach(function(p){cards.appendChild(matchCard(p));});
+      pasteFound.match=match;
+      m.hidden=false;
+    }else{pasteFound.match=null;m.hidden=true;}
+  }
+  // The name can be typed or corrected after the lookup (a site that refuses our
+  // read leaves it blank): look for a similar product in the store under it.
+  var pasteTitleTimer=null;
+  document.addEventListener('input',function(e){
+    var ti=e.target&&e.target.closest&&e.target.closest('.js-paste [name=title]');
+    if(!ti)return;
+    var paste=ti.closest('.js-paste');
+    clearTimeout(pasteTitleTimer);
+    pasteTitleTimer=setTimeout(function(){
+      if(!pasteFound)return;
+      var name=ti.value.trim();
+      if(name.length<3){showPasteMatch(paste,null);return;}
+      post('/link-preview',{url:pasteFound.url,title:name}).then(function(res){
+        if(!pasteFound||ti.value.trim()!==name)return;
+        if(res&&res.ok)showPasteMatch(paste,res.match);
+      }).catch(function(){});
+    },700);
+  });
   function lookUpLink(paste){
     var input=paste.querySelector('[name=url]');
     var lookup=paste.querySelector('.js-paste-lookup');var btn=lookup.querySelector('button');
@@ -1302,12 +1329,7 @@ function manageScript(): string {
       if(res.imageUrl){img.src=res.imageUrl;img.hidden=false;}else{img.removeAttribute('src');img.hidden=true;}
       paste.querySelector('[name=title]').value=res.title||res.guessedTitle||'';
       paste.querySelector('[name=price]').value=res.price||'';
-      var m=paste.querySelector('.js-paste-match'),cards=paste.querySelector('.js-paste-match-cards');
-      cards.textContent='';
-      if(res.match&&res.match.products.length){
-        res.match.products.slice(0,2).forEach(function(p){cards.appendChild(matchCard(p));});
-        m.hidden=false;
-      }else{m.hidden=true;}
+      showPasteMatch(paste,res.match);
       paste.querySelector(res.found?'[name=note]':'[name=title]').focus();
     }).catch(function(){btn.disabled=false;pasteStatus(lookup,X.lookLinkFail,false);});
   }
