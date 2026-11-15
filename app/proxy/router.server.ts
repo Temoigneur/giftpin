@@ -69,6 +69,7 @@ import {
   undoGuestPurchase,
 } from "../models/claim.server";
 import { applyMatchChoice, getMatchPreview, previewStoreMatch, storeMatchFields } from "../lib/store-match.server";
+import { titleFromUrl } from "../lib/store-match";
 import { previewUrl } from "../lib/resolver/index.server";
 import { normalizeCurrency, normalizePrice } from "../lib/resolver/metadata";
 import { normalizeCountry } from "../shared/retailers";
@@ -1413,13 +1414,20 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
     throw err;
   }
 
-  const match = link.title ? await previewStoreMatch(shop.domain, shop.currency, link.title) : null;
+  // A site that refuses our read often still puts the product name in the
+  // address. Use that to look for a similar product and to prefill the name,
+  // which the registrant can edit. `found` stays false so the page still says
+  // we couldn't read the site.
+  const guessedTitle = link.title ? null : titleFromUrl(link.url);
+  const matchTitle = link.title ?? guessedTitle;
+  const match = matchTitle ? await previewStoreMatch(shop.domain, shop.currency, matchTitle) : null;
   return json({
     ok: true,
     found: link.title !== null,
     url: link.url,
     domain: link.domain,
     title: link.title,
+    guessedTitle,
     imageUrl: link.imageUrl,
     price: link.price,
     currency: link.currency ?? shop.currency,

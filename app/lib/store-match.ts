@@ -135,3 +135,35 @@ export function sharedNoun(title: string, candidateTitles: string[]): string | n
   if (best && candidateTitles.length >= 4 && bestCount < 2) return null;
   return best;
 }
+
+/**
+ * A product name guessed from a link's path, for the sites that refuse our
+ * read (Walmart, Amazon, Target...) but put the name in the URL:
+ * /en/ip/Corelle-Winter-Frost-White-66-Piece-Glass-Dinnerware-Set-Service-for-12/6000199815157
+ * becomes "Corelle Winter Frost White 66 Piece Glass Dinnerware Set Service for 12".
+ * Returns null when no path segment reads like a name (three or more words),
+ * so an id-only link or a shop's home page guesses nothing.
+ */
+export function titleFromUrl(url: string): string | null {
+  let path: string;
+  try {
+    path = new URL(url).pathname;
+  } catch {
+    return null;
+  }
+  let best: string | null = null;
+  for (const raw of path.split("/")) {
+    let seg: string;
+    try {
+      seg = decodeURIComponent(raw);
+    } catch {
+      continue;
+    }
+    seg = seg.replace(/\.[a-z]{2,5}$/i, "");
+    const words = seg.split(/[-_+\s]+/).filter(Boolean);
+    const alpha = words.filter((w) => /^[A-Za-z\u00c0-\u024f]{2,}$/.test(w));
+    if (words.length < 3 || alpha.length < 3 || alpha.length < words.length / 2) continue;
+    if (!best || words.length > best.split(" ").length) best = words.join(" ");
+  }
+  return best ? best.slice(0, 300) : null;
+}
