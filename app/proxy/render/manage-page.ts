@@ -1288,7 +1288,7 @@ function manageScript(): string {
     var m=paste.querySelector('.js-paste-match'),cards=paste.querySelector('.js-paste-match-cards');
     cards.textContent='';
     if(match&&match.products&&match.products.length){
-      match.products.slice(0,2).forEach(function(p){cards.appendChild(matchCard(p));});
+      match.products.slice(0,3).forEach(function(p){cards.appendChild(matchCard(p));});
       pasteFound.match=match;
       m.hidden=false;
     }else{pasteFound.match=null;m.hidden=true;}

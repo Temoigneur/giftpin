@@ -173,3 +173,130 @@ export function titleFromUrl(url: string): string | null {
   }
   return best ? best.slice(0, 300) : null;
 }
+
+/**
+ * Words shoppers use interchangeably for the same kind of product. Searching
+ * for one searches them all, so "dinnerware" finds a plate set and "slow
+ * cooker" finds a crockpot. Plurals are handled separately (`namesAnyKind`).
+ * Add a group when a registry item is sold under several names.
+ */
+const KIND_GROUPS: string[][] = [
+  ["dinnerware", "dinner", "plate", "dishes", "tableware", "settings", "dishware"],
+  ["flatware", "silverware", "cutlery", "utensils"],
+  ["glassware", "glass", "tumbler", "drinkware", "stemware", "goblet", "goblets", "wineglass"],
+  ["mug", "cup", "teacup", "coffee"],
+  ["bowl", "serving", "salad", "serveware", "platter"],
+  ["cookware", "pot", "pan", "skillet", "saucepan", "stockpot", "saute", "dutch", "casserole"],
+  ["bakeware", "baking", "bake", "sheet", "cake", "muffin", "loaf"],
+  ["cooker", "crockpot", "multicooker", "slow", "pressure", "instant", "rice"],
+  ["blender", "smoothie", "nutribullet", "juicer", "processor"],
+  ["mixer", "kitchenaid", "whisk"],
+  ["kettle", "teapot", "tea", "infuser"],
+  ["coffeemaker", "espresso", "brewer", "coffee", "drip", "grinder"],
+  ["toaster", "oven", "airfryer", "fryer", "broiler"],
+  ["knife", "knives", "cutlery", "blade", "cleaver"],
+  ["cutting", "board", "chopping", "butcher"],
+  ["bedding", "sheets", "sheet", "duvet", "comforter", "quilt", "coverlet", "bedspread", "linens"],
+  ["pillow", "cushion", "bolster"],
+  ["blanket", "throw", "afghan"],
+  ["towel", "towels", "washcloth", "bath"],
+  ["rug", "mat", "carpet", "runner"],
+  ["mattress", "topper", "protector"],
+  ["lamp", "lighting", "lantern", "sconce"],
+  ["vase", "planter", "pot", "jar"],
+  ["frame", "photo", "picture", "album"],
+  ["candle", "candles", "diffuser", "holder"],
+  ["luggage", "suitcase", "carryon", "duffel"],
+  ["vacuum", "cleaner", "mop", "robot"],
+  ["grill", "barbecue", "bbq", "smoker"],
+  ["cooler", "picnic", "thermos"],
+  ["crib", "bassinet", "cot", "cradle"],
+  ["stroller", "pram", "pushchair", "buggy"],
+  ["carseat", "booster", "carrier"],
+  ["monitor", "camera", "babycam"],
+  ["diaper", "diapers", "nappy", "wipes"],
+  ["bottle", "sippy", "feeding", "nursing"],
+  ["toy", "toys", "plush", "blocks", "puzzle"],
+  ["storage", "organizer", "basket", "bin", "container"],
+  ["furniture", "chair", "sofa", "couch", "shelf"],
+];
+
+const GROUPS_BY_WORD = (() => {
+  const m = new Map<string, Set<string>>();
+  for (const g of KIND_GROUPS) {
+    for (const w of g) {
+      const set = m.get(w) ?? new Set<string>();
+      for (const x of g) set.add(x);
+      m.set(w, set);
+    }
+  }
+  return m;
+})();
+
+const COLOUR_WORDS = new Set([
+  "white", "black", "blue", "red", "green", "grey", "gray", "pink", "gold", "silver", "ivory", "cream",
+  "brown", "yellow", "orange", "purple", "navy", "beige", "teal", "turquoise",
+]);
+
+/** The word plus its other names for the same kind of product (all groups it appears in). */
+export function kindWords(term: string): string[] {
+  const t = term.toLowerCase();
+  const singular = t.endsWith("es") && GROUPS_BY_WORD.has(t.slice(0, -2)) ? t.slice(0, -2) : t.endsWith("s") && GROUPS_BY_WORD.has(t.slice(0, -1)) ? t.slice(0, -1) : t;
+  const out = new Set<string>([t]);
+  for (const w of GROUPS_BY_WORD.get(t) ?? GROUPS_BY_WORD.get(singular) ?? []) out.add(w);
+  return [...out];
+}
+
+/** True when the product's title or type names the kind, or one of its other names. */
+export function namesAnyKind(n: { title: string; productType?: string | null }, words: string[]): boolean {
+  const hay = `${n.title} ${n.productType ?? ""}`.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ");
+  return words.some((term) => hay.some((w) => w === term || w === `${term}s` || w === `${term}es`));
+}
+
+/**
+ * How well a store product fits an outside item when we only know the kind of
+ * product it is: a shared colour counts double (a white dish set before a
+ * patterned one), any other shared distinctive word counts once. Small bare
+ * numbers are ignored, so "12 Piece" doesn't pair with "Service for 12".
+ */
+export function contextScore(context: string, n: { title: string; productType?: string | null }): number {
+  const mine = new Set(titleTokens(context).filter((t) => !/^[0-9]{1,3}$/.test(t)));
+  let score = 0;
+  for (const t of titleTokens(`${n.title} ${n.productType ?? ""}`)) {
+    if (!mine.has(t) || /^[0-9]{1,3}$/.test(t)) continue;
+    if (COLOUR_WORDS.has(t)) score += 2;
+    else if (t.length >= 4) score += 1;
+  }
+  return score;
+}
+
+/** Distinctive words (not colours, not tiny numbers) the product shares with the outside item. */
+function sharedWords(context: string, n: { title: string; productType?: string | null }): number {
+  const mine = new Set(titleTokens(context).filter((t) => t.length >= 4 && !COLOUR_WORDS.has(t) && !GENERIC_WORDS.has(t)));
+  let c = 0;
+  for (const t of new Set(titleTokens(`${n.title} ${n.productType ?? ""}`))) if (mine.has(t)) c++;
+  return c;
+}
+
+/**
+ * The store's products for a kind of item, closest to the outside item first.
+ * A product is a candidate when it names the kind or any of its other names
+ * ("dinnerware", "plates", "place settings"), or shares a distinctive word with
+ * the outside item. The outside item's own title decides the order: a shared
+ * colour counts double, and a product naming the kind itself edges out one that
+ * only uses another name when the scores are otherwise level.
+ */
+export function rankByContext<T extends { title: string; productType?: string | null }>(
+  nodes: T[],
+  term: string,
+  context?: string,
+): T[] {
+  const words = kindWords(term);
+  if (!context) return nodes.filter((n) => namesAnyKind(n, words));
+  return nodes
+    .map((n, i) => ({ n, i, named: namesAnyKind(n, words), shared: sharedWords(context, n) }))
+    .filter((x) => x.named || x.shared > 0)
+    .map((x) => ({ ...x, score: contextScore(context, x.n) + (namesAnyKind(x.n, [term]) ? 0.5 : 0) + (x.named ? 0.25 : 0) }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .map((x) => x.n);
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchScore, bestMatch, searchTerms, sharedNoun, titleFromUrl, MATCH_THRESHOLD } from "../store-match";
+import { matchScore, bestMatch, searchTerms, sharedNoun, titleFromUrl, rankByContext, kindWords, MATCH_THRESHOLD } from "../store-match";
 
 const cand = (id: string, title: string) => ({ id, title, handle: id, variantId: "v" + id });
 
@@ -130,5 +130,56 @@ describe("a dish set from a retailer whose page we cannot read", () => {
 
   it("suggests the kind of product, dinnerware, not a modifier word like service", () => {
     expect(sharedNoun(title, storeResults)).toBe("dinnerware");
+  });
+});
+
+describe("rankByContext", () => {
+  const nodes = [
+    "Olive Leaf Crystal Tumblers, Set of 4",
+    "Linen & Stone Dinnerware Set, 16 Piece",
+    "Hand-Thrown Stoneware Serving Bowl",
+    "Gold Rim Bone China Dinnerware Set, 12 Piece",
+    "Gold Rim Porcelain Dinner Plates, Set of 4",
+    "Royal Crest Blue and White Dinner Plates, Set of 4",
+    "Classic White Porcelain Place Settings, Set of 4",
+  ].map((title) => ({ title, productType: null }));
+  const context = "Corelle Winter Frost White 66-Piece Glass Dinnerware Set, Service for 12";
+
+  it("finds plate and place-setting products for dinnerware, not unrelated glassware", () => {
+    const titles = rankByContext(nodes, "dinnerware").map((n) => n.title);
+    expect(titles).toContain("Classic White Porcelain Place Settings, Set of 4");
+    expect(titles).not.toContain("Olive Leaf Crystal Tumblers, Set of 4");
+    expect(titles).not.toContain("Hand-Thrown Stoneware Serving Bowl");
+  });
+
+  it("puts the white plate sets first for a white dish set", () => {
+    const top = rankByContext(nodes, "dinnerware", context).slice(0, 2).map((n) => n.title);
+    expect(top).toEqual(["Royal Crest Blue and White Dinner Plates, Set of 4", "Classic White Porcelain Place Settings, Set of 4"]);
+  });
+});
+
+describe("kindWords", () => {
+  it("lists other names for common registry items, with plurals", () => {
+    expect(kindWords("cooker")).toEqual(expect.arrayContaining(["crockpot", "multicooker"]));
+    expect(kindWords("sheets")).toEqual(expect.arrayContaining(["duvet", "comforter"]));
+    expect(kindWords("flatware")).toContain("silverware");
+  });
+
+  it("returns just the word when it has no known other names", () => {
+    expect(kindWords("kombucha")).toEqual(["kombucha"]);
+  });
+});
+
+describe("rankByContext across product kinds", () => {
+  it("finds a crockpot when the pasted item says slow cooker", () => {
+    const nodes = [{ title: "Crockpot 6 Quart Programmable", productType: null }, { title: "Cast Iron Skillet", productType: null }];
+    const top = rankByContext(nodes, "cooker", "Hamilton Beach 6 Quart Slow Cooker, Stainless Steel");
+    expect(top[0].title).toBe("Crockpot 6 Quart Programmable");
+  });
+
+  it("includes a product that only shares a distinctive word with the pasted item", () => {
+    const nodes = [{ title: "Porcelain Tea Set", productType: null }, { title: "Linen Duvet Cover", productType: null }];
+    const titles = rankByContext(nodes, "dinnerware", "Royal Porcelain Dinner Set for 8").map((n) => n.title);
+    expect(titles).toEqual(["Porcelain Tea Set"]);
   });
 });
