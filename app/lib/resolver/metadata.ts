@@ -333,6 +333,6 @@ export function looksLikePlaceholderTitle(title: string | null | undefined): boo
   return (
     /\btemplate\b/.test(t) ||
     /^(untitled|home|homepage|product|products|shop|loading\.*|page not found|not found|404|403|error)$/.test(t) ||
-    /\b(access denied|just a moment|attention required|are you a robot|captcha|robot check|request blocked|forbidden)\b/.test(t)
+    /\b(access denied|just a moment|attention required|are you a robot|robot or human|are you human|captcha|robot check|request blocked|forbidden)\b/.test(t)
   );
 }
