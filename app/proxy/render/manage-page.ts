@@ -32,6 +32,8 @@ export interface ManagePageData {
   eventType: string;
   eventDate: Date | null;
   privacy: string;
+  /** A password is already set (it is never sent back to the page). */
+  hasPassword?: boolean;
   /** US | CA | GB | AU; null/absent = US. Picks which stores we link to. */
   country?: string | null;
   /**
@@ -343,6 +345,12 @@ ${data.languageChoice ? `
     <option value="public_"${data.privacy === "public_" ? " selected" : ""}>${T("manage.prefs.priv.public")}</option>
   </select>
   <p class="hint">${T("manage.prefs.privHint")}</p>
+  <div id="f-pw-field"${data.privacy === "password" ? "" : " hidden"}>
+    <label for="f-pw">${T("manage.prefs.pw")}</label>
+    <input id="f-pw" type="text" name="password" maxlength="100" autocomplete="off" spellcheck="false"${data.privacy === "password" && !data.hasPassword ? " required" : ""}>
+    <p class="hint">${T(data.hasPassword ? "manage.prefs.pwKeep" : "manage.prefs.pwHint")}</p>
+  </div>
+  <script>(function(){var s=document.getElementById('f-privacy'),f=document.getElementById('f-pw-field'),i=document.getElementById('f-pw'),h=${data.hasPassword ? "true" : "false"};s.addEventListener('change',function(){var on=s.value==='password';f.hidden=!on;i.required=on&&!h;});})();</script>
 
   <div class="row" style="margin-top:18px">
     <button class="btn" type="submit">${T("manage.prefs.save")}</button>

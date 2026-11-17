@@ -99,7 +99,7 @@ import {
   renderAccountPage,
   renderAccountSignInPage,
 } from "./render/create-page";
-import { blindIndex } from "../lib/crypto.server";
+import { blindIndex, hashPassword } from "../lib/crypto.server";
 import { escapeHtml, formatMoney } from "./render/layout";
 import { csvCell } from "../lib/csv";
 import { cleanHexColor, cleanLogoUrl, type PageBranding } from "../shared/branding";
@@ -500,6 +500,7 @@ async function showRegistry(
         await registryStock(registry, group),
         await registryDeals(shop, settings, registry),
         group,
+        await formerSellers(registry, group),
       );
     },
   );
@@ -570,6 +571,21 @@ async function registryStock(registry: RegistryWithItems, group: LinkedShop[]): 
 }
 
 /**
+ * Stores that sell items on this registry but are no longer linked to it
+ * (unlinked, or uninstalled before shop/redact), so the guest page can still
+ * name them and link to their storefront search.
+ */
+async function formerSellers(registry: RegistryWithItems, group: LinkedShop[]): Promise<LinkedShop[]> {
+  const known = new Set([registry.shopId, ...group.map((s) => s.id)]);
+  const ids = [...new Set(registry.items.map((i) => i.sourceShopId).filter((id): id is string => !!id && !known.has(id)))];
+  if (ids.length === 0) return [];
+  return (await db.shop.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, domain: true, name: true, currency: true, plan: true },
+  })) as LinkedShop[];
+}
+
+/**
  * Per-item "buy it on the other store" details for a registry shown on
  * `shop`. Items sold here, or by the registry's own store when this IS it,
  * get nothing. A linked store's item gets that store's door; an item from a
@@ -582,12 +598,14 @@ function linkedStoreFor(
   group: LinkedShop[],
   title: string,
   itemId: string,
+  former: LinkedShop[] = [],
 ): { name: string; href: string | null; searchHref: string } | null {
   if (item.sourceType !== "internal" && item.sourceType !== "fund") return null;
   const sellerId = item.sourceType === "fund" ? registry.shopId : itemShopId(item, registry.shopId);
   if (sellerId === shop.id) return null;
   const seller =
     group.find((s) => s.id === sellerId) ??
+    former.find((s) => s.id === sellerId) ??
     (sellerId === registry.shopId ? { id: registry.shopId, domain: registry.shop.domain, name: registry.shop.name } : null);
   const linked = group.some((s) => s.id === sellerId);
   const domain = seller?.domain ?? null;
@@ -630,6 +648,7 @@ function buildRegistryHtml(
   stock: StockMap = null,
   promotions: { banner: string[]; itemDeals: Record<string, string> } = { banner: [], itemDeals: {} },
   group: LinkedShop[] = [],
+  former: LinkedShop[] = [],
 ): string {
   const home = registry.shopId === shop.id;
   // Chip-ins are this store's gift cards, so they're only offered on the
@@ -642,7 +661,7 @@ function buildRegistryHtml(
   const items = applyStock(
     registry.items.map((item) => {
       const display = toDisplayItem(item);
-      display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id);
+      display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id, former);
       // A store match is a link on the registry's own store; elsewhere it would point at the wrong shop.
       if (!home) display.storeMatch = null;
       return display;
@@ -781,6 +800,7 @@ async function managePage(
   // the other stores with a sign-in link for each, and reminds them that the
   // emailed link is what works everywhere.
   const group = await groupShops(shop.id);
+  const former = await formerSellers(registry, group);
   const home = registry.shopId === shop.id;
   const storeName = (s: Pick<LinkedShop, "name" | "domain">) => s.name ?? s.domain.replace(".myshopify.com", "");
   const linkedStores =
@@ -801,6 +821,7 @@ async function managePage(
       eventType: registry.eventType,
       eventDate: registry.eventDate,
       privacy: registry.privacy,
+      hasPassword: !!registry.passwordHash,
       country: registry.country,
       affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
       chromeExtensionUrl: process.env.CHROME_EXTENSION_URL || null,
@@ -808,7 +829,7 @@ async function managePage(
       items: applyStock(
         registry.items.map((item) => {
           const display = toDisplayItem(item);
-          display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id);
+          display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id, former);
           return display;
         }),
         await registryStock(registry, group),
@@ -847,7 +868,7 @@ async function managePage(
       partner: partnerFor(registry),
       setupStep,
       // A save from "Edit registry & preferences" lands back with it open.
-      prefsOpen: !setupStep && (flashKey === "saved" || flashKey.startsWith("ship-") || flashKey.startsWith("partner-")),
+      prefsOpen: !setupStep && (flashKey === "saved" || flashKey === "pw-needed" || flashKey.startsWith("ship-") || flashKey.startsWith("partner-")),
     }),
   );
 }
@@ -2130,6 +2151,12 @@ async function settingsAction(request: Request, ctx: ProxyContext, settings: Sho
   const form = await request.formData();
   const privacy = String(form.get("privacy") ?? "unlisted");
   const eventDate = String(form.get("eventDate") ?? "");
+  // A password registry needs a password: without one nobody, guests or the
+  // registrant's own share link, could ever open it.
+  const newPassword = String(form.get("password") ?? "").trim().slice(0, 100);
+  if (privacy === "password" && !newPassword && !registry.passwordHash) {
+    return redirect(proxyUrl(ctx, "manage", { t: ctx.query.get("t") ?? "", flash: "pw-needed" }));
+  }
   const eventType = String(form.get("eventType") ?? registry.eventType);
 
   await updateRegistry(registry.id, {
@@ -2142,6 +2169,7 @@ async function settingsAction(request: Request, ctx: ProxyContext, settings: Sho
       ? { language: registryLanguageFrom(form.get("language"), settings.language, true) }
       : {}),
     privacy: privacy === "public_" || privacy === "password" ? privacy : "unlisted",
+    ...(privacy === "password" && newPassword ? { passwordHash: hashPassword(newPassword) } : {}),
     // Being listed and being indexable are the same decision, and it is always
     // an explicit opt-in by the registrant.
     indexable: privacy === "public_",
@@ -2383,6 +2411,7 @@ const PARTNER_FLASH_KIND: Record<string, "ok" | "err"> = {
 function flashFrom(ctx: ProxyContext): { kind: "ok" | "err"; message: string } | null {
   const flash = ctx.query.get("flash");
   if (flash === "saved") return { kind: "ok", message: t("manage.flash.saved") };
+  if (flash === "pw-needed") return { kind: "err", message: t("manage.flash.pwNeeded") };
   if (flash === "ship-saved") return { kind: "ok", message: t("manage.flash.shipSaved") };
   if (flash?.startsWith("partner-") && flash in PARTNER_FLASH) {
     return { kind: PARTNER_FLASH_KIND[flash], message: t(PARTNER_FLASH[flash]) };
