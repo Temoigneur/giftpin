@@ -1,4 +1,5 @@
 import db from "../db.server";
+import { salesTakenByWhere } from "./store-group.server";
 
 /**
  * The merchant dashboard numbers.
@@ -46,7 +47,8 @@ export async function dashboardStats(shopId: string, sinceDays = 365): Promise<D
         voidedAt: null,
         source: "online",
         createdAt: { gte: since },
-        item: { registry: { shopId } },
+        // Sales this store took, including into linked stores' registries.
+        ...salesTakenByWhere(shopId),
       },
       select: { amount: true, qty: true, orderId: true, isNewCustomer: true },
     }),

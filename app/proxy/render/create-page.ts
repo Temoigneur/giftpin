@@ -187,6 +187,8 @@ export function renderPasswordPage(data: {
   branding?: PageBranding | null;
   actionUrl: string;
   slug: string;
+  /** Page path under the proxy, default `r/<slug>` (a linked store uses `g/<id>`). */
+  path?: string;
   error?: string | null;
 }): string {
   return layout(
@@ -194,7 +196,7 @@ export function renderPasswordPage(data: {
     `<h1>${tx(t("pw.title"))}</h1>
      <p class="sub">${tx(t("pw.sub"))}</p>
      ${data.error ? `<div class="err">${escapeHtml(data.error)}</div>` : ""}
-     <form method="post" action="${escapeAttr(data.actionUrl)}/r/${escapeAttr(data.slug)}" class="note">
+     <form method="post" action="${escapeAttr(data.actionUrl)}/${escapeAttr(data.path ?? `r/${data.slug}`)}" class="note">
        <label for="pw">${tx(t("pw.label"))}</label>
        <input id="pw" type="password" name="password" required autocomplete="off">
        <div class="row" style="margin-top:16px"><button class="btn" type="submit">${tx(t("pw.button"))}</button></div>

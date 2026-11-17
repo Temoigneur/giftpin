@@ -38,6 +38,8 @@ export interface AddInternalInput {
   currency?: string | null;
   desiredQty?: number;
   note?: string | null;
+  /** The linked store that sells it, when not the registry's own. See store-group.server.ts. */
+  sourceShopId?: string | null;
 }
 
 export interface AddItemResult<T> {
@@ -82,6 +84,9 @@ export async function addInternalItem(
         sourceType: "internal",
         productGid: input.productGid,
         variantGid: input.variantGid,
+        // A linked store's product (multi-store registries). Null = this
+        // registry's own store. Callers use sourceShopIdFor().
+        sourceShopId: input.sourceShopId ?? null,
         snapshotTitle: input.title.slice(0, 300),
         snapshotImageUrl: input.imageUrl ?? null,
         snapshotPrice: input.price ?? null,
@@ -95,7 +100,11 @@ export async function addInternalItem(
     });
 
     await touchRegistry(input.registryId);
-    await logEvent(input.registryId, "item_added", { sourceType: "internal", variantGid: input.variantGid });
+    await logEvent(input.registryId, "item_added", {
+      sourceType: "internal",
+      variantGid: input.variantGid,
+      ...(input.sourceShopId ? { sourceShopId: input.sourceShopId } : {}),
+    });
     return { item, duplicate: false };
   } catch (err) {
     if (isUniqueViolation(err)) {
@@ -555,6 +564,16 @@ export interface DisplayItem {
   fund?: FundState | null;
   /** A cash fund: no product, contributions only. */
   isFund?: boolean;
+  /**
+   * Linked stores: set when this item is bought on another store in the
+   * registry's group, not the one showing the page. The page then sends the
+   * guest to that store's copy of the registry instead of adding to this
+   * store's cart. `href` null = that store is no longer linked (a search link
+   * on its storefront is shown instead, see `searchHref`).
+   */
+  linkedStore?: { name: string; href: string | null; searchHref: string } | null;
+  /** Id of the store that sells this item (internal items and funds). Set by the router. */
+  sellingShopId?: string | null;
 }
 
 type ItemForDisplay = Prisma.RegistryItemGetPayload<{

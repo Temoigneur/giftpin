@@ -703,3 +703,20 @@ describe("kids' ideas on wish lists (30 Oct 2026)", () => {
     expect(page({ eventType: "holiday" })).toContain(">Kids (ages 4 to 7)<");
   });
 });
+
+describe("linked stores banner", () => {
+  const stores = [
+    { name: "Maple & Clay", current: true, manageUrl: "https://a.example/manage?t=x" },
+    { name: "Birch", current: false, manageUrl: "https://b.example/manage?t=x" },
+  ];
+  it("shows the banner, other-store links and one-time tip", () => {
+    const html = page({ linkedStores: stores });
+    expect(html).toContain("Also open on:");
+    expect(html).toContain('href="https://b.example/manage?t=x"');
+    expect(html).toContain("giftpin.linkedTipSeen.registry_1");
+  });
+  it("shows nothing when not linked, and no tip during setup", () => {
+    expect(page()).not.toContain("Also open on:");
+    expect(page({ linkedStores: stores, setupStep: 1 })).not.toContain("linked-tip");
+  });
+});

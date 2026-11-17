@@ -64,4 +64,5 @@ export const zhCNServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "您的管理链接已失效。",
   "server.p.deleted.t": "您的清单已被删除",
   "server.p.deleted.m": "清单上的所有内容均已清除，包括谁购买了什么的记录。",
+  "server.linkedNeedsPro": "从关联店铺添加商品，需要清单所属店铺订阅 Giftpin Pro",
 };

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
@@ -47,19 +47,19 @@ enum ShopPlan {
 }
 
 model Shop {
-  id          String   @id @default(cuid())
-  domain      String   @unique // foo.myshopify.com
-  name        String?
-  currency    String   @default("USD")
+  id            String    @id @default(cuid())
+  domain        String    @unique // foo.myshopify.com
+  name          String?
+  currency      String    @default("USD")
   // ISO 3166-1 alpha-2 from Shopify's shop billing address, refreshed on
   // every admin load. Groups the giftpin.app gift card directory by country.
-  country     String?
+  country       String?
   // Shopify partner development store (shop.plan.partnerDevelopment). Such a
   // store can only accept test charges, so billing always uses isTest there,
   // and gift card fees skip their refund hold so they can be tested at once.
-  devStore    Boolean  @default(false)
-  moneyFormat String?
-  installedAt DateTime @default(now())
+  devStore      Boolean   @default(false)
+  moneyFormat   String?
+  installedAt   DateTime  @default(now())
   uninstalledAt DateTime?
 
   // Merchant-configurable behaviour. See SHOP_SETTINGS_DEFAULTS in app/models/shop.server.ts
@@ -77,6 +77,10 @@ model Shop {
   registries    Registry[]
   giftCardSales GiftCardSale[]
   dailyStats    DailyStat[]
+
+  // Linked stores (multi-store registries, see app/models/store-group.server.ts)
+  groupMembership StoreGroupMember?
+  linkedItems     RegistryItem[]    @relation("ItemSourceShop")
 
   @@index([uninstalledAt])
 }
@@ -129,13 +133,13 @@ model Registry {
   indexable    Boolean         @default(false) // opt-in; see §8 privacy
   passwordHash String?
 
-  shipToRegistrant Boolean @default(false)
+  shipToRegistrant          Boolean @default(false)
   // Chip-in gift cards are emailed straight to the owner registrant. Off by
   // default because it puts their email into the guest's cart, where the
   // guest can see it. Off: the card goes to the guest to pass on. SPIKE-C.md.
   contributionsToRegistrant Boolean @default(false)
   // AES-256-GCM ciphertext of a JSON address. Never rendered on a public page.
-  shippingAddressEnc String?
+  shippingAddressEnc        String?
 
   status    RegistryStatus @default(active)
   createdAt DateTime       @default(now())
@@ -166,11 +170,11 @@ model Registrant {
   registryId String
   registry   Registry @relation(fields: [registryId], references: [id], onDelete: Cascade)
 
-  name     String
-  emailEnc String // AES-256-GCM
+  name      String
+  emailEnc  String // AES-256-GCM
   // Deterministic HMAC of the lowercased email, so we can look up without decrypting.
   emailHash String
-  role     RegistrantRole @default(owner)
+  role      RegistrantRole @default(owner)
 
   createdAt DateTime @default(now())
 
@@ -201,11 +205,11 @@ model GuestReminder {
 // ---------------------------------------------------------------------------
 
 enum ItemSourceType {
-  internal      // merchant's own catalog — buyable, attributable
-  shopify_ext   // another Shopify store — live price/stock, not buyable here
-  web           // resolved from page metadata — snapshot only
-  manual        // registrant typed it
-  fund          // cash fund (e.g. honeymoon): no product, guests chip in with store gift cards. See SPIKE-C.md
+  internal // merchant's own catalog — buyable, attributable
+  shopify_ext // another Shopify store — live price/stock, not buyable here
+  web // resolved from page metadata — snapshot only
+  manual // registrant typed it
+  fund // cash fund (e.g. honeymoon): no product, guests chip in with store gift cards. See SPIKE-C.md
 }
 
 model RegistryItem {
@@ -216,8 +220,14 @@ model RegistryItem {
   sourceType ItemSourceType
 
   // internal items only
-  productGid String? // gid://shopify/Product/123
-  variantGid String? // gid://shopify/ProductVariant/456
+  productGid   String? // gid://shopify/Product/123
+  variantGid   String? // gid://shopify/ProductVariant/456
+  // The linked store that sells this internal item, when it isn't the
+  // registry's own store (multi-store registries). Null = the registry's
+  // shop, so every row made before linking existed is unchanged. Never set
+  // to the registry's own shop id. See app/models/store-group.server.ts.
+  sourceShopId String?
+  sourceShop   Shop?   @relation("ItemSourceShop", fields: [sourceShopId], references: [id], onDelete: SetNull)
 
   // everything else
   externalSourceId String?
@@ -234,7 +244,9 @@ model RegistryItem {
   snapshotImageUrl String?
   snapshotPrice    Decimal? @db.Decimal(12, 2)
   snapshotCurrency String?
-  /** Storefront URL for external and manual items. */
+  /**
+   * Storefront URL for external and manual items.
+   */
   externalUrl      String?
 
   desiredQty   Int @default(1)
@@ -268,8 +280,6 @@ model RegistryItem {
   claims    Claim[]
   purchases Purchase[]
 
-  @@index([registryId, priority])
-  @@index([externalSourceId])
   // Closes the addInternalItem/addExternalItem race documented in CLAUDE.md
   // and STATUS.md (19 Sep 2026): two near-simultaneous adds could both pass
   // the findFirst dedup check before either write landed. Nullable fields are
@@ -278,6 +288,9 @@ model RegistryItem {
   // with each other or with other NULLs of the same kind.
   @@unique([registryId, variantGid])
   @@unique([registryId, externalUrl])
+  @@index([registryId, priority])
+  @@index([externalSourceId])
+  @@index([sourceShopId])
 }
 
 // Deduplicated across ALL shops — this is public product data, never customer
@@ -290,10 +303,10 @@ model ExternalSource {
   domain           String
   resolver         String // shopify_public | jsonld | microdata | opengraph | oembed | manual
 
-  title    String?
-  imageUrl String? // remote URL; always served to guests through /proxy/img
-  price    Decimal? @db.Decimal(12, 2)
-  currency String?
+  title        String?
+  imageUrl     String? // remote URL; always served to guests through /proxy/img
+  price        Decimal? @db.Decimal(12, 2)
+  currency     String?
   availability String? // in_stock | out_of_stock | unknown
 
   lastFetchedAt DateTime?
@@ -329,9 +342,9 @@ model Claim {
   // guest release their own claim without us storing anything about them.
   guestFingerprint String
 
-  expiresAt DateTime
+  expiresAt  DateTime
   releasedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([itemId, releasedAt])
   @@index([expiresAt, releasedAt])
@@ -342,9 +355,9 @@ model Claim {
 // ---------------------------------------------------------------------------
 
 enum PurchaseSource {
-  online   // attributed from an order webhook
-  pos      // V2
-  manual   // registrant marked it purchased
+  online // attributed from an order webhook
+  pos // V2
+  manual // registrant marked it purchased
   external // guest confirmed they bought it elsewhere
 }
 
@@ -365,9 +378,9 @@ model Purchase {
   amount   Decimal? @db.Decimal(12, 2)
   currency String?
 
-  buyerName    String?
-  buyerEmailEnc String?
-  buyerMessage String?
+  buyerName       String?
+  buyerEmailEnc   String?
+  buyerMessage    String?
   // Shopify customer id of the buyer (numeric, as a string). Kept only so
   // customers/redact can erase this buyer's name; cleared with the name.
   buyerCustomerId String?
@@ -379,19 +392,27 @@ model Purchase {
   // A gift card bought as a chip-in toward a group gift or fund (SPIKE-C.md).
   // `amount` is what counts; `qty` is the number of cards and never touches
   // RegistryItem.purchasedQty.
-  isContribution Boolean @default(false)
+  isContribution      Boolean @default(false)
   // True when this order contained a customer who had never bought from the
   // shop before — feeds "new customers acquired" on the dashboard.
-  isNewCustomer Boolean @default(false)
+  isNewCustomer       Boolean @default(false)
 
-  voidedAt DateTime? // refund or cancellation; keeps the row for audit
-  createdAt DateTime @default(now())
+  voidedAt  DateTime? // refund or cancellation; keeps the row for audit
+  createdAt DateTime  @default(now())
+
+  // The store whose order this came from, when it isn't the registry's own
+  // (a linked store, see store-group.server.ts). Null = the registry's shop.
+  // GDPR requests follow this: customer ids are per store. No relation on
+  // purpose, so shop/redact of the selling store can't cascade into another
+  // store's registry; that handler clears these rows itself.
+  shopId String?
 
   // Webhook idempotency. A null orderId (manual/external) never collides
   // because Postgres treats NULLs as distinct in a unique index.
   @@unique([orderId, lineItemId])
   @@index([itemId, voidedAt])
   @@index([buyerCustomerId])
+  @@index([shopId])
 }
 
 // A gift card sold through Giftpin's gift card listing (giftpin.app/gift-cards
@@ -422,7 +443,7 @@ model GiftCardSale {
   feeAmount     Decimal?  @db.Decimal(12, 2) // in feeCurrency (the subscription's, USD)
   feeCurrency   String?
   feeRate       Decimal?  @db.Decimal(14, 6) // shop currency → feeCurrency, at charge time
-  usageRecordId String?   // gid://shopify/AppUsageRecord/...
+  usageRecordId String? // gid://shopify/AppUsageRecord/...
   feeCheckedAt  DateTime?
 
   voidedAt  DateTime? // refund or cancellation
@@ -463,11 +484,11 @@ model DailyStat {
   shopId String
   shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
 
-  day    DateTime @db.Date // UTC day
-  metric String // see STAT_METRICS in app/shared/stats.ts
+  day        DateTime @db.Date // UTC day
+  metric     String // see STAT_METRICS in app/shared/stats.ts
   // "" for a store-wide counter. Not a relation on purpose: a deleted
   // registry's past views still count toward the store's totals.
-  registryId String @default("")
+  registryId String   @default("")
 
   count Int     @default(0)
   // Money metrics only (store_sales), in shop currency. Zero otherwise.
@@ -489,6 +510,47 @@ model ProcessedWebhook {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Linked stores (multi-store registries)
+//
+// One merchant's Shopify stores, linked by a one-time code made in one store's
+// admin and redeemed in the other's. A registry still has one home shop
+// (Registry.shopId), but can hold products from any store in its group, and
+// every store in the group serves it. See app/models/store-group.server.ts.
+// ---------------------------------------------------------------------------
+
+model StoreGroup {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  members StoreGroupMember[]
+}
+
+model StoreGroupMember {
+  id       String     @id @default(cuid())
+  groupId  String
+  group    StoreGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  // A store is in at most one group.
+  shopId   String     @unique
+  shop     Shop       @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  joinedAt DateTime   @default(now())
+
+  @@index([groupId])
+}
+
+model StoreLinkCode {
+  id        String    @id @default(cuid())
+  // sha256 of the code; the code itself is shown once and never stored.
+  codeHash  String    @unique
+  shopId    String // the store that made it
+  expiresAt DateTime
+  usedAt    DateTime?
+  usedBy    String? // shop id that redeemed it
+  createdAt DateTime  @default(now())
+
+  @@index([shopId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

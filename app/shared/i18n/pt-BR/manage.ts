@@ -280,4 +280,11 @@ export const ptBRManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "Você paga no checkout de {shop} e o vale-presente é usado aqui. Se preferir enviá-lo você mesmo, deixe a caixa desmarcada e o vale chega para você. A Shopify não envia vales-presente para outra pessoa quando você paga com Shop Pay, então use o botão normal de finalizar compra para isso.",
   "manage.lang.label": "Idioma desta lista",
   "manage.lang.hint": "Os convidados veem a página da lista, e os e-mails da lista são enviados, neste idioma. Os nomes e observações que você digita ficam como você escreveu.",
+  "manage.linked.item": "Da {store}",
+  "manage.linked.banner": "Você entrou com o link que enviamos por e-mail. Ele funciona em {stores}. Perdeu? Use \"Enviar meu link por e-mail\" em qualquer loja.",
+  "manage.linked.alsoOn": "Também aberto em:",
+  "manage.linked.tipTitle": "Guarde seu link",
+  "manage.linked.tip": "Guarde o link que enviamos por e-mail. É por ele que você volta a esta lista em {stores}. O site de cada loja lembra de você separadamente, então salve esta página nos favoritos em cada uma.",
+  "manage.linked.ok": "OK",
+  "manage.linked.addFrom": "Você também pode adicionar produtos de {stores}: abra esta página nessa loja e use o botão de adicionar à lista.",
 };

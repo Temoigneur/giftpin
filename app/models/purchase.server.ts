@@ -1,4 +1,5 @@
 import db from "../db.server";
+import { purchasesSoldByWhere } from "./store-group.server";
 import { registerHandler } from "../lib/queue.server";
 import { attributedLines, type OrderLineItem } from "../lib/attribution";
 import {
@@ -109,21 +110,44 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
   const shipped = new Set<string>();
 
   for (const line of lines) {
-    // Scope the item lookup by registry AND shop. A token is signed by us, but
-    // a registry id from one shop must never credit another shop's registry.
+    // Scope the item lookup by registry AND the store that sells the item. A
+    // token is signed by us, but an order on one store may only credit an item
+    // that store sells: the registry's own store's products, or (linked
+    // stores, see store-group.server.ts) a linked store's products, whose
+    // RegistryItem.sourceShopId names that store. Group membership is NOT
+    // re-checked here: an item only gets a sourceShopId while its store is
+    // linked, and if the stores unlinked between cart and order the gift was
+    // still bought for this registry. Crediting it is the safe answer (hard
+    // rule 5: err toward "looks claimed").
     const item = await db.registryItem.findFirst({
       where: {
         id: line.itemId,
         registryId: line.registryId,
-        registry: { shopId: shopRecord.id },
+        OR: [
+          { sourceShopId: null, registry: { shopId: shopRecord.id } },
+          { sourceShopId: shopRecord.id },
+        ],
       },
-      include: { registry: { include: { registrants: { orderBy: { createdAt: "asc" } } } } },
+      include: {
+        registry: {
+          include: {
+            registrants: { orderBy: { createdAt: "asc" } },
+            shop: { select: { domain: true } },
+          },
+        },
+      },
     });
 
     if (!item) {
       console.warn(`[attribution] order ${orderId} referenced unknown item ${line.itemId}`);
       continue;
     }
+    // Emails and manage links come from the registry's own store, wherever
+    // the gift was bought.
+    const homeDomain = item.registry.shop?.domain ?? shopDomain;
+    // Null for a sale on the registry's own store, so those rows look as
+    // they always have. GDPR requests from the selling store follow this.
+    const sellingShopId = item.registry.shopId === shopRecord.id ? null : shopRecord.id;
 
     const registry = item.registry;
     // Only when the guest chose it on this cart line (the registry page's
@@ -165,6 +189,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
             shippedToRegistrant: isContribution ? false : shipToRegistrant,
             isNewCustomer,
             isContribution,
+            shopId: sellingShopId,
           },
         });
 
@@ -227,7 +252,7 @@ export async function attributeOrder(shopDomain: string, order: OrderPayload): P
       continue;
     }
 
-    await notifyRegistrant(registry, shopDomain, {
+    await notifyRegistrant(registry, homeDomain, {
       itemTitle: item.snapshotTitle ?? "an item",
       qty: line.quantity,
       desiredQty: item.desiredQty,
@@ -261,12 +286,15 @@ export async function voidPurchases(
 ): Promise<void> {
   await voidGiftCardSales(shopDomain, orderId, lineItemIds);
 
+  const shopRow = await db.shop.findUnique({ where: { domain: shopDomain }, select: { id: true } });
   const purchases = await db.purchase.findMany({
     where: {
       orderId,
       voidedAt: null,
       ...(lineItemIds && lineItemIds.length > 0 ? { lineItemId: { in: lineItemIds } } : {}),
-      item: { registry: { shop: { domain: shopDomain } } },
+      // This store's own registries, or a linked store's registry when the
+      // order was placed here (Purchase.shopId).
+      ...purchasesSoldByWhere(shopDomain, shopRow?.id ?? null),
     },
     include: { item: { select: { id: true, registryId: true } } },
   });

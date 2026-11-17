@@ -130,6 +130,12 @@ reading Shopify's docs.
   tags on every App Store link, first-party counts for registrant shares and admin section opens (`/ops`).
   See `docs/analytics.md`. Never add Google Analytics to storefront (app proxy) pages or the embedded admin.
   Unverified: whether the App Store listing passes our UTM tags into its GA events.
+- **Linked stores / multi-store registries (built 17 Nov 2026, not live-tested):**
+  `app/models/store-group.server.ts`, migration `20261117150000_linked_stores`,
+  Settings → Linked stores, guest page `/apps/registry/g/<registry id>` on
+  linked stores. Attribution now accepts an order from the store that SELLS
+  the item (`RegistryItem.sourceShopId`), and GDPR/refunds follow
+  `Purchase.shopId`. Run `SPIKE-D.md` on two dev stores before merging.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

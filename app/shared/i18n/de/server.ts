@@ -64,4 +64,5 @@ export const deServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "Dein Verwaltungslink funktioniert nicht mehr.",
   "server.p.deleted.t": "Deine Liste wurde gelöscht",
   "server.p.deleted.m": "Alles darauf ist weg, einschließlich der Angaben, wer was gekauft hat.",
+  "server.linkedNeedsPro": "Für das Hinzufügen von Produkten aus einem verknüpften Shop ist Giftpin Pro im eigenen Shop der Liste nötig",
 };

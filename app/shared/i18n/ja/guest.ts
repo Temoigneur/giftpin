@@ -106,4 +106,6 @@ export const jaGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.promo.pctOff": "{n}%オフ",
   "guest.promo.amtOffEach": "1点につき{amount}オフ",
   "guest.promo.tier": "（リストのギフト{n}点以上）",
+  "guest.linked.findAt": "{store}で探す →",
+  "guest.linked.stores": "このリストのギフトは{stores}のものです。お支払いはストアごとに別々になります。",
 };

@@ -280,4 +280,11 @@ export const zhCNManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "您在 {shop} 的结账页面付款，礼品卡在此处使用。如果您想自己转送，请不要勾选该选项，礼品卡会发给您。使用 Shop Pay 付款时，Shopify 不会把礼品卡发给其他人，因此请使用常规的结账按钮。",
   "manage.lang.label": "这份清单的语言",
   "manage.lang.hint": "宾客将以此语言看到清单页面，清单邮件也将以此语言发送。您输入的姓名和留言保持原样。",
+  "manage.linked.item": "来自 {store}",
+  "manage.linked.banner": "您已通过邮件链接登录。它在 {stores} 都能使用。弄丢了？在任意一家店点击“把链接发给我”即可。",
+  "manage.linked.alsoOn": "也可在这里打开：",
+  "manage.linked.tipTitle": "请保存好您的链接",
+  "manage.linked.tip": "请保存好我们发给您的邮件链接。凭它就能在 {stores} 回到这份清单。每家店的网站会分别记住您，所以请在每家店都收藏这个页面。",
+  "manage.linked.ok": "好的",
+  "manage.linked.addFrom": "您也可以添加来自 {stores} 的商品：在那家店打开此页面，使用它的“添加到清单”按钮。",
 };

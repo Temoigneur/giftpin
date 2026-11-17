@@ -64,4 +64,5 @@ export const zhTWServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "您用來管理的連結已失效。",
   "server.p.deleted.t": "您的清單已刪除",
   "server.p.deleted.m": "清單上的一切都已消失，包括誰買了什麼的紀錄。",
+  "server.linkedNeedsPro": "從連結的商店加入商品，需要清單所屬商店訂閱 Giftpin Pro",
 };

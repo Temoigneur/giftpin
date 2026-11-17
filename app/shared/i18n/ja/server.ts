@@ -64,4 +64,5 @@ export const jaServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "管理用のリンクは使えなくなりました。",
   "server.p.deleted.t": "ギフトリストを削除しました",
   "server.p.deleted.m": "誰が何を購入したかの記録を含め、すべて削除されました。",
+  "server.linkedNeedsPro": "リンクしたストアの商品を追加するには、リストの本来のストアでGiftpin Proが必要です",
 };

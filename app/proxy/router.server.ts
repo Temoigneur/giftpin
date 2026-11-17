@@ -17,6 +17,7 @@ import { settingsFor, eventTypeLabel, isPro, type ShopSettings } from "../models
 import { isDatelessOccasion } from "../shared/settings";
 import {
   findBySlug as findBySlugRaw,
+  findById,
   findVersionBySlug,
   findByEmail,
   createRegistry,
@@ -108,6 +109,15 @@ import { registrantPerks } from "../shared/perks";
 import { liveDeals, productCollections } from "../lib/promotions.server";
 import { bannerLines, dealForProduct, itemDealText, promotionPerkLines, type Deal } from "../shared/promotion-display";
 import { queueFlowTrigger } from "../models/flow.server";
+import {
+  groupShops,
+  groupShopIds,
+  sameGroup,
+  itemShopId,
+  sourceShopIdFor,
+  canHoldLinkedProducts,
+  type LinkedShop,
+} from "../models/store-group.server";
 
 /**
  * Guest-surface router.
@@ -146,8 +156,67 @@ async function findBySlug(...args: Parameters<typeof findBySlugRaw>) {
   return inRegistryLanguage(await findBySlugRaw(...args));
 }
 
-async function authorizeManage(...args: Parameters<typeof authorizeManageRaw>) {
-  return inRegistryLanguage(await authorizeManageRaw(...args));
+/**
+ * Manage access, from the store that proxied the request. A registry is
+ * managed from its own store or any store linked to it (multi-store
+ * registries, store-group.server.ts), never from an unrelated store. A
+ * signed-in store customer only counts on the registry's own store: customer
+ * accounts are per store.
+ */
+async function authorizeManage(
+  shopId: string,
+  registryId: string,
+  token: string | null,
+  loggedInCustomerId: string | null,
+) {
+  const registry = await authorizeManageRaw(registryId, token, null);
+  const viaCustomer = registry
+    ? null
+    : await authorizeManageRaw(registryId, token, loggedInCustomerId);
+  const found = registry ?? viaCustomer;
+  if (!found) return null;
+  if (viaCustomer && found.shopId !== shopId) return null;
+  if (!(await sameGroup(found.shopId, shopId))) return null;
+  return inRegistryLanguage(found);
+}
+
+/** The proxying store's Shop id ("" if it has none, which matches no registry). */
+async function currentShopId(ctx: ProxyContext): Promise<string> {
+  const row = await db.shop.findUnique({ where: { domain: ctx.shop }, select: { id: true } });
+  return row?.id ?? "";
+}
+
+/**
+ * "In this store" suggestions for outside items, only on the registry's own
+ * store: a match (and a later swap) is a product of the store that found it,
+ * and the registry's own store is the one that sells its plain store items.
+ */
+async function storeMatchHere(
+  registry: { shopId: string },
+  shop: ShopRecord,
+  title: string,
+): ReturnType<typeof previewStoreMatch> {
+  if (registry.shopId !== shop.id) return null;
+  return previewStoreMatch(shop.domain, shop.currency, title);
+}
+
+/** Ids of the stores whose registries this store serves: itself and its linked stores. */
+async function servedShopIds(ctx: ProxyContext): Promise<string[]> {
+  const row = await db.shop.findUnique({ where: { domain: ctx.shop }, select: { id: true } });
+  return row ? groupShopIds(row.id) : [];
+}
+
+/**
+ * Where a registry's guest page lives on a given store: `r/<slug>` on its own
+ * store, `g/<registry id>` on a linked one (slugs are only unique per store).
+ */
+function registryPath(registry: { id: string; slug: string; shopId: string }, shopId: string): string {
+  return registry.shopId === shopId ? `r/${registry.slug}` : `g/${registry.id}`;
+}
+
+/** The registry's guest page on another store in its group. Proxy prefix assumed default. */
+function linkedRegistryUrl(store: Pick<LinkedShop, "domain">, registryId: string, itemId?: string): string {
+  return `${absoluteProxyUrl(store.domain, "/apps/registry", `g/${registryId}`)}${itemId ? `#item-${itemId}` : ""}`;
 }
 
 export async function handleProxyRequest(request: Request): Promise<Response> {
@@ -223,6 +292,13 @@ async function routeProxyRequest(
           return await registryVersionAction(ctx, segments[1]);
         }
         return await registryPage(request, ctx, shop, settings, brand, segments[1]);
+
+      case "g":
+        // A registry homed on a linked store, served here (multi-store).
+        if (segments[2] === "version") {
+          return await linkedVersionAction(shop, segments[1]);
+        }
+        return await linkedRegistryPage(request, ctx, shop, settings, brand, segments[1]);
 
       case "manage":
         return await managePage(ctx, shop, settings, brand);
@@ -353,11 +429,45 @@ async function registryPage(
       404,
     );
   }
+  return showRegistry(request, ctx, shop, settings, brand, registry);
+}
 
+/** GET /g/<registry id>: a registry homed on a store linked to this one. */
+async function linkedRegistryPage(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+  registryId: string | undefined,
+): Promise<Response> {
+  const registry = registryId ? inRegistryLanguage(await findById(registryId)) : null;
+  if (!registry || registry.status !== "active" || !(await sameGroup(registry.shopId, shop.id))) {
+    return page(
+      renderSimplePage(brand, t("server.p.regNotFound.t"), t("server.p.regNotFound.m")),
+      404,
+    );
+  }
+  // Its own store has the canonical link.
+  if (registry.shopId === shop.id) {
+    return redirect(proxyUrl(ctx, `r/${registry.slug}`, Object.fromEntries(ctx.query.has("pw") ? [["pw", ctx.query.get("pw")!]] : [])));
+  }
+  return showRegistry(request, ctx, shop, settings, brand, registry);
+}
+
+async function showRegistry(
+  request: Request,
+  ctx: ProxyContext,
+  shop: ShopRecord,
+  settings: ShopSettings,
+  brand: Brand,
+  registry: RegistryWithItems,
+): Promise<Response> {
+  const path = registryPath(registry, shop.id);
   if (registry.privacy === "password") {
     const supplied = ctx.query.get("pw");
     if (!checkRegistryPassword(registry, supplied)) {
-      return page(renderPasswordPage({ ...brand, actionUrl: ctx.pathPrefix, slug }));
+      return page(renderPasswordPage({ ...brand, actionUrl: ctx.pathPrefix, slug: registry.slug, path }));
     }
   }
 
@@ -367,19 +477,28 @@ async function registryPage(
   // Read-through cache. A registry link going out to 80 guests at once should
   // be one render, not 80 — and the version in the key means a purchase
   // invalidates it the instant it lands.
+  // Keyed by the serving store too: each linked store renders its own
+  // buttons, branding and links for the same registry.
   const html = await cached(
-    registryCacheKey(registry.id, registry.version, `${registry.privacy === "password" ? "pw" : "page"}:${currentLocale()}`),
+    registryCacheKey(
+      registry.id,
+      registry.version,
+      `${registry.privacy === "password" ? "pw" : "page"}:${currentLocale()}${registry.shopId === shop.id ? "" : `:${shop.id}`}`,
+    ),
     60,
-    async () =>
-      buildRegistryHtml(
+    async () => {
+      const group = await groupShops(shop.id);
+      return buildRegistryHtml(
         registry,
         ctx,
         shop,
         settings,
         brand,
-        await registryStock(ctx.shop, registry),
+        await registryStock(registry, group),
         await registryDeals(shop, settings, registry),
-      ),
+        group,
+      );
+    },
   );
 
   return page(html, 200, registry.indexable && registry.privacy === "public_");
@@ -396,6 +515,17 @@ async function registryPage(
  * rendered with and offer a refresh rather than silently reloading out from
  * under someone mid-interaction.
  */
+async function linkedVersionAction(shop: ShopRecord, registryId: string | undefined): Promise<Response> {
+  const registry = registryId
+    ? await db.registry.findFirst({
+        where: { id: registryId, status: "active" },
+        select: { id: true, version: true, shopId: true },
+      })
+    : null;
+  if (!registry || !(await sameGroup(registry.shopId, shop.id))) return json({ ok: false }, 404);
+  return json({ ok: true, version: registry.version }, 200);
+}
+
 async function registryVersionAction(ctx: ProxyContext, slug: string | undefined): Promise<Response> {
   const registry = slug ? await findVersionBySlug(ctx.shop, slug) : null;
   if (!registry) return json({ ok: false }, 404);
@@ -407,13 +537,63 @@ async function registryVersionAction(ctx: ProxyContext, slug: string | undefined
 
 /**
  * Live stock for the registry's store products, fetched inside the page
- * cache above, so it costs at most one Admin API call per registry a minute.
+ * cache above, so it costs at most one Admin API call per store per registry
+ * a minute. Each product is checked on the store that sells it (linked
+ * stores); a store that is no longer linked or installed is skipped, and its
+ * items show no stock state rather than a wrong one.
  */
-async function registryStock(shopDomain: string, registry: RegistryWithItems): Promise<StockMap> {
-  const variantGids = registry.items
-    .filter((i) => i.sourceType === "internal" && i.variantGid && i.purchasedQty < i.desiredQty)
-    .map((i) => i.variantGid!);
-  return variantGids.length ? fetchVariantStock(shopDomain, variantGids) : new Map();
+async function registryStock(registry: RegistryWithItems, group: LinkedShop[]): Promise<StockMap> {
+  const domains = new Map<string, string>([[registry.shopId, registry.shop.domain]]);
+  for (const s of group) domains.set(s.id, s.domain);
+  const byShop = new Map<string, string[]>();
+  for (const i of registry.items) {
+    if (i.sourceType !== "internal" || !i.variantGid || i.purchasedQty >= i.desiredQty) continue;
+    const domain = domains.get(itemShopId(i, registry.shopId));
+    if (!domain) continue;
+    byShop.set(domain, [...(byShop.get(domain) ?? []), i.variantGid]);
+  }
+  if (byShop.size === 0) return new Map();
+  const maps = await Promise.all(
+    [...byShop].map(([domain, gids]) =>
+      fetchVariantStock(domain, gids).catch((err) => {
+        console.error(`[stock] ${domain}:`, (err as Error).message);
+        return null;
+      }),
+    ),
+  );
+  const merged = new Map();
+  for (const m of maps) if (m) for (const [k, v] of m) merged.set(k, v);
+  return merged as StockMap;
+}
+
+/**
+ * Per-item "buy it on the other store" details for a registry shown on
+ * `shop`. Items sold here, or by the registry's own store when this IS it,
+ * get nothing. A linked store's item gets that store's door; an item from a
+ * store that's no longer linked gets a search link on its storefront.
+ */
+function linkedStoreFor(
+  item: { sourceType: string; sourceShopId: string | null },
+  registry: { id: string; shopId: string; shop: { domain: string; name: string | null } },
+  shop: ShopRecord,
+  group: LinkedShop[],
+  title: string,
+  itemId: string,
+): { name: string; href: string | null; searchHref: string } | null {
+  if (item.sourceType !== "internal" && item.sourceType !== "fund") return null;
+  const sellerId = item.sourceType === "fund" ? registry.shopId : itemShopId(item, registry.shopId);
+  if (sellerId === shop.id) return null;
+  const seller =
+    group.find((s) => s.id === sellerId) ??
+    (sellerId === registry.shopId ? { id: registry.shopId, domain: registry.shop.domain, name: registry.shop.name } : null);
+  const linked = group.some((s) => s.id === sellerId);
+  const domain = seller?.domain ?? null;
+  const name = seller?.name ?? (domain ? domain.replace(".myshopify.com", "") : t("guest.item.anotherStore"));
+  return {
+    name,
+    href: linked && domain ? linkedRegistryUrl({ domain }, registry.id, itemId) : null,
+    searchHref: domain ? `https://${domain}/search?q=${encodeURIComponent(title)}` : "",
+  };
 }
 
 /** The promotions advertised on one registry page: a banner, and a price line per discounted item. */
@@ -446,13 +626,27 @@ function buildRegistryHtml(
   brand: Brand,
   stock: StockMap = null,
   promotions: { banner: string[]; itemDeals: Record<string, string> } = { banner: [], itemDeals: {} },
+  group: LinkedShop[] = [],
 ): string {
-  const chipIn = contributionsAvailable(shop, settings);
+  const home = registry.shopId === shop.id;
+  // Chip-ins are this store's gift cards, so they're only offered on the
+  // registry's own store. A linked store links funds back there.
+  const chipIn = home && contributionsAvailable(shop, settings);
+
   // A fund nobody can pay into (plan lapsed, or the merchant removed the gift
   // card product) is hidden rather than shown as a dead end. Sold-out store
   // products are left off too when the merchant chose that (app/lib/stock.ts).
-  const items = applyStock(registry.items.map((item) => toDisplayItem(item)), stock)
-    .filter((item) => chipIn || !item.isFund)
+  const items = applyStock(
+    registry.items.map((item) => {
+      const display = toDisplayItem(item);
+      display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id);
+      // A store match is a link on the registry's own store; elsewhere it would point at the wrong shop.
+      if (!home) display.storeMatch = null;
+      return display;
+    }),
+    stock,
+  )
+    .filter((item) => chipIn || !item.isFund || item.linkedStore?.href)
     .filter((item) => !hiddenFromGuests(item, settings.soldOutItems));
 
   return renderRegistryPage({
@@ -471,18 +665,19 @@ function buildRegistryHtml(
     progress: progressFor(registry),
     currency: shop.currency,
     indexable: registry.indexable && registry.privacy === "public_",
-    shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
+    shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, registryPath(registry, shop.id)),
     actionUrl: ctx.pathPrefix,
     accentColor: settings.accentColor,
     version: registry.version,
-    versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
+    versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/${registryPath(registry, shop.id)}/version`,
+    linkedStoreNames: group.length > 1 ? group.map((s) => s.name ?? s.domain.replace(".myshopify.com", "")) : [],
     // No-op until a real affiliate network is signed up and its redirect
     // endpoint is set — see app/lib/affiliate.ts.
     affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
     artBaseUrl: process.env.SHOPIFY_APP_URL || null,
     // "Powered by Giftpin" removal and the rest of Pro branding arrive via
     // brand.branding (see brandingFor), on this page and every other one.
-    offerReminder: offersGuestReminder(shop, registry.eventDate),
+    offerReminder: home && offersGuestReminder(shop, registry.eventDate),
     giftCardUrl: giftCardListingLive({
       pro: isPro(shop),
       uninstalled: shop.uninstalledAt !== null,
@@ -513,7 +708,7 @@ async function managePage(
   const registryId = token ? readTokenRegistryId(token) : null;
 
   const registry = registryId
-    ? await authorizeManage(registryId, token, ctx.loggedInCustomerId)
+    ? await authorizeManage(shop.id, registryId, token, ctx.loggedInCustomerId)
     : null;
 
   // No usable link, but the shopper is signed in to their store account:
@@ -578,6 +773,22 @@ async function managePage(
   const setupParam = ctx.query.get("setup");
   const setupStep = setupParam === "1" ? 1 : setupParam === "2" ? 2 : undefined;
 
+  // Linked stores (multi-store): every store in the group serves this page.
+  // The registrant's browser remembers them per website, so the page lists
+  // the other stores with a sign-in link for each, and reminds them that the
+  // emailed link is what works everywhere.
+  const group = await groupShops(shop.id);
+  const home = registry.shopId === shop.id;
+  const storeName = (s: Pick<LinkedShop, "name" | "domain">) => s.name ?? s.domain.replace(".myshopify.com", "");
+  const linkedStores =
+    group.length > 1
+      ? group.map((s) => ({
+          name: storeName(s),
+          current: s.id === shop.id,
+          manageUrl: absoluteProxyUrl(s.domain, "/apps/registry", "manage", { t: freshToken }),
+        }))
+      : [];
+
   return page(
     renderManagePage({
       ...brand,
@@ -591,7 +802,16 @@ async function managePage(
       affiliateLinkWrapperBase: process.env.AFFILIATE_LINK_WRAPPER_BASE || null,
       chromeExtensionUrl: process.env.CHROME_EXTENSION_URL || null,
       extensionConnect: ctx.query.get("extension") === "1",
-      items: applyStock(registry.items.map((item) => toDisplayItem(item)), await registryStock(ctx.shop, registry)),
+      items: applyStock(
+        registry.items.map((item) => {
+          const display = toDisplayItem(item);
+          display.linkedStore = linkedStoreFor(item, registry, shop, group, display.title, item.id);
+          return display;
+        }),
+        await registryStock(registry, group),
+      ),
+      linkedStores,
+      linkedProductsAllowed: linkedStores.length > 0 && canHoldLinkedProducts(registry.shop),
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings, await shopDeals(shop, settings)),
       enabledEventTypes: settings.eventTypes,
@@ -600,14 +820,14 @@ async function managePage(
       scanner: isPro(shop),
       scannerScriptUrl: scannerScriptUrl(),
       currency: shop.currency,
-      shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, `r/${registry.slug}`),
+      shareUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, registryPath(registry, shop.id)),
       actionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}`,
       token: freshToken,
       manageUrl: absoluteProxyUrl(ctx.shop, ctx.pathPrefix, "manage", { t: freshToken }),
       myRegistriesUrl: proxyUrl(ctx, "account", { t: freshToken }),
       externalItemsAllowed: settings.externalItems !== "off",
       version: registry.version,
-      versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/r/${registry.slug}/version`,
+      versionUrl: `${ctx.pathPrefix.replace(/\/+$/, "")}/${registryPath(registry, shop.id)}/version`,
       storeSearchUrl: "/collections/all",
       artBaseUrl: process.env.SHOPIFY_APP_URL || null,
       gifts,
@@ -617,7 +837,8 @@ async function managePage(
         address: registry.shipToRegistrant ? readShippingAddress(registry) : null,
         flash: shippingFlash,
       },
-      contributions: contributionsAvailable(shop, settings)
+      // Funds use the registry's own store's gift cards: managed there only.
+      contributions: home && contributionsAvailable(shop, settings)
         ? { toRegistrant: registry.contributionsToRegistrant }
         : null,
       partner: partnerFor(registry),
@@ -662,7 +883,8 @@ async function findPage(
     query.length >= 2
       ? await db.registry.findMany({
           where: {
-            shopId: shop.id,
+            // Linked stores' public registries too: every store in a group serves them.
+            shopId: { in: await groupShopIds(shop.id) },
             status: "active",
             privacy: "public_",
             indexable: true,
@@ -687,7 +909,7 @@ async function findPage(
         title: r.title,
         eventLabel: eventTypeLabel(r.eventType),
         eventDate: r.eventDate,
-        url: proxyUrl(ctx, `r/${r.slug}`),
+        url: proxyUrl(ctx, registryPath(r, shop.id)),
         names: r.registrants.map((p) => firstNameOnly(p.name)).join(" & "),
         coverImageUrl: r.coverImageUrl,
       })),
@@ -770,7 +992,8 @@ async function myRegistriesJson(ctx: ProxyContext, shop: ShopRecord): Promise<Re
  */
 async function accountPage(ctx: ProxyContext, shop: ShopRecord, brand: Brand): Promise<Response> {
   const rawAccount = ctx.query.get("a");
-  const emailHash = readAccountToken(rawAccount, shop.id);
+  const linkedIds = await groupShopIds(shop.id);
+  const emailHash = readAccountToken(rawAccount, linkedIds);
   const customerId = ctx.loggedInCustomerId ? String(ctx.loggedInCustomerId) : null;
   const rawManage = ctx.query.get("t");
   const manageToken = readManageGrant(rawManage) ? rawManage : null;
@@ -787,7 +1010,7 @@ async function accountPage(ctx: ProxyContext, shop: ShopRecord, brand: Brand): P
     );
   }
 
-  const registries = await listAccountRegistries(shop.id, emailHash, customerId);
+  const registries = await listAccountRegistries(shop.id, emailHash, customerId, linkedIds);
   const fresh = emailHash ? mintAccountToken(shop.id, emailHash) : null;
   return page(
     renderAccountPage({
@@ -871,7 +1094,7 @@ async function thankYouCsv(ctx: ProxyContext): Promise<Response> {
   const token = ctx.query.get("t");
   const registryId = token ? readTokenRegistryId(token) : null;
   const registry = registryId
-    ? await authorizeManage(registryId, token, ctx.loggedInCustomerId)
+    ? await authorizeManage(await currentShopId(ctx), registryId, token, ctx.loggedInCustomerId)
     : null;
 
   if (!registry) return new Response("Unauthorized", { status: 401 });
@@ -930,6 +1153,8 @@ async function handlePost(
       return resendAction(request, ctx, shop, brand);
     case "r":
       return unlockAction(request, ctx, segments[1]);
+    case "g":
+      return unlockAction(request, ctx, segments[1], "g");
     case "cart-add":
       return cartAddAction(request, ctx);
     case "contribute":
@@ -1085,11 +1310,16 @@ async function resendAction(
   );
 }
 
-async function unlockAction(request: Request, ctx: ProxyContext, slug: string | undefined): Promise<Response> {
+async function unlockAction(
+  request: Request,
+  ctx: ProxyContext,
+  slug: string | undefined,
+  kind: "r" | "g" = "r",
+): Promise<Response> {
   if (!slug) return new Response("Not found", { status: 404 });
   const form = await request.formData();
   const password = String(form.get("password") ?? "");
-  return redirect(proxyUrl(ctx, `r/${slug}`, { pw: password }));
+  return redirect(proxyUrl(ctx, `${kind}/${slug}`, { pw: password }));
 }
 
 /**
@@ -1103,8 +1333,19 @@ async function cartAddAction(request: Request, ctx: ProxyContext): Promise<Respo
   const variantId = String(body.variantId ?? "");
   const qty = clampInt(body.qty, 1, 99);
 
+  // Only an item THIS store sells goes in this store's cart: its own
+  // registries' products, or its products on a linked store's registry
+  // (sourceShopId). Attribution applies the same rule (attributeOrder).
   const item = await db.registryItem.findFirst({
-    where: { id: itemId, sourceType: "internal", registry: { shop: { domain: ctx.shop } } },
+    where: {
+      id: itemId,
+      sourceType: "internal",
+      registry: { status: "active" },
+      OR: [
+        { sourceShopId: null, registry: { shop: { domain: ctx.shop } } },
+        { sourceShop: { domain: ctx.shop } },
+      ],
+    },
     include: { registry: { include: { registrants: { select: { name: true } } } } },
   });
 
@@ -1293,7 +1534,7 @@ async function claimAction(request: Request, ctx: ProxyContext): Promise<Respons
   const itemId = String(body.itemId ?? "");
 
   const item = await db.registryItem.findFirst({
-    where: { id: itemId, registry: { shop: { domain: ctx.shop } } },
+    where: { id: itemId, registry: { shopId: { in: await servedShopIds(ctx) } } },
     include: { externalSource: true },
   });
   if (!item) return json({ ok: false }, 404);
@@ -1319,7 +1560,7 @@ async function boughtAction(request: Request, ctx: ProxyContext): Promise<Respon
   const itemId = String(body.itemId ?? "");
 
   const item = await db.registryItem.findFirst({
-    where: { id: itemId, registry: { shop: { domain: ctx.shop } } },
+    where: { id: itemId, registry: { shopId: { in: await servedShopIds(ctx) } } },
     include: { claims: { where: { releasedAt: null } } },
   });
   if (!item) return json({ ok: false, error: t("server.itemNotFound") }, 404);
@@ -1362,7 +1603,7 @@ async function undoBoughtAction(request: Request, ctx: ProxyContext): Promise<Re
 
   // Scope to this shop, the same as every other guest action.
   const purchase = await db.purchase.findFirst({
-    where: { id: purchaseId, item: { registry: { shop: { domain: ctx.shop } } } },
+    where: { id: purchaseId, item: { registry: { shopId: { in: await servedShopIds(ctx) } } } },
     select: { id: true },
   });
   if (!purchase || !(await undoGuestPurchase(purchase.id))) {
@@ -1411,7 +1652,7 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
   // product under it without reading the page again.
   const typedTitle = typeof body.title === "string" ? body.title.trim().slice(0, 300) : "";
   if (typedTitle.length >= 3) {
-    const typedMatch = await previewStoreMatch(shop.domain, shop.currency, typedTitle);
+    const typedMatch = await storeMatchHere(registry, shop, typedTitle);
     return json({ ok: true, matchOnly: true, match: typedMatch?.preview ?? null });
   }
 
@@ -1431,8 +1672,8 @@ async function linkPreviewAction(request: Request, ctx: ProxyContext, shop: Shop
   const guessedTitle = link.title ? null : urlTitle;
   // Try the page's own title first, then the name in the address: a bot-check
   // page can report a title that has nothing to do with the product.
-  let match = link.title ? await previewStoreMatch(shop.domain, shop.currency, link.title) : null;
-  if (!match && urlTitle) match = await previewStoreMatch(shop.domain, shop.currency, urlTitle);
+  let match = link.title ? await storeMatchHere(registry, shop, link.title) : null;
+  if (!match && urlTitle) match = await storeMatchHere(registry, shop, urlTitle);
   return json({
     ok: true,
     found: link.title !== null,
@@ -1468,7 +1709,7 @@ async function addLinkAction(request: Request, ctx: ProxyContext, shop: ShopReco
   const price = normalizePrice(rawPrice);
   if (price === null) return json({ ok: false, error: t("server.priceBad") }, 400);
 
-  const match = await previewStoreMatch(shop.domain, shop.currency, title);
+  const match = await storeMatchHere(registry, shop, title);
 
   try {
     const result = await addLinkedItem({
@@ -1517,8 +1758,8 @@ async function addFromStoreAction(
   const registryId = String(body.registryId ?? "");
   const token = typeof body.token === "string" ? body.token : null;
 
-  const registry = await authorizeManage(registryId, token, ctx.loggedInCustomerId);
-  if (!registry || registry.shopId !== shop.id) {
+  const registry = await authorizeManage(shop.id, registryId, token, ctx.loggedInCustomerId);
+  if (!registry) {
     return json({ ok: false, error: t("server.notAuth") }, 403);
   }
 
@@ -1545,8 +1786,16 @@ async function addFromStoreAction(
     return json({ ok: false, error: t("server.missingProduct") }, 400);
   }
 
+  // This store's product on a registry homed on a linked store (multi-store):
+  // a Pro feature of the registry's own store.
+  const sourceShopId = sourceShopIdFor(shop.id, registry.shopId);
+  if (sourceShopId && !canHoldLinkedProducts(registry.shop)) {
+    return json({ ok: false, error: t("server.linkedNeedsPro") }, 403);
+  }
+
   const result = await addInternalItem({
     registryId: registry.id,
+    sourceShopId,
     productGid: `gid://shopify/Product/${productId}`,
     variantGid: `gid://shopify/ProductVariant/${variantId}`,
     title: String(body.title ?? "Item").slice(0, 300),
@@ -1626,8 +1875,14 @@ async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopReco
   }
   if (!variant) return json({ ok: false, error: t("server.productNotInStore") }, 404);
 
+  const sourceShopId = sourceShopIdFor(shop.id, registry.shopId);
+  if (sourceShopId && !canHoldLinkedProducts(registry.shop)) {
+    return json({ ok: false, error: t("server.linkedNeedsPro") }, 403);
+  }
+
   const result = await addInternalItem({
     registryId: registry.id,
+    sourceShopId,
     productGid: variant.productGid,
     variantGid: variant.variantGid,
     title: variant.title.slice(0, 300),
@@ -1644,9 +1899,9 @@ async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopReco
 async function extVerifyAction(ctx: ProxyContext, shop: ShopRecord): Promise<Response> {
   const token = ctx.query.get("t");
   const registryId = token ? readTokenRegistryId(token) : null;
-  const registry = registryId ? await authorizeManage(registryId, token, null) : null;
+  const registry = registryId ? await authorizeManage(shop.id, registryId, token, null) : null;
 
-  if (!registry || registry.shopId !== shop.id) {
+  if (!registry) {
     return json({ ok: false, error: t("server.linkExpiredAsk") }, 401);
   }
 
@@ -1675,8 +1930,8 @@ async function extAddAction(request: Request, ctx: ProxyContext, shop: ShopRecor
   const registryId = token ? readTokenRegistryId(token) : null;
   if (!registryId) return json({ ok: false, error: t("server.notAuth") }, 403);
 
-  const registry = await authorizeManage(registryId, token, null);
-  if (!registry || registry.shopId !== shop.id) {
+  const registry = await authorizeManage(shop.id, registryId, token, null);
+  if (!registry) {
     return json({ ok: false, error: t("server.notAuth") }, 403);
   }
 
@@ -1811,6 +2066,8 @@ async function updateItemAction(request: Request, ctx: ProxyContext): Promise<Re
 async function itemMatchAction(request: Request, ctx: ProxyContext): Promise<Response> {
   const registry = await requireManage(ctx);
   if (!registry) return json({ ok: false, error: t("server.notAuth") }, 403);
+  // Store matches belong to the registry's own store (see storeMatchHere).
+  if (registry.shopId !== (await currentShopId(ctx))) return json({ ok: false, error: t("server.notAuth") }, 403);
 
   const body = await readJson(request);
   const action = String(body.action ?? "");
@@ -2051,15 +2308,10 @@ async function requireManage(ctx: ProxyContext): Promise<RegistryWithItems | nul
   const registryId = token ? readTokenRegistryId(token) : null;
   if (!registryId) return null;
 
-  const registry = await authorizeManage(registryId, token, ctx.loggedInCustomerId);
-  // Belt and braces: the token proves who, this proves the registry belongs to
-  // the shop that proxied the request.
-  if (!registry) return null;
-  const owned = await db.registry.findFirst({
-    where: { id: registry.id, shop: { domain: ctx.shop } },
-    select: { id: true },
-  });
-  return owned ? registry : null;
+  const registry = await authorizeManage(await currentShopId(ctx), registryId, token, ctx.loggedInCustomerId);
+  // authorizeManage already checked that the registry belongs to the shop
+  // that proxied the request, or to a store linked to it.
+  return registry;
 }
 
 function readTokenRegistryId(token: string): string | null {

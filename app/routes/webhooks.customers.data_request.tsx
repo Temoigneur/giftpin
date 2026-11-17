@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
+import { purchasesSoldByWhere } from "../models/store-group.server";
 import { blindIndex, tryDecrypt } from "../lib/crypto.server";
 import { audit } from "../lib/audit.server";
 
@@ -17,6 +18,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const body = payload as { customer?: { id?: number | string; email?: string } };
   const email = body.customer?.email;
   const customerId = body.customer?.id ? String(body.customer.id) : null;
+  const shopRow = await db.shop.findUnique({ where: { domain: shop }, select: { id: true } });
 
   const registries = await db.registry.findMany({
     where: {
@@ -32,7 +34,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   // Gifts this customer bought for other people's registries (buyer name only).
   const purchases = customerId
     ? await db.purchase.findMany({
-        where: { buyerCustomerId: customerId, item: { registry: { shop: { domain: shop } } } },
+        // Including gifts sold into a linked store's registry (Purchase.shopId).
+        where: { buyerCustomerId: customerId, ...purchasesSoldByWhere(shop, shopRow?.id ?? null) },
         select: { orderName: true, buyerName: true, qty: true, amount: true, currency: true, createdAt: true },
       })
     : [];

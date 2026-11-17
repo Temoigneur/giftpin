@@ -25,6 +25,8 @@ import { listNoun } from "../../shared/settings";
  */
 
 export interface RegistryPageData {
+  /** Names of every store in the linked group; empty or undefined when not linked. */
+  linkedStoreNames?: string[];
   title: string;
   message: string | null;
   /** Raw value ("wedding", "baby", ...) — picks the default hero art below. */
@@ -270,6 +272,13 @@ ${data.giftCardUrl ? `<p class="owner-link big">${th("guest.giftCardHtml", { sho
  * Order within a group is the incoming order, so merchant items stay on top.
  */
 function renderItemGroups(data: RegistryPageData): string {
+  const names = data.linkedStoreNames ?? [];
+  const joined = names.length > 1 ? `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}` : "";
+  const note = joined ? `<p class="item-meta">${tx(t("guest.linked.stores", { stores: joined }))}</p>` : "";
+  return note + renderItemLists(data);
+}
+
+function renderItemLists(data: RegistryPageData): string {
   // Template indentation costs ~1KB on a 30-item list against the page budget.
   // Stripping it after a newline never changes rendering: the newline is kept,
   // and nothing in an item uses <pre>, <textarea> or white-space:pre.
@@ -328,7 +337,9 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
 
   // The source badge is how a guest knows, before tapping, whether they're
   // staying on this store or leaving it. Never surprise someone into Amazon.
-  const badge = !item.isExternal
+  const badge = item.linkedStore
+    ? `<span class="src live">${escapeHtml(item.linkedStore.name)}</span>`
+    : !item.isExternal
     ? ""
     : item.sourceType === "shopify_ext"
       ? `<span class="src live" title="${escapeAttr(t("guest.item.liveTitle"))}">${escapeHtml(item.externalDomain ?? t("guest.item.anotherStore"))}</span>`
@@ -347,7 +358,7 @@ function renderItem(item: DisplayItem, data: RegistryPageData): string {
   if (held && remaining === 0) classes.push("taken");
   const sortPrice = item.isFund || !item.price ? "" : ` data-p="${item.price}"`;
 
-  return `<li class="${classes.join(" ")}" data-item="${escapeAttr(item.id)}"${sortPrice}>
+  return `<li class="${classes.join(" ")}" id="item-${escapeAttr(item.id)}" data-item="${escapeAttr(item.id)}"${sortPrice}>
   ${image}
   <div>
     <p class="item-title">${escapeHtml(item.title)}${badge}</p>
@@ -386,6 +397,19 @@ function renderItemAction(
   const heldNotice = held
     ? `<p class="item-meta">${tx(t("guest.item.someoneBuyingOne"))}</p>`
     : "";
+
+  // Sold by another linked store: a cart here can't hold it.
+  const ls = item.linkedStore;
+  if (ls?.href) {
+    return `${heldNotice}<div class="row"><a class="btn sm" href="${escapeAttr(ls.href)}">${tx(t("guest.item.buyAt", { domain: ls.name }))}</a></div>`;
+  }
+  if (ls) {
+    return `${heldNotice}<div class="row">
+  <a class="btn sm ghost js-claim" href="${escapeAttr(ls.searchHref)}" data-item="${escapeAttr(item.id)}" target="_blank" rel="noopener noreferrer">${tx(t("guest.linked.findAt", { store: ls.name }))}</a>
+  <button class="btn sm ghost js-bought" data-item="${escapeAttr(item.id)}" type="button">${tx(t("guest.item.iBought"))}</button>
+  <span class="js-status item-meta" role="status"></span>
+</div>`;
+  }
 
   const chipIn = renderChipIn(item, data);
   if (item.isFund) return chipIn;

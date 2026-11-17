@@ -64,4 +64,5 @@ export const frServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "Votre lien de gestion ne fonctionne plus.",
   "server.p.deleted.t": "Votre liste a été supprimée",
   "server.p.deleted.m": "Tout ce qu'elle contenait a disparu, y compris l'historique des achats.",
+  "server.linkedNeedsPro": "Ajouter des produits d'une boutique liée nécessite Giftpin Pro sur la boutique d'origine de la liste",
 };

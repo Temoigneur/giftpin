@@ -278,4 +278,11 @@ export const enManage = {
   "manage.gc.hint": "You pay at {shop}'s checkout, and the gift card is spent here. If you'd rather send it yourself, leave the box unticked and the card comes to you. Shopify doesn't send gift cards to someone else when you pay with Shop Pay, so use the regular Check out button for that.",
   "manage.lang.label": "Language of this registry",
   "manage.lang.hint": "Guests see the registry page, and registry emails go out, in this language. The names and notes you type stay as you wrote them.",
+  "manage.linked.item": "From {store}",
+  "manage.linked.banner": "You're signed in with your email link. It works on {stores}. Lost it? Use “Email me my link” on any store.",
+  "manage.linked.alsoOn": "Also open on:",
+  "manage.linked.tipTitle": "Keep your link",
+  "manage.linked.tip": "Keep the link we emailed you. It's how you get back into this registry on {stores}. Each store's website remembers you separately, so bookmark this page on each one.",
+  "manage.linked.ok": "OK",
+  "manage.linked.addFrom": "You can also add products from {stores}: open this page on that store and use its Add to registry button.",
 } as const;

@@ -64,4 +64,5 @@ export const hiServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "इसे मैनेज करने का आपका लिंक अब काम नहीं करेगा।",
   "server.p.deleted.t": "आपकी रजिस्ट्री हटा दी गई है",
   "server.p.deleted.m": "इसमें मौजूद सब कुछ हट गया है, इसमें यह रिकॉर्ड भी कि किसने क्या खरीदा।",
+  "server.linkedNeedsPro": "लिंक किए गए स्टोर से प्रोडक्ट जोड़ने के लिए रजिस्ट्री के अपने स्टोर पर Giftpin Pro चाहिए",
 };

@@ -127,7 +127,7 @@ export async function opsOverview(days = 30): Promise<{ since: Date; shops: OpsS
     db.registry.groupBy({ by: ["shopId"], _max: { createdAt: true } }),
     db.purchase.findMany({
       where: { voidedAt: null, source: "online", createdAt: { gte: since } },
-      select: { amount: true, qty: true, isNewCustomer: true, orderId: true, item: { select: { registry: { select: { shopId: true } } } } },
+      select: { amount: true, qty: true, isNewCustomer: true, orderId: true, shopId: true, item: { select: { registry: { select: { shopId: true } } } } },
     }),
   ]);
 
@@ -135,7 +135,8 @@ export async function opsOverview(days = 30): Promise<{ since: Date; shops: OpsS
   const byShop = <T extends { shopId: string }>(rows: T[], shopId: string) => rows.find((r) => r.shopId === shopId);
 
   const rows = shops.map((shop): OpsShopRow => {
-    const mine = purchases.filter((p) => p.item.registry.shopId === shop.id);
+    // Counted for the store that took the sale (a linked store's, see store-group.server.ts).
+    const mine = purchases.filter((p) => (p.shopId ?? p.item.registry.shopId) === shop.id);
     const registrySales = mine.reduce((sum, p) => sum + Number(p.amount ?? 0), 0);
     const newCustomerOrders = new Set(mine.filter((p) => p.isNewCustomer && p.orderId).map((p) => p.orderId));
     const store = stat(shop.id, STAT_METRICS.storeOrder);

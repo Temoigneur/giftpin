@@ -109,4 +109,6 @@ export const enGuest = {
   "guest.promo.pctOff": "{n}% off",
   "guest.promo.amtOffEach": "{amount} off each",
   "guest.promo.tier": " on {n}+ registry gifts",
+  "guest.linked.findAt": "Find it at {store} →",
+  "guest.linked.stores": "Gifts on this list come from {stores}. You'll check out at each store separately.",
 } as const;

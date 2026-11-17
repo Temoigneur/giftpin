@@ -113,9 +113,20 @@ export async function markUninstalled(domain: string) {
  * the long free Pro trial when it upgrades.
  */
 export async function foundingOfferEligible(
-  shop: Pick<Shop, "installedAt">,
+  shop: Pick<Shop, "installedAt"> & { id?: string },
 ): Promise<boolean> {
   if (!isFoundingSlot(shop.installedAt, 0)) return false;
+  // The offer is per merchant, not per store: a store linked to one of the
+  // merchant's earlier stores (store-group.server.ts) doesn't get a second one.
+  if (shop.id) {
+    const membership = await db.storeGroupMember.findUnique({ where: { shopId: shop.id }, select: { groupId: true } });
+    if (membership) {
+      const olderSibling = await db.storeGroupMember.count({
+        where: { groupId: membership.groupId, shopId: { not: shop.id }, shop: { installedAt: { lt: shop.installedAt } } },
+      });
+      if (olderSibling > 0) return false;
+    }
+  }
   const earlierInstalls = await db.shop.count({
     where: { installedAt: { gte: FOUNDING_OFFER_STARTS_AT, lt: shop.installedAt } },
   });

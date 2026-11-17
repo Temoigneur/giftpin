@@ -678,3 +678,45 @@ describe("registry promotions (Pro)", () => {
     expect(plain).not.toContain("deal-banner");
   });
 });
+
+describe("linked stores (multi-store registries)", () => {
+  const linked = (o: Partial<DisplayItem> = {}) =>
+    item({
+      id: "it_9",
+      linkedStore: { name: "Birch & Co", href: "https://birch.example/apps/registry/r/abc123#item-it_9", searchHref: "https://birch.example/search?q=x" },
+      ...o,
+    });
+
+  it("sends the guest to the other store's copy, with no add-to-cart form", () => {
+    const html = page([linked()]);
+    expect(html).toContain('id="item-it_9"');
+    expect(html).toContain('href="https://birch.example/apps/registry/r/abc123#item-it_9"');
+    expect(html).toContain("Buy at Birch &amp; Co");
+    expect(html).not.toContain("<form class=\"row js-add\"");
+  });
+
+  it("still shows a fulfilled linked item as taken", () => {
+    const html = page([linked({ fulfilled: true, purchasedQty: 2, remainingQty: 0 })]);
+    expect(html).not.toContain("Buy at Birch");
+    expect(html).toContain("taken");
+  });
+
+  it("still shows a fully held linked item as someone buying it", () => {
+    const html = page([linked({ claimedQty: 2, remainingQty: 0 })]);
+    expect(html).not.toContain("Buy at Birch");
+  });
+
+  it("offers a search link and I bought this when the store is no longer linked", () => {
+    const html = page([linked({ linkedStore: { name: "Birch", href: null, searchHref: "https://birch.example/search?q=x" } })]);
+    expect(html).toContain("Find it at Birch");
+    expect(html).toContain('href="https://birch.example/search?q=x"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain("js-bought");
+    expect(html).not.toContain("<form class=\"row js-add\"");
+  });
+
+  it("explains separate checkouts when 2+ stores are linked", () => {
+    expect(page([item()], { linkedStoreNames: ["A", "B", "C"] })).toContain("come from A, B &amp; C");
+    expect(page([item()], { linkedStoreNames: [] })).not.toContain("check out at each store");
+  });
+});

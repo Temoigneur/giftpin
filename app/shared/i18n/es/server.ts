@@ -64,4 +64,5 @@ export const esServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "Tu enlace para gestionarla ya no funciona.",
   "server.p.deleted.t": "Tu lista ha sido eliminada",
   "server.p.deleted.m": "Todo lo que tenía ha desaparecido, incluido el registro de quién compró qué.",
+  "server.linkedNeedsPro": "Añadir productos de una tienda vinculada requiere Giftpin Pro en la tienda propia de la lista",
 };

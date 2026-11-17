@@ -62,4 +62,5 @@ export const enServer = {
   "server.p.left.m": "Your link to manage it no longer works.",
   "server.p.deleted.t": "Your registry has been deleted",
   "server.p.deleted.m": "Everything on it is gone, including the record of who bought what.",
+  "server.linkedNeedsPro": "Adding products from a linked store needs Giftpin Pro on the registry's own store",
 } as const;

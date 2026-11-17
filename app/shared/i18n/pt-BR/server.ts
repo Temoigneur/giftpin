@@ -64,4 +64,5 @@ export const ptBRServer: { [K in keyof typeof enServer]: string } = {
   "server.p.left.m": "Seu link de gerenciamento não funciona mais.",
   "server.p.deleted.t": "Sua lista foi excluída",
   "server.p.deleted.m": "Tudo nela foi removido, inclusive o registro de quem comprou o quê.",
+  "server.linkedNeedsPro": "Adicionar produtos de uma loja vinculada exige o Giftpin Pro na loja de origem da lista",
 };
