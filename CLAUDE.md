@@ -137,9 +137,8 @@ reading Shopify's docs.
   the item (`RegistryItem.sourceShopId`), and GDPR/refunds follow
   `Purchase.shopId`. Checked live 17 Nov on giftpin-merchant-view + registro-dev:
   cross-store checkout (#1039) and Shop Pay (#1040), refund, Buy at links,
-  unlink, currency label, registry password. Still open: D9 (a Draft product
-  kept "Buy at"; Draft/Archived now count as sold out, recheck). D11/D12 not
-  run. Shop Pay orders credit the Shop Pay account's name, not the ship-to.
+  unlink, currency label, registry password, sold-out (D9, after Draft and
+  Archived were counted as sold out in #186). D11/D12 not run. Shop Pay orders credit the Shop Pay account's name, not the ship-to.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).
