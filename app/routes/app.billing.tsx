@@ -2,8 +2,9 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useLoaderData, useFetcher } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate, PRO_PLAN, PRO_PLAN_PRICE, BILLING_IS_TEST } from "../shopify.server";
-import { foundingOfferEligible, requireShop, setPlanFromSubscription } from "../models/shop.server";
+import { foundingOfferEligible, isPro as shopIsPro, requireShop, setPlanFromSubscription } from "../models/shop.server";
 import { FOUNDING_OFFER_ORIGINAL_TRIAL_DAYS, GIFT_CARD_FEE_CAP, GIFT_CARD_FEE_PERCENT, PRO_TRIAL_DAYS, foundingTrialDays } from "../shared/plans";
+import { groupPerformance } from "../models/group-analytics.server";
 import { SUPPORT_EMAIL, supportMailto } from "../shared/support";
 import { t as translate } from "../shared/i18n";
 import { adminLocale } from "../lib/admin-locale.server";
@@ -41,7 +42,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("[billing] check failed:", (err as Error).message);
   }
 
+  // Pro stores that are linked to others see what Pro earned across the group.
+  const group = shopIsPro(shop) ? await groupPerformance(shop.id, 30).catch(() => null) : null;
+
   return {
+    group,
     shopDomain: session.shop,
     plan: shop.plan,
     price: PRO_PLAN_PRICE,
@@ -132,15 +137,34 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Billing() {
-  const { plan, price, isTest, liveSubscriptionName, shopDomain, founding } =
+  const { plan, price, isTest, liveSubscriptionName, shopDomain, founding, group } =
     useLoaderData<typeof loader>();
   const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const busy = fetcher.state !== "idle";
   const isPro = plan === "pro";
 
+  const groupSales = group
+    ? group.salesByCurrency
+        .map((c) =>
+          new Intl.NumberFormat(t.locale === "en" ? "en-CA" : t.intl, { style: "currency", currency: c.currency, maximumFractionDigits: 0 }).format(c.amount),
+        )
+        .join(" · ")
+    : "";
+  const groupTimes = group?.proPaidForItselfTimes ?? null;
+
   return (
     <s-page heading={t("admin.bill.page")}>
+      {isPro && group && (
+        <s-section heading={t("admin.bill.group.head")}>
+          <s-stack direction="block" gap="small-100">
+            <s-paragraph>{t("admin.bill.group.line", { sales: groupSales, gifts: group.totals.giftsSold })}</s-paragraph>
+            {groupTimes !== null && groupTimes >= 1 && (
+              <s-paragraph>{t("admin.bill.group.roi", { x: new Intl.NumberFormat(t.locale === "en" ? "en-CA" : t.intl, { maximumFractionDigits: 1 }).format(groupTimes) })}</s-paragraph>
+            )}
+          </s-stack>
+        </s-section>
+      )}
       <s-section heading={isPro ? t("admin.bill.onPro") : t("admin.bill.free")}>
         {isPro ? (
           <s-stack direction="block" gap="base">
