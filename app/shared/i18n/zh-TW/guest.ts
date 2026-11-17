@@ -106,4 +106,6 @@ export const zhTWGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.promo.pctOff": "優惠 {n}%",
   "guest.promo.amtOffEach": "每件折 {amount}",
   "guest.promo.tier": "，購買清單中 {n} 件以上禮物時",
+  "guest.linked.findAt": "到 {store} 找找看 →",
+  "guest.linked.stores": "這份清單裡的禮物來自 {stores}。您需要在每家店分別結帳。",
 };

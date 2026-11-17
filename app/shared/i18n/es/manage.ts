@@ -280,4 +280,11 @@ export const esManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "Pagas en la caja de {shop} y la tarjeta regalo se gasta aquí. Si prefieres enviarla tú, deja la casilla sin marcar y la tarjeta te llegará a ti. Shopify no envía tarjetas regalo a otra persona cuando pagas con Shop Pay, así que usa el botón normal de pago para eso.",
   "manage.lang.label": "Idioma de esta lista",
   "manage.lang.hint": "Los invitados ven la página de la lista, y los correos de la lista se envían, en este idioma. Los nombres y notas que escribas se quedan como los escribiste.",
+  "manage.linked.item": "De {store}",
+  "manage.linked.banner": "Has entrado con el enlace que te enviamos por correo. Funciona en {stores}. ¿Lo perdiste? Usa «Envíame mi enlace» en cualquier tienda.",
+  "manage.linked.alsoOn": "También se abre en:",
+  "manage.linked.tipTitle": "Guarda tu enlace",
+  "manage.linked.tip": "Guarda el enlace que te enviamos por correo. Con él vuelves a esta lista en {stores}. El sitio de cada tienda te recuerda por separado, así que guarda esta página en favoritos en cada una.",
+  "manage.linked.ok": "Aceptar",
+  "manage.linked.addFrom": "También puedes añadir productos de {stores}: abre esta página en esa tienda y usa su botón Añadir a la lista.",
 };

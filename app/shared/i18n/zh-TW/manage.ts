@@ -280,4 +280,11 @@ export const zhTWManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "您會在 {shop} 的結帳頁面付款，禮品卡則在這裡使用。如果您想自己寄送，請不要勾選這個選項，禮品卡就會寄給您。使用 Shop Pay 付款時，Shopify 不會把禮品卡寄給其他人，所以這種情況請使用一般的「結帳」按鈕。",
   "manage.lang.label": "這份清單的語言",
   "manage.lang.hint": "賓客會以這個語言看到清單頁面，清單的電子郵件也會以這個語言寄出。您輸入的名稱與備註會維持您原本寫的樣子。",
+  "manage.linked.item": "來自 {store}",
+  "manage.linked.banner": "您已透過電子郵件連結登入。它在 {stores} 都能使用。弄丟了嗎？在任一家店點選「寄給我我的連結」即可。",
+  "manage.linked.alsoOn": "也可在這裡開啟：",
+  "manage.linked.tipTitle": "請保存好您的連結",
+  "manage.linked.tip": "請保存好我們寄給您的連結。憑它就能在 {stores} 回到這份清單。每家店的網站會分別記住您，所以請在每家店都將此頁加入書籤。",
+  "manage.linked.ok": "好的",
+  "manage.linked.addFrom": "您也可以加入來自 {stores} 的商品：在那家店開啟此頁面，使用它的「加入清單」按鈕。",
 };

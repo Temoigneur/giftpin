@@ -280,4 +280,11 @@ export const deManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "Du zahlst an der Kasse von {shop}, und die Geschenkkarte wird hier eingelöst. Wenn du sie lieber selbst weitergibst, lass das Kästchen frei, dann kommt die Karte zu dir. Shopify sendet Geschenkkarten bei Zahlung mit Shop Pay nicht an andere, nutze dafür also den normalen Button zur Kasse.",
   "manage.lang.label": "Sprache dieser Liste",
   "manage.lang.hint": "Gäste sehen die Listenseite, und E-Mails zur Liste werden in dieser Sprache versendet. Namen und Notizen, die du eingibst, bleiben so, wie du sie geschrieben hast.",
+  "manage.linked.item": "Von {store}",
+  "manage.linked.banner": "Sie sind mit Ihrem E-Mail-Link angemeldet. Er funktioniert bei {stores}. Verloren? Nutzen Sie in einem beliebigen Shop „Link an mich senden“.",
+  "manage.linked.alsoOn": "Auch geöffnet bei:",
+  "manage.linked.tipTitle": "Link aufbewahren",
+  "manage.linked.tip": "Bewahren Sie den Link auf, den wir Ihnen gemailt haben. Damit kommen Sie bei {stores} wieder in diese Liste. Die Website jedes Shops merkt sich Sie getrennt, setzen Sie daher auf jedem ein Lesezeichen für diese Seite.",
+  "manage.linked.ok": "OK",
+  "manage.linked.addFrom": "Sie können auch Produkte von {stores} hinzufügen: Öffnen Sie diese Seite in dem Shop und nutzen Sie dort den Button „Zur Liste hinzufügen“.",
 };

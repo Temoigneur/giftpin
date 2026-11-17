@@ -280,4 +280,11 @@ export const jaManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "お支払いは{shop}のチェックアウトで行い、ギフトカードはここで使われます。ご自身で送りたい場合は、チェックを入れないでください。カードはあなたに届きます。Shop Payで支払うと、Shopifyはギフトカードを他の方に送れないため、その場合は通常の「チェックアウト」ボタンをご利用ください。",
   "manage.lang.label": "このギフトリストの言語",
   "manage.lang.hint": "ゲストに表示されるギフトリストのページと、ギフトリストのメールは、この言語で送られます。入力した名前やメッセージは、入力したままで表示されます。",
+  "manage.linked.item": "{store}の商品",
+  "manage.linked.banner": "メールのリンクでサインインしています。{stores}で使えます。なくした場合は、どのストアでも「リンクをメールで受け取る」を使ってください。",
+  "manage.linked.alsoOn": "こちらでも開けます：",
+  "manage.linked.tipTitle": "リンクを保管してください",
+  "manage.linked.tip": "メールでお送りしたリンクを保管してください。{stores}でこのリストに戻るための鍵です。ストアのサイトごとにお客様を別々に記憶するため、各ストアでこのページをブックマークしてください。",
+  "manage.linked.ok": "OK",
+  "manage.linked.addFrom": "{stores}の商品も追加できます。そのストアでこのページを開き、「ギフトリストに追加」ボタンを使ってください。",
 };

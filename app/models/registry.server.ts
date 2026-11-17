@@ -210,10 +210,16 @@ export function mintAccountToken(shopId: string, emailHash: string): string {
   return signToken({ p: ACCOUNT_TOKEN_PURPOSE, s: shopId, h: emailHash }, ACCOUNT_TOKEN_TTL);
 }
 
-/** The email hash the token stands for, or null if it's bad, expired or for another store. */
-export function readAccountToken(token: string | null | undefined, shopId: string): string | null {
+/**
+ * The email hash the token stands for, or null if it's bad, expired or for
+ * another store. `shopIds` may list a store's linked stores too (multi-store,
+ * see store-group.server.ts): a token minted on any of them is accepted.
+ */
+export function readAccountToken(token: string | null | undefined, shopIds: string | string[]): string | null {
   const payload = verifyToken<{ p: string; s?: unknown; h?: unknown }>(token, ACCOUNT_TOKEN_PURPOSE);
-  if (!payload || payload.s !== shopId || typeof payload.h !== "string" || !payload.h) return null;
+  const ids = Array.isArray(shopIds) ? shopIds : [shopIds];
+  if (!payload || typeof payload.s !== "string" || !ids.includes(payload.s)) return null;
+  if (typeof payload.h !== "string" || !payload.h) return null;
   return payload.h;
 }
 
@@ -236,14 +242,17 @@ export async function listAccountRegistries(
   shopId: string,
   emailHash: string | null,
   customerId: string | null,
+  /** Linked stores whose registries count too (multi-store). Defaults to just `shopId`. */
+  groupShopIds: string[] = [shopId],
 ): Promise<AccountRegistry[]> {
   const or: Prisma.RegistryWhereInput[] = [];
-  if (emailHash) or.push({ registrants: { some: { emailHash } } });
-  if (customerId) or.push({ customerId: String(customerId) });
+  if (emailHash) or.push({ shopId: { in: groupShopIds }, registrants: { some: { emailHash } } });
+  // Customer accounts are per store: only this store's registries.
+  if (customerId) or.push({ shopId, customerId: String(customerId) });
   if (or.length === 0) return [];
 
   const rows = await db.registry.findMany({
-    where: { shopId, status: "active", OR: or },
+    where: { status: "active", OR: or },
     select: {
       id: true,
       title: true,

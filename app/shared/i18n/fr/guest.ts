@@ -106,4 +106,6 @@ export const frGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.promo.pctOff": "{n} % de réduction",
   "guest.promo.amtOffEach": "{amount} de réduction chacun",
   "guest.promo.tier": " dès {n} cadeaux de la liste",
+  "guest.linked.findAt": "Le trouver chez {store} →",
+  "guest.linked.stores": "Les cadeaux de cette liste viennent de {stores}. Vous paierez séparément dans chaque boutique.",
 };

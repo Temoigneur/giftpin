@@ -106,4 +106,6 @@ export const hiGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.promo.pctOff": "{n}% की छूट",
   "guest.promo.amtOffEach": "प्रत्येक पर {amount} की छूट",
   "guest.promo.tier": " रजिस्ट्री के {n}+ उपहारों पर",
+  "guest.linked.findAt": "{store} पर खोजें →",
+  "guest.linked.stores": "इस सूची के गिफ़्ट {stores} से हैं। आप हर स्टोर पर अलग से चेकआउट करेंगे।",
 };

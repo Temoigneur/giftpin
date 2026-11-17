@@ -1,4 +1,5 @@
 import db from "../db.server";
+import { salesTakenByWhere } from "./store-group.server";
 
 /**
  * Pro analytics: the three flows a merchant can watch move over time.
@@ -221,7 +222,7 @@ export async function analyticsReport(shopId: string, range: AnalyticsRange, now
     // Voided (refunded/cancelled) purchases are left out: a gift that was
     // returned wasn't given.
     db.purchase.findMany({
-      where: { voidedAt: null, createdAt: since, item: { registry: { shopId } } },
+      where: { voidedAt: null, createdAt: since, ...salesTakenByWhere(shopId) },
       select: { createdAt: true, source: true, qty: true, amount: true, isNewCustomer: true, orderId: true },
     }),
   ]);

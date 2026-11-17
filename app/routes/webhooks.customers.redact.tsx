@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticateLifecycleWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
+import { purchasesSoldByWhere } from "../models/store-group.server";
 import { blindIndex } from "../lib/crypto.server";
 import { audit } from "../lib/audit.server";
 import { deleteRegistry, touchRegistry } from "../models/registry.server";
@@ -17,6 +18,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const body = payload as { customer?: { id?: number | string; email?: string } };
   const email = body.customer?.email;
   const customerId = body.customer?.id ? String(body.customer.id) : null;
+  const shopRow = await db.shop.findUnique({ where: { domain: shop }, select: { id: true } });
 
   // Registries this customer owns go entirely. Being someone else's partner
   // only takes their own Registrant row: erasing a partner must never delete
@@ -56,10 +58,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   let buyerRecords = 0;
   if (customerId) {
     const res = await db.purchase.updateMany({
-      where: {
-        buyerCustomerId: customerId,
-        item: { registry: { shop: { domain: shop } } },
-      },
+      // Purchases this store took, including gifts sold into a linked
+      // store's registry: Shopify customer ids are per store.
+      where: { buyerCustomerId: customerId, ...purchasesSoldByWhere(shop, shopRow?.id ?? null) },
       data: { buyerName: null, buyerEmailEnc: null, buyerMessage: null, buyerCustomerId: null },
     });
     buyerRecords = res.count;

@@ -6,6 +6,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { syncStorefrontLanguage } from "../models/storefront-language.server";
 import { authenticate } from "../shopify.server";
 import { enqueue } from "../lib/queue.server";
+import { createLinkCode, groupShops, leaveGroup, redeemLinkCode } from "../models/store-group.server";
 import { isPro, requireShop, settingsFor, updateSettings } from "../models/shop.server";
 import {
   EVENT_TYPES,
@@ -38,9 +39,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("[settings] gift card products:", (err as Error).message);
     return [];
   });
+  const linkedStores = await groupShops(shop.id).catch((err) => {
+    console.error("[settings] linked stores:", (err as Error).message);
+    return [];
+  });
   return {
     settings: settingsFor(shop),
     pro: isPro(shop),
+    linkedShopId: shop.id,
+    linkedStores: linkedStores.map((s) => ({ id: s.id, domain: s.domain, name: s.name })),
     giftCards,
     shopDomain: session.shop,
     // 23 Sep 2026: a bare, repeatedly-fetched /apps/registry URL got stuck
@@ -88,6 +95,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       warnings.push(t("admin.set.warnGc", { max: MAX_LISTED_GIFT_CARD }, locale));
     }
     return { ok: true, warnings };
+  }
+
+  // Linked stores (store-group.server.ts). Each is its own form so none of
+  // them touches the settings above.
+  if (form.get("intent") === "link-create") {
+    const result = await createLinkCode(shop.id);
+    return result.ok
+      ? { ok: true as const, linkAction: "create" as const, code: result.code }
+      : { ok: false as const, linkAction: "create" as const, error: result.error };
+  }
+  if (form.get("intent") === "link-redeem") {
+    const result = await redeemLinkCode(shop.id, String(form.get("linkCode") ?? ""));
+    return result.ok
+      ? {
+          ok: true as const,
+          linkAction: "redeem" as const,
+          store: result.linkedWith.name || shopLabel(result.linkedWith.domain),
+        }
+      : { ok: false as const, linkAction: "redeem" as const, error: result.error };
+  }
+  if (form.get("intent") === "link-leave") {
+    await leaveGroup(shop.id);
+    return { ok: true as const, linkAction: "leave" as const };
   }
 
   // "Run now": the daily automations job (app/models/automations.server.ts)
@@ -170,6 +200,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return { ok: true, warnings };
 };
 
+/** "my-store.myshopify.com" -> "my-store". */
+function shopLabel(domain: string): string {
+  return domain.replace(/\.myshopify\.com$/, "");
+}
+
 function clamp(value: FormDataEntryValue | null, min: number, max: number, fallback: number): number {
   const n = Math.round(Number(value));
   if (!Number.isFinite(n) || value === null || value === "") return fallback;
@@ -177,13 +212,28 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 }
 
 export default function Settings() {
-  const { settings, pro, giftCards, shopDomain, cacheBust } = useLoaderData<typeof loader>();
+  const { settings, pro, giftCards, shopDomain, cacheBust, linkedStores, linkedShopId } = useLoaderData<typeof loader>();
   const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const runFetcher = useFetcher<typeof action>();
   const giftFetcher = useFetcher<typeof action>();
   const [externalItems, setExternalItems] = useState(settings.externalItems);
   const [soldOutItems, setSoldOutItems] = useState(settings.soldOutItems);
+  const createFetcher = useFetcher<typeof action>();
+  const redeemFetcher = useFetcher<typeof action>();
+  const leaveFetcher = useFetcher<typeof action>();
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [copied, setCopied] = useState(false);
+  // The action's union is wide (settings saves share it), so pick out the
+  // link results by their `linkAction` tag.
+  type LinkResult = { ok: boolean; linkAction?: string; code?: string; store?: string; error?: string };
+  const asLink = (data: unknown, kind: string): LinkResult | null => {
+    const d = data as LinkResult | undefined;
+    return d && d.linkAction === kind ? d : null;
+  };
+  const createData = asLink(createFetcher.data, "create");
+  const redeemData = asLink(redeemFetcher.data, "redeem");
+  const linkError = (data: LinkResult) => t(`admin.linked.err.${data.error}` as MessageKey);
 
   const perksUpgrade = splitAtLink(t, "admin.set.perksUpgrade");
   const afterUpgrade = splitAtLink(t, "admin.set.afterUpgrade");
@@ -545,6 +595,140 @@ export default function Settings() {
           ))}
         </s-section>
       </giftFetcher.Form>
+
+      <s-section heading={t("admin.linked.heading")}>
+        <s-stack direction="block" gap="base">
+          <s-paragraph>{t("admin.linked.intro")}</s-paragraph>
+
+          {linkedStores.length > 0 ? (
+            <s-stack direction="block" gap="small-100">
+              {linkedStores.map((store) => (
+                <s-text key={store.id}>
+                  {store.name || store.domain.replace(/\.myshopify\.com$/, "")}
+                  {store.id === linkedShopId ? ` (${t("admin.linked.thisStore")})` : ""}
+                </s-text>
+              ))}
+            </s-stack>
+          ) : (
+            <s-paragraph>
+              <s-text color="subdued">{t("admin.linked.none")}</s-text>
+            </s-paragraph>
+          )}
+
+          {linkedStores.length > 0 && (
+            <leaveFetcher.Form method="post" onSubmit={() => setConfirmLeave(false)}>
+              <input type="hidden" name="intent" value="link-leave" />
+              <s-stack direction="block" gap="small-100">
+                <s-paragraph>
+                  <s-text color="subdued">{t("admin.linked.unlinkText")}</s-text>
+                </s-paragraph>
+                {confirmLeave ? (
+                  <s-stack direction="inline" gap="base">
+                    <s-button
+                      type="submit"
+                      tone="critical"
+                      {...(leaveFetcher.state !== "idle" ? { loading: true } : {})}
+                    >
+                      {t("admin.linked.unlinkSure")}
+                    </s-button>
+                    <s-button variant="secondary" onClick={() => setConfirmLeave(false)}>
+                      {t("admin.linked.cancel")}
+                    </s-button>
+                  </s-stack>
+                ) : (
+                  <s-stack direction="inline" gap="base">
+                    <s-button variant="secondary" tone="critical" onClick={() => setConfirmLeave(true)}>
+                      {t("admin.linked.unlink")}
+                    </s-button>
+                  </s-stack>
+                )}
+              </s-stack>
+            </leaveFetcher.Form>
+          )}
+
+          {pro ? (
+            <createFetcher.Form method="post">
+              <input type="hidden" name="intent" value="link-create" />
+              <s-stack direction="block" gap="base">
+                <s-stack direction="inline" gap="base">
+                  <s-button
+                    type="submit"
+                    variant="secondary"
+                    onClick={() => setCopied(false)}
+                    {...(createFetcher.state !== "idle" ? { loading: true } : {})}
+                  >
+                    {t("admin.linked.create")}
+                  </s-button>
+                </s-stack>
+                {createData?.ok && createData.code && (
+                  <s-stack direction="block" gap="small-100">
+                    <s-heading>
+                      <span style={{ fontFamily: "monospace", fontSize: "1.5em", letterSpacing: "0.05em" }}>
+                        {createData.code}
+                      </span>
+                    </s-heading>
+                    <s-paragraph>
+                      <s-text color="subdued">{t("admin.linked.codeNote")}</s-text>
+                    </s-paragraph>
+                    <s-stack direction="inline" gap="base">
+                      <s-button
+                        variant="secondary"
+                        onClick={() => {
+                          navigator.clipboard
+                            ?.writeText(createData.code ?? "")
+                            .then(() => setCopied(true))
+                            .catch(() => {});
+                        }}
+                      >
+                        {copied ? t("admin.linked.copied") : t("admin.linked.copy")}
+                      </s-button>
+                    </s-stack>
+                  </s-stack>
+                )}
+                {createData && !createData.ok && (
+                  <s-banner tone="critical">
+                    <s-paragraph>{linkError(createData)}</s-paragraph>
+                  </s-banner>
+                )}
+              </s-stack>
+            </createFetcher.Form>
+          ) : (
+            <s-banner tone="info">
+              <s-stack direction="block" gap="small-100">
+                <s-paragraph>{t("admin.linked.proOnly")}</s-paragraph>
+                <s-stack direction="inline" gap="base">
+                  <s-button href="/app/billing">{t("admin.set.seePro")}</s-button>
+                </s-stack>
+              </s-stack>
+            </s-banner>
+          )}
+
+          <redeemFetcher.Form method="post">
+            <input type="hidden" name="intent" value="link-redeem" />
+            <s-stack direction="block" gap="base">
+              <s-text-field name="linkCode" label={t("admin.linked.enterLabel")} placeholder="GP-XXXX-XXXX-XXXX" />
+              <s-paragraph>
+                <s-text color="subdued">{t("admin.linked.consent")}</s-text>
+              </s-paragraph>
+              <s-stack direction="inline" gap="base">
+                <s-button type="submit" {...(redeemFetcher.state !== "idle" ? { loading: true } : {})}>
+                  {t("admin.linked.link")}
+                </s-button>
+              </s-stack>
+              {redeemData?.ok && (
+                <s-banner tone="success">
+                  <s-paragraph>{t("admin.linked.success", { store: redeemData.store ?? "" })}</s-paragraph>
+                </s-banner>
+              )}
+              {redeemData && !redeemData.ok && (
+                <s-banner tone="critical">
+                  <s-paragraph>{linkError(redeemData)}</s-paragraph>
+                </s-banner>
+              )}
+            </s-stack>
+          </redeemFetcher.Form>
+        </s-stack>
+      </s-section>
 
       {pro && (
         <runFetcher.Form method="post">

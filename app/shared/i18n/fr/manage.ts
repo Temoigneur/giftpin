@@ -280,4 +280,11 @@ export const frManage: { [K in keyof typeof enManage]: string } = {
   "manage.gc.hint": "Vous payez à la caisse de {shop}, et la carte-cadeau se dépense ici. Si vous préférez l'envoyer vous-même, laissez la case décochée et la carte vous sera envoyée. Shopify n'envoie pas de cartes-cadeaux à quelqu'un d'autre quand vous payez avec Shop Pay : utilisez alors le bouton de paiement habituel.",
   "manage.lang.label": "Langue de cette liste",
   "manage.lang.hint": "Les invités voient la page de la liste, et les courriels de la liste sont envoyés, dans cette langue. Les noms et notes que vous saisissez restent tels que vous les avez écrits.",
+  "manage.linked.item": "Chez {store}",
+  "manage.linked.banner": "Vous êtes connecté·e avec le lien reçu par e-mail. Il fonctionne sur {stores}. Vous l'avez perdu ? Utilisez « M'envoyer mon lien » dans n'importe quelle boutique.",
+  "manage.linked.alsoOn": "Aussi ouvert sur :",
+  "manage.linked.tipTitle": "Gardez votre lien",
+  "manage.linked.tip": "Gardez le lien que nous vous avons envoyé par e-mail. C'est ce qui vous permet de revenir dans cette liste sur {stores}. Le site de chaque boutique se souvient de vous séparément : ajoutez donc cette page à vos favoris sur chacune.",
+  "manage.linked.ok": "OK",
+  "manage.linked.addFrom": "Vous pouvez aussi ajouter des produits de {stores} : ouvrez cette page sur cette boutique et utilisez son bouton Ajouter à la liste.",
 };

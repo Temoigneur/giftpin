@@ -106,4 +106,6 @@ export const zhCNGuest: { [K in keyof typeof enGuest]: string } = {
   "guest.promo.pctOff": "优惠 {n}%",
   "guest.promo.amtOffEach": "每件立减 {amount}",
   "guest.promo.tier": "，购买清单中 {n} 件及以上礼物时",
+  "guest.linked.findAt": "去 {store} 找 →",
+  "guest.linked.stores": "这份清单里的礼物来自 {stores}。您需要在每家店分别结账。",
 };

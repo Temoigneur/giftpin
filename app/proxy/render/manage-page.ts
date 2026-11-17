@@ -118,6 +118,10 @@ export interface ManagePageData {
    * the link, so older callers and tests render as before.
    */
   myRegistriesUrl?: string;
+  /** Every store in a linked group (empty or undefined when not linked). */
+  linkedStores?: { name: string; current: boolean; manageUrl: string }[];
+  /** Products from the group's other stores can be added from this registry. */
+  linkedProductsAllowed?: boolean;
   /** First-run setup dialog step (?setup=1|2 after create); see renderSetup. */
   setupStep?: 1 | 2;
   /** Open "Edit registry & preferences", e.g. after one of its forms was saved. */
@@ -137,6 +141,7 @@ ${eventHeroImage(data.eventType, data.artBaseUrl) ?? `<div class="hero-art">${ev
 
 ${data.flash && !data.setupStep ? `<div class="${data.flash.kind === "ok" ? "ok" : "err"}">${escapeHtml(data.flash.message)}</div>` : ""}
 
+${renderLinkedBanner(data)}
 ${renderPerks(data.shopName, data.perks)}
 
 <div class="note">
@@ -176,6 +181,7 @@ ${renderIdeaGuide(data)}
   <p style="margin:0 0 10px"><strong>${T("manage.fromShop", { shop: data.shopName })}</strong></p>
   <a class="btn sm block" href="${escapeAttr(data.storeSearchUrl)}">${T("manage.browse")}</a>
   <p class="hint">${T("manage.browseHint")}</p>
+  ${data.linkedProductsAllowed ? `<p class="hint">${T("manage.linked.addFrom", { stores: linkedOthers(data).map((l) => l.name).join(", ") })}</p>` : ""}
   ${data.scanner ? renderScanner(data) : ""}
 </div>
 
@@ -245,6 +251,7 @@ ${renderGifts(data)}
 ${renderPreferences(data)}
 
 ${renderSetup(data)}
+${renderLinkedTip(data)}
 ${data.items.some((i) => i.storeMatch) ? renderMatchDialog(data) : ""}
 <script id="registro-config" type="application/json">${jsonForScript({
     actionUrl: data.actionUrl,
@@ -401,6 +408,31 @@ function renderSetup(data: ManagePageData): string {
 <script>(function(){var d=document.getElementById('setup');if(!d)return;
 try{var u=new URL(location.href);u.searchParams.delete('setup');history.replaceState(null,'',u.toString());}catch(_){}
 if(d.showModal){d.close();d.showModal();}})();</script>`;
+}
+
+const linkedOthers = (data: ManagePageData) => (data.linkedStores ?? []).filter((l) => !l.current);
+
+function renderLinkedBanner(data: ManagePageData): string {
+  const all = data.linkedStores ?? [];
+  if (all.length < 2) return "";
+  const links = linkedOthers(data).map((l) => `<a href="${escapeAttr(l.manageUrl)}">${escapeHtml(l.name)}</a>`).join(", ");
+  return `<div class="note" role="note"><p style="margin:0 0 6px">${T("manage.linked.banner", { stores: all.map((l) => l.name).join(", ") })}</p>
+  <p class="item-meta" style="margin:0">${T("manage.linked.alsoOn")} ${links}</p></div>`;
+}
+
+/** One-time reminder to keep the emailed link; remembered per registry in this browser. */
+function renderLinkedTip(data: ManagePageData): string {
+  const all = data.linkedStores ?? [];
+  if (all.length < 2 || data.setupStep) return "";
+  const key = `giftpin.linkedTipSeen.${data.registryId}`;
+  return `<dialog id="linked-tip" class="setup" aria-labelledby="linked-tip-title">
+  <h2 id="linked-tip-title">${T("manage.linked.tipTitle")}</h2>
+  <p class="sub">${T("manage.linked.tip", { stores: all.map((l) => l.name).join(", ") })}</p>
+  <form method="dialog"><button class="btn" type="submit">${T("manage.linked.ok")}</button></form>
+</dialog>
+<script>(function(){var d=document.getElementById('linked-tip'),k=${jsonForScript(key)};if(!d||!d.showModal)return;
+try{if(localStorage.getItem(k))return;}catch(_){}
+d.addEventListener('close',function(){try{localStorage.setItem(k,'1');}catch(_){}});d.showModal();})();</script>`;
 }
 
 /**
@@ -572,7 +604,7 @@ function renderManageItem(item: DisplayItem, data: ManagePageData): string {
   <div class="mi-media">${image}${item.fulfilled ? `<span class="mi-badge">${T(item.isFund ? "manage.item.funded" : "manage.item.allBought")}</span>` : ""}</div>
   <div class="mi-body">
     <p class="item-title">${escapeHtml(item.title)}</p>
-    <p class="mi-src">${source}</p>
+    <p class="mi-src">${source}${item.linkedStore ? ` &middot; ${T("manage.linked.item", { store: item.linkedStore.name })}` : ""}</p>
     <p class="mi-price">${price && !item.isFund ? `<span class="price">${price}</span>` : ""}<span class="mi-count">${count}</span></p>
     <div class="mi-bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
     ${!item.isFund && item.fund ? `<p class="item-meta">${T("manage.item.groupGift", { line: fundLine(item, data) })}</p>` : ""}

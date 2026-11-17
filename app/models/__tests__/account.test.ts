@@ -65,9 +65,17 @@ describe("listAccountRegistries", () => {
     findMany.mockResolvedValue([] as never);
     await listAccountRegistries("shop_1", "hash_a", null);
     const where = findMany.mock.calls[0][0]!.where!;
-    expect(where.shopId).toBe("shop_1");
     expect(where.status).toBe("active");
-    expect(where.OR).toEqual([{ registrants: { some: { emailHash: "hash_a" } } }]);
+    expect(where.OR).toEqual([{ shopId: { in: ["shop_1"] }, registrants: { some: { emailHash: "hash_a" } } }]);
+  });
+
+  it("matches the email across linked stores, but a store sign-in only on this store", async () => {
+    findMany.mockResolvedValue([] as never);
+    await listAccountRegistries("shop_1", "hash_a", "42", ["shop_1", "shop_2"]);
+    expect(findMany.mock.calls[0][0]!.where!.OR).toEqual([
+      { shopId: { in: ["shop_1", "shop_2"] }, registrants: { some: { emailHash: "hash_a" } } },
+      { shopId: "shop_1", customerId: "42" },
+    ]);
   });
 
   it("gives an owner an owner link and a partner their own revocable link", async () => {
@@ -87,7 +95,7 @@ describe("listAccountRegistries", () => {
       { id: "reg_c", title: "Mine", eventType: "other", eventDate: null, customerId: "42", registrants: [] },
     ] as never);
     const rows = await listAccountRegistries("shop_1", "hash_a", "42");
-    expect(findMany.mock.calls[0][0]!.where!.OR).toContainEqual({ customerId: "42" });
+    expect(findMany.mock.calls[0][0]!.where!.OR).toContainEqual({ shopId: "shop_1", customerId: "42" });
     expect(readManageGrant(rows[0].token)).toEqual({ registryId: "reg_c", partnerId: null });
   });
 });
