@@ -223,6 +223,9 @@ export default function Settings() {
   const redeemFetcher = useFetcher<typeof action>();
   const leaveFetcher = useFetcher<typeof action>();
   const [confirmLeave, setConfirmLeave] = useState(false);
+  // The "Yes, unlink" step must not survive the unlink itself: after a relink
+  // it was showing again, one click from unlinking (SPIKE-D, 17 Nov 2026).
+  useEffect(() => setConfirmLeave(false), [linkedStores.length]);
   const [copied, setCopied] = useState(false);
   // The action's union is wide (settings saves share it), so pick out the
   // link results by their `linkAction` tag.

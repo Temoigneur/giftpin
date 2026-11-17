@@ -36,7 +36,7 @@ const VARIANT_FIELDS = `
 
 const STOCK_QUERY = `#graphql
   query GiftpinVariantStock($ids: [ID!]!) {
-    nodes(ids: $ids) { ... on ProductVariant { id availableForSale } }
+    nodes(ids: $ids) { ... on ProductVariant { id availableForSale product { status } } }
   }`;
 
 const VARIANT_QUERY = `#graphql
@@ -107,11 +107,18 @@ export async function fetchVariantStock(shopDomain: string, variantGids: string[
     const gql = graphql ?? (await adminGraphql(shopDomain));
     const stock = new Map<string, boolean>();
     for (let i = 0; i < ids.length; i += 250) {
-      const data = await run<{ nodes: ({ id?: string; availableForSale?: boolean } | null)[] }>(gql, STOCK_QUERY, {
+      const data = await run<{
+        nodes: ({ id?: string; availableForSale?: boolean; product?: { status?: string } | null } | null)[];
+      }>(gql, STOCK_QUERY, {
         ids: ids.slice(i, i + 250),
       });
       for (const node of data.nodes) {
-        if (node?.id && typeof node.availableForSale === "boolean") stock.set(node.id, node.availableForSale);
+        if (!node?.id || typeof node.availableForSale !== "boolean") continue;
+        // availableForSale only reflects inventory: a Draft or Archived
+        // product still reports true, though no storefront will sell it
+        // (seen live 17 Nov 2026, SPIKE-D row D9).
+        const status = node.product?.status;
+        stock.set(node.id, node.availableForSale && status !== "DRAFT" && status !== "ARCHIVED");
       }
     }
     return stock;
