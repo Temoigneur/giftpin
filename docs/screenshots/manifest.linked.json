@@ -1,0 +1,281 @@
+{
+ "_note": "Linked stores guide shots (English only, 17 Nov 2026). Plates in docs/screenshots/raw/en/LS-*.png. Run: python3 scripts/draw-guide-shots.py en linked",
+ "shots": {
+  "p30-linked-create.png": {
+   "plate": "LS-L1",
+   "crop": [
+    287,
+    335,
+    932,
+    335
+   ],
+   "boxes": [
+    [
+     1,
+     307,
+     457,
+     123,
+     28
+    ]
+   ]
+  },
+  "p30-linked-code.png": {
+   "plate": "LS-L2",
+   "crop": [
+    287,
+    335,
+    932,
+    440
+   ],
+   "boxes": [
+    [
+     1,
+     305,
+     494,
+     205,
+     28
+    ],
+    [
+     2,
+     306,
+     560,
+     65,
+     30
+    ]
+   ]
+  },
+  "p30-linked-enter.png": {
+   "plate": "LS-L3",
+   "crop": [
+    457,
+    385,
+    806,
+    325
+   ],
+   "boxes": [
+    [
+     1,
+     475,
+     580,
+     775,
+     32
+    ],
+    [
+     2,
+     474,
+     665,
+     84,
+     28
+    ]
+   ]
+  },
+  "p30-linked-done.png": {
+   "plate": "LS-L4",
+   "crop": [
+    457,
+    282,
+    806,
+    378
+   ],
+   "boxes": [
+    [
+     1,
+     473,
+     353,
+     198,
+     46
+    ],
+    [
+     0,
+     475,
+     612,
+     775,
+     34
+    ]
+   ]
+  },
+  "p31-linked-alsoon.png": {
+   "plate": "LS-R1",
+   "crop": [
+    281,
+    340,
+    979,
+    330
+   ],
+   "boxes": [
+    [
+     1,
+     309,
+     452,
+     170,
+     24
+    ]
+   ]
+  },
+  "p31-linked-manage-b.png": {
+   "plate": "LS-R2",
+   "crop": [
+    380,
+    280,
+    795,
+    270
+   ],
+   "boxes": [
+    [
+     0,
+     390,
+     342,
+     776,
+     57
+    ]
+   ]
+  },
+  "p31-linked-add.png": {
+   "plate": "LS-R3",
+   "crop": [
+    386,
+    200,
+    959,
+    482
+   ],
+   "boxes": [
+    [
+     1,
+     962,
+     455,
+     370,
+     38
+    ]
+   ]
+  },
+  "p32-linked-buyat.png": {
+   "plate": "LS-B1",
+   "crop": [
+    281,
+    330,
+    980,
+    395
+   ],
+   "boxes": [
+    [
+     1,
+     292,
+     537,
+     580,
+     22
+    ],
+    [
+     2,
+     394,
+     628,
+     184,
+     40
+    ]
+   ]
+  },
+  "p32-linked-buyat-page.png": {
+   "plate": "LS-B2",
+   "crop": [
+    374,
+    280,
+    806,
+    320
+   ],
+   "boxes": [
+    [
+     1,
+     468,
+     512,
+     89,
+     34
+    ]
+   ]
+  },
+  "p33-linked-analytics.png": {
+   "plate": "LS-N2",
+   "crop": [
+    457,
+    95,
+    538,
+    420
+   ],
+   "boxes": [
+    [
+     1,
+     473,
+     106,
+     92,
+     24
+    ],
+    [
+     2,
+     885,
+     264,
+     68,
+     76
+    ]
+   ]
+  },
+  "p33-linked-plan.png": {
+   "plate": "LS-N4",
+   "crop": [
+    470,
+    60,
+    805,
+    105
+   ],
+   "boxes": [
+    [
+     1,
+     476,
+     65,
+     793,
+     96
+    ]
+   ]
+  },
+  "p34-linked-unlink.png": {
+   "plate": "LS-L5",
+   "crop": [
+    457,
+    160,
+    806,
+    375
+   ],
+   "boxes": [
+    [
+     1,
+     474,
+     318,
+     109,
+     27
+    ]
+   ]
+  },
+  "p34-linked-findit.png": {
+   "plate": "LS-G3",
+   "crop": [
+    81,
+    320,
+    1084,
+    185
+   ],
+   "boxes": [
+    [
+     1,
+     204,
+     396,
+     219,
+     45
+    ],
+    [
+     2,
+     417,
+     397,
+     125,
+     44
+    ]
+   ]
+  }
+ }
+}

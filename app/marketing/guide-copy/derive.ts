@@ -145,7 +145,17 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     { ...moreS, steps: [moImport, moPanels] },
   ];
   // Linked stores: English only until translated (see linked-stores.ts).
-  const linked = locale === "en" ? LINKED_STEPS : [];
+  const LINKED_SHOTS: Record<string, string[]> = {
+    "linked-stores": ["openApps", "clickGiftpin", "navSettings", "lsCreate", "lsCode", "lsEnter", "lsDone"],
+    "linked-registrants": ["lsAlsoOn", "lsManageB", "lsAdd"],
+    "linked-guests": ["lsBuyAt", "lsBuyAtPage"],
+    "linked-results": ["openApps", "clickGiftpin", "navAnalytics", "lsAnalytics", "navPlan", "lsPlan"],
+    "linked-unlink": ["openApps", "clickGiftpin", "navSettings", "lsUnlink", "lsFindIt"],
+  };
+  const linked =
+    locale === "en"
+      ? LINKED_STEPS.map((st) => ({ ...st, img: (LINKED_SHOTS[st.id ?? ""] ?? []).map((k) => ({ src: SHOTS[k].src, alt: SHOTS[k].alt.en })) }))
+      : [];
   const proSections = [{ ...proS, steps: [prStart, mkPerks, ...prRest, ...linked, moFlow] }];
   return { ui: raw.ui, setup, customize: sub("c", customizeSections), pro: sub("p", proSections), registry, guest };
 }

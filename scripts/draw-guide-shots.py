@@ -15,10 +15,15 @@ root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 lang = sys.argv[1]
 # A language-specific manifest (manifest.<lang>.json) replaces the shared one: boxes depend on each language's text.
 _mp = f"{root}/docs/screenshots/manifest.{lang}.json"
+# A named extra manifest (python3 scripts/draw-guide-shots.py en linked -> manifest.linked.json) adds
+# new shots. In English they are written to public/guides/ at their crop width (there is no English file to match).
+extra = sys.argv[2] if len(sys.argv) > 2 else None
+if extra:
+    _mp = f"{root}/docs/screenshots/manifest.{extra}.json"
 full = json.load(open(_mp if os.path.exists(_mp) else f"{root}/docs/screenshots/manifest.json"))
 manifest = full["shots"]
 full.setdefault("composites", {}); full.setdefault("stitches", {})
-out_dir = f"{root}/public/guides/{lang}"
+out_dir = f"{root}/public/guides" if (extra and lang == "en") else f"{root}/public/guides/{lang}"
 os.makedirs(out_dir, exist_ok=True)
 FONT = next((p for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if os.path.exists(p)), None)
 
@@ -81,12 +86,12 @@ for name, spec in full.get("composites", {}).items():
     for pts in spec["arrows"]:
         arrow(d, [tuple(p) for p in pts])
     im.save(f"{out_dir}/{name}", optimize=True)
-    print("wrote", f"public/guides/{lang}/{name}", im.size)
+    print("wrote", os.path.relpath(f"{out_dir}/{name}", root), im.size)
 
 for name, spec in manifest.items():
     plate = load_plate(spec["plate"])
     x, y, w, h = spec["crop"]
-    en_w = Image.open(f"{root}/public/guides/{name}").width
+    en_w = spec.get("width") or (w if (extra and lang == "en") else Image.open(f"{root}/public/guides/{name}").width)
     s = en_w / w
     im = plate.crop((x, y, x + w, y + h)).resize((en_w, round(h * s)), Image.LANCZOS)
     d = ImageDraw.Draw(im)
@@ -96,4 +101,4 @@ for name, spec in manifest.items():
         d.rounded_rectangle(r, radius=10, outline=RED, width=4)
         badge(d, f, n, r[0] + 4, r[1] + 2)
     im.save(f"{out_dir}/{name}", optimize=True)
-    print("wrote", f"public/guides/{lang}/{name}", im.size)
+    print("wrote", os.path.relpath(f"{out_dir}/{name}", root), im.size)

@@ -40,8 +40,8 @@ export const LINKED_STEPS: Step[] = [
     id: "linked-results",
     title: "See sales across your stores",
     items: [
-      "Open <b>{{admin.nav.analytics}}</b>. <b>{{admin.an.group.head}}</b> shows each store's registry sales, gifts sold, registry views, cart adds and <b>{{admin.an.group.colArrivals}}</b>, for the last 30 days. Sales stay in each store's own currency.",
-      "<b>{{admin.nav.plan}}</b> shows the same totals in <b>{{admin.bill.group.head}}</b>.",
+      "Open <b>{{admin.nav.analytics}}</b>. <b>{{admin.an.group.head}}</b> shows each store's registry sales, gifts sold, registry views, cart adds and <b>{{admin.an.group.colArrivals}}</b>, for the last 90 days. Sales stay in each store's own currency.",
+      "<b>{{admin.nav.plan}}</b> shows the last 30 days in <b>{{admin.bill.group.head}}</b>.",
     ],
   },
   {
