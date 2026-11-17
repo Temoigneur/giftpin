@@ -14,7 +14,7 @@ export const LINKED_STEPS: Step[] = [
     title: "Link your other stores",
     items: [
       "Run more than one Shopify store? Link them, and one registry can hold products from all of them. Guests can open it on any of your stores, and every gift is counted on the store that sold it. Install Giftpin on each store first. Up to 5 stores can be linked.",
-      "On the store where your registries start (it needs Pro), open <b>{{admin.nav.settings}}</b> in Giftpin, scroll to <b>{{admin.linked.heading}}</b> and click <b>{{admin.linked.create}}</b>. Copy the code. It works once, for 24 hours.",
+      "Linking needs Pro on one of your stores, and that one Pro plan covers every store linked to it. On your Pro store, open <b>{{admin.nav.settings}}</b> in Giftpin, scroll to <b>{{admin.linked.heading}}</b> and click <b>{{admin.linked.create}}</b>. Copy the code. It works once, for 24 hours.",
       "On your other store, open Giftpin's <b>{{admin.nav.settings}}</b>, scroll to <b>{{admin.linked.heading}}</b>, paste the code into <b>{{admin.linked.enterLabel}}</b> and click <b>{{admin.linked.link}}</b>. Both stores now list each other.",
       "Linking shares gift titles, buyer first names and amounts between your stores. No emails, addresses or customer accounts are shared.",
     ],

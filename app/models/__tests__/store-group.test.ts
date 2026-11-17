@@ -26,6 +26,7 @@ vi.mock("../../lib/audit.server", () => ({ audit: vi.fn() }));
 
 import db from "../../db.server";
 import {
+  canHoldLinkedProducts,
   createLinkCode,
   generateLinkCode,
   itemShopId,
@@ -123,6 +124,15 @@ describe("redeemLinkCode", () => {
       .mockResolvedValueOnce({ groupId: "g1" } as never)
       .mockResolvedValueOnce({ groupId: "g2" } as never);
     expect(await redeemLinkCode("b", code, now)).toEqual({ ok: false, error: "other_in_group" });
+  });
+});
+
+describe("who may hold other stores' products", () => {
+  it("is a registry whose own store, or any store linked to it, is on Pro", () => {
+    expect(canHoldLinkedProducts({ plan: "pro" })).toBe(true);
+    expect(canHoldLinkedProducts({ plan: "free" })).toBe(false);
+    expect(canHoldLinkedProducts({ plan: "free" }, [{ plan: "free" }, { plan: "pro" }])).toBe(true);
+    expect(canHoldLinkedProducts({ plan: "free" }, [{ plan: "free" }])).toBe(false);
   });
 });
 

@@ -835,7 +835,7 @@ async function managePage(
         await registryStock(registry, group),
       ),
       linkedStores,
-      linkedProductsAllowed: linkedStores.length > 0 && canHoldLinkedProducts(registry.shop),
+      linkedProductsAllowed: linkedStores.length > 0 && canHoldLinkedProducts(registry.shop, group),
       soldOutHidden: settings.soldOutItems === "hide",
       perks: perksFor(shop, settings, await shopDeals(shop, settings)),
       enabledEventTypes: settings.eventTypes,
@@ -1811,9 +1811,9 @@ async function addFromStoreAction(
   }
 
   // This store's product on a registry homed on a linked store (multi-store):
-  // a Pro feature of the registry's own store.
+  // a Pro feature; one Pro store in the group covers it.
   const sourceShopId = sourceShopIdFor(shop.id, registry.shopId);
-  if (sourceShopId && !canHoldLinkedProducts(registry.shop)) {
+  if (sourceShopId && !canHoldLinkedProducts(registry.shop, await groupShops(shop.id))) {
     return json({ ok: false, error: t("server.linkedNeedsPro") }, 403);
   }
 
@@ -1900,7 +1900,7 @@ async function scanAddAction(request: Request, ctx: ProxyContext, shop: ShopReco
   if (!variant) return json({ ok: false, error: t("server.productNotInStore") }, 404);
 
   const sourceShopId = sourceShopIdFor(shop.id, registry.shopId);
-  if (sourceShopId && !canHoldLinkedProducts(registry.shop)) {
+  if (sourceShopId && !canHoldLinkedProducts(registry.shop, await groupShops(shop.id))) {
     return json({ ok: false, error: t("server.linkedNeedsPro") }, 403);
   }
 

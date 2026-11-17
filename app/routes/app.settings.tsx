@@ -48,6 +48,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     pro: isPro(shop),
     linkedShopId: shop.id,
     linkedStores: linkedStores.map((s) => ({ id: s.id, domain: s.domain, name: s.name })),
+    // One Pro store covers its whole group, so a Free store linked to one isn't told to upgrade.
+    groupHasPro: linkedStores.some((s) => s.id !== shop.id && s.plan === "pro"),
     giftCards,
     shopDomain: session.shop,
     // 23 Sep 2026: a bare, repeatedly-fetched /apps/registry URL got stuck
@@ -212,7 +214,7 @@ function clamp(value: FormDataEntryValue | null, min: number, max: number, fallb
 }
 
 export default function Settings() {
-  const { settings, pro, giftCards, shopDomain, cacheBust, linkedStores, linkedShopId } = useLoaderData<typeof loader>();
+  const { settings, pro, giftCards, shopDomain, cacheBust, linkedStores, linkedShopId, groupHasPro } = useLoaderData<typeof loader>();
   const t = useAdminT();
   const fetcher = useFetcher<typeof action>();
   const runFetcher = useFetcher<typeof action>();
@@ -695,7 +697,7 @@ export default function Settings() {
                 )}
               </s-stack>
             </createFetcher.Form>
-          ) : (
+          ) : groupHasPro ? null : (
             <s-banner tone="info">
               <s-stack direction="block" gap="small-100">
                 <s-paragraph>{t("admin.linked.proOnly")}</s-paragraph>
