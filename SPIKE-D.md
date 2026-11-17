@@ -27,7 +27,7 @@ stores). Record date and order number in each row.
 | D6 | Same as D5 through Shop Pay on B | PASS 17 Nov 2026, order #1040 (Shop Pay) |
 | D7 | Refund the D5 order on B; the item shows available again | PASS 17 Nov 2026, refund of #1039 freed the item |
 | D8 | An A product on B's page shows "Buy at A" (not Add to cart); an order on B cannot credit an A item (forge: add A item's `_rg` to B cart by hand; must be ignored) | PASS 17 Nov 2026 |
-| D9 | Stock: sold-out B product shows sold out on A's page | FAIL 17 Nov 2026, twice. 1st: the Buy at branch skipped the sold-out check (fixed in #185). 2nd: Draft still showed Buy at, so availableForSale appears to ignore product status (inferred from this run, not yet confirmed directly); Draft/Archived now count as sold out. Recheck |
+| D9 | Stock: sold-out B product shows sold out on A's page | PASS 17 Nov 2026 after #186 (Draft mug showed "Sold out right now" on A's page, no Buy at). Earlier fails: #185 (Buy at skipped the stock check), then Draft not counted as sold out |
 | D10 | Unlink B. A's page shows the B item as "Find it at B" + "I bought this"; orders already in B carts still credit (hard rule 5) | PASS 17 Nov 2026 after #185: "Find it at Giftpin Registry →" linking registro-dev's search. After relinking, the admin's "Yes, unlink" step showed again (fixed in the next PR) |
 | D11 | customers/redact on B for a buyer of D5 erases the buyer name on A's registry (trigger via Partner dashboard or a test payload) | not run (needs a real customers/redact) |
 | D12 | Uninstall B, wait for shop/redact (or POST a test): B items on A's registries become manual items, counts kept, A's registries intact | not run (would wipe registro-dev; use a throwaway dev store) |
