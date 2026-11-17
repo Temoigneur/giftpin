@@ -486,6 +486,16 @@ describe("linking the registry from The Knot or a wedding website (28 Oct 2026)"
     expect(page({ privacy: "unlisted" })).not.toContain("Your registry has a password");
     expect(page({ privacy: "public_" })).not.toContain("Your registry has a password");
   });
+
+  it("asks for a password when the registry needs one, and never shows the old one", () => {
+    const fresh = page({ privacy: "password", hasPassword: false });
+    expect(fresh).toMatch(/<div id="f-pw-field">/);
+    expect(fresh).toMatch(/name="password"[^>]*required/);
+    const kept = page({ privacy: "password", hasPassword: true });
+    expect(kept).not.toMatch(/name="password"[^>]*required/);
+    expect(kept).toContain("Leave blank to keep your current password");
+    expect(page({ privacy: "unlisted" })).toMatch(/<div id="f-pw-field" hidden>/);
+  });
 });
 
 describe("partner (co-registrant)", () => {

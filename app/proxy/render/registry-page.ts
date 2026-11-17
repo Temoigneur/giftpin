@@ -317,8 +317,31 @@ function renderListTools(data: RegistryPageData): string {
 <div id="tools" hidden><select aria-label="${escapeAttr(t("guest.tools.sort"))}"><option value="">${tx(t("guest.tools.suggested"))}</option><option value="1">${tx(t("guest.tools.priceLow"))}</option><option value="-1">${tx(t("guest.tools.priceHigh"))}</option></select><label class="check"><input type="checkbox"> ${tx(t("guest.tools.onlyNeeded"))}</label></div>`;
 }
 
+const mixedCache = new WeakMap<RegistryPageData, boolean>();
+
+/** True when the page prices items in more than one currency (linked stores, other shops). */
+function mixedCurrencies(data: RegistryPageData): boolean {
+  let mixed = mixedCache.get(data);
+  if (mixed === undefined) {
+    mixed = new Set(data.items.filter((i) => i.price > 0).map((i) => (i.currency ?? data.currency ?? "").toUpperCase())).size > 1;
+    mixedCache.set(data, mixed);
+  }
+  return mixed;
+}
+
+/**
+ * "$18" is CAD in one place and USD in the next. When a page mixes
+ * currencies, a bare symbol gets the ISO code ("$18 CAD"); "US$42" already
+ * says which dollar it is.
+ */
+export function withCurrencyCode(formatted: string, currency: string | null | undefined, mixed: boolean): string {
+  if (!mixed || !formatted || !currency || /[A-Z]{2}/.test(formatted)) return formatted;
+  return `${formatted} ${currency.toUpperCase()}`;
+}
+
 function renderItem(item: DisplayItem, data: RegistryPageData): string {
-  const price = formatMoney(item.price, item.currency ?? data.currency);
+  const currency = item.currency ?? data.currency;
+  const price = withCurrencyCode(formatMoney(item.price, currency), currency, mixedCurrencies(data));
   const remaining = item.remainingQty;
   // "Held" means someone has an outstanding soft claim, whether or not anything
   // is still available. Gating this on `remaining > 0` made the fully-claimed
@@ -400,6 +423,11 @@ function renderItemAction(
 
   // Sold by another linked store: a cart here can't hold it.
   const ls = item.linkedStore;
+  // Sold out on the store that sells it (checked there, live): no "Buy at"
+  // that only leads to a sold-out page.
+  if (ls?.href && isSoldOutStoreItem(item)) {
+    return `${heldNotice}<p class="item-meta">${t("guest.item.soldOutHtml")}</p>`;
+  }
   if (ls?.href) {
     return `${heldNotice}<div class="row"><a class="btn sm" href="${escapeAttr(ls.href)}">${tx(t("guest.item.buyAt", { domain: ls.name }))}</a></div>`;
   }

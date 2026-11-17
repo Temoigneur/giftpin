@@ -715,6 +715,20 @@ describe("linked stores (multi-store registries)", () => {
     expect(html).not.toContain("<form class=\"row js-add\"");
   });
 
+  it("shows a linked item sold out on its own store as sold out, not Buy at", () => {
+    const html = page([linked({ sourceType: "internal", availability: "out_of_stock" })]);
+    expect(html).not.toContain("Buy at Birch");
+    expect(html).toMatch(/sold out/i);
+  });
+
+  it("adds the currency code to a bare $ price only when the page mixes currencies", () => {
+    const mixed = page([item({ id: "a", price: 18, currency: "CAD" }), item({ id: "b", price: 42, currency: "USD" })]);
+    expect(mixed).toContain("$18 CAD");
+    expect(mixed).not.toContain("US$42 USD");
+    const single = page([item({ id: "a", price: 18, currency: "CAD" })]);
+    expect(single).not.toContain("CAD");
+  });
+
   it("explains separate checkouts when 2+ stores are linked", () => {
     expect(page([item()], { linkedStoreNames: ["A", "B", "C"] })).toContain("come from A, B &amp; C");
     expect(page([item()], { linkedStoreNames: [] })).not.toContain("check out at each store");
