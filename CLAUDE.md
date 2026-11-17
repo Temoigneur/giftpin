@@ -130,12 +130,16 @@ reading Shopify's docs.
   tags on every App Store link, first-party counts for registrant shares and admin section opens (`/ops`).
   See `docs/analytics.md`. Never add Google Analytics to storefront (app proxy) pages or the embedded admin.
   Unverified: whether the App Store listing passes our UTM tags into its GA events.
-- **Linked stores / multi-store registries (built 17 Nov 2026, not live-tested):**
+- **Linked stores / multi-store registries (built 17 Nov 2026; live run the same day, see `SPIKE-D.md`):**
   `app/models/store-group.server.ts`, migration `20261117150000_linked_stores`,
   Settings → Linked stores, guest page `/apps/registry/g/<registry id>` on
   linked stores. Attribution now accepts an order from the store that SELLS
   the item (`RegistryItem.sourceShopId`), and GDPR/refunds follow
-  `Purchase.shopId`. Run `SPIKE-D.md` on two dev stores before merging.
+  `Purchase.shopId`. Checked live 17 Nov on giftpin-merchant-view + registro-dev:
+  cross-store checkout (#1039) and Shop Pay (#1040), refund, Buy at links,
+  unlink, currency label, registry password. Still open: D9 (a Draft product
+  kept "Buy at"; Draft/Archived now count as sold out, recheck). D11/D12 not
+  run. Shop Pay orders credit the Shop Pay account's name, not the ship-to.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).

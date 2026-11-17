@@ -69,6 +69,13 @@ describe("findVariantsByCode", () => {
 });
 
 describe("fetchVariantStock", () => {
+  it("treats a Draft or Archived product as not for sale, whatever its inventory says", async () => {
+    const v = (n: number, status: string) => ({ id: `gid://shopify/ProductVariant/${n}`, availableForSale: true, product: { status } });
+    const { fn } = graphql({ nodes: [v(1, "DRAFT"), v(2, "ARCHIVED"), v(3, "ACTIVE"), v(4, "UNLISTED")] });
+    const stock = await fetchVariantStock("shop.myshopify.com", [1, 2, 3, 4].map((n) => `gid://shopify/ProductVariant/${n}`), fn);
+    expect([1, 2, 3, 4].map((n) => stock?.get(`gid://shopify/ProductVariant/${n}`))).toEqual([false, false, true, true]);
+  });
+
   it("reads availableForSale per variant", async () => {
     const { fn } = graphql({ nodes: [{ id: "gid://shopify/ProductVariant/1", availableForSale: false }, null] });
     const stock = await fetchVariantStock("shop.myshopify.com", ["gid://shopify/ProductVariant/1", "gid://shopify/ProductVariant/2"], fn);
