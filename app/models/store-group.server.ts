@@ -120,10 +120,12 @@ export function sourceShopIdFor(sellingShopId: string, registryShopId: string): 
 
 /**
  * Whether a registry homed on `homeShop` may take products from another
- * linked store. Multi-store is a Pro feature of the registry's home store.
+ * linked store. Multi-store is a Pro feature, and one Pro store covers its
+ * whole group (Ben, 17 Nov 2026): the home store, or any installed store
+ * linked to it, being on Pro is enough.
  */
-export function canHoldLinkedProducts(homeShop: { plan: string }): boolean {
-  return isPro(homeShop as { plan: "free" | "pro" });
+export function canHoldLinkedProducts(homeShop: { plan: string }, group: { plan: string }[] = []): boolean {
+  return [homeShop, ...group].some((s) => isPro(s as { plan: "free" | "pro" }));
 }
 
 // ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@ import type { GuideCopy, GuideDoc, RawGuideCopy, Step } from "./types";
 import type { Extra } from "./extra";
 import { GUEST_SHOT_ALT, GUEST_SHOT_SRC } from "./guest-shots";
 import { SHOTS } from "./shots";
+import { LINKED_STEPS } from "./linked-stores";
 
 /**
  * Splits one language's original guide copy into the five guides:
@@ -143,6 +144,8 @@ export function derive(raw: RawGuideCopy, x: Extra, locale: Locale): GuideCopy {
     { ...makeS, steps: [mkOcc, mkExt, mkSold, mkLook, moLang, mkPriv] },
     { ...moreS, steps: [moImport, moPanels] },
   ];
-  const proSections = [{ ...proS, steps: [prStart, mkPerks, ...prRest, moFlow] }];
+  // Linked stores: English only until translated (see linked-stores.ts).
+  const linked = locale === "en" ? LINKED_STEPS : [];
+  const proSections = [{ ...proS, steps: [prStart, mkPerks, ...prRest, ...linked, moFlow] }];
   return { ui: raw.ui, setup, customize: sub("c", customizeSections), pro: sub("p", proSections), registry, guest };
 }

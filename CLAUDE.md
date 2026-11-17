@@ -139,6 +139,9 @@ reading Shopify's docs.
   cross-store checkout (#1039) and Shop Pay (#1040), refund, Buy at links,
   unlink, currency label, registry password, sold-out (D9, after Draft and
   Archived were counted as sold out in #186). D11/D12 not run. Shop Pay orders credit the Shop Pay account's name, not the ship-to.
+  One Pro store covers its whole group (Ben, 17 Nov): `canHoldLinkedProducts()`
+  is true when the registry's store or any installed linked store is on Pro.
+  Making a link code still needs Pro on the store that makes it.
 - **`addExternalItem()`'s duplicate-add still silently increments** (by
   design — see Resolved below for why this is different from
   `addInternalItem()`).
