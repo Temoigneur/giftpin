@@ -26,6 +26,12 @@ export const STAT_METRICS = {
   registryLinkCopy: "registry_link_copy",
   /** A registrant opened the QR code for their guest link. */
   registryQrOpen: "registry_qr_open",
+  /**
+   * Linked stores: a guest arrived on this store's copy of a registry from
+   * another linked store's "Buy at <this store>" button. Counted on the
+   * arriving store.
+   */
+  linkedArrival: "linked_arrival",
 } as const;
 
 /**

@@ -216,7 +216,8 @@ function registryPath(registry: { id: string; slug: string; shopId: string }, sh
 
 /** The registry's guest page on another store in its group. Proxy prefix assumed default. */
 function linkedRegistryUrl(store: Pick<LinkedShop, "domain">, registryId: string, itemId?: string): string {
-  return `${absoluteProxyUrl(store.domain, "/apps/registry", `g/${registryId}`)}${itemId ? `#item-${itemId}` : ""}`;
+  // via=1 lets the arriving store count the visit (STAT_METRICS.linkedArrival).
+  return `${absoluteProxyUrl(store.domain, "/apps/registry", `g/${registryId}`, { via: "1" })}${itemId ? `#item-${itemId}` : ""}`;
 }
 
 export async function handleProxyRequest(request: Request): Promise<Response> {
@@ -448,6 +449,8 @@ async function linkedRegistryPage(
       404,
     );
   }
+  // A guest sent here by another linked store's "Buy at" button.
+  if (ctx.query.get("via") === "1") countView(request, shop.id, STAT_METRICS.linkedArrival, registry.id);
   // Its own store has the canonical link.
   if (registry.shopId === shop.id) {
     return redirect(proxyUrl(ctx, `r/${registry.slug}`, Object.fromEntries(ctx.query.has("pw") ? [["pw", ctx.query.get("pw")!]] : [])));

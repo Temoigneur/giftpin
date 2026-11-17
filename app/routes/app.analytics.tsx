@@ -3,6 +3,7 @@ import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isPro, requireShop } from "../models/shop.server";
+import { groupPerformance } from "../models/group-analytics.server";
 import {
   analyticsReport,
   monthlySales,
@@ -25,12 +26,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const range = parseRange(new URL(request.url).searchParams.get("range"));
   const giftCardsSince = new Date(Date.now() - range * 86_400_000);
-  const [report, sales, giftCards] = await Promise.all([
+  const [report, sales, giftCards, group] = await Promise.all([
     analyticsReport(shop.id, range),
     monthlySales(shop.id),
     giftCardSalesSummary(shop.id, giftCardsSince, shop.currency),
+    // Linked stores: every store's registry sales and engagement (null when not linked).
+    groupPerformance(shop.id, range).catch((err) => {
+      console.error("[analytics] linked stores:", (err as Error).message);
+      return null;
+    }),
   ]);
-  return { locked: false as const, report, sales, giftCards, salesCsvUrl: exportUrl(shop.id, "sales") };
+  return { locked: false as const, report, sales, giftCards, group, salesCsvUrl: exportUrl(shop.id, "sales") };
 };
 
 const RANGE_KEYS: Record<number, "admin.an.range30" | "admin.an.range90" | "admin.ov.last12"> = {
@@ -79,7 +85,7 @@ export default function Analytics() {
     );
   }
 
-  const { report, sales, giftCards, salesCsvUrl } = data;
+  const { report, sales, giftCards, group, salesCsvUrl } = data;
   const { totals, previous } = report;
   const internalShare = totals.itemsAdded > 0 ? Math.round((totals.itemsAddedInternal / totals.itemsAdded) * 100) : 0;
   const range = String(report.range);
@@ -113,6 +119,8 @@ export default function Analytics() {
           <Stat label={t("admin.ov.newCustomers")} value={String(totals.newCustomers)} note={change(t, totals.newCustomers, previous.newCustomers)} />
         </s-stack>
       </s-section>
+
+      {group && <GroupSection t={t} group={group} />}
 
       <SalesReport t={t} sales={sales} currency={report.currency} csvUrl={salesCsvUrl} />
 
@@ -251,6 +259,71 @@ function SalesReport({ t, sales, currency, csvUrl }: { t: AdminT; sales: Monthly
             {t("admin.an.csv")}
           </s-button>
         </s-stack>
+      </s-stack>
+    </s-section>
+  );
+}
+
+type GroupData = NonNullable<Extract<ReturnType<typeof useLoaderData<typeof loader>>, { locked: false }>["group"]>;
+
+/** Every linked store side by side. Money stays in each store's own currency, never converted. */
+function GroupSection({ t, group }: { t: AdminT; group: GroupData }) {
+  const sales = group.salesByCurrency.map((c) => money(t, c.amount, c.currency)).join(" · ");
+  const pct = (n: number) => new Intl.NumberFormat(numberLocale(t), { maximumFractionDigits: 1 }).format(n);
+  const times = group.proPaidForItselfTimes;
+  return (
+    <s-section heading={t("admin.an.group.head")}>
+      <s-stack direction="block" gap="base">
+        <s-paragraph>
+          <s-text color="subdued">{t("admin.an.group.sub", { n: group.sinceDays })}</s-text>
+        </s-paragraph>
+        <s-paragraph>
+          <s-text type="strong">
+            {t("admin.an.group.headline", { sales, gifts: group.totals.giftsSold, views: group.totals.registryViews })}
+          </s-text>
+        </s-paragraph>
+        {times !== null && times >= 1 && (
+          <s-banner tone="success">
+            <s-paragraph>{t("admin.an.group.roi", { x: pct(times) })}</s-paragraph>
+          </s-banner>
+        )}
+        <s-table>
+          <s-table-header-row>
+            <s-table-header>{t("admin.an.group.colStore")}</s-table-header>
+            <s-table-header format="currency">{t("admin.an.group.colSales")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colGifts")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colShare")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colViews")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colCart")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colClicks")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colArrivals")}</s-table-header>
+            <s-table-header format="numeric">{t("admin.an.group.colActive")}</s-table-header>
+          </s-table-header-row>
+          <s-table-body>
+            {group.stores.map((s) => (
+              <s-table-row key={s.shopId}>
+                <s-table-cell>
+                  {s.name}
+                  {s.current ? ` (${t("admin.an.group.thisStore")})` : ""}
+                </s-table-cell>
+                <s-table-cell>{money2(t, s.registrySales, s.currency)}</s-table-cell>
+                <s-table-cell>{s.giftsSold}</s-table-cell>
+                <s-table-cell>{s.registrySharePercent === null ? "–" : `${pct(s.registrySharePercent)}%`}</s-table-cell>
+                <s-table-cell>{s.registryViews}</s-table-cell>
+                <s-table-cell>
+                  {s.cartAdds}
+                  {s.cartAddRate !== null ? ` (${pct(s.cartAddRate)}%)` : ""}
+                </s-table-cell>
+                <s-table-cell>{s.outsideClicks}</s-table-cell>
+                <s-table-cell>{s.linkedArrivals}</s-table-cell>
+                <s-table-cell>{s.activeRegistries}</s-table-cell>
+              </s-table-row>
+            ))}
+          </s-table-body>
+        </s-table>
+        <s-paragraph>
+          <s-text color="subdued">{t("admin.an.group.note")}</s-text>
+        </s-paragraph>
       </s-stack>
     </s-section>
   );
