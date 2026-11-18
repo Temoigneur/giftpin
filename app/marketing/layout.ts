@@ -155,6 +155,7 @@ ${(opts.alternates ?? []).map((a) => `<link rel="alternate" hreflang="${esc(a.la
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#eaf3fc">
+<meta name="fo-verify" content="d86da8a0-c470-4bed-9720-3edefc8ae829">
 <link rel="icon" type="image/png" sizes="64x64" href="/brand/giftpin-icon-64.png">
 <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
